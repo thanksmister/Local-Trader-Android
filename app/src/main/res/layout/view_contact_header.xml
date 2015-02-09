@@ -1,0 +1,355 @@
+<!--
+  ~ Copyright (c) 2014. ThanksMister LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/white">
+
+    <FrameLayout
+            android:id="@+id/contactHeaderLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/view_padding_small"
+            android:paddingBottom="@dimen/view_padding_small"
+            android:paddingLeft="8dp"
+            android:paddingRight="16dp"
+            android:background="@color/yellow"
+            android:visibility="gone">
+
+        <TextView
+                style="@style/TextMedium"
+                android:id="@+id/noteTextContact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="left|center"
+                android:layout_gravity="center_vertical"
+                android:drawableLeft="@drawable/ic_action_bulb_dark"
+                android:drawablePadding="4dp"/>
+
+    </FrameLayout>
+
+
+    <TextView
+            android:id="@+id/tradeType"
+            style="@style/TextLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/view_padding_xlarge"
+            android:paddingBottom="@dimen/view_padding_xlarge"
+            android:paddingLeft="@dimen/view_padding_xxlarge"
+            android:paddingRight="@dimen/view_padding_xxlarge"
+            android:gravity="center"
+            android:layout_gravity="center_vertical"
+            tools:text="@string/contact_list_selling_online"/>
+
+    <View
+            style="@style/DividerHorizontal"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:padding="@dimen/activity_padding"
+            android:orientation="vertical">
+
+        <TextView
+                style="@style/TextSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/view_padding_small"
+                android:gravity="left"
+                android:text="Trade With"/>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <TextView
+                    android:id="@+id/traderName"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|center_vertical"
+                    android:layout_gravity="center_vertical"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:layout_weight="0"
+                    tools:text="ThanksMister"/>
+
+            <View
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+
+            <View
+                    android:id="@+id/lastSeenIcon"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_weight="0"
+                    android:background="@drawable/last_seen_recently"
+                    android:layout_gravity="center_vertical"/>
+
+            <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"/>
+
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="right">
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_action_grade"
+                        android:paddingRight="1dp"
+                        android:layout_gravity="center_vertical"/>
+
+                <TextView
+                        android:id="@+id/tradeFeedback"
+                        style="@style/TextMedium.Secondary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="right"
+                        android:layout_gravity="right|center_vertical"
+                        tools:text="100"/>
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="4dp"
+                        android:src="@drawable/ic_chart"
+                        android:layout_gravity="right|center_vertical"/>
+
+                <TextView
+                        android:id="@+id/tradeCount"
+                        style="@style/TextMedium.Secondary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="right"
+                        android:layout_gravity="right|center_vertical"
+                        tools:text="100+"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <View style="@style/DividerHorizontal"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/activity_padding"
+            android:gravity="top">
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/activity_padding"
+                    android:gravity="left"
+                    android:text="Trade Amount"/>
+
+            <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/view_padding_small"/>
+
+            <TextView
+                    android:id="@+id/tradePrice"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    tools:text="7000 ARS"
+                    android:layout_gravity="left"
+                    android:layout_marginLeft="@dimen/activity_padding"
+                    android:singleLine="true"
+                    android:ellipsize="end"/>
+
+            <TextView
+                    android:id="@+id/tradeAmount"
+                    style="@style/TextMedium.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    tools:text="0.58610000 BTC"
+                    android:layout_gravity="left"
+                    android:layout_marginLeft="@dimen/activity_padding"/>
+
+        </LinearLayout>
+
+        <View
+                android:layout_width="4dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0"/>
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    android:layout_marginLeft="@dimen/activity_padding"
+                    android:text="Deal Price"/>
+
+            <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/view_padding_small"/>
+
+            <TextView
+                    android:id="@+id/dealPrice"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/activity_padding"
+                    android:gravity="left"
+                    tools:text="7000 ARS"/>
+
+            <TextView
+                    android:id="@+id/dealAmount"
+                    style="@style/TextMedium.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/activity_padding"
+                    android:gravity="left"
+                    android:text="1.0 BTC"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/view_padding_small"/>
+
+    <LinearLayout
+            android:id="@+id/buttonLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/activity_padding"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+        <Button
+                android:id="@+id/contactButton"
+                style="@style/ButtonGreen.Small"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"/>
+
+    </LinearLayout>
+
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/view_padding_small"/>
+
+    <View style="@style/DividerHorizontal"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/activity_padding"
+            android:paddingRight="@dimen/activity_padding"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+        <TextView
+                style="@style/TextSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/activity_padding"
+                android:gravity="left|center_vertical"
+                android:text="Messages"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/messagesLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_padding"
+            android:orientation="vertical">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                android:orientation="horizontal">
+
+            <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_weight="1">
+
+                <EditText
+                        android:id="@+id/newMessageText"
+                        style="@style/TextMedium.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine"
+                        android:lines="4"
+                        android:minLines="1"
+                        android:gravity="left|center_vertical"
+                        android:theme="@style/CustomAccent"
+                        android:hint="@string/hint_send_message"/>
+
+            </FrameLayout>
+
+            <ImageButton
+                    android:contentDescription="@string/desc"
+                    style="@style/BorderlessButtonStyle"
+                    android:id="@+id/sendMessage"
+                    android:layout_width="48dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right|center"
+                    android:src="@drawable/ic_action_send_dark"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</LinearLayout>
+

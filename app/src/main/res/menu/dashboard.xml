@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
+      tools:context=".MainActivity">
+
+ 
+    <item android:id="@+id/action_search"
+          android:title="@string/menu_action_search"
+          android:icon="@drawable/ic_action_search"
+          thanksmister:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/action_send"
+          android:title="@string/menu_action_send"
+          android:icon="@drawable/ic_action_content_send"
+          thanksmister:showAsAction="ifRoom"/>
+
+    <!--<item android:id="@+id/action_advertise"
+          android:title="@string/menu_action_advertise"
+          android:icon="@drawable/ic_action_news_add"
+          thanksmister:showAsAction="ifRoom"/>-->
+    
+    <item android:id="@+id/action_logout"
+          android:title="@string/menu_action_logout"
+          android:icon="@drawable/ic_action_content_clear"
+          android:orderInCategory="100"
+          thanksmister:showAsAction="never"/>
+</menu>

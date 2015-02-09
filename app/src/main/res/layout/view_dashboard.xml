@@ -1,0 +1,368 @@
+<!--
+  ~ Copyright (c) 2014. ThanksMister LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:fab="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            tools:visibility="visible"
+            android:visibility="visible">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:orientation="vertical"
+                android:background="@color/colorPrimary"
+                android:gravity="center_vertical"
+                android:paddingBottom="6dp"
+                android:layout_alignParentTop="true">
+
+            <TextView
+                    style="@style/TextMedium.SmallAction.White"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    android:layout_marginLeft="72dp"
+                    android:text="MARKET PRICE"/>
+
+            <TextView
+                    android:id="@+id/bitcoinPrice"
+                    style="@style/TextExtraLarge.White.Bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="72dp"
+                    android:gravity="left"/>
+
+            <TextView
+                    android:id="@+id/bitcoinValue"
+                    style="@style/TextSmall.White"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="72dp"
+                    android:gravity="left"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <include
+                    android:id="@android:id/progress"
+                    layout="@layout/view_progress"
+                    android:visibility="visible"
+                    tools:visibility="visible"/>
+
+            <include
+                    android:id="@android:id/empty"
+                    layout="@layout/view_empty"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+
+            <ScrollView
+                    android:id="@+id/dashContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:fillViewport="true"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    <LinearLayout
+                            android:id="@+id/tradesLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            tools:visibility="visible">
+
+                        <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:paddingLeft="@dimen/activity_padding">
+
+                            <TextView
+                                    style="@style/TextMedium.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_vertical"
+                                    android:text="Active Trades"/>
+
+                        </FrameLayout>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                            <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
+
+                                <LinearLayout
+                                        android:id="@+id/emptyTradesLayout"
+                                        style="@style/BorderlessButtonStyle"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+
+                                    <ImageView
+                                            android:id="@android:id/icon"
+                                            android:contentDescription="@string/desc"
+                                            android:layout_width="72dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center"
+                                            android:src="@drawable/ic_communication_messenger"/>
+
+                                    <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:paddingTop="@dimen/activity_padding"
+                                            android:paddingRight="@dimen/activity_padding"
+                                            android:gravity="start|center_vertical"
+                                            android:orientation="vertical">
+
+                                        <TextView
+                                                style="@style/TextLarge"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="No active trades"/>
+
+                                        <TextView
+                                                style="@style/TextMedium.Secondary"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="Click to view past trades"/>
+
+                                        <View
+                                                style="@style/DividerHorizontal"
+                                                android:layout_gravity="bottom"
+                                                android:layout_marginBottom="0dp"
+                                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+                                <com.thanksmister.bitcoin.localtrader.ui.dashboard.LinearListView
+                                        android:id="@+id/contactList"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"/>
+
+                            </FrameLayout>
+
+                            <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/view_padding_small"/>
+
+                            <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="48dp"
+                                    android:paddingLeft="72dp"
+                                    android:paddingRight="@dimen/activity_padding"
+                                    android:gravity="center_vertical|left"
+                                    android:orientation="horizontal"
+                                    android:visibility="visible">
+
+                                <Button
+                                        android:id="@+id/tradesButton"
+                                        style="@style/ButtonGreen.Small"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="36dp"
+                                        android:layout_weight="1"
+                                        android:text="All Trades"/>
+
+                                <View
+                                        android:layout_width="8dp"
+                                        android:layout_height="match_parent"
+                                        android:layout_weight="0"/>
+
+                                <Button
+                                        android:id="@+id/searchButton"
+                                        style="@style/ButtonGreen.Small"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="36dp"
+                                        android:layout_weight="1"
+                                        android:visibility="invisible"
+                                        android:text="Search"/>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/advertisementsLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="visible">
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:paddingLeft="@dimen/activity_padding">
+
+                            <TextView
+                                    style="@style/TextMedium.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_vertical"
+                                    android:text="Advertisements"/>
+
+                        </FrameLayout>
+
+                        <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                    android:id="@+id/emptyAdvertisementsLayout"
+                                    style="@style/BorderlessButtonStyle"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                <ImageView
+                                        android:id="@android:id/icon"
+                                        android:contentDescription="@string/desc"
+                                        android:layout_width="72dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center_vertical"
+                                        android:layout_weight="0"
+                                        android:src="@drawable/ic_action_visibility_off"/>
+
+                                <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:paddingTop="@dimen/activity_padding"
+                                        android:paddingRight="@dimen/activity_padding"
+                                        android:gravity="start|center_vertical"
+                                        android:orientation="vertical"
+                                        tools:visibility="visible">
+
+                                    <TextView
+                                            style="@style/TextLarge"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="No advertisements"/>
+
+                                    <TextView
+                                            style="@style/TextMedium.Secondary"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Click to view all ads"/>
+
+                                    <View
+                                            style="@style/DividerHorizontal"
+                                            android:layout_gravity="bottom"
+                                            android:layout_marginBottom="0dp"
+                                            android:layout_marginTop="@dimen/activity_padding"/>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <com.thanksmister.bitcoin.localtrader.ui.dashboard.LinearListView
+                                    android:id="@+id/advertisementList"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"/>
+
+                        </FrameLayout>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:paddingLeft="72dp"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:gravity="center_vertical|left"
+                                android:orientation="horizontal">
+
+                            <Button
+                                    android:id="@+id/advertisementsButton"
+                                    style="@style/ButtonGreen.Small"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="36dp"
+                                    android:layout_weight="1"
+                                    android:text="Advertise"/>
+
+                            <View
+                                    android:layout_width="8dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="0"/>
+
+                            <Button
+                                    android:id="@+id/advertiseButton"
+                                    style="@style/ButtonGreen.Small"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="36dp"
+                                    android:layout_weight="1"
+                                    android:visibility="invisible"
+                                    android:text="Advertise"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/activity_padding"/>
+
+                </LinearLayout>
+
+            </ScrollView>
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/dashboardFloatingButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_icon="@drawable/ic_action_barcode_dark"
+            fab:fab_size="mini"
+            fab:fab_colorNormal="@color/white"
+            fab:fab_colorPressed="@color/gray_color"
+            android:layout_marginRight="@dimen/activity_padding"
+            android:layout_marginTop="46dp"
+            android:layout_gravity="right"/>
+
+</FrameLayout>

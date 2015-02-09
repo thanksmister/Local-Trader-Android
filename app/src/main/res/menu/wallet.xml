@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
+      tools:context=".MainActivity">
+
+    
+    <item android:id="@+id/action_copy"
+          android:title="@string/menu_action_copy"
+          android:icon="@drawable/ic_action_content_copy"
+          thanksmister:showAsAction="always"/>
+
+    <item android:id="@+id/action_share"
+          android:title="@string/menu_action_share"
+          android:icon="@drawable/ic_action_social_share"
+          thanksmister:showAsAction="always"/>
+    
+    <item android:id="@+id/action_blockchain"
+          android:title="@string/menu_action_blockchain"
+          android:icon="@drawable/ic_action_block_chain"
+          thanksmister:showAsAction="never"/>
+
+    <item android:id="@+id/action_address"
+          android:title="@string/menu_action_address"
+          android:icon="@drawable/ic_action_account_balance_wallet"
+          thanksmister:showAsAction="never"
+          android:visible="false"/>
+</menu>

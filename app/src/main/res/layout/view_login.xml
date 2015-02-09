@@ -1,0 +1,21 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context="com.thanksmister.bitcoin.localtrader.ui.login.LoginActivity">
+    
+    <include android:id="@android:id/progress" 
+             layout="@layout/view_progress"
+             android:visibility="visible"/>
+
+    <include android:id="@android:id/empty" 
+             layout="@layout/view_empty" 
+             android:visibility="gone"/>
+    
+    <WebView
+            android:id="@+id/webview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
+
+</FrameLayout>

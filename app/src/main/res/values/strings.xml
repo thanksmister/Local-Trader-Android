@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Local Trader</string>
+
+    <string name="title_section1">Wallet</string>
+    <string name="title_section2">Dashboard</string>
+    <string name="title_section3">Search</string>
+
+    
+
+
+    <string name="desc">""</string>
+    <string name="btc">BTC</string>
+    <string name="unequal">≠</string>
+    <string name="approximate">≈</string>
+    <string name="btc_symbol">฿</string>
+    <string name="change_symbol">⇅</string>
+    <string name="transfer_symbol">⇋</string>
+    <string name="percent_symbol">%</string>
+    <string name="plus_symbol">+</string>
+    <string name="right_arrow_symbol">→</string>
+    <string name="double_tilda_symbol">≈</string>
+    <string name="about_btc">(1 BTC)</string>
+    <string name="usd">USD</string>
+
+    <!-- ERRORS & WARNINGS -->
+    <string name="toast_warning_no_location">Couldn\'t determine current location, using last known…</string>
+    <string name="warning_no_location_active">Location services are required to use the search function, please enable location services to continue.</string>
+    <string name="warning_no_google_play_services">Google Play Services are required to use the search function, please install the services to continue.</string>
+    <string name="warning_no_location_services_title">Location Services</string>
+    <string name="warning_no_google_play_services_title">Google Play Services</string>
+    <string name="error_generic_server_down">Temporarily unable to load data.</string>
+    <string name="error_resource_not_found">Resource not found on server.</string>
+    <string name="error_server_time_out">Call to the service timed out</string>
+    <string name="error_no_internet">Weak or no internet connection</string>
+    <string name="error_login">There was a login error. The error has been reported.</string>
+    <string name="error_generic_error">An unknown error has occurred with the service.</string>
+    <string name="error_generic_permission">You do not have permission to access this feature.</string>
+    <string name="error_authentication">Authentication error</string>
+    <string name="error_data">There was an error with the data sent.</string>
+
+    <!-- DRAWER -->
+    <array name="drawer_items">
+        <item>@string/view_title_dashboard</item>
+        <item>@string/view_title_buy_sell</item>
+        <item>@string/view_title_request</item>
+        <item>@string/view_title_wallet</item>
+        <item>@string/view_title_about</item>
+    </array>
+
+    <string name="view_title_advertisements">Advertisements</string>
+    <string name="view_title_search">Buy / Sell Bitcoins</string>
+    <string name="view_title_account">Transactions</string>
+    <string name="view_title_trades">Trades</string>
+    <string name="view_title_dashboard">Dashboard</string>
+    <string name="view_title_wallet">My Wallet</string>
+    <string name="view_title_buy_sell">Buy / Sell Bitcoin</string>
+    <string name="view_title_search_results">Search Results</string>
+    <string name="view_title_request">Send / Request</string>
+    <string name="view_title_transactions">Transactions</string>
+    <string name="view_title_about">About</string>
+    <string name="view_title_login">Login</string>
+    <string name="view_title_settings">Settings</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <!-- BUTTONS & MENUS -->
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">CANCEL</string>
+    <string name="button_save">Save</string>
+    <string name="button_order">Order</string>
+    <string name="button_edit">Edit</string>
+    <string name="button_reload">Reload</string>
+    <string name="button_dispute">Dispute</string>
+    <string name="button_release">Release</string>
+    <string name="button_fund">Fund</string>
+    <string name="button_complete">Mark Complete</string>
+    <string name="button_mark_paid">Mark Paid</string>
+    <string name="button_profile">Profile</string>
+    <string name="button_share">SHARE</string>
+    <string name="button_view">Online</string>
+    <string name="button_yes">Yes</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_enable">Enable</string>
+    <string name="button_install">Install</string>
+    <string name="time_seconds">seconds</string>
+    <string name="time_minutes">minutes</string>
+    <string name="time_minute">minute</string>
+    <string name="menu_action_paste">Paste</string>
+    <string name="menu_action_save">Save</string>
+    <string name="menu_action_publish">Publish</string>
+    <string name="menu_action_filter">Filter</string>
+    <string name="menu_action_map">View map</string>
+    <string name="menu_action_visibility">Visibility</string>
+    <string name="menu_action_scan">Scan</string>
+    <string name="menu_action_send">Send</string>
+    <string name="menu_action_copy">COPY</string>
+    <string name="menu_action_delete">Delete</string>
+    <string name="menu_action_edit">Edit</string>
+    <string name="menu_action_web">View online</string>
+    <string name="menu_action_share">Share</string>
+    <string name="menu_action_search">Search</string>
+    <string name="menu_action_wallet">Wallet</string>
+    <string name="menu_action_advertisement">Advertisement</string>
+    <string name="menu_action_advertise">Advertise</string>
+    <string name="menu_action_profile">Profile</string>
+    <string name="menu_action_cancel">Cancel</string>
+    <string name="menu_action_dispute">Dispute</string>
+    <string name="menu_action_blockchain">View Blockchain</string>
+    <string name="menu_action_logout">Log out</string>
+    <string name="menu_action_address">New Address</string>
+
+    <string-array name="list_tab_types">
+        <item>@string/tab_section1</item>
+        <item>@string/tab_section2</item>
+        <item>@string/tab_section3</item>
+    </string-array>
+
+    <string name="tab_section1">DASHBOARD</string>
+    <string name="tab_section2">SEARCH</string>
+    <string name="tab_section3">WALLET</string>
+
+    <!-- TITLES -->
+    <string name="title_trade">Search Trades</string>
+    <string name="title_account">Transactions</string>
+    <string name="title_user">User</string>
+    <string name="title_address">Address</string>
+    <string name="title_activity">Activity</string>
+    <string name="title_ars_usdb">ARS/USDB</string>
+    <string name="title_ars_usd">ARS/USD</string>
+    <string name="title_ars_btc">ARS/BTC</string>
+    <string name="title_usd_btc">USD/BTC</string>
+    <string name="date_updated_text">UPDATED: </string>
+    <string name="sales_negative"><![CDATA[<font color="#8d8d8d">%1$s</font> (<font color="#a34835">-%2$s</font>)]]></string>
+    <string name="sales_positive"><![CDATA[<font color="#8d8d8d">%1$s</font> (<font color="#6f9e2f">+%2$s</font>)]]></string>
+    <string name="official_text_usd">OFFICIAL: %1$s ARS/USD</string>
+    <string name="official_text_btc">OFFICIAL: %1$s ARS/BTC</string>
+    <string name="buy">BUY</string>
+    <string name="sell">SELL</string>
+    <string name="ars_amount">ARS AMOUNT</string>
+    <string name="ars">ARS</string>
+    <string name="fees">FEES</string>
+    <string name="commission">COMMISSION</string>
+    <string name="percent">  %  </string>
+    <string name="usd_amount">USD AMOUNT</string>
+    <string name="your_price">SALE PRICE</string>
+    <string name="btc_amount">BTC AMOUNT</string>
+    <string name="button_reset">RESET</string>
+    <string name="date_updated">UPDATED </string>
+    <string name="toast_data_fresh">Data appears fresh...</string>
+    <string name="data_provided_by"><![CDATA[Data provided by <a href="http://bluelytics.com.ar">Bluelytics</a> and <a href=" https://bitcoinaverage.com">BitcoinAverage</a>]]></string>
+    <string name="text_saved_to_clipboard"> saved to clipboard!</string>
+    <string name="text_receipt_hint">Receipt name</string>
+
+    <!-- LOGIN/REGISTER -->
+
+    <string-array name="login_registration_titles">
+        <item>@string/login_register_title0</item>
+        <item>@string/login_register_title2</item>
+        <item>@string/login_register_title1</item>
+        <item>@string/login_register_title3</item>
+        <item>@string/login_register_title4</item>
+        <item>@string/login_register_title5</item>
+    </string-array>
+    <string-array name="login_registration_screens">
+        <item>@string/login_register_screen0</item>
+        <item>@string/login_register_screen2</item>
+        <item>@string/login_register_screen1</item>
+        <item>@string/login_register_screen3</item>
+        <item>@string/login_register_screen4</item>
+        <item>@string/login_register_screen5</item>
+    </string-array>
+
+    <string name="login_register_title0">@string/app_name</string>
+    <string name="login_register_title1">Wallet</string>
+    <string name="login_register_title2">Search</string>
+    <string name="login_register_title4">Advertise</string>
+    <string name="login_register_title3">Trade</string>
+    <string name="login_register_title5">LocalBitcoins</string>
+    <string name="login_register_screen0">Send, receive, trade, or advertise.</string>
+    <string name="login_register_screen1">Send and request bitcoin from friends or merchants from a secure wallet.</string>
+    <string name="login_register_screen2">Search for online or local bitcoin buyers and sellers in your area.</string>
+    <string name="login_register_screen3">Manage your active trades including sending and receiving messages.</string>
+    <string name="login_register_screen4">Create your own advertisements to buy and sell bitcoins locally or online.</string>
+    <string name="login_register_screen5">Register now or use your existing LocalBitcoins account.</string>
+
+    <!-- TRADES -->
+    <string name="contact_info_initiated_descriptive"><![CDATA[<b>What\'s next?</b> You should contact the seller to arrange a time and place to meet.]]></string>
+    <string name="message_trade_request_success"><![CDATA[<b>Congratulations!</b> Your trade request has been sent!.<br><br><b>What\'s next?</b> You should contact the seller to arrange a time and place to meet.<br><br>Check this trade page for updates and messages.<br>]]></string>
+    <string name="contact_release_confirm">Are you sure you want to release this trade?</string>
+    <string name="contact_fund_confirm">Are you sure you want to fund this trade?</string>
+    <string name="contact_dispute_confirm">Are you sure you want to dispute this trade?</string>
+    <string name="contact_paid_confirm">Are you sure you want to mark this trade as paid?</string>
+    <string name="contact_complete_confirm">Are you sure you want to mark this trade as complete?  This does not release or fund the Bitcoin. That is currently not supported by the LocalBitcoins API for Local Sell trades.</string>
+    <string name="escrow_delete_confirm">Do you want to permanently delete this trade?</string>
+    <string name="escrow_dispute_confirm">Do you want to dispute this trade?</string>
+    <string name="contact_cancel_confirm">Do you want to cancel this trade?</string>
+    <string name="contact_list_text"><![CDATA[%1$s for <font color="#67932c">%2$s</font> with %3$s]]></string>
+    <string name="contact_list_selling_online"><![CDATA[Selling online for <b>%1$s</b> using <b>%2$s</b> initiated on %3$s]]></string>
+    <string name="contact_list_selling_locally"><![CDATA[Selling locally for <b>%1$s</b> initiated on %2$s]]></string>
+    <string name="contact_list_buying_online"><![CDATA[Buying online for <b>%1$s</b> using <b>%2$s</b> initiated on %3$s]]></string>
+    <string name="contact_list_buying_locally"><![CDATA[Buying locally for <b>%1$s</b> initiated on %2$s]]></string>
+    <string name="contact_list_short"><![CDATA[%1$s for <font color="#67932c">%2$s</font>]]></string>
+    <string name="contact_list_detail_text"><![CDATA[%1$s - %2$s]]></string>
+    <string name="trade_description_text"><![CDATA[%1$s]]></string>
+    <string name="trade_title_text">%1$s bitcoins %2$s with %3$s in %24$s</string>
+    <string name="trade_title_short_text_locally">%1$s bitcoins locally with %2$s</string>
+    <string name="trade_title_short_text_online">%1$s bitcoins online using %2$s</string>
+    <string name="trade_request_title">Enter %1$s or BTC amount</string>
+    <string name="trade_request_limit">MIN %1$s - MAX %2$s %3$s</string>
+    <string name="trade_request_sent_message"><![CDATA[Your trade request has been sent to %1$s!]]></string>
+    <string name="contact_info_initiated_seller_descriptive"><![CDATA[<b>What\'s next?</b> You should contact the seller to arrange a time and place to meet.]]></string>
+    <string name="contact_info_initiated_buyer_descriptive"><![CDATA[<b>What\'s next?</b> You should contact the buyer to arrange a time and place to meet.]]></string>
+    <string name="contact_info_mark_paid_descriptive"><![CDATA[<b>What\'s next?</b> When you pay the seller, mark the trade as paid.]]></string>
+    <string name="contact_info_complete_descriptive"><![CDATA[<b>Congratulations!</b> The trade is complete, the bitcoins are in your wallet.]]></string>
+    <string name="contact_info_not_funded_descriptive"><![CDATA[<b>What\'s next?</b> The trade hasn\'t been funded yet. You seller should fund the trade.]]></string>
+    <string name="contact_info_funded_descriptive"><![CDATA[The seller has funded the transaction. Now you can meet and finalize the deal.]]></string>
+    <string name="contact_info_canceled_descriptive"><![CDATA[<b>Trade canceled.</b> This trade was canceled by you or the seller. It may be deleted.]]></string>
+    <string name="order_description_local"><![CDATA[LocalBitcoins does not provide a way to fund, cancel, or release local trades.]]></string>
+    <string name="order_description_funded_online">This trade has been funded and can be released.</string>
+    <string name="order_description_not_funded_local">This trade has not yet been funded. The seller should fund the trade.</string>
+    <string name="order_description_not_funded_local_no_action"><![CDATA[LocalBitcoins does not provide a way to fund local trades. Please fund the trade <a href="http://localbitcoins.com">online</a>.]]></string>
+    <string name="order_description_funded_local">This trade has been funded. Now you can meet to make the exchange.</string>
+    <string name="order_description_funded_local_no_action"><![CDATA[LocalBitcoins does not provide a way to release local trades. Please release the <a href="http://localbitcoins.com">online</a>.]]></string>
+    <string name="order_description_paid">This trade has been marked as paid and is awaiting the release of funds.</string>
+    <string name="order_description_online_paid">This trade has been funded and marked as paid. When you spot the online payment you can release the funds.</string>
+    <string name="order_description_mark_paid">This trade has been initiated but not yet marked paid, you should mark it as paid.</string>
+    <string name="order_description_online_mark_paid">This trade has been funded automatically from your account but not yet marked paid by the buyer.</string>
+    <string name="order_description_disputed">This trade has been disputed but can still be released.</string>
+    <string name="order_description_released">This trade has been released and is complete.</string>
+    <string name="order_description_cancel">This trade has either timed out or been canceled.</string>
+    <string name="order_description_cancel_local">This trade has been canceled.</string>
+    <string name="order_description_no_funds">To fund the transaction, send at least ฿%1$s to your wallet.</string>
+    <string name="order_disclaimer">Trade amount does not include the 1% LocalBitcoins fees charged for using their service.</string>
+    <string name="trade_released_toast_text">Trade released!</string>
+    <string name="trade_canceled_toast_text">Trade canceled!</string>
+    <string name="trade_paid_toast_text">Trade marked as paid!</string>
+    <string name="toast_message_sent">Message sent!</string>
+    <string name="message_clipboard_title">Message</string>
+    <string name="message_copied_toast">Message copied to clipboard!</string>
+    <string name="message_copied_attachment_toast">Message copied to clipboard and downloading attachment!</string>
+
+    <string-array name="list_trade_spinner">
+        <item>@string/list_trade_filter1</item>
+        <item>@string/list_trade_filter2</item>
+        <item>@string/list_trade_filter3</item>
+        <item>@string/list_trade_filter4</item>
+    </string-array>
+
+    <string name="list_trade_filter1">Active Trades</string>
+    <string name="list_trade_filter2">Released Trades</string>
+    <string name="list_trade_filter3">Canceled Trades</string>
+    <string name="list_trade_filter4">Closed Trades</string>
+
+    <!-- ADVERTISEMENTS -->
+    <string name="advertisement_list_text_local"><![CDATA[%1$s for <font color="#67932c">%2$s</font> in %3$s]]></string>
+    <string name="advertisement_list_text_online"><![CDATA[%1$s for <font color="#67932c">%2$s</font> using %3$s in %4$s]]></string>
+    <string name="advertisement_invisible_warning">This advertisement is not currently running, update the visibility from the menu.</string>
+    <string name="price_equation_edit_description">Price equation is derived by combining the bitcoin market price, currency, and margin value. For more complex pricing edit price equation directly. See localbitcoins.com/guides/equation-howto/</string>
+    <string name="price_equation_edit_description_short">The price equation calculates your trade prices continuously as market prices change. Use the editor to modify the equation.</string>
+    <string name="max_description_edit_text">Set the maximum limit for one trade. For online sales, your balance may limit the maximum funds available.</string>
+    <string name="min_description_edit_text">Set the minimum limit for one trade. </string>
+    <string name="ad_status_edit_description">Deselect to make your advertisement inactive.</string>
+    <string name="edit_options_disclaimer">Edit options are limited by the those currently available from the LocalBitcoins API (localbitcoins.com/api-docs)</string>
+    <string name="advertisement_track_liquidity">Decreases max request amount as trades are filled to match remaining balance.</string>
+    <string name="advertisement_sms_verified">Only contacts with a verified mobile phone number can contact you.</string>
+    <string name="advertisement_trusted_only">Advertisement becomes trusted only. See more localbitcoins.com/faq#trusted_users</string>
+    <string name="advertisement_payment_details">If necessary, please provide details how to transfer money. This is either bank account number for wire transfers or user account for money transfer websites.</string>
+    <string name="advertisement_location">For online trade you need to specify the country. For local trade, please specify a city, postal code or street name.</string>
+    <string name="advertisement_bank">Bank/payment provider name/code. For international wire transfers, please specify bank SWIFT / BIC code</string>
+    <string name="advertisement_payment_method">Each payment method has an associated risk level. See risk assessments online at localbitcoins.com/guides/how-to-sell-bitcoins-online#risk-level.</string>
+    <string name="advertisement_notes_text_online"><![CDATA[%1$s for <b>%2$s</b> using <b>%3$s</b> in <b>%4$s</b>]]></string>
+    <string name="advertisement_notes_text_locally"><![CDATA[%1$s for <b>%2$s</b> near <b>%3$s</b>]]></string>
+    <string name="advertisement_edit_margin_description">A margin is used in price equation to add or subtract additional value from market price. Use a negative margin to set below market.</string>
+    <string name="advertisement_delete_confirm">Do you want to permanently delete this advertisement?</string>
+
+    <string-array name="list_advertisement_spinner">
+        <item>@string/list_ad_filter1</item>
+        <item>@string/list_ad_filter2</item>
+        <item>@string/list_ad_filter3</item>
+    </string-array>
+
+    <string name="list_ad_filter1">All Advertisements</string>
+    <string name="list_ad_filter2">Active Advertisements</string>
+    <string name="list_ad_filter3">Inactive Advertisements</string>
+
+    <string-array name="list_advertisement_type_spinner">
+        <item>@string/ad_sell_locally</item>
+        <item>@string/ad_buy_locally</item>
+        <item>@string/ad_sell_online</item>
+        <item>@string/ad_buy_online</item>
+    </string-array>
+
+    <string name="ad_sell_locally">Sell bitcoins locally</string>
+    <string name="ad_buy_locally">Buy bitcoins locally</string>
+    <string name="ad_sell_online"> Sell bitcoins online</string>
+    <string name="ad_buy_online">Buy bitcoins online</string>
+
+    <!-- TRANSACTIONS -->
+    <string name="transaction_sent_description"><![CDATA[You sent bitcoin to external address <a href="%1$s">%2$s</a>]]></string>
+    <string name="transaction_received_description"><![CDATA[Bitcoin deposit from address <a href="%1$s">%2$s</a>]]></string>
+    <string name="transaction_fee_description"><![CDATA[Service fee charged]]></string>
+    <string name="transaction_contact_sent"><![CDATA[%1$s]]></string>
+    <string name="transaction_contact_received"><![CDATA[%1$s]]></string>
+    <string name="transaction_affiliate"><![CDATA[%1$s]]></string>
+    <string name="transaction_internal"><![CDATA[Internal transaction to <a href="%1$s">%2$s</a>]]></string>
+    <string name="transaction_sent_btc_amount"><![CDATA[<font color="#c33e29">%1$s</font>]]></string>
+    <string name="transaction_received_btc_amount"><![CDATA[<font color="#6f9e2f">%1$s</font>]]></string>
+
+    <!-- WALLET -->
+    <string name="wallet_address_clipboard_title">Wallet Address</string>
+    <string name="bitcoin_request_clipboard_title">Bitcoin Request</string>
+    <string name="qr_code_dialog_header">Scan, share, or copy the code.</string>
+    <string name="wallet_address_copied_toast">Address copied to clipboard!</string>
+    <string name="bitcoin_request_copied_toast">Request link copied to clipboard!</string>
+
+    <!-- SEND/RECEIVE -->
+    <string name="send_header_text">Enter amount and bitcoin address</string>
+    <string name="receive_header_text">Enter the amount to request (can be blank)</string>
+    <string name="hint_bitcoin_address">Bitcoin address</string>
+    <string name="form_balance_label">Available balance</string>
+    <string name="form_value_label">Value (Bitstamp)</string>
+    <string name="button_qr_code">QR Code</string>
+    <string name="progress_generating_code">Generating code...</string>
+    <string name="hint_amount">0.00</string>
+    <string name="hint_bitcoin">0.00000000</string>
+
+    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s USD</font>]]></string>
+    <string name="form_balance_positive"><![CDATA[<font color="#ff67932c">%1$s BTC / %2$s USD</font>]]></string>
+
+    <string name="pin_code_send"><![CDATA[A PIN code is required to send Bitcoin from your wallet or release trades. PIN code info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
+    <string name="pin_code_description_text"><![CDATA[Enter your PIN code to release this trade:]]></string>
+    <string name="pin_code_description_address_text"><![CDATA[Sending <b>%1$s BTC (≈ %2$s USD)</b> to address <b>%3$s<b>]]></string>
+    <string name="pin_code_description_text_short">Enter PIN code to confirm.</string>
+    <string name="pin_code_set"><![CDATA[A PIN code is required to release trades. Set a PIN code at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
+
+    <string name="toast_error_transaction_incomplete">An error has occurred, bitcoins not sent.</string>
+    <string name="toast_transaction_success">Bitcoins sent!</string>
+    <string name="progress_sending_transaction">Sending bitcoins...</string>
+    <string name="toast_pin_code_canceled">PIN code canceled</string>
+    <string name="toast_pin_code_invalid">PIN code invalid</string>
+
+    <string-array name="list_transaction_types">
+        <item>@string/spinner_section1</item>
+        <item>@string/spinner_section2</item>
+    </string-array>
+
+    <string name="spinner_section1">Send Bitcoins</string>
+    <string name="spinner_section2">Request Bitcoins</string>
+
+    <!-- TOASTS -->
+    <string name="toast_invalid_btc_amount">Invalid bitcoin amount.</string>
+    <string name="toast_amount_greater_than_zero">The amount should be greater than zero.</string>
+    <string name="toast_invalid_address">Not a valid bitcoin address.</string>
+    <string name="toast_invalid_amount">Not a valid bitcoin amount.</string>
+    <string name="toast_clipboard_empty">The contents of the clipboard are empty.</string>
+    <string name="toast_clipboard_pasted">Clipboard contents pasted!</string>
+    <string name="toast_error_message">Error sending message.</string>
+    <string name="title_activity_code">CodeActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- Search -->
+    <string name="trade_feedback_trades_text"><![CDATA[Feedback: %1$s&#37; Trades: %2$s]]></string>
+    <string name="trade_trades_text"><![CDATA[Trades: %1$s]]></string>
+    <string name="trade_feedback_text"><![CDATA[%1$s]]></string>
+    <string name="trade_distance"><![CDATA[%1$s km]]></string>
+    <string name="trade_limit"><![CDATA[%1$s - %2$s %3$s]]></string>
+    <string name="trade_limit_short"><![CDATA[%1$s - %2$s]]></string>
+    <string name="trade_limit_min"><![CDATA[At least %1$s %2$s]]></string>
+    <string name="trade_price"><![CDATA[%1$s %2$s]]></string>
+
+    <string-array name="list_types_spinner">
+        <item>@string/spinner_buy</item>
+        <item>@string/spinner_sell</item>
+    </string-array>
+    <string-array name="list_location_spinner">
+        <item>@string/spinner_local</item>
+        <item>@string/spinner_online</item>
+    </string-array>
+    <string-array name="sms_number_list">
+        <item>+79021113669</item>
+        <item>+442033222117</item>
+        <item>+16466994674</item>
+        <item>+447937947654</item>
+        <item>+43676800505463</item>
+        <item>+61448835313</item>
+        <item>+15813330250</item>
+        <item>+85264504921</item>
+        <item>+46769436195</item>
+    </string-array>
+
+    <string name="spinner_buy">Buy Bitcoins</string>
+    <string name="spinner_sell">Sell Bitcoins</string>
+    <string name="spinner_local">Local Traders</string>
+    <string name="spinner_online">Online Traders</string>
+    <string name="search_local_sellers">local sellers</string>
+    <string name="search_local_buyers">local buyers</string>
+    <string name="search_online_sellers">online sellers</string>
+    <string name="search_online_buyers">online buyers</string>
+    <string name="search_local_sellers_header">Local Sellers</string>
+    <string name="search_local_buyers_header">Local Buyers</string>
+    <string name="search_online_sellers_header">Online Sellers</string>
+    <string name="search_online_buyers_header">Online Buyers</string>
+    <string name="advertiser_notes_text_online"><![CDATA[This trader wishes to %1$s bitcoins online for <b>%2$s</b> using <b>%3$s</b>]]></string>
+    <string name="advertiser_notes_text_locally"><![CDATA[This trader wishes to %1$s bitcoins locally for <b>%2$s</b> near <b>%3$s</b>]]></string>
+
+    <!-- SCANNING -->
+    <string name="toast_scan_canceled">Scan canceled!</string>
+    <string name="price_equation_description">Price Equation takes the exchange price, converts it a local currency, and adds or subtracts the margin. Use a negative margin to advertise below market price.</string>
+    <string name="hint_send_message">Send a message</string>
+    <string name="sms_release_info">Enter the release code from the online trade page and select the number to release the trade using SMS.</string>
+    <string name="button_send">SEND</string>
+    <string name="error_missing_address_amount">Enter address and amount.</string>
+    <string name="warning_no_multiple_account_supports">This application does not support multiple accounts.</string>
+    <string name="title_activity_notification">NotificationActivity</string>
+    
+    <!-- ABOUT -->
+
+    <string name="version_name">Version %1$s</string>
+    <string name="about_contributors">Copyright 2014, %1$s</string>
+    <string name="about_title">About %1$s</string>
+    <string name="thanks_mister_title">Thanks, Mister!</string>
+    <string name="designer_developer_text">Design and development</string>
+    <string name="company_url_text">thanksmister.com</string>
+
+    <string name="mail_to_subject_text">Local Trader Feedback</string>
+    <string name="mail_subject_text">Send Feedback:</string>
+        <string name="license"><![CDATA[
+        <br><b>Copyright 2015 ThanksMister LLC</b><br>
+        <br>
+        This application contains open source libraries under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+        <br>
+        <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
+        <br>
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+    ]]></string>
+  
+</resources>
