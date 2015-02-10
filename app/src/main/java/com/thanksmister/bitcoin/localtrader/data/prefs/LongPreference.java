@@ -48,11 +48,11 @@ public class LongPreference
 
     public void set(long value)
     {
-        preferences.edit().putLong(key, value).apply();
+        preferences.edit().putLong(key, value).commit();
     }
 
     public void delete()
     {
-        preferences.edit().remove(key).apply();
+        preferences.edit().remove(key).commit();
     }
 }

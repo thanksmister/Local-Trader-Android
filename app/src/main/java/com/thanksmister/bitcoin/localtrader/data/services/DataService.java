@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
+import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 
@@ -74,6 +75,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import nl.qbusict.cupboard.ProviderCompartment;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import rx.Observable;
@@ -125,8 +127,9 @@ public class DataService
     PublishSubject<List<Contact>> contactsPublishSubject;
     PublishSubject<Object> contactActionPublishSubject;
     PublishSubject<List<Currency>> currencyRequest;
-    PublishSubject<User> authorizationRequest;
-
+    PublishSubject<Authorization> authorizationRequest;
+    PublishSubject<User> myselfRequest;
+    
     PublishSubject<String> pinCodePublishSubject;
     PublishSubject<String> sendMoneyPublishSubject;
    
@@ -264,8 +267,6 @@ public class DataService
 
             @Override
             public void onError(Throwable e){
-                if(e != null)
-                    Timber.e("Dashboard error: " + e);
             }
 
             @Override
@@ -345,8 +346,7 @@ public class DataService
 
             @Override
             public void onError(Throwable e){
-                if (e != null)
-                    Timber.e("Accounts Dashboard error: " + e);
+                Timber.e("Accounts Dashboard error: " + e);
             }
 
             @Override
@@ -943,6 +943,7 @@ public class DataService
     private List<Method> setPaymentMethods(List<Method> methods, String countryName, String countryCode)
     {
         Timber.d("Adding ALL");
+        
         Method method = new Method();
         method.code = "ALL";
         method.name = ("All in " + countryName);
@@ -963,17 +964,19 @@ public class DataService
             return Observable.just(Parser.parseMethods(MockData.METHODS));
         }
 
+        if(paymentMethods != null)
+            return Observable.just(paymentMethods);
+
         if(methods != null)
             return Observable.just(methods);
 
         return localBitcoins.getOnlineProviders()
                 .map(new ResponseToMethod())
-                .doOnNext(new Action1<List<Method>>() {
+                .flatMap(new Func1<List<Method>, Observable<List<Method>>>() {
                     @Override
-                    public void call(List<Method> results)
-                    {
+                    public Observable<List<Method>> call(List<Method> results) {
                         methods = results;
-                        // TODO combine methods
+                        return  Observable.just(methods);
                     }
                 })
                 .subscribeOn(Schedulers.newThread())
@@ -1429,11 +1432,13 @@ public class DataService
 
     public boolean isLoggedIn()
     {
-        synchronized (this) {
-            IntPreference preference = new IntPreference(sharedPreferences, PREFS_LOGGED_IN);
-            int loggedIn = preference.get();
-            return (loggedIn > 0);
-        }
+        /*IntPreference preference = new IntPreference(sharedPreferences, PREFS_LOGGED_IN);
+        int loggedIn = preference.get();
+        Timber.e("Preference: " + loggedIn);
+        return (loggedIn > 0);*/
+        
+        Authorization authorization = getAuthorization();
+        return (authorization != null);
     }
     
     public void logOut()
@@ -1450,38 +1455,78 @@ public class DataService
         deleteAuthorization();
     }
 
-    public Subscription getAuthorization(final Observer<User> observer, String code)
+    public Subscription getAuthorization(final Observer<Authorization> observer, String code)
     {
         if(authorizationRequest != null) {
             return authorizationRequest.subscribe(observer);
         }
 
         authorizationRequest = PublishSubject.create();
-        authorizationRequest.subscribe(new EndObserver<User>() {
+        authorizationRequest.subscribe(new Observer<Authorization>() {
             @Override
-            public void onEnd() {
+            public void onCompleted()
+            {
                 authorizationRequest = null;
             }
 
             @Override
-            public void onNext(User user) {
-                StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER);
-                stringPreference.set(user.username);
+            public void onError(Throwable e)
+            {
+                //Timber.e("Error: " + e.toString());
+                authorizationRequest = null;
+            }
+
+            @Override
+            public void onNext(Authorization authorization) {
+                Timber.d("Access Token: " + authorization.access_token);
+                Timber.d("Refresh Token: " + authorization.refresh_token);
+                Timber.d("Expires: " + authorization.expires_in);
+                
+                saveAuthorization(authorization);
             }
         });
 
         Subscription subscription = authorizationRequest.subscribe(observer);
         getAuthorizationObservable(code)
-                .flatMap(authorization -> {
-                    Timber.d("Access Token: " + authorization.access_token);
-                    Timber.d("Refresh Token: " + authorization.refresh_token);
-                    Timber.d("Expires: " + authorization.expires_in);
-                    saveAuthorization(authorization);
-                    return getMyselfObserver(authorization.access_token);
-                })
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(authorizationRequest);
+
+        return subscription;
+    }
+
+    public Subscription getMyself(final Observer<User> observer, String token)
+    {
+        if(myselfRequest != null) {
+            return myselfRequest.subscribe(observer);
+        }
+
+        myselfRequest = PublishSubject.create();
+        myselfRequest.subscribe(new Observer<User>() {
+            @Override
+            public void onCompleted() {
+                myselfRequest = null;
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Timber.e("Error: " + e.toString());
+                myselfRequest = null;
+            }
+
+            @Override
+            public void onNext(User user) {
+                Timber.d("User: " + user.username);
+                StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER);
+                stringPreference.set(user.username);
+            }
+        });
+
+        Subscription subscription = myselfRequest.subscribe(observer);
+        getMyselfObserver(token)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(myselfRequest);
 
         return subscription;
     }
@@ -1527,32 +1572,38 @@ public class DataService
                 });
     }
 
-    private void saveAuthorization(Authorization authorization)
+    private void saveAuthorization(final Authorization authorization)
     {
         Timber.e("Save Authorization: " + authorization.access_token);
 
-        // remove old tokens
-        Authorization oldToken = getAuthorization();
-        if(oldToken != null) {
-            cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, oldToken);
+        synchronized (this) {
+    
+            ContentValues values = new ContentValues(1);
+            values.put("access_token", authorization.access_token);
+            values.put("refresh_token", authorization.refresh_token);
+            values.put("expires_in", authorization.expires_in);
+            
+            Authorization oldAuth = getAuthorization();
+            if(oldAuth != null) {
+                // save to cupboard
+                String id = String.valueOf(oldAuth._id);
+                application.getContentResolver().update(CupboardProvider.TOKEN_URI, values, "_id =", new String[] { id });
+                //cupboard().withContext(application).update(CupboardProvider.TOKEN_URI, values);
+            } else {
+                cupboard().withContext(application).put(CupboardProvider.TOKEN_URI, authorization);
+            }
         }
-
-        // save to cupboard
-        cupboard().withContext(application.getApplicationContext()).put(CupboardProvider.TOKEN_URI, authorization);
-
-        // save quick reference in shared preferences
-        IntPreference preference = new IntPreference(sharedPreferences, PREFS_LOGGED_IN);
-        preference.set(1);
     }
     
     private void deleteAuthorization()
     {
-        List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
-        if (list != null && list.size() > 0) {
-            Authorization authorization = list.get(0);
-            //Uri uri = ContentUris.withAppendedId(CupboardProvider.TOKEN_URI, authorization._id);
-            cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, authorization);
-            Timber.e("Delete Authorization");
+        synchronized (this) {
+            List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
+            if (list != null && list.size() > 0) {
+                Authorization authorization = list.get(0);
+                //Uri uri = ContentUris.withAppendedId(CupboardProvider.TOKEN_URI, authorization._id);
+                cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, authorization);
+            }
         }
     }
 
@@ -1569,14 +1620,15 @@ public class DataService
 
     private Authorization getAuthorization()
     {
-        List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
-        if (list != null && list.size() > 0) {
-            Authorization authorization = list.get(0);
-            setTokenExpire(authorization.expires_in);
-            return authorization;
-        }
+        synchronized (this) {
+            List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();   
+            if (list != null && list.size() > 0) {
+                Authorization authorization = list.get(0);
+                //setTokenExpire(authorization.expires_in);
+                return authorization;
+            }
 
-        Timber.d("getAuthorization: " + null);
-        return null;
+            return null;
+        }
     }
 }

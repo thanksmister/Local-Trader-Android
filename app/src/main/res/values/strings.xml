@@ -30,14 +30,15 @@
     <string name="warning_no_google_play_services">Google Play Services are required to use the search function, please install the services to continue.</string>
     <string name="warning_no_location_services_title">Location Services</string>
     <string name="warning_no_google_play_services_title">Google Play Services</string>
-    <string name="error_generic_server_down">Temporarily unable to load data.</string>
+    <string name="error_generic_server_down">Service temporarily down or unreachable.</string>
     <string name="error_resource_not_found">Resource not found on server.</string>
     <string name="error_server_time_out">Call to the service timed out</string>
     <string name="error_no_internet">Weak or no internet connection</string>
     <string name="error_login">There was a login error. The error has been reported.</string>
-    <string name="error_generic_error">An unknown error has occurred with the service.</string>
+    <string name="error_generic_error">The service is unreachable, no network.</string>
+    <string name="error_service_error">The service produced an unexpected error.</string>
     <string name="error_generic_permission">You do not have permission to access this feature.</string>
-    <string name="error_authentication">Authentication error</string>
+    <string name="error_authentication">Authentication error, you are no longer authorized.</string>
     <string name="error_data">There was an error with the data sent.</string>
 
     <!-- DRAWER -->
@@ -181,7 +182,7 @@
     <string name="login_register_screen0">Send, receive, trade, or advertise.</string>
     <string name="login_register_screen1">Send and request bitcoin from friends or merchants from a secure wallet.</string>
     <string name="login_register_screen2">Search for online or local bitcoin buyers and sellers in your area.</string>
-    <string name="login_register_screen3">Manage your active trades including sending and receiving messages.</string>
+    <string name="login_register_screen3">Manage your active trades including messages and attachments.</string>
     <string name="login_register_screen4">Create your own advertisements to buy and sell bitcoins locally or online.</string>
     <string name="login_register_screen5">Register now or use your existing LocalBitcoins account.</string>
 
@@ -203,7 +204,6 @@
     <string name="contact_list_buying_locally"><![CDATA[Buying locally for <b>%1$s</b> initiated on %2$s]]></string>
     <string name="contact_list_short"><![CDATA[%1$s for <font color="#67932c">%2$s</font>]]></string>
     <string name="contact_list_detail_text"><![CDATA[%1$s - %2$s]]></string>
-    <string name="trade_description_text"><![CDATA[%1$s]]></string>
     <string name="trade_title_text">%1$s bitcoins %2$s with %3$s in %24$s</string>
     <string name="trade_title_short_text_locally">%1$s bitcoins locally with %2$s</string>
     <string name="trade_title_short_text_online">%1$s bitcoins online using %2$s</string>
@@ -405,6 +405,7 @@
     <string name="search_online_buyers_header">Online Buyers</string>
     <string name="advertiser_notes_text_online"><![CDATA[This trader wishes to %1$s bitcoins online for <b>%2$s</b> using <b>%3$s</b>]]></string>
     <string name="advertiser_notes_text_locally"><![CDATA[This trader wishes to %1$s bitcoins locally for <b>%2$s</b> near <b>%3$s</b>]]></string>
+    <string name="advertiser_notes_text_atm"><![CDATA[This is a local ATM for <b>%1$s</b> near <b>%2$s</b>]]></string>
 
     <!-- SCANNING -->
     <string name="toast_scan_canceled">Scan canceled!</string>
@@ -442,5 +443,6 @@
         See the License for the specific language governing permissions and
         limitations under the License.
     ]]></string>
-  
+    <string name="error_no_play_services">No Google Play Services</string>
+
 </resources>

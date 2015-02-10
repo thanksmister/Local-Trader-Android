@@ -760,6 +760,11 @@ public class Parser
 
             item.ad_id = (data.getString("ad_id"));
             item.created_at = (data.getString("created_at"));
+            
+            if (data.has("atm_model") && !data.isNull("atm_model")) {
+                String atm = (data.getString("atm_model"));
+            }
+
             item.visible = (data.getBoolean("visible"));
             item.price = ((data.getString("temp_price")));
             item.email = (data.getString("email"));
@@ -770,7 +775,8 @@ public class Parser
             String trade_type = data.getString("trade_type");
             item.trade_type = (TradeType.valueOf(trade_type));
             item.online_provider = (data.getString("online_provider"));
-            if (data.has("price_equation")) item.price_equation = (data.getString("price_equation"));
+            if (data.has("price_equation"))
+                item.price_equation = (data.getString("price_equation"));
 
             if (data.has("track_max_amount")) item.track_max_amount = (data.getBoolean("track_max_amount"));
             if (data.has("trusted_required")) item.trusted_required = (data.getBoolean("trusted_required"));
@@ -788,25 +794,24 @@ public class Parser
             }
 
             if (data.has("msg") && !data.isNull("msg")) {
-                item.msg = (data.getString("msg"));
+                String message = (data.getString("msg"));
+                message = message.replace("\n", "").replace("\r", "<br>");
+                item.msg = message;
+                
+                Timber.d("Message: " + message);
             }
 
             if (data.has("min_amount") && !data.isNull("min_amount")) {
                 String min_amount = data.getString("min_amount");
                 String min[] = min_amount.split(".");
                 item.min_amount = ((min.length > 0) ? min[0] : data.getString("min_amount"));
-            } else {
-                item.min_amount = ("0");
-            }
+            } 
 
             if (data.has("max_amount") && !data.isNull("max_amount")) {
                 String max_amount = data.getString("max_amount");
                 String max[] = max_amount.split(".");
-                item.max_amount = ((max.length > 0) ? max[0] : data.getString("max_amount"));
-            } else {
-                item.max_amount = ("0");
-            }
-
+                    item.max_amount = ((max.length > 0) ? max[0] : data.getString("max_amount"));
+            } 
             if (data.has("max_amount_available") && !data.isNull("max_amount_available")) {
                 item.max_amount_available = data.getString("max_amount_available");
             }

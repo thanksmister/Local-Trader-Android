@@ -296,7 +296,7 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
         priceEquation.setText(advertisement.price_equation);
 
         if(advertisement.msg != null && !advertisement.msg.isEmpty()){
-            tradeTerms.setText(getString(R.string.trade_description_text, advertisement.msg.trim()));
+            tradeTerms.setText(Html.fromHtml(advertisement.msg.trim()));
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
         }
 

@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
@@ -50,25 +51,53 @@ public class LoginPresenterImpl implements LoginPresenter
     @Override
     public void setAuthorizationCode(final String code)
     {
-        subscription = service.getAuthorization(new Observer<User>() {
+        Timber.d("setAuthorizationCode");
+        subscription = service.getAuthorization(new Observer<Authorization>() {
             @Override
             public void onCompleted() {
+                Timber.d("onCompleted");
                 view.hideProgress();
             }
 
             @Override
             public void onError(Throwable e) {
-                Timber.e(e.getMessage());
-                view.showError(e.getMessage());
+                
+                if(e != null) {
+                    Timber.d("onError");
+                    Timber.d(e.getMessage());
+                    //view.showError("Login error");
+                }
+            }
+
+            @Override
+            public void onNext(Authorization authorization) {
+                Timber.d("onNext");
+                getUser(authorization.access_token);
+            }
+        }, code);
+    }
+    
+    public void getUser(String token)
+    {
+        subscription = service.getMyself(new Observer<User>() {
+            @Override
+            public void onCompleted() {
+                Timber.d("onCompleted");
+                view.hideProgress();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                    view.showError("Login error");
             }
 
             @Override
             public void onNext(User user) {
-                view.hideProgress();
+                Timber.d("onNext: " + user.username);
                 Toast.makeText(getView().getContext(), "Login successful for " + user.username, Toast.LENGTH_SHORT).show();
                 view.showMain();
             }
-        }, code);
+        }, token);
     }
     
     private LoginView getView()

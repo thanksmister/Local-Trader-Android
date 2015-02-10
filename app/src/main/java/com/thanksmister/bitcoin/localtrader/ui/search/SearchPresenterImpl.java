@@ -54,6 +54,12 @@ public class SearchPresenterImpl implements SearchPresenter
     @Override
     public void resume()
     {
+        if(address != null) {
+            getView().setAddress(address);
+            getView().hideProgress();
+        } else {
+            startLocationCheck();
+        }
     }
 
     @Override
@@ -102,7 +108,8 @@ public class SearchPresenterImpl implements SearchPresenter
             @Override
             public void onNext(List<Address> addresses) {
                 if (!addresses.isEmpty()) {
-                    address = addresses.get(0);
+                    address = addresses.get(0); // save address locally
+                    
                     getView().setAddress(address);
                     getPaymentMethods(address.getCountryName(), address.getCountryCode()); // get payment methods
                 }
@@ -117,6 +124,7 @@ public class SearchPresenterImpl implements SearchPresenter
             missingGooglePlayServices();
             return;
         }
+        
         if (hasLocationServices()) {
             service.start();
             subscription = service.subscribeToLocation(new Observer<Location>() {
@@ -161,7 +169,7 @@ public class SearchPresenterImpl implements SearchPresenter
             }
 
             @Override
-            public void onNext(List<Method> results){
+            public void onNext(List<Method> results) {
                 getView().setMethods(results);
                 getView().hideProgress();
             }
@@ -223,9 +231,9 @@ public class SearchPresenterImpl implements SearchPresenter
 
     public void createAlert(String title, String message, final boolean googlePlay)
     {
-        getView().showError("No Google Play Services");
+        getView().showError(getContext().getString(R.string.error_no_play_services));
         int positiveButton = (googlePlay)?R.string.button_install:R.string.button_enable;
-        Context context = getView().getContext();
+        
         ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getView().getContext().getString(positiveButton), getView().getContext().getString(R.string.button_cancel), new Action0() {
             @Override
             public void call() {
@@ -237,7 +245,7 @@ public class SearchPresenterImpl implements SearchPresenter
             }
         });
 
-        ((BaseActivity) context).showConfirmationDialog(event);
+        ((BaseActivity) getContext()).showConfirmationDialog(event);
     }
 
     private void openLocationServices()
@@ -259,6 +267,11 @@ public class SearchPresenterImpl implements SearchPresenter
     private void missingGooglePlayServices()
     {
         createAlert(getView().getContext().getString(R.string.warning_no_google_play_services_title), getView().getContext().getString(R.string.warning_no_google_play_services), true);
+    }
+
+    private Context getContext()
+    {
+        return getView().getContext();
     }
 
     private SearchView getView()      

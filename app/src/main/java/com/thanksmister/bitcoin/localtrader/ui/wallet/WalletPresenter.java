@@ -13,10 +13,6 @@ public interface WalletPresenter
 
     void scanQrCode();
 
-    void showRequestScreen();
-
-    void showSendScreen();
-
     void setAddressOnClipboard();
 
     void viewBlockChain();
@@ -24,6 +20,4 @@ public interface WalletPresenter
     void shareAddress();
 
     void newWalletAddress();
-
-    void getWallet();
 }

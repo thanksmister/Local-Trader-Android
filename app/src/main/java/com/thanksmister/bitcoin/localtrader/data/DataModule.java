@@ -57,7 +57,7 @@ public final class DataModule
     SharedPreferences provideSharedPreferences(BaseApplication app)
     {
         // TODO change this for new app
-        return app.getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
+        return app.getSharedPreferences("com.thanksmister.localtrader", MODE_PRIVATE);
     }
 
     @Provides

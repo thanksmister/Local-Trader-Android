@@ -1,4 +1,4 @@
-package com.thanksmister.bitcoin.localtrader.ui.about;
+package com.thanksmister.bitcoin.localtrader.ui.promo;
 
 /**
  * Author: Michael Ritchie
@@ -19,28 +19,28 @@ import dagger.Provides;
  * ever exist inside of that activity.
  */
 @Module(
-        injects = {AboutFragment.class},
+        injects = {PromoActivity.class},
         addsTo = ApplicationModule.class
 )
-public class AboutModule
+public class PromoModule
 {
-    private AboutView view;
+    private PromoView view;
 
-    public AboutModule(AboutView view) 
+    public PromoModule(PromoView view) 
     {
         this.view = view;
     }
 
     @Provides 
     @Singleton 
-    public AboutView provideView() 
+    public PromoView provideView() 
     {
         return view;
     }
 
     @Provides @Singleton
-    public AboutPresenter providePresenter(AboutView view) 
+    public PromoPresenter providePresenter(PromoView view) 
     {
-        return new AboutPresenterImpl(view);
+        return new PromoPresenterImpl(view);
     }
 }

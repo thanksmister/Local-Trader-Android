@@ -1,20 +1,23 @@
 package com.thanksmister.bitcoin.localtrader.ui.dashboard;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.widget.Toast;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Dashboard;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
-import com.thanksmister.bitcoin.localtrader.events.ProgressEvent;
-import com.thanksmister.bitcoin.localtrader.events.ScannerEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisement.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contact.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
@@ -36,24 +39,38 @@ import timber.log.Timber;
  */
 public class DashboardPresenterImpl implements DashboardPresenter
 {
+    private static final int CHECK_DATA = 5*60*1000;// 5 minutes
+    
     private DashboardView view;
     private Bus bus;
     private DataService service;
     private Subscription subscription;
+    private Dashboard dashboard;
+    private List<Method> methods;
+    private Boolean network = true;
 
     public DashboardPresenterImpl(DashboardView view, DataService service, Bus bus) 
     {
         this.view = view;
         this.service = service;
         this.bus = bus;
+        methods = new ArrayList<Method>();
     }
 
     @Override
     public void onResume()
     {
         bus.register(this);
-        
+
         getData();
+        
+        /*if(dashboard == null) {
+            getData();
+        } else {
+            getView().setDashboard(dashboard, methods);
+            getView().hideProgress();
+            startCheck();
+        }*/
     }
 
     @Override
@@ -63,12 +80,13 @@ public class DashboardPresenterImpl implements DashboardPresenter
             subscription.unsubscribe();
  
         bus.unregister(this);
+        
+        cancelCheck();
     }
 
     @Override
     public void scanQrCode()
     {
-        //bus.post(ScannerEvent.SCAN);
         ((BaseActivity) getView().getContext()).launchScanner();
     }
 
@@ -83,8 +101,6 @@ public class DashboardPresenterImpl implements DashboardPresenter
     @Override
     public void showAdvertisement(Advertisement advertisement)
     {
-        //Method method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
-        //Intent intent = new Intent(application, AdvertisementActivity.class);
         Intent intent = AdvertisementActivity.createStartIntent(getView().getContext(), advertisement.ad_id);
         intent.setClass(getView().getContext(), AdvertisementActivity.class);
         getView().getContext().startActivity(intent);
@@ -92,31 +108,53 @@ public class DashboardPresenterImpl implements DashboardPresenter
 
     private void getData()
     {
-        subscription = service.getDashboardInfo(new Observer<Dashboard>() {
+        subscription = service.getDashboardInfo(new Observer<Dashboard>()
+        {
             @Override
-            public void onCompleted(){
+            public void onCompleted()
+            {
+                startCheck();
             }
 
             @Override
-            public void onError(Throwable throwable) {
-                if (DataServiceUtils.isHttp403Error(throwable)) {
+            public void onError(Throwable throwable)
+            {
+                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                Timber.e("Error: " + retroError.getMessage());
+                Timber.e("Code: " + retroError.getCode());
+                if (retroError.isAuthenticationError()) {
                     logOut();
+                } else if (!network) {
+                    if(dashboard == null) { // if we have data leave it just show toast
+                        getView().showError(getContext().getString(R.string.error_no_internet));
+                    } else {
+                        Toast.makeText(getContext(), getContext().getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show();
+                    }     
                 } else {
-                    getView().showError(throwable.getMessage());
+                    getView().showError(retroError.getMessage());
                 }
+
+                startCheck();
             }
 
             @Override
-            public void onNext(Dashboard dashboard) {
-                getOnlineProviders(dashboard);
+            public void onNext(Dashboard results)
+            {
+                dashboard = results;
+                if (methods != null) {
+                    getView().setDashboard(dashboard, methods);
+                    getView().hideProgress();
+                } else {
+                    getOnlineProviders(dashboard);
+                }
             }
         });
     }
 
     public void getOnlineProviders(final Dashboard dashboard)
     {
-        Observable<List<Method>> methods = service.getOnlineProviders();
-        subscription = methods.subscribe(new Observer<List<Method>>() {
+        Observable<List<Method>> observable = service.getOnlineProviders();
+        subscription = observable.subscribe(new Observer<List<Method>>() {
             @Override
             public void onCompleted() {
                 getView().hideProgress();
@@ -125,11 +163,13 @@ public class DashboardPresenterImpl implements DashboardPresenter
             @Override
             public void onError(Throwable e) {
                 Timber.e("Error getting providers!");
-                getView().setDashboard(dashboard, new ArrayList<Method>());
+                methods = new ArrayList<Method>();
+                getView().setDashboard(dashboard, methods);
             }
 
             @Override
-            public void onNext(List<Method> methods) {
+            public void onNext(List<Method> results) {
+                methods = results;
                 getView().setDashboard(dashboard, methods);
             }
         });
@@ -138,8 +178,7 @@ public class DashboardPresenterImpl implements DashboardPresenter
     @Override
     public void logOut()
     {
-        service.logOut();
-        bus.post(ProgressEvent.LOGIN);
+        ((BaseActivity) getContext()).logOutConfirmation();
     }
 
     @Override
@@ -170,6 +209,11 @@ public class DashboardPresenterImpl implements DashboardPresenter
         getView().getContext().startActivity(intent);
     }
 
+    private Context getContext()
+    {
+        return getView().getContext();
+    }
+
     private DashboardView getView() 
     {
         return view;
@@ -178,11 +222,35 @@ public class DashboardPresenterImpl implements DashboardPresenter
     @Subscribe
     public void onNetworkEvent(NetworkEvent event)
     {
-        //Timber.d("onNetworkEvent: " + event.name());
-        if(event == NetworkEvent.DISCONNECTED) {
-            //cancelCheck(); // stop checking we have no network
-        } else  {
-            //startCheck();
+        Timber.d("onNetworkEvent: " + event.name());
+        network = (event == NetworkEvent.CONNECTED);
+    }
+
+    private Handler delayHandler;
+
+    private void startCheck()
+    {
+        cancelCheck();
+        /*Timber.d("startCheck");
+        if(delayHandler == null) {
+            delayHandler = new Handler();
+            delayHandler.postDelayed(doRunnable, CHECK_DATA);
+        }*/
+    }
+
+    private void cancelCheck()
+    {
+        Timber.d("cancelCheck");
+        if(delayHandler != null) {
+            delayHandler.removeCallbacks(doRunnable);
+            delayHandler = null;
         }
     }
+
+    Runnable doRunnable = new Runnable() {
+        @Override
+        public void run(){
+            getData();
+        }
+    };
 }

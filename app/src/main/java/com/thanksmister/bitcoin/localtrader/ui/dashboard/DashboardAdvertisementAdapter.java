@@ -65,14 +65,18 @@ public class DashboardAdvertisementAdapter extends AdvertisementAdapter
         String location = advertisement.location;
 
         if(advertisement.trade_type == TradeType.LOCAL_SELL || advertisement.trade_type == TradeType.LOCAL_BUY) {
-            //holder.tradeType.setText(Html.fromHtml(context.getString(R.string.advertisement_list_text_local, type, price, location)));
-            holder.advertisementType.setText(type + " " + price);
-            holder.advertisementDetails.setText("In " + location);
+            
+            if(advertisement.isATM()) {
+                holder.advertisementType.setText("ATM");
+            } else {
+                holder.advertisementType.setText(type + " " + price);
+                holder.advertisementDetails.setText("In " + location);
+            }
+            
         } else {
             String bank = advertisement.bank_name;
             holder.advertisementType.setText(type + " " + price);
             holder.advertisementDetails.setText("With " +  bank + " in " + advertisement.city);
-            //holder.tradeType.setText(Html.fromHtml(context.getString(R.string.advertisement_list_text_online, type, price, bank, location)));
         }
 
         if (advertisement.visible) {

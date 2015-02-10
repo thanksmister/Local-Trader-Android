@@ -16,21 +16,27 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.about;
 
-import android.content.ActivityNotFoundException;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
+import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,17 +44,15 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
 import timber.log.Timber;
 
-public class AboutActivity extends BaseActivity implements AboutView
+public class AboutFragment extends BaseFragment implements AboutView
 {
+    private static final String ARG_SECTION_NUMBER = "section_number";
+    
     @Inject
     AboutPresenter presenter;
-
-    @InjectView(R.id.aboutBar)
-    Toolbar toolbar;
 
     @OnClick(R.id.sendFeedbackButton)
     public void sendButtonClicked()
@@ -80,35 +84,68 @@ public class AboutActivity extends BaseActivity implements AboutView
         showLicense();
     }
 
-    public static Intent createStartIntent(Context context)
+    public static AboutFragment newInstance(int sectionNumber)
     {
-        Intent intent = new Intent(context, AboutActivity.class);
-        return intent;
+        AboutFragment fragment = new AboutFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public AboutFragment()
+    {
+        // Required empty public constructor
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) 
+    public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
-        setContentView(R.layout.view_about);
+    }
 
-        ButterKnife.inject(this);
+    @Override
+    public void onAttach(Activity activity)
+    {
+        super.onAttach(activity);
 
-        if(toolbar != null) {
-            setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(getString(R.string.app_name));
-            setToolBarMenu(toolbar);
-        }
+        ((MainActivity) activity).onSectionAttached(getArguments().getInt(ARG_SECTION_NUMBER));
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        View fragmentView = inflater.inflate(R.layout.view_about, container, false);
+
+        ButterKnife.inject(this, fragmentView);
+
+        return fragmentView;
+    }
+
+    @Override
+    public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState)
+    {
+        super.onViewCreated(fragmentView, savedInstanceState);
 
         try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            TextView versionName = (TextView) findViewById(R.id.versionName);
+            PackageInfo packageInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+            TextView versionName = (TextView) getActivity().findViewById(R.id.versionName);
             versionName.setText(" v" + packageInfo.versionName);
         } catch (PackageManager.NameNotFoundException e) {
             Timber.e(e.getMessage());
         }
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public Context getContext()
+    {
+        return getActivity();
     }
 
     @Override
@@ -133,35 +170,6 @@ public class AboutActivity extends BaseActivity implements AboutView
     protected List<Object> getModules()
     {
         return Arrays.<Object>asList(new AboutModule(this));
-    }
-
-    /*@Override
-    public void startActivity(Intent intent) 
-    {
-        try {
-        *//* First attempt at fixing an HTC broken by evil Apple patents. *//*
-            if (intent.getComponent() != null
-                    && ".HtcLinkifyDispatcherActivity".equals(intent.getComponent().getShortClassName()))
-                intent.setComponent(null);
-            super.startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-        *//*
-         * Probably an HTC broken by evil Apple patents. This is not perfect,
-         * but better than crashing the whole application.
-         *//*
-            super.startActivity(Intent.createChooser(intent, null));
-        }
-    }*/
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     protected void rate()
@@ -209,7 +217,7 @@ public class AboutActivity extends BaseActivity implements AboutView
 
     protected void showLicense()
     {
-        showAlertDialog(new AlertDialogEvent("License", getString(R.string.license)));
+        ((BaseActivity) getActivity()).showAlertDialog(new AlertDialogEvent("License", getString(R.string.license)));
     }
 
     @Override
@@ -221,11 +229,5 @@ public class AboutActivity extends BaseActivity implements AboutView
                 return false;
             }
         });
-    }
-
-    @Override
-    public Context getContext()
-    {
-        return this;
     }
 }

@@ -48,11 +48,11 @@ public class BooleanPreference
 
     public void set(boolean value)
     {
-        preferences.edit().putBoolean(key, value).apply();
+        preferences.edit().putBoolean(key, value).commit();
     }
 
     public void delete()
     {
-        preferences.edit().remove(key).apply();
+        preferences.edit().remove(key).commit();
     }
 }

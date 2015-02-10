@@ -55,7 +55,12 @@ public class WalletPresenterImpl implements WalletPresenter
     @Override
     public void onResume()
     {
- 
+        if(wallet == null) {
+            getWallet();
+        } else {
+            getView().setWallet(wallet);
+            getView().hideProgress();
+        }
     }
 
     @Override
@@ -68,20 +73,7 @@ public class WalletPresenterImpl implements WalletPresenter
     @Override
     public void scanQrCode()
     {
-        //bus.post(ScannerEvent.SCAN);
         ((BaseActivity) getView().getContext()).launchScanner();
-    }
-
-    @Override
-    public void showRequestScreen()
-    {
-        
-    }
-
-    @Override
-    public void showSendScreen()
-    {
-
     }
 
     @Override
@@ -137,10 +129,9 @@ public class WalletPresenterImpl implements WalletPresenter
     @Override
     public void newWalletAddress()
     {
-        // TODO implement
+        // TODO implement new wallet address request
     }
 
-    @Override
     public void getWallet()
     {
         subscription = dataService.getWallet(new Observer<Wallet>() {
@@ -151,15 +142,13 @@ public class WalletPresenterImpl implements WalletPresenter
 
             @Override
             public void onError(Throwable e) {
-                if(DataServiceUtils.isHttp403Error(e) ) {
-                    bus.post(ProgressEvent.LOGIN);
+                RetroError retroError = DataServiceUtils.convertRetroError(e, getView().getContext());
+                if(retroError.isAuthenticationError()) {
+                    Toast.makeText(getContext(), retroError.getMessage(), Toast.LENGTH_SHORT).show();
+                    ((BaseActivity) getContext()).logOut();
                 } else {
-                    bus.post(ProgressEvent.ERROR);
+                    getView().showError(retroError.getMessage());
                 }
-
-                // TODO show error screen and handle error types
-                Timber.d("Error: " + e.getMessage());
-                view.hideProgress();
             }
 
             @Override
@@ -168,6 +157,11 @@ public class WalletPresenterImpl implements WalletPresenter
                 view.setWallet(wallet);
             }
         });
+    }
+
+    private Context getContext()
+    {
+        return getView().getContext();
     }
     
     private WalletView getView()

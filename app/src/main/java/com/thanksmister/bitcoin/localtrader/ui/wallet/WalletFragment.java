@@ -42,6 +42,12 @@ public class WalletFragment extends BaseFragment implements WalletView
 
     @InjectView(android.R.id.progress)
     View progress;
+
+    @InjectView(android.R.id.empty)
+    View empty;
+
+    @InjectView(R.id.emptyTextView)
+    TextView emptyTextView;
     
     @InjectView(android.R.id.list)
     ListView list;
@@ -58,16 +64,12 @@ public class WalletFragment extends BaseFragment implements WalletView
     @InjectView(R.id.bitcoinValue)
     TextView bitcoinValue;
 
-    Button requestButton;
-    Button sendButton;
 
     @OnClick(R.id.walletFloatingButton)
     public void scanButtonClicked()
     {
         presenter.scanQrCode();
     }
-
-    private View recentActivityHeader;
 
     private TransactionsAdapter transactionsAdapter;
     private Wallet wallet;
@@ -116,17 +118,6 @@ public class WalletFragment extends BaseFragment implements WalletView
         View headerView = getLayoutInflater(savedInstanceState).inflate(R.layout.view_wallet_header, null, false);
         list.addHeaderView(headerView, null, false);
 
-        recentActivityHeader = headerView.findViewById(R.id.recentActivityHeader);
-
-        requestButton = (Button) headerView.findViewById(R.id.requestButton);
-        requestButton.setOnClickListener(view -> {
-            presenter.showRequestScreen();
-        });
-        sendButton = (Button) headerView.findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(view -> {
-            presenter.showSendScreen();
-        });
-
         qrImage = (ImageView) headerView.findViewById(R.id.codeImage);
         qrImage.setOnClickListener(view -> {
             presenter.setAddressOnClipboard();
@@ -139,8 +130,6 @@ public class WalletFragment extends BaseFragment implements WalletView
 
         transactionsAdapter = new TransactionsAdapter(getActivity());
         setAdapter(transactionsAdapter);
-
-        presenter.getWallet();
     }
 
     @Override
@@ -184,7 +173,6 @@ public class WalletFragment extends BaseFragment implements WalletView
         return getActivity();
     }
 
-
     @Override
     public void onAttach(Activity activity)
     {
@@ -224,6 +212,15 @@ public class WalletFragment extends BaseFragment implements WalletView
     {
         progress.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void showError(String message)
+    {
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        empty.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
     }
 
     @Override

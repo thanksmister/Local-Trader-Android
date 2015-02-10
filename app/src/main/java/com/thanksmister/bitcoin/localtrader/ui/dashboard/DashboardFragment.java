@@ -41,10 +41,7 @@ import timber.log.Timber;
  */
 public class DashboardFragment extends BaseFragment implements DashboardView
 {
-    /**
-     * The fragment argument representing the section number for this
-     * fragment.
-     */
+    public static final String EXTRA_METHODS = "com.thanksmister.extras.EXTRA_METHODS";
     private static final String ARG_SECTION_NUMBER = "section_number";
 
     @Inject

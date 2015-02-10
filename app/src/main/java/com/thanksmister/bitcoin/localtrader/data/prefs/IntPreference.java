@@ -48,11 +48,11 @@ public class IntPreference
 
     public void set(int value)
     {
-        preferences.edit().putInt(key, value).apply();
+        preferences.edit().putInt(key, value).commit();
     }
 
     public void delete()
     {
-        preferences.edit().remove(key).apply();
+        preferences.edit().remove(key).commit();
     }
 }

@@ -44,10 +44,10 @@ public class StringPreference
     }
 
     public void set(String value) {
-        preferences.edit().putString(key, value).apply();
+        preferences.edit().putString(key, value).commit();
     }
 
     public void delete() {
-        preferences.edit().remove(key).apply();
+        preferences.edit().remove(key).commit();
     }
 }

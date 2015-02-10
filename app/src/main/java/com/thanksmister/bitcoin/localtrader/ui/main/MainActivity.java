@@ -20,10 +20,10 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
-import com.thanksmister.bitcoin.localtrader.ui.about.AboutActivity;
+import com.thanksmister.bitcoin.localtrader.ui.about.AboutFragment;
 import com.thanksmister.bitcoin.localtrader.ui.contact.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.dashboard.DashboardFragment;
-import com.thanksmister.bitcoin.localtrader.ui.login.LoginActivity;
+import com.thanksmister.bitcoin.localtrader.ui.promo.PromoActivity;
 import com.thanksmister.bitcoin.localtrader.ui.request.RequestFragment;
 import com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment;
 import com.thanksmister.bitcoin.localtrader.ui.wallet.WalletFragment;
@@ -46,7 +46,6 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     private static final String ABOUT_FRAGMENT = "com.thanksmister.fragment.ACCOUNT_FRAGMENT";
     private static final String SEND_RECEIVE_FRAGMENT = "com.thanksmister.fragment.SEND_RECEIVE_FRAGMENT";
     private static final String SEARCH_FRAGMENT = "com.thanksmister.fragment.SEARCH_FRAGMENT";
-    private static final String ADVERTISEMENT_FRAGMENT = "com.thanksmister.fragment.ADVERTISEMENT_FRAGMENT";
     private static final String WALLET_FRAGMENT = "com.thanksmister.fragment.WALLET_FRAGMENT";
     
     public static String EXTRA_CONTACT = "extra_contact";
@@ -63,7 +62,7 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
+    private NavigationDrawerFragment navigationDrawerFragment;
 
     @Inject 
     MainPresenter presenter;
@@ -111,11 +110,9 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
 
         String bitcoinUri = getIntent().getStringExtra(BITCOIN_URI);
         if(bitcoinUri != null) {
-            Timber.d("Bitcoin URI: " + bitcoinUri);
             handleBitcoinUri(bitcoinUri);
         }
 
-        // TODO manual set toolbar for each activity or fragment
         toolbar = (Toolbar) findViewById(R.id.toolbar_actionbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -126,12 +123,15 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
         if(service.isLoggedIn()) {
 
             // Set up the drawer.
-            mNavigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-            mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
+            navigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+            navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
             
             Timber.d("User Logged In!");
             SyncUtils.CreateSyncAccount(getApplicationContext());
             SyncUtils.TriggerRefresh(getApplicationContext());
+        } else {
+            Timber.d("User NOT Logged In!");
+            SyncUtils.ClearSyncAccount(getApplicationContext());
         }
     }
 
@@ -139,8 +139,6 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     public void onPause()
     {
         super.onPause();
-
-        //bus.unregister(this);
     }
 
     @Override
@@ -148,11 +146,9 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
 
         super.onResume();
 
-       // bus.register(this);
-
         if(((Object) this).getClass().isAnnotationPresent(RequiresAuthentication.class)) {
             if(!service.isLoggedIn()) {
-                Intent intent = new Intent(this, LoginActivity.class);
+                Intent intent = new Intent(this, PromoActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
@@ -175,7 +171,6 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, SearchFragment.newInstance(position), SEARCH_FRAGMENT)
                         .commit();
-
             } else if (position == DRAWER_SEND) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, RequestFragment.newInstance(position, RequestFragment.WalletTransactionType.SEND), SEND_RECEIVE_FRAGMENT)
@@ -185,37 +180,15 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
                         .replace(R.id.content_frame, DashboardFragment.newInstance(position), DASHBOARD_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_ABOUT) {
-                Intent intent = AboutActivity.createStartIntent(this);
-                startActivity(intent);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, AboutFragment.newInstance(position), ABOUT_FRAGMENT)
+                        .commit();
             }
 
             onSectionAttached(position);
         }
     }
-    
-    /*private void startWalletFragment()
-    {       
-            clearActionBar();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, WalletFragment.newInstance(DRAWER_WALLET), WALLET_FRAGMENT)
-                    .commit();
-    }*/
-    
-    @Subscribe
-    public void onNavigateEvent (NavigateEvent event)
-    {
-        if(event == NavigateEvent.SEND) {
-            //onNavigationDrawerItemSelected(DRAWER_SEND);
-            mNavigationDrawerFragment.selectItem(DRAWER_SEND);
-        } else if (event == NavigateEvent.SEARCH) {
-            //onNavigationDrawerItemSelected(DRAWER_SEARCH);
-            mNavigationDrawerFragment.selectItem(DRAWER_SEARCH);
-        } else if (event == NavigateEvent.WALLET) {
-            //onNavigationDrawerItemSelected(DRAWER_WALLET);
-            mNavigationDrawerFragment.selectItem(DRAWER_WALLET);
-        }
-    }
-    
+
     private void startSendRequestFragment(String bitcoinAddress, String bitcoinAmount)
     {
         //if(getSupportFragmentManager().findFragmentByTag(SEND_RECEIVE_FRAGMENT) == null) {
@@ -224,6 +197,18 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
                     .replace(R.id.content_frame, RequestFragment.newInstance(DRAWER_SEND, bitcoinAddress, bitcoinAmount), SEND_RECEIVE_FRAGMENT)
                     .commit();
         //}
+    }
+
+    @Subscribe
+    public void onNavigateEvent (NavigateEvent event)
+    {
+        if(event == NavigateEvent.SEND) {
+            navigationDrawerFragment.selectItem(DRAWER_SEND);
+        } else if (event == NavigateEvent.SEARCH) {
+            navigationDrawerFragment.selectItem(DRAWER_SEARCH);
+        } else if (event == NavigateEvent.WALLET) {
+            navigationDrawerFragment.selectItem(DRAWER_WALLET);
+        }
     }
 
     public void onSectionAttached(int number)
@@ -240,6 +225,9 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
                 break;
             case DRAWER_WALLET:
                 mTitle = "";
+                break;
+            case DRAWER_ABOUT:
+                mTitle = getString(R.string.app_name);
                 break;
         }
     }
@@ -261,8 +249,7 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        if (mNavigationDrawerFragment != null && !mNavigationDrawerFragment.isDrawerOpen()) {
-            //toolbar.inflateMenu(R.menu.main);
+        if (navigationDrawerFragment != null && !navigationDrawerFragment.isDrawerOpen()) {
             restoreActionBar();
             return true;
         }
@@ -272,8 +259,6 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
-        Timber.d("Request Code: " + requestCode);
-
         super.onActivityResult(requestCode, resultCode, intent);
         
         if(requestCode == REQUEST_SCAN) {
@@ -322,11 +307,11 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
 
         int type = extras.getInt(EXTRA_TYPE, 0);
         if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT) {
-            String contactId = extras.getString(EXTRA_CONTACT);
+            contactId = extras.getString(EXTRA_CONTACT);
             Intent contactIntent = ContactActivity.createStartIntent(this, contactId);
             startActivity(contactIntent);
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_BALANCE) {
-            bus.post(NavigateEvent.WALLET);
+            navigationDrawerFragment.selectItem(DRAWER_WALLET);
         }
     }
 }

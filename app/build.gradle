@@ -23,7 +23,7 @@ buildscript {
 def versionMajor = 2
 def versionMinor = 0
 def versionPatch = 0
-def versionBuild = 1 // bump for dog food builds, public betas, etc.
+def versionBuild = 2 // bump for dog food builds, public betas, etc.
 
 android {
     compileSdkVersion 21

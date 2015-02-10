@@ -23,6 +23,8 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit.mime.TypedByteArray;
+import timber.log.Timber;
 
 public class DataServiceUtils
 {
@@ -61,15 +63,27 @@ public class DataServiceUtils
 
         return false;
     }
+
+    // server error
+    public static boolean isHttp500Error(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetrofitError retroError = (RetrofitError) throwable;
+            Response response = retroError.getResponse();
+            return (response.getStatus() == 500);
+        }
+
+        return false;
+    }
     
-    //{"error": {"required_scope": ["money_pin"], "message": "This token does not have access to this API. This API requires one of ['money_pin']. This token has ['read', 'write']. Learn how to grant more access at https://localbitcoins.com/api-docs/", "error_code": 4}}
     public static RetroError convertRetroError(Throwable throwable, Context context)
     {
         RetroError retroError;
         if (throwable instanceof RetrofitError) {
             
             if (((RetrofitError) throwable).isNetworkError()) {
-                retroError = new RetroError(context.getString(R.string.error_generic_server_down), 404);
+                retroError = new RetroError(context.getString(R.string.error_no_internet), 404);
+            
             } else {
                 RetrofitError error = (RetrofitError) throwable;
                 retroError = Parser.parseRetrofitError(error);
@@ -77,8 +91,30 @@ public class DataServiceUtils
                     retroError = new RetroError(context.getString(R.string.error_generic_permission), 4);
                 }
             }
+        } else if(isHttp403Error(throwable)) {
+            
+            retroError = new RetroError(context.getString(R.string.error_authentication), 403);
+
+        } else if(isHttp401Error(throwable)) {
+
+            retroError = new RetroError(context.getString(R.string.error_no_internet), 401);
+
+        } else if(isHttp400Error(throwable)) {
+
+            try {
+                String response =  new String(((TypedByteArray) ((RetrofitError) throwable).getResponse().getBody()).getBytes());
+                retroError = new RetroError(response, 400);
+            } catch (ClassCastException error) {
+                retroError = new RetroError(context.getString(R.string.error_service_error), 400);
+            }
+
+        } else if(isHttp500Error(throwable)) {
+
+            retroError = new RetroError(context.getString(R.string.error_service_error), 500);
+
         } else {
-            retroError = new RetroError(throwable.getMessage());
+            
+            retroError = new RetroError(context.getString(R.string.error_generic_error), 0);
         }
         
         return retroError;

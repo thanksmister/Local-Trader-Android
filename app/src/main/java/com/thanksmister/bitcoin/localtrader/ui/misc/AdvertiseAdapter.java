@@ -105,12 +105,21 @@ public class AdvertiseAdapter extends BaseAdapter
             holder.tradLocation.setText(advertisement.distance + " km → " + advertisement.location);
         }
 
-        holder.tradePrice.setText(context.getString(R.string.trade_price, advertisement.price, advertisement.currency));
+        if(advertisement.isATM()) {
+            holder.tradePrice.setText("ATM");
+        } else {
+            holder.tradePrice.setText(context.getString(R.string.trade_price, advertisement.price, advertisement.currency));
+        }
+        
         holder.traderName.setText(advertisement.profile.username);
         holder.tradeFeedback.setText(advertisement.profile.feedback_score);
         holder.tradeCount.setText(advertisement.profile.trade_count);
 
-        if(advertisement.max_amount == null) {
+        if(advertisement.isATM()) {
+            holder.tradeLimit.setText("");
+        } else if(advertisement.min_amount == null) {
+            holder.tradeLimit.setText("");
+        } else if(advertisement.max_amount == null) {
             holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
         } else { // no maximum set
             holder.tradeLimit.setText(context.getString(R.string.trade_limit_short, advertisement.min_amount, advertisement.max_amount_available));

@@ -44,4 +44,9 @@ public class RetroError extends Error
         this.message = detailMessage;
         this.code = code;
     }
+    
+    public boolean isAuthenticationError()
+    {
+        return (code == 403 || code == 4);
+    }
 }

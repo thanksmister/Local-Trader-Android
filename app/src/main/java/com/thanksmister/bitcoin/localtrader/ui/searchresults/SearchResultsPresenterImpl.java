@@ -15,6 +15,7 @@ import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertise.AdvertiserActivity;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
@@ -33,6 +34,8 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
     private GeoLocationService service;
     private DataService dataService;
     private Subscription subscription;
+    private List<Method> methods;
+    private List<Advertisement> advertisements;
 
     public SearchResultsPresenterImpl(SearchResultsView view, GeoLocationService service, DataService dataService) 
     {
@@ -43,8 +46,7 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
 
     @Override
     public void onResume()
-    {
-        
+    {  
     }
 
     @Override
@@ -55,18 +57,30 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
     }
 
     @Override
-    public void getAdvertisements(final TradeType tradeType, final Address address, String paymentMethod)
+    public void getAdvertisements(final TradeType tradeType, final Address address, final String paymentMethod)
     {
         assert address != null;
+        
+        Timber.d("TradeType: " + tradeType.name());
+        Timber.d("PaymentMethod: " + paymentMethod);
 
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
+
+            if(advertisements != null) {
+                getView().setData(advertisements, methods, tradeType, TradeUtils.getAddressShort(address));
+                return;
+            }
+            
             subscription = service.getLocalAdvertisements(new Observer<List<Advertisement>>() {
+                
                 @Override
                 public void onCompleted() {
+                    
                 }
 
                 @Override
-                public void onError(Throwable e) {
+                public void onError(Throwable e) 
+                {
                     Timber.e(e.getMessage());
                 }
 
@@ -77,13 +91,32 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
                     }
                 }
             }, address.getLatitude(), address.getLongitude(), tradeType);
-        } else {
-            getPaymentMethods(tradeType, address, paymentMethod);
+            
+        } else {  
+            
+            assert paymentMethod != null;
+            
+            if(advertisements != null && methods != null) {
+                getView().setData(advertisements, methods, tradeType, TradeUtils.getAddressShort(address));
+                return;
+            }
+            
+            if(methods == null) {
+                getPaymentMethods(tradeType, address, paymentMethod);
+            } else {
+                Method method = TradeUtils.getPaymentMethod(paymentMethod, methods);
+                getOnlineAdvertisements(methods, tradeType, address, method);
+            }
         }
     }
 
     protected void getOnlineAdvertisements(List<Method> methods, TradeType tradeType, Address address, Method paymentMethod)
     {
+        Timber.d("getOnlineAdvertisements");
+
+        Timber.d("TradeType: " + tradeType.name());
+        Timber.d("PaymentMethod: " + paymentMethod);
+        
         subscription = service.getOnlineAdvertisements(new Observer<List<Advertisement>>() {
             @Override
             public void onCompleted() {
@@ -92,7 +125,9 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
             @Override
             public void onError(Throwable e) {
                 Timber.e(e.getMessage());
-                getView().showError(e.getMessage());
+
+                Timber.d("getOnlineAdvertisements :: onError");
+               // getView().showError(e.getMessage());
             }
 
             @Override
@@ -103,21 +138,34 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
         }, address.getCountryCode(), address.getCountryName(), tradeType, paymentMethod);
     }
 
-    protected void getPaymentMethods(TradeType tradeType, Address address, String paymentMethod)
+    protected void getPaymentMethods(TradeType tradeType, Address address, final String paymentMethod)
     {
+        Timber.d("getPaymentMethods");
+        
         Observable<List<Method>> observable = dataService.getOnlineProviders();
         subscription = observable.subscribe(new Observer<List<Method>>() {
             @Override
-            public void onCompleted() { 
+            public void onCompleted() {
+                Timber.d("getPaymentMethods :: onComplete");
             }
 
             @Override
             public void onError(Throwable e) {
-                getView().showError(e.getMessage());
+                
+                if(e.getMessage() != null) {
+                    Timber.d("getPaymentMethods :: onError");
+                    Timber.e("getPaymentMethods Error: " + e.getMessage());
+                }
+                
+                //getView().showError(e.getMessage());
             }
 
             @Override
-            public void onNext(List<Method> methods){
+            public void onNext(List<Method> results) {
+                
+                Timber.d("getPaymentMethods :: onNext: " + results);
+                
+                methods = results;
                 Method method = TradeUtils.getPaymentMethod(paymentMethod, methods);
                 getOnlineAdvertisements(methods, tradeType, address, method);
             }
@@ -135,17 +183,5 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
     private SearchResultsView getView()
     {
         return view;
-    }
-
-    @Subscribe
-    public void onNetworkEvent(NetworkEvent event)
-    {
-        Timber.d("onNetworkEvent: " + event.name());
-
-        if(event == NetworkEvent.DISCONNECTED) {
-            //cancelCheck(); // stop checking we have no network
-        } else  {
-            //startCheck();
-        }
     }
 }

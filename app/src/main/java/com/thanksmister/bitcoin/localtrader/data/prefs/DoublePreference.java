@@ -49,11 +49,11 @@ public class DoublePreference
     //edit.putLong(key, Double.doubleToRawLongBits(value))
     public void set(double value)
     {
-        preferences.edit().putLong(key, Double.doubleToRawLongBits(value)).apply();
+        preferences.edit().putLong(key, Double.doubleToRawLongBits(value)).commit();
     }
 
     public void delete()
     {
-        preferences.edit().remove(key).apply();
+        preferences.edit().remove(key).commit();
     }
 }

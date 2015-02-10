@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.data.services;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
@@ -81,19 +82,20 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         super(context, autoInitialize);
         localBitcoins = initLocalBitcoins();
-        sharedPreferences = getContext().getApplicationContext().getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
+        sharedPreferences = getContext().getApplicationContext().getSharedPreferences("com.thanksmister.localtrader", MODE_PRIVATE);
     }
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult)
     {
-        getBalance();
+        if(getAuthorization() != null) {
+            getBalance();
+        }
         //getContacts();
     }
 
     private void getBalance()
     {
-        Timber.d("Get Balance");
         if(walletPublishSubject != null) {
             return;
         }
@@ -117,6 +119,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 
                 StringPreference stringPreference = new StringPreference(sharedPreferences, WALLET_KEY, "");
                 String balance = stringPreference.get();
+
+                Timber.d("Wallet Balance Shared: " + balance);
               
                 // TODO reset wallet balance on logout
                 // TODO open wallet screen
@@ -366,14 +370,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         Timber.e("Save Authorization: " + authorization.access_token);
 
-        // remove old tokens
-        Authorization oldToken = getAuthorization();
-        if(oldToken != null) {
-            cupboard().withContext(getContext()).delete(CupboardProvider.TOKEN_URI, oldToken);
-        }
+        synchronized (this) {
 
-        // save to cupboard
-        cupboard().withContext(getContext()).put(CupboardProvider.TOKEN_URI, authorization);
+            ContentValues values = new ContentValues(1);
+            values.put("access_token", authorization.access_token);
+            values.put("refresh_token", authorization.refresh_token);
+            values.put("expires_in", authorization.expires_in);
+
+            Authorization oldAuth = getAuthorization();
+            if(oldAuth != null) {
+                // save to cupboard
+                String id = String.valueOf(oldAuth._id);
+                getContext().getContentResolver().update(CupboardProvider.TOKEN_URI, values, "_id =", new String[] { id });
+                //cupboard().withContext(application).update(CupboardProvider.TOKEN_URI, values);
+            } else {
+                cupboard().withContext(getContext()).put(CupboardProvider.TOKEN_URI, authorization);
+            }
+        }
     }
 
     private void saveContactsAndNotify(List<ContactSync> contacts)

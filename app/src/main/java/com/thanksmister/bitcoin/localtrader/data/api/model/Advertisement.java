@@ -83,6 +83,7 @@ public class Advertisement
     public String price;
     public String bank_name;
     public String nextUrl;
+    public String atm_model;
 
     public boolean track_max_amount = false;
     public boolean sms_verification_required = false;
@@ -93,6 +94,11 @@ public class Advertisement
     public Profile profile = new Profile();
     public Actions actions = new Actions();
     public String distance;
+    
+    public boolean isATM()
+    {
+        return atm_model != null;
+    }
 
     public class Profile {
         public String name;

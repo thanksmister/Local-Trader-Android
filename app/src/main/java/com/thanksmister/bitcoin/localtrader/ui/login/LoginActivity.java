@@ -51,6 +51,12 @@ public class LoginActivity extends BaseActivity implements LoginView
 
     @InjectView(R.id.webview)
     WebView webview;
+
+    public static Intent createStartIntent(Context context)
+    {
+        Intent intent = new Intent(context, LoginActivity.class);
+        return intent;
+    }
     
     @Override
     protected void onCreate(Bundle savedInstanceState)

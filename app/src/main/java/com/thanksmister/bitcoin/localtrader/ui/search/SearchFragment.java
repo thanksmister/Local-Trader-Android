@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Address;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -42,6 +43,7 @@ import butterknife.OnClick;
 public class SearchFragment extends BaseFragment implements SearchView
 {
     private static final String ARG_SECTION_NUMBER = "section_number";
+    private static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     
     @Inject
     SearchPresenter presenter;
@@ -50,7 +52,7 @@ public class SearchFragment extends BaseFragment implements SearchView
     View progress;
 
     @InjectView(android.R.id.content)
-    ScrollView content;
+    View content;
 
     @InjectView(android.R.id.empty)
     View empty;
@@ -106,7 +108,8 @@ public class SearchFragment extends BaseFragment implements SearchView
 
     private Address address;
     private PredictAdapter predictAdapter;
-    private TradeType tradeType;
+
+    
     public static SearchFragment newInstance(int sectionNumber)
     {
         SearchFragment fragment = new SearchFragment();
@@ -125,6 +128,19 @@ public class SearchFragment extends BaseFragment implements SearchView
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        if(savedInstanceState != null) {
+            if(savedInstanceState.containsKey(EXTRA_ADDRESS))
+                address = savedInstanceState.getParcelable(EXTRA_ADDRESS);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        if(address != null)
+            outState.putParcelable(EXTRA_ADDRESS, address);
     }
 
     @Override
@@ -155,10 +171,10 @@ public class SearchFragment extends BaseFragment implements SearchView
             public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 switch (position) {
                     case 0:
-                        presenter.setTradeType(locationSpinner.getSelectedItemPosition() == 0? TradeType.LOCAL_BUY:TradeType.LOCAL_SELL);
+                        presenter.setTradeType(locationSpinner.getSelectedItemPosition() == 0? TradeType.LOCAL_BUY:TradeType.ONLINE_BUY);
                         break;
                     case 1:
-                        presenter.setTradeType(locationSpinner.getSelectedItemPosition() == 0? TradeType.ONLINE_BUY:TradeType.ONLINE_SELL);
+                        presenter.setTradeType(locationSpinner.getSelectedItemPosition() == 0? TradeType.LOCAL_SELL:TradeType.ONLINE_SELL);
                         break;
                 }
             }
@@ -242,8 +258,6 @@ public class SearchFragment extends BaseFragment implements SearchView
     public void onActivityCreated(Bundle savedInstanceState) 
     {
         super.onActivityCreated(savedInstanceState);
-
-        presenter.startLocationCheck();
     }
 
     @Override
@@ -321,6 +335,8 @@ public class SearchFragment extends BaseFragment implements SearchView
     @Override
     public void setAddress(Address address)
     {
+        this.address = address;
+        
         if (address != null)
             currentLocation.setText(TradeUtils.getAddressShort(address));
     }

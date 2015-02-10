@@ -135,14 +135,20 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
 
         if (TradeUtils.isLocalTrade(advertisement)) {
             //holder.tradeType.setText(Html.fromHtml(context.getString(R.string.advertisement_list_text_local, type, price, location)));
-            holder.advertisementType.setText(type + " " + price);
-            holder.advertisementDetails.setText("In " + location);
+
+            if(advertisement.isATM()) {
+                holder.advertisementType.setText("ATM");
+                holder.advertisementDetails.setText("ATM" + " in " + advertisement.city);
+            } else {
+                holder.advertisementType.setText(type + " " + price);
+                holder.advertisementDetails.setText("In " + location);
+            }
+
         } else {
             String paymentMethod = TradeUtils.getPaymentMethod(advertisement, methods);
             //String bank = advertisement.bank_name;
             holder.advertisementType.setText(type + " " + price);
             holder.advertisementDetails.setText("With " + paymentMethod + " in " + advertisement.city);
-            //holder.tradeType.setText(Html.fromHtml(context.getString(R.string.advertisement_list_text_online, type, price, bank, location)));
         }
 
         if (advertisement.visible) {
@@ -150,8 +156,6 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
         } else {
             holder.icon.setImageResource(R.drawable.ic_action_visibility_off);
         }
-
-        //holder.dateText.setText(Dates.parseLocalDateStringAbbreviatedDate(advertisement.created_at)); 
 
         return view;
     }

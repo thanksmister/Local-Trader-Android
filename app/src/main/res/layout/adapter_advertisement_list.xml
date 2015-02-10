@@ -17,6 +17,7 @@
 
 <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:id="@android:id/background"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -47,7 +48,7 @@
                 style="@style/TextLarge.SmallAction.Green"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Local Sale - 7000 ARS"/>
+                tools:text="Local Sale - 7000 ARS"/>
 
         <TextView
                 android:id="@+id/advertisementDetails"
@@ -56,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:singleLine="true"
                 android:ellipsize="end"
-                android:text="Palermo, Buenos Aires"/>
+                tools:text="Palermo, Buenos Aires"/>
 
     </LinearLayout>
 

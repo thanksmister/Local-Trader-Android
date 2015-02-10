@@ -9,6 +9,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -45,6 +46,18 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
 
     @InjectView(android.R.id.empty)
     View empty;
+    
+    @InjectView(R.id.buttonLayout)
+    View buttonLayout;
+    
+    @InjectView(R.id.priceLayout)
+    View priceLayout;
+
+    @InjectView(R.id.buttonLayoutDivider)
+    View buttonLayoutDivider;
+
+    @InjectView(R.id.priceLayoutDivider)
+    View priceLayoutDivider;
 
     @InjectView(R.id.emptyTextView)
     TextView emptyTextView;
@@ -79,7 +92,7 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
 
     @InjectView(R.id.lastSeenIcon)
     View lastSeenIcon;
-
+    
     @OnClick(R.id.requestButton)
     public void requestButtonClicked()
     {
@@ -244,17 +257,31 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
                 break;
         }
 
-        tradePrice.setText(getContext().getString(R.string.trade_price, advertisement.price, advertisement.currency));
+        if(advertisement.isATM()) {
+            priceLayout.setVisibility(View.GONE);
+            buttonLayout.setVisibility(View.GONE);
+            priceLayoutDivider.setVisibility(View.GONE);
+            buttonLayoutDivider.setVisibility(View.GONE);
+            tradePrice.setText("ATM");
+            noteTextAdvertiser.setText(Html.fromHtml(getContext().getString(R.string.advertiser_notes_text_atm, advertisement.currency, location)));
+        } else {
+            tradePrice.setText(getContext().getString(R.string.trade_price, advertisement.price, advertisement.currency));
+        }
+        
         traderName.setText(advertisement.profile.username);
-
-        if(advertisement.max_amount == null) {
+        
+        if(advertisement.isATM()) {
+            tradeLimit.setText("");
+        } else if(advertisement.min_amount == null) {
+            tradeLimit.setText("");
+        } else if(advertisement.max_amount == null) {
             tradeLimit.setText(getContext().getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
         } else { // no maximum set
             tradeLimit.setText(getContext().getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency));
         }
 
         if(advertisement.msg != null && !advertisement.msg.isEmpty()){
-            tradeTerms.setText(getContext().getString(R.string.trade_description_text, advertisement.msg.trim()));
+            tradeTerms.setText(Html.fromHtml(advertisement.msg.trim()));
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
         }
 

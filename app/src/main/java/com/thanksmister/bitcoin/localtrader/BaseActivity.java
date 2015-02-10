@@ -28,10 +28,12 @@ import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
+import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.ui.promo.PromoActivity;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -41,6 +43,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.ObjectGraph;
+import rx.functions.Action0;
 import timber.log.Timber;
 
 /** Base activity which sets up a per-activity object graph and performs injection. */
@@ -52,6 +55,9 @@ public abstract class BaseActivity extends ActionBarActivity
 
     @Inject
     Bus bus;
+
+    @Inject
+    DataService service;
     
     private ObjectGraph activityGraph;
     private MaterialDialog alertDialog;
@@ -139,6 +145,29 @@ public abstract class BaseActivity extends ActionBarActivity
                 .content(Html.fromHtml(event.message))
                 .neutralText(getString(android.R.string.ok))
                 .show();
+    }
+
+    public void logOutConfirmation()
+    {
+        ConfirmationDialogEvent event = new ConfirmationDialogEvent("Log Out",
+                "Do you wish to logout?",
+                getString(R.string.button_ok),
+                getString(R.string.button_cancel), new Action0() {
+            @Override
+            public void call() {
+                logOut();
+            }
+        });
+
+        showConfirmationDialog(event);
+    }
+
+    public void logOut()
+    {
+        service.logOut();
+        Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
+        startActivity(intent);
+        finish();
     }
 
     public void showConfirmationDialog(ConfirmationDialogEvent event)

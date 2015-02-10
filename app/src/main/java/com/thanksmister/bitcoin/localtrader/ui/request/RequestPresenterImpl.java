@@ -21,6 +21,8 @@ import com.thanksmister.bitcoin.localtrader.events.ScannerEvent;
 import com.thanksmister.bitcoin.localtrader.ui.qrcode.QRCodeActivity;
 import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
+import com.thanksmister.bitcoin.localtrader.utils.Errors;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
@@ -53,7 +55,12 @@ public class RequestPresenterImpl implements RequestPresenter
     @Override
     public void onResume()
     {
-        getWalletBalance();
+        if(wallet == null) {
+            getWalletBalance(); 
+        } else {
+            getView().setWallet(wallet);
+            getView().hideProgress();
+        }
     }
 
     @Override
@@ -66,7 +73,8 @@ public class RequestPresenterImpl implements RequestPresenter
             sendSubscription.unsubscribe();
     }
 
-    protected void getWalletBalance()
+    @Override
+    public void getWalletBalance()
     {
         subscription = service.getWalletBalance(new Observer<Wallet>(){
             @Override
@@ -75,21 +83,22 @@ public class RequestPresenterImpl implements RequestPresenter
             }
 
             @Override
-            public void onError(Throwable e) {
-                Timber.e(e.getMessage());
-                getView().showError(e.getMessage());
+            public void onError(Throwable throwable) {
+                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                getView().showError(retroError.getMessage());
+                if(retroError.isAuthenticationError()) {
+                    ((BaseActivity) getContext()).logOut();
+                }
             }
 
             @Override
             public void onNext(Wallet result) {
-                wallet = result;
+                wallet = result; // save wallet value
                 getView().setWallet(result);
                 getView().hideProgress();
             }
         });
     }
-
-    
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     @SuppressWarnings("deprecation")
@@ -170,11 +179,7 @@ public class RequestPresenterImpl implements RequestPresenter
     @Override
     public void pinCodeEvent(String pinCode, String address, String amount)
     {
-        Timber.d("PinCodeEvent pin: " + pinCode);
-        Timber.d("PinCodeEvent address: " + address);
-        Timber.d("PinCodeEvent amount: " + amount);
-
-        ((BaseActivity) getView().getContext()).showProgressDialog(new ProgressDialogEvent("Sending bitcoin..."));
+        ((BaseActivity) getContext()).showProgressDialog(new ProgressDialogEvent("Sending bitcoin..."));
 
         sendSubscription = service.sendPinCodeMoney(new Observer<String>() {
             @Override
@@ -183,12 +188,11 @@ public class RequestPresenterImpl implements RequestPresenter
 
             @Override
             public void onError(Throwable throwable) {
-
-                ((BaseActivity) getView().getContext()).hideProgressDialog();
-                
-                if (throwable instanceof RetrofitError) {
-                    RetroError retroError = DataServiceUtils.convertRetroError(throwable, getView().getContext());
-                    Toast.makeText(getView().getContext(), retroError.getMessage(), Toast.LENGTH_LONG).show();
+                ((BaseActivity) getContext()).hideProgressDialog();
+                RetroError retroError = Errors.getError(throwable, getContext());
+                Toast.makeText(getView().getContext(), retroError.getMessage(), Toast.LENGTH_LONG).show();
+                if(retroError.isAuthenticationError()) {
+                    ((BaseActivity) getContext()).logOut();
                 }
             }
 
@@ -204,6 +208,11 @@ public class RequestPresenterImpl implements RequestPresenter
                 Toast.makeText(getView().getContext(), getView().getContext().getString(R.string.toast_transaction_success), Toast.LENGTH_SHORT).show();
             }
         }, pinCode, address, amount);
+    }
+
+    private Context getContext()
+    {
+        return getView().getContext();
     }
 
     private RequestView getView()

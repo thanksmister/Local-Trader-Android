@@ -235,7 +235,6 @@
                             style="@style/TextMedium.SmallAction"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/trade_description_text"
                             android:autoLink="all"
                             android:textIsSelectable="true"/>
 
@@ -310,7 +309,6 @@
                                 style="@style/TextMedium.SmallAction"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/trade_description_text"
                                 android:autoLink="all"
                                 android:textIsSelectable="true"/>
 

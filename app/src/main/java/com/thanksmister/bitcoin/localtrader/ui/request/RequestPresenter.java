@@ -14,6 +14,8 @@ public interface RequestPresenter
 
     void scanQrCode();
 
+    void getWalletBalance();
+
     void setAddressFromClipboard();
 
     void pinCodeEvent(String pinCode, String address, String amount);
