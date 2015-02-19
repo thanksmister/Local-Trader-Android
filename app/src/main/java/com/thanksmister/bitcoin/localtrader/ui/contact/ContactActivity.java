@@ -5,10 +5,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
@@ -40,9 +39,8 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import timber.log.Timber;
 
-public class ContactActivity extends BaseActivity implements ContactView
+public class ContactActivity extends BaseActivity implements ContactView, SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_ID = "com.thanksmister.extras.EXTRA_ID";
 
@@ -55,7 +53,7 @@ public class ContactActivity extends BaseActivity implements ContactView
     @InjectView(R.id.contactEmpty)
     View empty;
 
-    @InjectView(R.id.emptyTextView)
+    @InjectView(R.id.retryTextView)
     TextView errorTextView;
 
     @InjectView(R.id.contactList)
@@ -63,6 +61,9 @@ public class ContactActivity extends BaseActivity implements ContactView
 
     @InjectView(R.id.contactToolBar)
     Toolbar toolbar;
+    
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
 
     private TextView tradePrice;
     private TextView tradeAmount;
@@ -112,6 +113,9 @@ public class ContactActivity extends BaseActivity implements ContactView
             getSupportActionBar().setTitle("");
             setToolBarMenu(toolbar);
         }
+
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
         View headerView = View.inflate(this, R.layout.view_contact_header, null);
 
@@ -234,6 +238,28 @@ public class ContactActivity extends BaseActivity implements ContactView
         presenter.onDestroy();
     }
 
+    @Override
+    public void onRefresh()
+    {
+        presenter.getContact(contactId);
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        empty.setVisibility(View.VISIBLE);
+        errorTextView.setText(message);
+    }
+
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
         if (resultCode == PinCodeActivity.RESULT_VERIFIED) {
@@ -269,15 +295,6 @@ public class ContactActivity extends BaseActivity implements ContactView
     public Context getContext() 
     {
         return this;
-    }
-
-    @Override
-    public void showError(String message)
-    {
-        progress.setVisibility(View.GONE);
-        list.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
     }
 
     @Override

@@ -29,6 +29,10 @@ public interface DashboardPresenter
 
     void logOut();
 
+    void endRefresh();
+
+    void refreshError(String message);
+
     void showTradesScreen();
 
     void showSearchScreen();

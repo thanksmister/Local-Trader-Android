@@ -128,7 +128,24 @@ public class Parser
 
         } catch (JSONException e) {
             Timber.e(e.getMessage());
-            return new RetroError("Unknown error has occurred", 0);
+            return parseInvalidGrantError(response);
+        }
+    }
+
+    /**
+     * {
+     "error_description":"* error\n  * i\n  * n\n  * v\n  * a\n  * l\n  * i\n  * d\n  * _\n  * g\n  * r\n  * a\n  * n\n  * t",
+     "error":"invalid_grant"
+     }
+     * @param response
+     * @return
+     */
+    private static RetroError parseInvalidGrantError(String response)
+    {
+        if(response.contains("invalid_grant")) {
+            return new RetroError("Invalid refresh token, access denied.", 403);
+        } else {
+            return new RetroError("Unknown error has occurred. If this continues try logging in again.", 400);
         }
     }
 
@@ -763,6 +780,7 @@ public class Parser
             
             if (data.has("atm_model") && !data.isNull("atm_model")) {
                 String atm = (data.getString("atm_model"));
+                item.atm_model = atm;
             }
 
             item.visible = (data.getBoolean("visible"));
@@ -797,8 +815,6 @@ public class Parser
                 String message = (data.getString("msg"));
                 message = message.replace("\n", "").replace("\r", "<br>");
                 item.msg = message;
-                
-                Timber.d("Message: " + message);
             }
 
             if (data.has("min_amount") && !data.isNull("min_amount")) {

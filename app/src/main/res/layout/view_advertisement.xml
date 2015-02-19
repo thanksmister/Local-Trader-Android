@@ -44,7 +44,7 @@
 
         <include
                 android:id="@+id/advertisementEmpty"
-                layout="@layout/view_empty"
+                layout="@layout/view_error"
                 tools:visibility="visible"
                 android:visibility="gone"/>
 

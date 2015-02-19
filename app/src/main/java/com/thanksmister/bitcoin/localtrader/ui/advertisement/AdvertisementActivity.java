@@ -18,7 +18,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.ui.edit.EditActivity;
-import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -76,7 +75,7 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
     @InjectView(R.id.advertisementEmpty)
     View empty;
 
-    @InjectView(R.id.emptyTextView)
+    @InjectView(R.id.retryTextView)
     TextView errorTextView;
 
     @InjectView(R.id.advertisementMainView)
@@ -190,7 +189,19 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
 
         presenter.onDestroy();
     }
-    
+
+    @Override
+    public void onRefreshStop()
+    {
+        // TODO implement refresh
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        // TODO implement
+    }
+
     @Override
     public void setToolBarMenu(Toolbar toolbar)
     {

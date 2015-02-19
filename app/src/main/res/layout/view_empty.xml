@@ -13,30 +13,34 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:orientation="vertical"
-             android:gravity="center_vertical">
-    
+             android:layout_height="match_parent">
+
+    <LinearLayout android:id="@+id/emptyRetryButton"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical"
+                  android:gravity="center"
+                  android:layout_gravity="center"
+                  style="@style/BorderlessButtonStyle">
+
         <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:src="@drawable/logo_small"/>
-    
-        <View
-                android:layout_width="match_parent"
-                android:layout_height="24dp"/>
 
         <TextView
                 style="@style/TextLarge.Light"
                 android:id="@+id/emptyTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxWidth="400dp"
+                android:padding="@dimen/view_padding"
                 android:gravity="center"
                 android:layout_gravity="center"
                 android:text="@string/error_no_internet"/>
 
-</LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

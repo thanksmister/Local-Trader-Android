@@ -1,14 +1,17 @@
 package com.thanksmister.bitcoin.localtrader.ui.advertise;
 
+import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 import android.net.Uri;
+import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
@@ -16,6 +19,7 @@ import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.searchresults.SearchResultsPresenter;
 import com.thanksmister.bitcoin.localtrader.ui.searchresults.SearchResultsView;
 import com.thanksmister.bitcoin.localtrader.ui.traderequest.TradeRequestActivity;
+import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.List;
@@ -58,8 +62,6 @@ public class AdvertiserPresenterImpl implements AdvertiserPresenter
     @Override
     public void getAdvertisement(String adId)
     {
-        Timber.d("Get Advertisement: " + adId);
-        
         subscription = service.getAdvertisement(new Observer<Advertisement>() {
             @Override
             public void onCompleted() {
@@ -67,8 +69,13 @@ public class AdvertiserPresenterImpl implements AdvertiserPresenter
 
             @Override
             public void onError(Throwable throwable) {
-                Timber.e(throwable.getMessage());
-                getView().showError(throwable.getMessage());
+                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                if(retroError.isAuthenticationError()) {
+                    Toast.makeText(getContext(), retroError.getMessage(), Toast.LENGTH_SHORT).show();
+                    ((BaseActivity) getContext()).logOut();
+                } else {
+                    getView().showError(getContext().getString(R.string.error_no_trade_data));
+                }
             }
 
             @Override
@@ -155,20 +162,13 @@ public class AdvertiserPresenterImpl implements AdvertiserPresenter
         getView().getContext().startActivity(intent);
     }
 
+    private Context getContext()
+    {
+        return getView().getContext();
+    }
+
     private AdvertiserView getView()
     {
         return view;
-    }
-
-    @Subscribe
-    public void onNetworkEvent(NetworkEvent event)
-    {
-        Timber.d("onNetworkEvent: " + event.name());
-
-        if(event == NetworkEvent.DISCONNECTED) {
-            //cancelCheck(); // stop checking we have no network
-        } else  {
-            //startCheck();
-        }
     }
 }

@@ -35,73 +35,33 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        <LinearLayout
+        <include
                 android:id="@android:id/progress"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_horizontal"
-                android:orientation="horizontal">
+                layout="@layout/view_progress"
+                android:visibility="visible"
+                tools:visibility="visible"/>
 
-            <ProgressBar
-                    style="?android:attr/progressBarStyle"
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:indeterminate="true"
-                    android:layout_gravity="center_vertical"/>
-
-            <View
-                    android:layout_width="@dimen/view_padding_small"
-                    android:layout_height="match_parent"/>
-
-            <TextView
-                    style="@style/TextLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Searching..."
-                    android:layout_gravity="center_vertical"/>
-
-        </LinearLayout>
-
-        <LinearLayout
+        <include
                 android:id="@android:id/empty"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="@dimen/activity_padding"
-                android:gravity="center"
-                android:orientation="vertical"
-                tools:visibility="visible"
-                android:visibility="gone">
-
-            <View
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/activity_padding"/>
-
-            <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/advertise_small"/>
-
-            <View
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/activity_padding"/>
-
-            <TextView
-                    android:id="@+id/emptyTextView"
-                    style="@style/TextLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="No advertisers"/>
-
-        </LinearLayout>
-
-        <ListView
-                android:id="@android:id/list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:scrollbars="none"
+                layout="@layout/view_empty"
                 android:visibility="gone"
-                android:background="@color/white"/>
+                tools:visibility="visible"/>
+
+        <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swipeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <ListView
+                    android:id="@android:id/list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:scrollbars="none"
+                    android:visibility="gone"
+                    android:background="@color/white"/>
+            
+        </android.support.v4.widget.SwipeRefreshLayout>
 
     </FrameLayout>
 

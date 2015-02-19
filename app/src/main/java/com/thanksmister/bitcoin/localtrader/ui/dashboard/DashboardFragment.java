@@ -48,16 +48,12 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     DashboardPresenter presenter;
 
     @InjectView(R.id.dashContent)
-    ScrollView content; 
+    View content; 
     
     @InjectView(android.R.id.progress)
     View progress;
 
-    @InjectView(android.R.id.empty)
-    View empty;
-
-    @InjectView(R.id.emptyTextView)
-    TextView errorTextView;
+   
 
     @InjectView(R.id.advertisementList)
     LinearListView advertisementList;
@@ -112,6 +108,7 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     {
         presenter.scanQrCode();
     }
+
 
     @Optional
     @OnClick(R.id.searchButton)
@@ -227,7 +224,7 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     {
         super.onResume();
         
-        Timber.d("onResume");
+        showProgress();
 
         presenter.onResume();
     }
@@ -236,8 +233,6 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     public void onPause()
     {
         super.onResume();
-
-        Timber.d("onDestroy");
 
         presenter.onDestroy();
     }
@@ -248,10 +243,6 @@ public class DashboardFragment extends BaseFragment implements DashboardView
         super.onDetach();
 
         ButterKnife.reset(this);
-
-       // Timber.d("onDestroy");
-
-        //presenter.onDestroy();
     }
 
     @Override
@@ -263,24 +254,19 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     @Override
     public void showError(String message)
     {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
+       
     }
 
     @Override
     public void showProgress()
     {
-        progress.setVisibility(View.VISIBLE);
-        content.setVisibility(View.GONE);
+        //empty.setVisibility(View.GONE);
     }
 
     @Override
     public void hideProgress()
     {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
+        //empty.setVisibility(View.GONE);
     }
 
     @Override

@@ -47,8 +47,7 @@ public class DashboardPresenterImpl implements DashboardPresenter
     private Subscription subscription;
     private Dashboard dashboard;
     private List<Method> methods;
-    private Boolean network = true;
-
+ 
     public DashboardPresenterImpl(DashboardView view, DataService service, Bus bus) 
     {
         this.view = view;
@@ -63,14 +62,6 @@ public class DashboardPresenterImpl implements DashboardPresenter
         bus.register(this);
 
         getData();
-        
-        /*if(dashboard == null) {
-            getData();
-        } else {
-            getView().setDashboard(dashboard, methods);
-            getView().hideProgress();
-            startCheck();
-        }*/
     }
 
     @Override
@@ -81,7 +72,7 @@ public class DashboardPresenterImpl implements DashboardPresenter
  
         bus.unregister(this);
         
-        cancelCheck();
+       // cancelCheck();
     }
 
     @Override
@@ -108,33 +99,30 @@ public class DashboardPresenterImpl implements DashboardPresenter
 
     private void getData()
     {
-        subscription = service.getDashboardInfo(new Observer<Dashboard>()
-        {
+        subscription = service.getDashboardInfo(new Observer<Dashboard>() {
             @Override
             public void onCompleted()
             {
-                startCheck();
+               
             }
 
             @Override
             public void onError(Throwable throwable)
             {
                 RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                
                 Timber.e("Error: " + retroError.getMessage());
                 Timber.e("Code: " + retroError.getCode());
+                
                 if (retroError.isAuthenticationError()) {
                     logOut();
-                } else if (!network) {
-                    if(dashboard == null) { // if we have data leave it just show toast
-                        getView().showError(getContext().getString(R.string.error_no_internet));
-                    } else {
-                        Toast.makeText(getContext(), getContext().getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show();
-                    }     
+                } else if (retroError.isNetworkError()) {
+                    refreshError(getContext().getString(R.string.error_no_internet));  
                 } else {
-                    getView().showError(retroError.getMessage());
+                    refreshError(retroError.getMessage());
                 }
 
-                startCheck();
+                endRefresh();
             }
 
             @Override
@@ -143,9 +131,9 @@ public class DashboardPresenterImpl implements DashboardPresenter
                 dashboard = results;
                 if (methods != null) {
                     getView().setDashboard(dashboard, methods);
-                    getView().hideProgress();
+                    endRefresh();  
                 } else {
-                    getOnlineProviders(dashboard);
+                    getOnlineProviders(dashboard); 
                 }
             }
         });
@@ -157,14 +145,15 @@ public class DashboardPresenterImpl implements DashboardPresenter
         subscription = observable.subscribe(new Observer<List<Method>>() {
             @Override
             public void onCompleted() {
-                getView().hideProgress();
+               
+                endRefresh();
             }
 
             @Override
             public void onError(Throwable e) {
-                Timber.e("Error getting providers!");
                 methods = new ArrayList<Method>();
                 getView().setDashboard(dashboard, methods);
+                endRefresh();
             }
 
             @Override
@@ -179,6 +168,18 @@ public class DashboardPresenterImpl implements DashboardPresenter
     public void logOut()
     {
         ((BaseActivity) getContext()).logOutConfirmation();
+    }
+
+    @Override
+    public void endRefresh()
+    {
+        ((BaseActivity) getContext()).onRefreshStop();
+    }
+
+    @Override
+    public void refreshError(String message)
+    {
+        ((BaseActivity) getContext()).onError(message);
     }
 
     @Override
@@ -222,8 +223,7 @@ public class DashboardPresenterImpl implements DashboardPresenter
     @Subscribe
     public void onNetworkEvent(NetworkEvent event)
     {
-        Timber.d("onNetworkEvent: " + event.name());
-        network = (event == NetworkEvent.CONNECTED);
+        //Timber.d("onNetworkEvent: " + event.name());
     }
 
     private Handler delayHandler;
@@ -231,11 +231,11 @@ public class DashboardPresenterImpl implements DashboardPresenter
     private void startCheck()
     {
         cancelCheck();
-        /*Timber.d("startCheck");
+        Timber.d("startCheck");
         if(delayHandler == null) {
             delayHandler = new Handler();
             delayHandler.postDelayed(doRunnable, CHECK_DATA);
-        }*/
+        }
     }
 
     private void cancelCheck()

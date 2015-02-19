@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -39,6 +38,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.Optional;
 
 public class SearchFragment extends BaseFragment implements SearchView
 {
@@ -58,7 +58,7 @@ public class SearchFragment extends BaseFragment implements SearchView
     View empty;
 
     @InjectView(R.id.emptyTextView)
-    TextView errorTextView;
+    TextView emptyTextView;
 
     @InjectView(R.id.currentLocation)
     TextView currentLocation;
@@ -104,6 +104,12 @@ public class SearchFragment extends BaseFragment implements SearchView
     public void searchButtonClicked()
     {
         presenter.showSearchResultsScreen();
+    }
+
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.resume();
     }
 
     private Address address;
@@ -302,12 +308,13 @@ public class SearchFragment extends BaseFragment implements SearchView
         progress.setVisibility(View.GONE);
         content.setVisibility(View.GONE);
         empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
+        emptyTextView.setText(message);
     }
 
     @Override
     public void showProgress()
     {
+        empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         content.setVisibility(View.GONE);
     }
@@ -315,6 +322,7 @@ public class SearchFragment extends BaseFragment implements SearchView
     @Override
     public void hideProgress()
     {
+        empty.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
         content.setVisibility(View.VISIBLE);
     }

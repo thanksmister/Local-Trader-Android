@@ -78,6 +78,10 @@ public abstract class BaseActivity extends ActionBarActivity
         activityGraph = null;
     }
 
+    public abstract void onRefreshStop();
+
+    public abstract void onError(String message);
+
     @Override
     public void onPause()
     {

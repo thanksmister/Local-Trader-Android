@@ -19,7 +19,9 @@ public interface ContactsView
 
     Context getContext();
 
-    public void showError(String message);
+    public void onError(String message);
+
+    public void onRefreshStop();
     
     public void showProgress();
 

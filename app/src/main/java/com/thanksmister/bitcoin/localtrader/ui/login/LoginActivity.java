@@ -46,7 +46,7 @@ public class LoginActivity extends BaseActivity implements LoginView
     @InjectView(android.R.id.empty)
     View empty;
     
-    @InjectView(R.id.emptyTextView)
+    @InjectView(R.id.retryTextView)
     TextView errorTextView;
 
     @InjectView(R.id.webview)
@@ -86,6 +86,18 @@ public class LoginActivity extends BaseActivity implements LoginView
         presenter.onDestroy();
 
         ButterKnife.reset(this);
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        // ignore
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        // TODO implement
     }
 
     @Override

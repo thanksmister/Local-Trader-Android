@@ -55,12 +55,14 @@ public class WalletPresenterImpl implements WalletPresenter
     @Override
     public void onResume()
     {
-        if(wallet == null) {
+        getWallet();
+        
+       /* if(wallet == null) {
             getWallet();
         } else {
             getView().setWallet(wallet);
             getView().hideProgress();
-        }
+        }*/
     }
 
     @Override
@@ -149,12 +151,16 @@ public class WalletPresenterImpl implements WalletPresenter
                 } else {
                     getView().showError(retroError.getMessage());
                 }
+
+                ((BaseActivity) getContext()).onRefreshStop();
             }
 
             @Override
             public void onNext(Wallet result) {
                 wallet = result; // set data
                 view.setWallet(wallet);
+
+                ((BaseActivity) getContext()).onRefreshStop();
             }
         });
     }

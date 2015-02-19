@@ -42,14 +42,12 @@ public class RequestPresenterImpl implements RequestPresenter
     private DataService service;
     private Subscription subscription;
     private Subscription sendSubscription;
-    private Bus bus;
     private Wallet wallet;
 
     public RequestPresenterImpl(RequestView view, DataService service, Bus bus) 
     {
         this.view = view;
         this.service = service;
-        this.bus = bus;
     }
 
     @Override
@@ -76,6 +74,8 @@ public class RequestPresenterImpl implements RequestPresenter
     @Override
     public void getWalletBalance()
     {
+        getView().showProgress();
+        
         subscription = service.getWalletBalance(new Observer<Wallet>(){
             @Override
             public void onCompleted() {
@@ -85,9 +85,10 @@ public class RequestPresenterImpl implements RequestPresenter
             @Override
             public void onError(Throwable throwable) {
                 RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
-                getView().showError(retroError.getMessage());
                 if(retroError.isAuthenticationError()) {
                     ((BaseActivity) getContext()).logOut();
+                } else {
+                    getView().showError(retroError.getMessage());
                 }
             }
 
@@ -95,7 +96,6 @@ public class RequestPresenterImpl implements RequestPresenter
             public void onNext(Wallet result) {
                 wallet = result; // save wallet value
                 getView().setWallet(result);
-                getView().hideProgress();
             }
         });
     }
@@ -172,7 +172,6 @@ public class RequestPresenterImpl implements RequestPresenter
     @Override
     public void scanQrCode()
     {
-        //bus.post(ScannerEvent.SCAN);
         ((BaseActivity) getView().getContext()).launchScanner();
     }
 
@@ -194,14 +193,12 @@ public class RequestPresenterImpl implements RequestPresenter
                 if(retroError.isAuthenticationError()) {
                     ((BaseActivity) getContext()).logOut();
                 }
-            }
+            } 
 
             @Override
             public void onNext(String response) {
                 
                 ((BaseActivity) getView().getContext()).hideProgressDialog();
-                
-                Timber.d("Response: " + response);
                 
                 getWalletBalance(); // refresh wallet balance
                 getView().resetWallet();
@@ -223,12 +220,12 @@ public class RequestPresenterImpl implements RequestPresenter
     @Subscribe
     public void onNetworkEvent(NetworkEvent event)
     {
-        Timber.d("onNetworkEvent: " + event.name());
+        /*Timber.d("onNetworkEvent: " + event.name());
 
         if(event == NetworkEvent.DISCONNECTED) {
             //cancelCheck(); // stop checking we have no network
         } else  {
             //startCheck();
-        }
+        }*/
     }
 }

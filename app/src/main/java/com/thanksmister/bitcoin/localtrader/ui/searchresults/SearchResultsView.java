@@ -17,11 +17,9 @@ import java.util.List;
  */
 public interface SearchResultsView
 {
-    void setToolBarMenu(Toolbar toolbar);
-
     Context getContext();
 
-    public void showError(String message);
+    public void onError(String message);
     
     public void showProgress();
 

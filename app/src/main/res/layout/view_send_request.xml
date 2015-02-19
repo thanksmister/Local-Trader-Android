@@ -34,11 +34,10 @@
             android:visibility="gone"
             tools:visibility="visible"/>
 
-
     <LinearLayout
             android:id="@+id/tradeContent"
             android:scrollbars="none"
-            android:visibility="gone"
+            android:visibility="visible"
             tools:visibility="visible"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -276,5 +275,4 @@
 
     </LinearLayout>
 
-   
 </FrameLayout>

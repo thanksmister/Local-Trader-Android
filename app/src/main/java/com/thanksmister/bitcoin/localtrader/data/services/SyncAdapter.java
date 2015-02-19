@@ -26,6 +26,7 @@ import android.content.SyncResult;
 import android.os.Bundle;
 
 import com.squareup.okhttp.OkHttpClient;
+import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
@@ -33,10 +34,12 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContactSyncs;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
 import com.thanksmister.bitcoin.localtrader.data.database.CupboardProvider;
@@ -90,8 +93,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         if(getAuthorization() != null) {
             getBalance();
+            getContacts();
         }
-        //getContacts();
     }
 
     private void getBalance()
@@ -108,9 +111,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             }
 
             @Override
-            public void onError(Throwable e) {
-                if(e != null)
-                    Timber.e("Sync Wallet Balance Error: " + e);
+            public void onError(Throwable throwable) {
+                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                Timber.e("Sync Wallet Error Message: " + retroError.getMessage());
+                Timber.e("Sync Wallet Error Code: " + retroError.getCode());
             }
 
             @Override
@@ -160,15 +164,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             }
 
             @Override
-            public void onError(Throwable e) {
-                if(e != null)
-                    Timber.e("Sync Contacts Error: " + e.getMessage());
+            public void onError(Throwable throwable) 
+            {
+                contactsPublishSubject = null;
             }
 
             @Override
             public void onNext(List<ContactSync> contacts) {
-                if(!contacts.isEmpty())
+                if(!contacts.isEmpty()){
+                    Timber.e("Sync Contacts: " + contacts.size());
                     saveContactsAndNotify(contacts);
+                }   
             }
         });
 
@@ -193,9 +199,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             }
 
             @Override
-            public void onError(Throwable e) {
-                if(e != null)
-                    Timber.e("Contacts Dashboard error: " + e);
+            public void onError(Throwable throwable) {
+                /*RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                Timber.e("Sync Dashboard Error Message: " + retroError.getMessage());
+                Timber.e("Sync Dashboard Error Code: " + retroError.getCode());*/
             }
 
             @Override
@@ -263,17 +270,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         String access_token = getAccessToken();
         return localBitcoins.getDashboard(access_token)
-                    .map(new ResponseToContactSyncs())
-                    .flatMap(new Func1<List<ContactSync>, Observable<? extends List<ContactSync>>>() {
-                        @Override
-                        public Observable<? extends List<ContactSync>> call(final List<ContactSync> contacts) {
-                            if (contacts.isEmpty()) {
-                                return Observable.just(contacts);
-                            }
-                            
-                            return getContactsMessageObservable(contacts);
-                        }
-                    });
+            .map(new ResponseToContactSyncs())
+            .flatMap(new Func1<List<ContactSync>, Observable<? extends List<ContactSync>>>()
+            {
+                @Override
+                public Observable<? extends List<ContactSync>> call(final List<ContactSync> contacts)
+                {
+                    if (contacts.isEmpty()) {
+                        return Observable.just(contacts);
+                    }
+                    return getContactsMessageObservable(contacts);
+                }
+            });
     }
 
     private Observable<List<ContactSync>> getContactsMessageObservable(final List<ContactSync> contacts)
@@ -309,11 +317,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private Authorization getAuthorization()
     {
-        List<Authorization> list = cupboard().withContext(getContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
+        List<Authorization> list = cupboard().withContext(getContext().getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
         if (list != null && list.size() > 0) {
             return list.get(0);
         }
         return null;
+    }
+
+    private void saveAuthorization(Authorization authorization)
+    {
+        Timber.e("Save Authorization: " + authorization.access_token);
+
+        Authorization oldToken = getAuthorization();
+        if(oldToken != null) {
+            cupboard().withContext(getContext().getApplicationContext()).delete(CupboardProvider.TOKEN_URI, oldToken);
+        }
+        cupboard().withContext(getContext().getApplicationContext()).put(CupboardProvider.TOKEN_URI, authorization);
     }
 
     LocalBitcoins initLocalBitcoins()
@@ -366,29 +385,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
-    private void saveAuthorization(Authorization authorization)
-    {
-        Timber.e("Save Authorization: " + authorization.access_token);
-
-        synchronized (this) {
-
-            ContentValues values = new ContentValues(1);
-            values.put("access_token", authorization.access_token);
-            values.put("refresh_token", authorization.refresh_token);
-            values.put("expires_in", authorization.expires_in);
-
-            Authorization oldAuth = getAuthorization();
-            if(oldAuth != null) {
-                // save to cupboard
-                String id = String.valueOf(oldAuth._id);
-                getContext().getContentResolver().update(CupboardProvider.TOKEN_URI, values, "_id =", new String[] { id });
-                //cupboard().withContext(application).update(CupboardProvider.TOKEN_URI, values);
-            } else {
-                cupboard().withContext(getContext()).put(CupboardProvider.TOKEN_URI, authorization);
-            }
-        }
-    }
-
     private void saveContactsAndNotify(List<ContactSync> contacts)
     {
         TreeMap<String, ContactSync> deleteMap = new TreeMap<String, ContactSync>();
@@ -414,23 +410,26 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
         List <ContactSync> updateList = Collections.emptyList();
         for (ContactSync updated : updateMap.values()) {
+            Timber.d("Sync contact updated");
             updateContact(updated);
             updateList.add(updated);
         }
 
         List <ContactSync> addList = Collections.emptyList();
         for (ContactSync added : entryMap.values()) {
+            Timber.d("Sync contact added");
             saveContact(added);
             addList.add(added);
         }
 
-        List <ContactSync> infoList = Collections.emptyList();
+        List <ContactSync> deleteList = Collections.emptyList();
         for (ContactSync deleted : deleteMap.values()) {
-            infoList.add(deleted);
+            Timber.d("Sync contact deleted");
+            deleteList.add(deleted);
         }
 
         // notify user of any new trades
-        if (updateList.size() > 1){
+        if (updateList.size() > 0){
             NotificationUtils.createNotification(getContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
         } else {
             ContactSync contact = updateList.get(0);
@@ -440,7 +439,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
 
         // notify user of any new trades
-        if (addList.size() > 1){
+        if (addList.size() > 0){
             NotificationUtils.createNotification(getContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + entryMap.values() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
         } else {
             ContactSync contact = addList.get(0);
@@ -451,8 +450,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
 
         // look up deleted trades and find the reason
-        if(infoList.size() > 0) {
-            getDeletedContactsInfo(infoList); // 
+        if(deleteList.size() > 0) {
+            getDeletedContactsInfo(deleteList); // 
         }
     }
 

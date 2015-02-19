@@ -62,6 +62,7 @@
     <color name="gray_up">#ffd6d6d6</color>
     <color name="gray_pressed">#ffb8b8b8</color>
     <color name="dark_gray_color">#ff707070</color>
+    <color name="darker_gray_color">#ff505050</color>
     <color name="text_background_gray_color">#ffefefef</color>
     <color name="stroke">#e5e5e5</color>
     <color name="stroke_blue">#0099cc</color>

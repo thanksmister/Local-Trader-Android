@@ -210,7 +210,7 @@ public class DataService
         Timber.d("getDashboardByType: " + dashboardType.name());
         
         if(contacts.containsKey(dashboardType)) {
-            observer.onNext(contacts.get(dashboardType));
+            //observer.onNext(contacts.get(dashboardType));
         }
         
         if(contactsPublishSubject != null) {
@@ -226,9 +226,6 @@ public class DataService
 
             @Override
             public void onError(Throwable e) {
-                if(e != null) 
-                    Timber.e("Contacts Dashboard error: " + e);
-
                 contactsPublishSubject = null;
             }
 
@@ -267,6 +264,7 @@ public class DataService
 
             @Override
             public void onError(Throwable e){
+                dashboardPublishSubject = null;
             }
 
             @Override
@@ -1572,38 +1570,36 @@ public class DataService
                 });
     }
 
-    private void saveAuthorization(final Authorization authorization)
+    public Authorization getAuthorization()
+    {
+        List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
+        if (list != null && list.size() > 0) {
+            return list.get(0);
+        }
+
+        Timber.e("Get Authorization: " + null);
+        
+        return null;
+    }
+
+    public void saveAuthorization(Authorization authorization)
     {
         Timber.e("Save Authorization: " + authorization.access_token);
 
-        synchronized (this) {
-    
-            ContentValues values = new ContentValues(1);
-            values.put("access_token", authorization.access_token);
-            values.put("refresh_token", authorization.refresh_token);
-            values.put("expires_in", authorization.expires_in);
-            
-            Authorization oldAuth = getAuthorization();
-            if(oldAuth != null) {
-                // save to cupboard
-                String id = String.valueOf(oldAuth._id);
-                application.getContentResolver().update(CupboardProvider.TOKEN_URI, values, "_id =", new String[] { id });
-                //cupboard().withContext(application).update(CupboardProvider.TOKEN_URI, values);
-            } else {
-                cupboard().withContext(application).put(CupboardProvider.TOKEN_URI, authorization);
-            }
+        Authorization oldToken = getAuthorization();
+        if(oldToken != null) {
+            cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, oldToken);
         }
+        cupboard().withContext(application.getApplicationContext()).put(CupboardProvider.TOKEN_URI, authorization);
     }
     
     private void deleteAuthorization()
     {
-        synchronized (this) {
-            List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
-            if (list != null && list.size() > 0) {
-                Authorization authorization = list.get(0);
-                //Uri uri = ContentUris.withAppendedId(CupboardProvider.TOKEN_URI, authorization._id);
-                cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, authorization);
-            }
+        List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
+        if (list != null && list.size() > 0) {
+            Authorization authorization = list.get(0);
+            //Uri uri = ContentUris.withAppendedId(CupboardProvider.TOKEN_URI, authorization._id);
+            cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, authorization);
         }
     }
 
@@ -1615,20 +1611,6 @@ public class DataService
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putLong(PREFS_TOKENS_EXPIRE_TIME, expire);
             editor.apply();
-        }
-    }
-
-    private Authorization getAuthorization()
-    {
-        synchronized (this) {
-            List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();   
-            if (list != null && list.size() > 0) {
-                Authorization authorization = list.get(0);
-                //setTokenExpire(authorization.expires_in);
-                return authorization;
-            }
-
-            return null;
         }
     }
 }

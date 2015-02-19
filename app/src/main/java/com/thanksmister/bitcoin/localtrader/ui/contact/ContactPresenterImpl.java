@@ -18,6 +18,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
@@ -25,6 +26,7 @@ import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisement.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
+import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 
 import retrofit.client.Response;
@@ -73,7 +75,6 @@ public class ContactPresenterImpl implements ContactPresenter
     @Override
     public void getContact(String contactId)
     {
-        // TODO show refresh progress
         subscription = service.getContact(new Observer<Contact>() {
             @Override
             public void onCompleted() {
@@ -81,17 +82,26 @@ public class ContactPresenterImpl implements ContactPresenter
             }
 
             @Override
-            public void onError(Throwable e) {
-                ((BaseActivity) getContext()).hideProgressDialog();
-                getView().showError("Error retrieving contact information.");
+            public void onError(Throwable throwable) {
+                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                if(retroError.isAuthenticationError()) {
+                    Toast.makeText(getContext(), retroError.getMessage(), Toast.LENGTH_SHORT).show();
+                    ((BaseActivity) getContext()).logOut();
+                } else {
+                    getView().onError(getContext().getString(R.string.error_no_trade_data));
+                }
+                
+                getView().onRefreshStop();
             }
 
             @Override
             public void onNext(Contact results) {
-                ((BaseActivity) getContext()).hideProgressDialog();
+  
                 getView().hideProgress();
                 contact = results;
                 getView().setContact(contact);
+
+                getView().onRefreshStop();
                 //setTitle(contact);
             }
         }, contactId);

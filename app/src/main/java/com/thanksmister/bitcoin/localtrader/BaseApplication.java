@@ -58,11 +58,6 @@ public class BaseApplication extends Application
         return Arrays.<Object>asList(new ApplicationModule(this));
     }
 
-    public ObjectGraph getApplicationGraph() 
-    {
-        return applicationGraph;
-    }
-
     public boolean isConnected()
     {
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);

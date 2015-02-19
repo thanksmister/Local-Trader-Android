@@ -84,13 +84,7 @@ public class RequestFragment extends BaseFragment implements RequestView
     View progress;
 
     @InjectView(R.id.tradeContent)
-    ScrollView content;
-
-    @InjectView(android.R.id.empty)
-    View empty;
-
-    @InjectView(R.id.emptyTextView)
-    TextView emptyTextView;
+    View content;
 
    /* @InjectView(R.id.toolbar)
     Toolbar toolbar;*/
@@ -122,6 +116,12 @@ public class RequestFragment extends BaseFragment implements RequestView
     @InjectView(R.id.spinner)
     Spinner transactionSpinner;
 
+    @InjectView(android.R.id.empty)
+    View empty;
+
+    @InjectView(R.id.emptyTextView)
+    TextView emptyTextView;
+
     @OnClick(R.id.qrButton)
     public void qrButtonClicked()
     {
@@ -132,6 +132,12 @@ public class RequestFragment extends BaseFragment implements RequestView
     public void sendButtonClicked()
     {
         validateForm();
+    }
+
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.onResume();
     }
 
     private String address;
@@ -415,6 +421,7 @@ public class RequestFragment extends BaseFragment implements RequestView
     {
         progress.setVisibility(View.VISIBLE);
         content.setVisibility(View.GONE);
+        empty.setVisibility(View.GONE);
     }
 
     @Override
@@ -422,6 +429,7 @@ public class RequestFragment extends BaseFragment implements RequestView
     {
         progress.setVisibility(View.GONE);
         content.setVisibility(View.VISIBLE);
+        empty.setVisibility(View.GONE);
     }
 
     @Override

@@ -1,13 +1,19 @@
 package com.thanksmister.bitcoin.localtrader.ui.main;
 
+
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -36,10 +42,11 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import timber.log.Timber;
+import butterknife.InjectView;
+import butterknife.OnClick;
 
 @BaseActivity.RequiresAuthentication
-public class MainActivity extends BaseActivity implements MainView, NavigationDrawerFragment.NavigationDrawerCallbacks
+public class MainActivity extends BaseActivity implements MainView, NavigationDrawerFragment.NavigationDrawerCallbacks, SwipeRefreshLayout.OnRefreshListener
 {
     private static final String BITCOIN_URI = "com.thanksmister.extra.BITCOIN_URI";
     private static final String DASHBOARD_FRAGMENT = "com.thanksmister.fragment.DASHBOARD_FRAGMENT";
@@ -76,10 +83,25 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     @Inject
     LocationManager locationManager;
 
+    @InjectView(android.R.id.empty)
+    View empty;
+
+    @InjectView(R.id.retryButton)
+    View retryButton;
+
+    @InjectView(R.id.retryTextView)
+    TextView errorTextView;
+
+    @OnClick(R.id.retryButton)
+    public void retryButtonClicked()
+    {
+        onRefresh();
+    }
+
     private MaterialDialog alertDialog;
     private MaterialDialog progressDialog;
     private String contactId;
-
+    private SwipeRefreshLayout swipeLayout;
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -118,23 +140,62 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
             setSupportActionBar(toolbar);
         }
 
+        swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+
         mTitle = "";
 
         if(service.isLoggedIn()) {
-
             // Set up the drawer.
             navigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
             navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
-            
-            Timber.d("User Logged In!");
             SyncUtils.CreateSyncAccount(getApplicationContext());
-            SyncUtils.TriggerRefresh(getApplicationContext());
+            SyncUtils.TriggerRefresh(getApplicationContext()); 
         } else {
-            Timber.d("User NOT Logged In!");
             SyncUtils.ClearSyncAccount(getApplicationContext());
         }
     }
 
+    @Override
+    public void onRefresh()
+    {
+        empty.setVisibility(View.GONE);
+        
+        new Handler().postDelayed(new Runnable() {
+            @Override public void run() {
+                if (getSupportFragmentManager().findFragmentByTag(SEND_RECEIVE_FRAGMENT) != null) {
+                    Fragment  fragment = getSupportFragmentManager().findFragmentByTag(SEND_RECEIVE_FRAGMENT);
+                    fragment.onResume(); // refresh
+                } else if (getSupportFragmentManager().findFragmentByTag(SEARCH_FRAGMENT) != null) {
+                    Fragment  fragment = getSupportFragmentManager().findFragmentByTag(SEARCH_FRAGMENT);
+                    fragment.onResume(); // refresh
+                } else if (getSupportFragmentManager().findFragmentByTag(WALLET_FRAGMENT) != null) {
+                    Fragment  fragment = getSupportFragmentManager().findFragmentByTag(WALLET_FRAGMENT);
+                    fragment.onResume(); // refresh
+                } else if (getSupportFragmentManager().findFragmentByTag(DASHBOARD_FRAGMENT) != null) {
+                    Fragment  fragment = getSupportFragmentManager().findFragmentByTag(DASHBOARD_FRAGMENT);
+                    fragment.onResume(); // refresh
+                }
+            }
+        }, 2500);
+
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        empty.setVisibility(View.VISIBLE);
+        errorTextView.setText(message);
+    }
+    
     @Override
     public void onPause()
     {
@@ -161,25 +222,39 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     {
         clearActionBar();
 
+        if(empty != null)
+            empty.setVisibility(View.GONE);
+
         if(service.isLoggedIn()) {
 
             if (position == DRAWER_WALLET) {
+                if(swipeLayout != null)
+                    swipeLayout.setEnabled(true);
+                
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, WalletFragment.newInstance(position), WALLET_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_SEARCH) {
+                if(swipeLayout != null)
+                    swipeLayout.setEnabled(false);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, SearchFragment.newInstance(position), SEARCH_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_SEND) {
+                if(swipeLayout != null)
+                    swipeLayout.setEnabled(false);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, RequestFragment.newInstance(position, RequestFragment.WalletTransactionType.SEND), SEND_RECEIVE_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_DASHBOARD) {
+                if(swipeLayout != null)
+                    swipeLayout.setEnabled(true);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, DashboardFragment.newInstance(position), DASHBOARD_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_ABOUT) {
+                if(swipeLayout != null)
+                    swipeLayout.setEnabled(false);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, AboutFragment.newInstance(position), ABOUT_FRAGMENT)
                         .commit();

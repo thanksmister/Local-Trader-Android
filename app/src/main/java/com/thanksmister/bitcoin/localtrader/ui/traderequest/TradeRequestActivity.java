@@ -18,7 +18,6 @@ package com.thanksmister.bitcoin.localtrader.ui.traderequest;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.Toolbar;
@@ -34,7 +33,6 @@ import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -70,7 +68,7 @@ public class TradeRequestActivity extends BaseActivity implements TradeRequestVi
     @InjectView(android.R.id.empty)
     View empty;
 
-    @InjectView(R.id.emptyTextView)
+    @InjectView(R.id.retryTextView)
     TextView emptyTextView;
 
     @InjectView(R.id.toolbar)
@@ -231,6 +229,18 @@ public class TradeRequestActivity extends BaseActivity implements TradeRequestVi
         ButterKnife.reset(this);
 
         presenter.onDestroy();
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        // TODO implement refresh
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        // TODO implement
     }
 
     @Override

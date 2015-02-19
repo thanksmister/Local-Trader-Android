@@ -2,14 +2,19 @@ package com.thanksmister.bitcoin.localtrader.ui.contacts;
 
 import android.content.Context;
 import android.content.Intent;
+import android.widget.Toast;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
+import com.thanksmister.bitcoin.localtrader.BaseActivity;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.contact.ContactActivity;
+import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 
 import java.util.List;
 
@@ -55,27 +60,35 @@ public class ContactsPresenterImpl implements ContactsPresenter
     {
         // TODO show refresh progress
         getView().setTitle(dashboardType);
-        getView().showProgress();
         
         subscription = service.getDashboardByType(new Observer<List<Contact>>()
         {
             @Override
             public void onCompleted()
             {
-                getView().hideProgress();
+                getView().hideProgress(); 
+                getView().onRefreshStop();
             }
 
             @Override
-            public void onError(Throwable e)
+            public void onError(Throwable throwable)
             {
-                getView().showError(e.getMessage());
+                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                if(retroError.isAuthenticationError()) {
+                    Toast.makeText(getContext(), retroError.getMessage(), Toast.LENGTH_SHORT).show();
+                    ((BaseActivity) getContext()).logOut();
+                } else {
+                    getView().onError(getContext().getString(R.string.error_no_trade_data));
+                } 
+                
+                getView().onRefreshStop();
             }
 
             @Override
             public void onNext(List<Contact> contacts)
             {
-                // TODO set data on view
                 getView().setContacts(contacts);
+               
             }
         }, dashboardType);
     }

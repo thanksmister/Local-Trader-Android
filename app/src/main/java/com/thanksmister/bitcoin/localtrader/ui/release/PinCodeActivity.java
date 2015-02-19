@@ -281,6 +281,18 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
     }
 
     @Override
+    public void onRefreshStop()
+    {
+        // ignore
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        
+    }
+
+    @Override
     protected void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);

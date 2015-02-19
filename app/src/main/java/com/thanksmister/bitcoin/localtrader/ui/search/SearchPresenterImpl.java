@@ -79,8 +79,8 @@ public class SearchPresenterImpl implements SearchPresenter
 
             @Override
             public void onError(Throwable e) {
-               Timber.e(e.getMessage());
-                getView().showError("Unable to get current address.");
+                Timber.e(e.getMessage());
+                getView().showError(getContext().getString(R.string.error_unable_load_address));
             }
 
             @Override
@@ -102,14 +102,13 @@ public class SearchPresenterImpl implements SearchPresenter
             @Override
             public void onError(Throwable e) {
                 Timber.e(e.getMessage());
-                getView().showError("Unable to get current address.");
+                getView().showError(getContext().getString(R.string.error_unable_load_address));
             }
 
             @Override
             public void onNext(List<Address> addresses) {
                 if (!addresses.isEmpty()) {
                     address = addresses.get(0); // save address locally
-                    
                     getView().setAddress(address);
                     getPaymentMethods(address.getCountryName(), address.getCountryCode()); // get payment methods
                 }
@@ -125,6 +124,8 @@ public class SearchPresenterImpl implements SearchPresenter
             return;
         }
         
+        getView().showProgress();
+        
         if (hasLocationServices()) {
             service.start();
             subscription = service.subscribeToLocation(new Observer<Location>() {
@@ -134,9 +135,10 @@ public class SearchPresenterImpl implements SearchPresenter
 
                 @Override
                 public void onError(Throwable e) {
-                    Timber.e(e.getMessage());
                     if (e.getMessage().equals("1")) {
                         showEnableLocationDialog();
+                    } else {
+                       getView().showError(e.getMessage());
                     }
                 }
 
@@ -148,7 +150,6 @@ public class SearchPresenterImpl implements SearchPresenter
                 }
             });
         } else {
-            getView().hideProgress();
             showEnableLocationDialog();
         }
     }
@@ -159,19 +160,17 @@ public class SearchPresenterImpl implements SearchPresenter
         subscription = observable.subscribe(new Observer<List<Method>>() {
             @Override
             public void onCompleted() {
-               getView().hideProgress();
+                getView().hideProgress();
             }
 
             @Override
             public void onError(Throwable e) {
-                Timber.e(e.getMessage());
                 getView().hideProgress();
             }
 
             @Override
             public void onNext(List<Method> results) {
                 getView().setMethods(results);
-                getView().hideProgress();
             }
         });
     }
@@ -232,6 +231,7 @@ public class SearchPresenterImpl implements SearchPresenter
     public void createAlert(String title, String message, final boolean googlePlay)
     {
         getView().showError(getContext().getString(R.string.error_no_play_services));
+
         int positiveButton = (googlePlay)?R.string.button_install:R.string.button_enable;
         
         ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getView().getContext().getString(positiveButton), getView().getContext().getString(R.string.button_cancel), new Action0() {

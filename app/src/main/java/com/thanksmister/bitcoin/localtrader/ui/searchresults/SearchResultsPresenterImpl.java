@@ -1,5 +1,6 @@
 package com.thanksmister.bitcoin.localtrader.ui.searchresults;
 
+import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 
@@ -8,11 +9,13 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertise.AdvertiserActivity;
+import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.ArrayList;
@@ -47,6 +50,7 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
     @Override
     public void onResume()
     {  
+        
     }
 
     @Override
@@ -64,12 +68,16 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
         Timber.d("TradeType: " + tradeType.name());
         Timber.d("PaymentMethod: " + paymentMethod);
 
+        ((BaseActivity) getContext()).onRefreshStop();
+
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
 
             if(advertisements != null) {
                 getView().setData(advertisements, methods, tradeType, TradeUtils.getAddressShort(address));
                 return;
             }
+
+            getView().showProgress();
             
             subscription = service.getLocalAdvertisements(new Observer<List<Advertisement>>() {
                 
@@ -79,9 +87,12 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
                 }
 
                 @Override
-                public void onError(Throwable e) 
+                public void onError(Throwable throwable) 
                 {
-                    Timber.e(e.getMessage());
+                    Timber.e(throwable.getMessage());
+                    
+                    RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                    getView().onError(retroError.getMessage());
                 }
 
                 @Override
@@ -102,8 +113,10 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
             }
             
             if(methods == null) {
+                getView().showProgress();
                 getPaymentMethods(tradeType, address, paymentMethod);
             } else {
+                getView().showProgress();
                 Method method = TradeUtils.getPaymentMethod(paymentMethod, methods);
                 getOnlineAdvertisements(methods, tradeType, address, method);
             }
@@ -178,6 +191,11 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
         Intent intent = AdvertiserActivity.createStartIntent(getView().getContext(), advertisement.ad_id);
         intent.setClass(getView().getContext(), AdvertiserActivity.class);
         getView().getContext().startActivity(intent);
+    }
+
+    private Context getContext()
+    {
+        return view.getContext();
     }
 
     private SearchResultsView getView()

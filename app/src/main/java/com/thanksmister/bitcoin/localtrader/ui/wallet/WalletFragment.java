@@ -2,7 +2,6 @@ package com.thanksmister.bitcoin.localtrader.ui.wallet;
 
 import android.app.Activity;
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -11,7 +10,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -46,7 +44,7 @@ public class WalletFragment extends BaseFragment implements WalletView
     @InjectView(android.R.id.empty)
     View empty;
 
-    @InjectView(R.id.emptyTextView)
+    @InjectView(R.id.retryTextView)
     TextView emptyTextView;
     
     @InjectView(android.R.id.list)
@@ -55,7 +53,7 @@ public class WalletFragment extends BaseFragment implements WalletView
     ImageView qrImage;
     AutoResizeTextView addressButton;
 
-    @InjectView(R.id.emptyTextView)
+    @InjectView(R.id.retryTextView)
     TextView errorTextView;
 
     @InjectView(R.id.bitcoinBalance)

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,8 +28,9 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 
-public class SearchResultsActivity extends BaseActivity implements SearchResultsView
+public class SearchResultsActivity extends BaseActivity implements SearchResultsView, SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_TRADE_TYPE = "com.thanksmister.extras.EXTRA_TRADE_TYPE";
     public static final String EXTRA_ADDRESS = "com.thanksmister.extras.EXTRA_ADDRESS";
@@ -53,6 +57,15 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     @InjectView(R.id.contactToolBar)
     Toolbar toolbar;
 
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
+
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.getAdvertisements(tradeType, address, paymentMethod);
+    }
+
     private AdvertiseAdapter adapter;
     private String paymentMethod;
     private TradeType tradeType;
@@ -75,6 +88,9 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
 
         ButterKnife.inject(this);
 
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+
         if (savedInstanceState == null) {
             tradeType = (TradeType) getIntent().getSerializableExtra(EXTRA_TRADE_TYPE);
             address = getIntent().getParcelableExtra(EXTRA_ADDRESS);
@@ -89,7 +105,6 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(getHeader(tradeType));
-            setToolBarMenu(toolbar);
         }
 
         list.setOnItemClickListener((adapterView, view, i, l) -> {
@@ -99,8 +114,6 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
 
         adapter = new AdvertiseAdapter(getContext());
         setAdapter(adapter);
-
-        presenter.getAdvertisements(tradeType, address, paymentMethod);
     }
 
     @Override
@@ -144,6 +157,8 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
         super.onResume();
 
         presenter.onResume();
+
+        presenter.getAdvertisements(tradeType, address, paymentMethod);
     }
 
     @Override
@@ -157,9 +172,26 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     }
 
     @Override
-    public void setToolBarMenu(Toolbar toolbar)
+    public void onRefresh()
     {
-        
+        presenter.getAdvertisements(tradeType, address, paymentMethod);
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+
+        empty.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
     }
 
     @Override 
@@ -169,17 +201,9 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     }
 
     @Override
-    public void showError(String message)
-    {
-        progress.setVisibility(View.GONE);
-        list.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        emptyTextView.setText(message);
-    }
-
-    @Override
     public void showProgress()
     {
+        empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         list.setVisibility(View.GONE);
     }
@@ -187,6 +211,7 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     @Override
     public void hideProgress()
     {
+        empty.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
     }
@@ -194,7 +219,7 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     public void setData(List<Advertisement> advertisements, List<Method> methods, TradeType tradeType, String address)
     {
         if(advertisements.isEmpty()) {
-            showError("No advertisers");
+            onError("No advertisers.");
         } else {
             hideProgress();
             getAdapter().replaceWith(advertisements, methods);

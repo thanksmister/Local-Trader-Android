@@ -35,8 +35,8 @@
     <string name="error_server_time_out">Call to the service timed out</string>
     <string name="error_no_internet">Weak or no internet connection</string>
     <string name="error_login">There was a login error. The error has been reported.</string>
-    <string name="error_generic_error">The service is unreachable, no network.</string>
-    <string name="error_service_error">The service produced an unexpected error.</string>
+    <string name="error_generic_error">Service unreachable, check network connection.</string>
+    <string name="error_service_error">Service produced an unexpected error.</string>
     <string name="error_generic_permission">You do not have permission to access this feature.</string>
     <string name="error_authentication">Authentication error, you are no longer authorized.</string>
     <string name="error_data">There was an error with the data sent.</string>
@@ -444,5 +444,7 @@
         limitations under the License.
     ]]></string>
     <string name="error_no_play_services">No Google Play Services</string>
+    <string name="error_unable_load_address">Unable to get current address. Click to try again.</string>
+    <string name="error_no_trade_data">There are no trades.</string>
 
 </resources>

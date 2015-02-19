@@ -9,7 +9,6 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -59,7 +58,7 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
     @InjectView(R.id.priceLayoutDivider)
     View priceLayoutDivider;
 
-    @InjectView(R.id.emptyTextView)
+    @InjectView(R.id.retryTextView)
     TextView emptyTextView;
 
     @InjectView(R.id.toolbar)
@@ -183,6 +182,18 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
         ButterKnife.reset(this);
 
         presenter.onDestroy();
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        // TODO implement refresh
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        // TODO implement
     }
 
     @Override

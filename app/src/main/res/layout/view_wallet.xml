@@ -77,7 +77,7 @@
                      tools:visibility="visible"/>
     
             <include android:id="@android:id/empty" 
-                     layout="@layout/view_empty"
+                     layout="@layout/view_error"
                      android:visibility="gone"
                      tools:visibility="visible"/>
     

@@ -72,25 +72,11 @@
             <include
                     android:id="@android:id/progress"
                     layout="@layout/view_progress"
-                    android:visibility="visible"
-                    tools:visibility="visible"/>
-
-            <include
-                    android:id="@android:id/empty"
-                    layout="@layout/view_empty"
                     android:visibility="gone"
                     tools:visibility="visible"/>
-
-            <ScrollView
-                    android:id="@+id/dashContent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none"
-                    android:fillViewport="true"
-                    android:visibility="gone"
-                    tools:visibility="visible">
 
                 <LinearLayout
+                        android:id="@+id/dashContent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
@@ -262,7 +248,7 @@
                                         android:layout_height="wrap_content"
                                         android:layout_gravity="center_vertical"
                                         android:layout_weight="0"
-                                        android:src="@drawable/ic_action_visibility_off"/>
+                                        android:src="@drawable/ic_action_news_add"/>
 
                                 <LinearLayout
                                         android:layout_width="match_parent"
@@ -283,7 +269,7 @@
                                             style="@style/TextMedium.Secondary"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:text="Click to view all ads"/>
+                                            android:text="Click to post new ad"/>
 
                                     <View
                                             style="@style/DividerHorizontal"
@@ -347,8 +333,7 @@
 
                 </LinearLayout>
 
-            </ScrollView>
-
+      
         </FrameLayout>
 
     </LinearLayout>

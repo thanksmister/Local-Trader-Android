@@ -24,6 +24,7 @@ public interface SearchPresenter
 
     void setPaymentMethod(Method method);
 
+
     void setTradeType(TradeType tradeType);
 
     void setAddress(Address address1);

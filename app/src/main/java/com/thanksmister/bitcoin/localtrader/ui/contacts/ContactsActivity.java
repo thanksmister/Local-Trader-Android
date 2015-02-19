@@ -3,17 +3,11 @@ package com.thanksmister.bitcoin.localtrader.ui.contacts;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.Html;
-import android.text.TextWatcher;
-import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -21,17 +15,8 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactModule;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactPresenter;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactView;
-import com.thanksmister.bitcoin.localtrader.ui.contact.MessageAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
-import com.thanksmister.bitcoin.localtrader.utils.Conversions;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,9 +24,9 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import timber.log.Timber;
+import butterknife.OnClick;
 
-public class ContactsActivity extends BaseActivity implements ContactsView
+public class ContactsActivity extends BaseActivity implements ContactsView, SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_TYPE";
 
@@ -55,13 +40,22 @@ public class ContactsActivity extends BaseActivity implements ContactsView
     View empty;
 
     @InjectView(R.id.emptyTextView)
-    TextView errorTextView;
+    TextView emptyTextView;
 
     @InjectView(R.id.contactsList)
     ListView list;
 
     @InjectView(R.id.contactsToolBar)
     Toolbar toolbar;
+
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.getContacts(dashboardType);
+    }
+
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
 
     private DashboardType dashboardType;
     private ContactAdapter adapter;
@@ -93,6 +87,9 @@ public class ContactsActivity extends BaseActivity implements ContactsView
             setToolBarMenu(toolbar);
         }
 
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+
         list.setOnItemClickListener((adapterView, view, i, l) -> {
             Contact contact = (Contact) adapterView.getAdapter().getItem(i);
             presenter.getContact(contact);
@@ -100,8 +97,6 @@ public class ContactsActivity extends BaseActivity implements ContactsView
 
         adapter = new ContactAdapter(this);
         setAdapter(getAdapter());
-        
-        presenter.getContacts(dashboardType);
     }
 
     @Override
@@ -143,6 +138,8 @@ public class ContactsActivity extends BaseActivity implements ContactsView
         super.onResume();
 
         presenter.onResume();
+
+        presenter.getContacts(dashboardType);
     }
 
     @Override
@@ -156,6 +153,29 @@ public class ContactsActivity extends BaseActivity implements ContactsView
     }
 
     @Override
+    public void onRefresh()
+    {
+        presenter.getContacts(dashboardType);
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+
+        empty.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
+    }
+
+    @Override
     public void setToolBarMenu(Toolbar toolbar)
     {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -163,15 +183,23 @@ public class ContactsActivity extends BaseActivity implements ContactsView
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.action_active:
+                        showProgress();
+                        setContacts(new ArrayList<>());
                         presenter.getContacts(DashboardType.ACTIVE);
                         return true;
                     case R.id.action_canceled:
+                        showProgress();
+                        setContacts(new ArrayList<>());
                         presenter.getContacts(DashboardType.CANCELED);
                         return true;
                     case R.id.action_closed:
+                        showProgress();
+                        setContacts(new ArrayList<>());
                         presenter.getContacts(DashboardType.CLOSED);
                         return true;
                     case R.id.action_released:
+                        showProgress();
+                        setContacts(new ArrayList<>());
                         presenter.getContacts(DashboardType.RELEASED);
                         return true;
                 }
@@ -187,17 +215,9 @@ public class ContactsActivity extends BaseActivity implements ContactsView
     }
 
     @Override
-    public void showError(String message)
-    {
-        progress.setVisibility(View.GONE);
-        list.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
-    }
-
-    @Override
     public void showProgress()
     {
+        empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         list.setVisibility(View.GONE);
     }
@@ -205,6 +225,7 @@ public class ContactsActivity extends BaseActivity implements ContactsView
     @Override
     public void hideProgress()
     {
+        empty.setVisibility(View.GONE); 
         progress.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
     }
@@ -246,4 +267,6 @@ public class ContactsActivity extends BaseActivity implements ContactsView
 
         getSupportActionBar().setTitle(title);
     }
+
+    
 }

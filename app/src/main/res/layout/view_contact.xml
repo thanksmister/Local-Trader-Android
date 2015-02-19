@@ -32,8 +32,7 @@
             app:popupTheme="@style/Theme.AppCompat.Light"
             app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
-    <!-- As the main content view, the view below consumes the entire
-         space available using match_parent in both dimensions. -->
+
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -44,21 +43,40 @@
 
         <include
                 android:id="@+id/contactEmpty"
-                layout="@layout/view_empty"
+                layout="@layout/view_error"
                 tools:visibility="visible"
                 android:visibility="gone"/>
 
-        <ListView
-                android:id="@+id/contactList"
+        <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swipeLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:divider="@drawable/black_horizontal_line"
-                android:dividerHeight="1px"
-                android:scrollbars="none"
-                android:drawSelectorOnTop="true"
-                tools:visibility="visible"
-                android:visibility="gone"/>
+                android:layout_height="match_parent">
+
+            <ListView
+                    android:id="@+id/contactList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:divider="@drawable/black_horizontal_line"
+                    android:dividerHeight="1px"
+                    android:scrollbars="none"
+                    android:drawSelectorOnTop="true"
+                    tools:visibility="visible"
+                    android:visibility="gone"/>
+            
+            <!--
+            <ListView
+                    android:id="@+id/contactList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:scrollbars="none"
+                    android:drawSelectorOnTop="true"
+                    tools:visibility="visible"
+                    android:visibility="gone"/>
+                    -->
+
+        </android.support.v4.widget.SwipeRefreshLayout>
 
     </FrameLayout>
 

@@ -49,4 +49,9 @@ public class RetroError extends Error
     {
         return (code == 403 || code == 4);
     }
+
+    public boolean isNetworkError()
+    {
+        return (code == 404);
+    }
 }

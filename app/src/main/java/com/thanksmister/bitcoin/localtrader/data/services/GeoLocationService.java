@@ -305,7 +305,7 @@ public class GeoLocationService
     public Subscription getLocalAdvertisements(final Observer<List<Advertisement>> observer, final double latitude, final double longitude, final TradeType tradeType)
     {
         if(advertisements != null && !advertisements.isEmpty()) {
-            observer.onNext(advertisements);
+            //observer.onNext(advertisements);
         }
         
         if(advertisementPublishSubject != null) {
@@ -322,7 +322,8 @@ public class GeoLocationService
 
             @Override
             public void onNext(List<Advertisement> result) {
-                
+
+                advertisementPublishSubject = null;
                 advertisements = result;
                 Timber.d("getAdvertisements: " + advertisements.size());
             }

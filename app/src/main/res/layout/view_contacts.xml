@@ -48,15 +48,22 @@
                 tools:visibility="visible"
                 android:visibility="gone"/>
 
-        <ListView
-                android:id="@+id/contactsList"
+        <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swipeLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:scrollbars="none"
-                android:drawSelectorOnTop="true"
-                tools:visibility="visible"
-                android:visibility="gone"/>
+                android:layout_height="match_parent">
+
+            <ListView
+                    android:id="@+id/contactsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:scrollbars="none"
+                    android:drawSelectorOnTop="true"
+                    tools:visibility="visible"
+                    android:visibility="gone"/>
+        
+        </android.support.v4.widget.SwipeRefreshLayout>
 
     </FrameLayout>
 
