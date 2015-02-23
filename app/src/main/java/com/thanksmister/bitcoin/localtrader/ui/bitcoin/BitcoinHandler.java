@@ -72,18 +72,6 @@ public class BitcoinHandler extends BaseActivity implements BitcoinView
 	}
 
     @Override
-    public void onRefreshStop()
-    {
-        // TODO implement refresh
-    }
-
-    @Override
-    public void onError(String message)
-    {
-        // TODO implement
-    }
-
-    @Override
     protected List<Object> getModules()
     {
         return Arrays.<Object>asList(new BitcoinModule(this));

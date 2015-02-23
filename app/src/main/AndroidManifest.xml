@@ -32,12 +32,19 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <provider
+        <!--<provider
             android:name=".data.database.CupboardProvider"
             android:authorities="com.thanksmister.bitcoin.localtrader.provider"
             android:exported="false"
             android:label="Trades"
-            android:syncable="true" />
+            android:syncable="true" />-->
+
+        <provider
+                android:name=".data.services.SyncProvider"
+                android:label="Trades"
+                android:syncable="true"
+                android:authorities="com.thanksmister.bitcoin.localtrader.provider"
+                android:exported="false"/>
 
         <!-- Services -->
         <service android:name=".data.services.AuthenticatorService" >

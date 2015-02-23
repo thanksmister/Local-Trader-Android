@@ -89,18 +89,6 @@ public class LoginActivity extends BaseActivity implements LoginView
     }
 
     @Override
-    public void onRefreshStop()
-    {
-        // ignore
-    }
-
-    @Override
-    public void onError(String message)
-    {
-        // TODO implement
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         //toolbar.inflateMenu(R.menu.main);

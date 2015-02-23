@@ -191,18 +191,6 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
     }
 
     @Override
-    public void onRefreshStop()
-    {
-        // TODO implement refresh
-    }
-
-    @Override
-    public void onError(String message)
-    {
-        // TODO implement
-    }
-
-    @Override
     public void setToolBarMenu(Toolbar toolbar)
     {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

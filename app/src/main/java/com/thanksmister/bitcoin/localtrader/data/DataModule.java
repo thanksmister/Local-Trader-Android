@@ -28,7 +28,8 @@ import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.BitstampExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.data.database.CupboardSQLiteOpenHelper;
+//import com.thanksmister.bitcoin.localtrader.data.database.CupboardSQLiteOpenHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.DatabaseManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 
@@ -56,8 +57,14 @@ public final class DataModule
     @Singleton
     SharedPreferences provideSharedPreferences(BaseApplication app)
     {
-        // TODO change this for new app
-        return app.getSharedPreferences("com.thanksmister.localtrader", MODE_PRIVATE);
+        return app.getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
+    }
+
+    @Provides
+    @Singleton
+    DatabaseManager provideDatabaseManager()
+    {
+        return new DatabaseManager();
     }
 
     @Provides
@@ -69,9 +76,9 @@ public final class DataModule
 
     @Provides
     @Singleton
-    DataService provideDataService(BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins, BitstampExchange exchange, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
+    DataService provideDataService(BaseApplication app, DatabaseManager databaseManager, SharedPreferences preferences, LocalBitcoins localBitcoins, BitstampExchange exchange, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
     {
-        return new DataService(app, preferences, localBitcoins, exchange, bitcoinAverage, bitfinexExchange);
+        return new DataService(app, databaseManager, preferences, localBitcoins, exchange, bitcoinAverage, bitfinexExchange);
     }
 
     @Provides
@@ -81,12 +88,12 @@ public final class DataModule
         return new GeoLocationService(app, preferences, locationManager, localBitcoins);
     }
 
-    @Provides
+    /*@Provides
     @Singleton
     CupboardSQLiteOpenHelper provideCupboardSQLiteOpenHelper(BaseApplication app)
     {
         return new CupboardSQLiteOpenHelper(app);
-    }
+    }*/
 
     @Provides
     @Singleton

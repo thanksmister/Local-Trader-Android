@@ -102,8 +102,7 @@ public class DashboardPresenterImpl implements DashboardPresenter
         subscription = service.getDashboardInfo(new Observer<Dashboard>() {
             @Override
             public void onCompleted()
-            {
-               
+            {        
             }
 
             @Override
@@ -117,21 +116,23 @@ public class DashboardPresenterImpl implements DashboardPresenter
                 if (retroError.isAuthenticationError()) {
                     logOut();
                 } else if (retroError.isNetworkError()) {
-                    refreshError(getContext().getString(R.string.error_no_internet));  
+                    getView().onRetry(getContext().getString(R.string.error_no_internet));  
                 } else {
-                    refreshError(retroError.getMessage());
+                    getView().onError(retroError.getMessage());
                 }
 
-                endRefresh();
+                getView().onRefreshStop();
             }
 
             @Override
             public void onNext(Dashboard results)
             {
                 dashboard = results;
+                
                 if (methods != null) {
                     getView().setDashboard(dashboard, methods);
-                    endRefresh();  
+                    getView().onRefreshStop();
+                    getView().hideProgress();
                 } else {
                     getOnlineProviders(dashboard); 
                 }
@@ -145,15 +146,15 @@ public class DashboardPresenterImpl implements DashboardPresenter
         subscription = observable.subscribe(new Observer<List<Method>>() {
             @Override
             public void onCompleted() {
-               
-                endRefresh();
+
+                getView().onRefreshStop();
             }
 
             @Override
             public void onError(Throwable e) {
                 methods = new ArrayList<Method>();
                 getView().setDashboard(dashboard, methods);
-                endRefresh();
+                getView().onRefreshStop();
             }
 
             @Override
@@ -162,24 +163,6 @@ public class DashboardPresenterImpl implements DashboardPresenter
                 getView().setDashboard(dashboard, methods);
             }
         });
-    }
-
-    @Override
-    public void logOut()
-    {
-        ((BaseActivity) getContext()).logOutConfirmation();
-    }
-
-    @Override
-    public void endRefresh()
-    {
-        ((BaseActivity) getContext()).onRefreshStop();
-    }
-
-    @Override
-    public void refreshError(String message)
-    {
-        ((BaseActivity) getContext()).onError(message);
     }
 
     @Override
@@ -200,6 +183,12 @@ public class DashboardPresenterImpl implements DashboardPresenter
     public void showSearchScreen()
     {
         bus.post(NavigateEvent.SEARCH);
+    }
+
+    @Override
+    public void logOut()
+    {
+        ((BaseActivity) getContext()).logOut();
     }
 
     @Override

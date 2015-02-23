@@ -18,7 +18,11 @@ public interface DashboardView
 {
     Context getContext();
 
-    public void showError(String message);
+    void onRefreshStop();
+
+    void onRetry(String message);
+
+    public void onError(String message);
     
     public void showProgress();
 

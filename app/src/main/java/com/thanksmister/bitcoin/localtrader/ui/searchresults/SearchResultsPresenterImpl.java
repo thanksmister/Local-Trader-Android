@@ -68,12 +68,12 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
         Timber.d("TradeType: " + tradeType.name());
         Timber.d("PaymentMethod: " + paymentMethod);
 
-        ((BaseActivity) getContext()).onRefreshStop();
 
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
 
             if(advertisements != null) {
                 getView().setData(advertisements, methods, tradeType, TradeUtils.getAddressShort(address));
+                getView().onRefreshStop();
                 return;
             }
 
@@ -83,7 +83,8 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
                 
                 @Override
                 public void onCompleted() {
-                    
+
+                    getView().onRefreshStop();
                 }
 
                 @Override
@@ -93,6 +94,7 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
                     
                     RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
                     getView().onError(retroError.getMessage());
+                    getView().onRefreshStop();
                 }
 
                 @Override
@@ -133,14 +135,15 @@ public class SearchResultsPresenterImpl implements SearchResultsPresenter
         subscription = service.getOnlineAdvertisements(new Observer<List<Advertisement>>() {
             @Override
             public void onCompleted() {
+
+                getView().onRefreshStop();
             }
 
             @Override
             public void onError(Throwable e) {
                 Timber.e(e.getMessage());
-
-                Timber.d("getOnlineAdvertisements :: onError");
-               // getView().showError(e.getMessage());
+                getView().onError(e.getMessage());
+                getView().onRefreshStop();
             }
 
             @Override

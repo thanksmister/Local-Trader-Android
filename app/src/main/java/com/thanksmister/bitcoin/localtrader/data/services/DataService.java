@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 
@@ -56,7 +57,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMethod
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToUser;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.data.database.CupboardProvider;
+import com.thanksmister.bitcoin.localtrader.data.database.DatabaseManager;
 import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
 import com.thanksmister.bitcoin.localtrader.data.prefs.IntPreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
@@ -64,6 +65,7 @@ import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.rx.EndObserver;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
+import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import org.json.JSONException;
@@ -75,7 +77,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import nl.qbusict.cupboard.ProviderCompartment;
+
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import rx.Observable;
@@ -89,7 +91,6 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import timber.log.Timber;
 
-import static nl.qbusict.cupboard.CupboardFactory.cupboard;
 
 @Singleton
 public class DataService
@@ -109,7 +110,8 @@ public class DataService
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
     private final BitcoinAverage bitcoinAverage;
-    private BaseApplication application;
+    private final BaseApplication application;
+    private final DatabaseManager databaseManager;
     
     private final BitstampExchange bitstampExchange;
     private final BitfinexExchange bitfinexExchange;
@@ -142,7 +144,7 @@ public class DataService
     private HashMap<DashboardType, List<Contact>> contacts = new HashMap<DashboardType, List<Contact>>();
     
     @Inject
-    public DataService(BaseApplication application, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitstampExchange bitstampExchange, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
+    public DataService(BaseApplication application, DatabaseManager databaseManager, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitstampExchange bitstampExchange, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
     {
         this.application = application;
         this.localBitcoins = localBitcoins;
@@ -150,6 +152,7 @@ public class DataService
         this.bitstampExchange = bitstampExchange;
         this.bitfinexExchange = bitfinexExchange;
         this.bitcoinAverage = bitcoinAverage;
+        this.databaseManager = databaseManager;
     }
 
     public Subscription getContact(final Observer<Contact> observer, final String contact_id)
@@ -1110,77 +1113,77 @@ public class DataService
 
         String access_token = getAccessToken();
         if(dashboardType == DashboardType.RELEASED) {
-            return localBitcoins.getDashboard(access_token, "released")
-                    .map(new ResponseToContacts())
-                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
-                        @Override
-                        public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
+                    return localBitcoins.getDashboard(access_token, "released")
+                            .map(new ResponseToContacts())
+                            .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
+                                @Override
+                                public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
                             
-                            if(contacts.isEmpty()) {
-                                return Observable.just(contacts);
-                            }
+                                    if(contacts.isEmpty()) {
+                                        return Observable.just(contacts);
+                                    }
                             
-                            return getContactsMessageObservable(contacts);
-                        }
-                    }); 
+                                    return getContactsMessageObservable(contacts);
+                                }
+                            });
         } else if (dashboardType == DashboardType.CANCELED) {
-            return localBitcoins.getDashboard(access_token, "canceled")
-                    .map(new ResponseToContacts())
-                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
-                        @Override
-                        public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                            if(contacts.isEmpty()) {
-                                return Observable.just(contacts);
-                            }
-                            return getContactsMessageObservable(contacts);
-                        }
-                    });
+                    return localBitcoins.getDashboard(access_token, "canceled")
+                            .map(new ResponseToContacts())
+                            .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
+                                @Override
+                                public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
+                                    if(contacts.isEmpty()) {
+                                        return Observable.just(contacts);
+                                    }
+                                    return getContactsMessageObservable(contacts);
+                                }
+                            });
         } else if (dashboardType == DashboardType.CLOSED) {
-            return localBitcoins.getDashboard(access_token, "closed")
-                    .map(new ResponseToContacts())
-                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
-                        @Override
-                        public Observable<? extends List<Contact>> call(final List<Contact> contacts){
-                            if(contacts.isEmpty()) {
-                                return Observable.just(contacts);
-                            }
-                            return getContactsMessageObservable(contacts);
-                        }
-                    });
+                    return localBitcoins.getDashboard(access_token, "closed")
+                            .map(new ResponseToContacts())
+                            .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
+                                @Override
+                                public Observable<? extends List<Contact>> call(final List<Contact> contacts){
+                                    if(contacts.isEmpty()) {
+                                        return Observable.just(contacts);
+                                    }
+                                    return getContactsMessageObservable(contacts);
+                                }
+                            });
         } else {
-            return localBitcoins.getDashboard(access_token)
-                    .map(new ResponseToContacts())
-                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
-                        @Override
-                        public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                            if(contacts.isEmpty()) {
-                                return Observable.just(contacts);
-                            }
-                            return getContactsMessageObservable(contacts);
-                        }
-                    });
+                    return localBitcoins.getDashboard(access_token)
+                            .map(new ResponseToContacts())
+                            .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
+                                @Override
+                                public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
+                                    if(contacts.isEmpty()) {
+                                        return Observable.just(contacts);
+                                    }
+                                    return getContactsMessageObservable(contacts);
+                                }
+                            });
+                }
         }
-    }
 
     private Observable<List<Contact>> getContactsMessageObservable(final List<Contact> contacts)
     {
         String access_token = getAccessToken();
-        return Observable.just(Observable.from(contacts)
-                .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>() {
-                    @Override
-                    public Observable<? extends List<Contact>> call(final Contact contact) {
-                        return localBitcoins.contactMessages(contact.contact_id, access_token)
-                                .map(new ResponseToMessages())
-                                .map(new Func1<List<Message>, List<Contact>>() {
-                                    @Override
-                                    public List<Contact> call(List<Message> messages) {
-                                        contact.messages = messages;
-                                        return contacts;
-                                    }
-                                });
-                    }
-                }).toBlockingObservable().last());
-    }
+                return Observable.just(Observable.from(contacts)
+                        .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>() {
+                            @Override
+                            public Observable<? extends List<Contact>> call(final Contact contact) {
+                                return localBitcoins.contactMessages(contact.contact_id, access_token)
+                                        .map(new ResponseToMessages())
+                                        .map(new Func1<List<Message>, List<Contact>>() {
+                                            @Override
+                                            public List<Contact> call(List<Message> messages) {
+                                                contact.messages = messages;
+                                                return contacts;
+                                            }
+                                        });
+                            }
+                        }).toBlockingObservable().last());
+            }
 
     private Observable<Dashboard> getDashboardObservable()
     {
@@ -1287,16 +1290,16 @@ public class DataService
         }
 
         String access_token = getAccessToken();
-        return localBitcoins.getDashboard(access_token)
-                .map(new ResponseToContacts())
-                .map(contacts -> {
-                    Timber.d("We have contact: " + contacts.size());
-                    Dashboard dashboard = new Dashboard();
-                    dashboard.exchange = exchange;
-                    dashboard.contacts = contacts;
-                    return dashboard;
-                });
-    }
+                        return  localBitcoins.getDashboard(access_token)
+                                .map(new ResponseToContacts())
+                                .map(contacts -> {
+                                    Timber.d("We have contact: " + contacts.size());
+                                    Dashboard dashboard = new Dashboard();
+                                    dashboard.exchange = exchange;
+                                    dashboard.contacts = contacts;
+                                    return dashboard;
+                                });
+                    }
     
     private Observable<List<Advertisement>> getAdvertisementsObservable()
     {
@@ -1430,13 +1433,8 @@ public class DataService
 
     public boolean isLoggedIn()
     {
-        /*IntPreference preference = new IntPreference(sharedPreferences, PREFS_LOGGED_IN);
-        int loggedIn = preference.get();
-        Timber.e("Preference: " + loggedIn);
-        return (loggedIn > 0);*/
-        
-        Authorization authorization = getAuthorization();
-        return (authorization != null);
+        final String token = getAccessToken();
+        return (!Strings.isBlank(token));
     }
     
     public void logOut()
@@ -1541,22 +1539,14 @@ public class DataService
                 .map(new ResponseToAuthorize());
     }
 
-    public String getAccessToken()
-    {
-        Authorization authorization = getAuthorization();
-        if(authorization == null) return null;
-        
-        return authorization.access_token;
-    }
-
     private Observable<String> refreshTokens()
     {
-        Authorization authorization = getAuthorization();
-        if(authorization == null) return Observable.just(null);
+        final String refresh_token = getRefreshToken();
+        if(refresh_token == null) return Observable.just(null);
         
-        Timber.e("Get Refresh token: " + authorization.refresh_token);
+        Timber.e("Get Refresh token: " + refresh_token);
 
-        return localBitcoins.refreshToken("refresh_token", authorization.refresh_token, Constants.CLIENT_ID, Constants.CLIENT_SECRET)
+        return localBitcoins.refreshToken("refresh_token", refresh_token, Constants.CLIENT_ID, Constants.CLIENT_SECRET)
                 .map(new ResponseToAuthorize())
                 .flatMap(new Func1<Authorization, Observable<? extends String>>() {
                     @Override
@@ -1570,37 +1560,46 @@ public class DataService
                 });
     }
 
-    public Authorization getAuthorization()
+    private String getRefreshToken()
     {
-        List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
-        if (list != null && list.size() > 0) {
-            return list.get(0);
+        synchronized (this) {
+            return databaseManager.getRefreshToken(application.getApplicationContext());
         }
-
-        Timber.e("Get Authorization: " + null);
-        
-        return null;
     }
 
+    public String getAccessToken()
+    {
+        synchronized (this) {
+            return databaseManager.getAccessToken(application.getApplicationContext());
+        }
+    }
+    
     public void saveAuthorization(Authorization authorization)
     {
         Timber.e("Save Authorization: " + authorization.access_token);
 
-        Authorization oldToken = getAuthorization();
+        synchronized (this) {
+            databaseManager.updateTokens(application.getApplicationContext(), authorization.access_token, authorization.refresh_token);
+        }
+        /*Authorization oldToken = getAuthorization();
         if(oldToken != null) {
             cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, oldToken);
         }
-        cupboard().withContext(application.getApplicationContext()).put(CupboardProvider.TOKEN_URI, authorization);
+        cupboard().withContext(application.getApplicationContext()).put(CupboardProvider.TOKEN_URI, authorization);*/
     }
     
     private void deleteAuthorization()
     {
-        List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
+        synchronized (this) {
+            databaseManager.deleteTokens(application.getApplicationContext());
+        }
+        
+        /*List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
         if (list != null && list.size() > 0) {
             Authorization authorization = list.get(0);
             //Uri uri = ContentUris.withAppendedId(CupboardProvider.TOKEN_URI, authorization._id);
             cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, authorization);
-        }
+        }*/
     }
 
     private void setTokenExpire(String expires_in)

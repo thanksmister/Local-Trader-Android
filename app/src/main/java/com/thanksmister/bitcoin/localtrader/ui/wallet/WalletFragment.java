@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,7 +32,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 
-public class WalletFragment extends BaseFragment implements WalletView
+public class WalletFragment extends BaseFragment implements WalletView, SwipeRefreshLayout.OnRefreshListener
 {
     private static final String ARG_SECTION_NUMBER = "section_number";
 
@@ -41,20 +42,11 @@ public class WalletFragment extends BaseFragment implements WalletView
     @InjectView(android.R.id.progress)
     View progress;
 
-    @InjectView(android.R.id.empty)
-    View empty;
-
-    @InjectView(R.id.retryTextView)
-    TextView emptyTextView;
-    
     @InjectView(android.R.id.list)
     ListView list;
 
     ImageView qrImage;
     AutoResizeTextView addressButton;
-
-    @InjectView(R.id.retryTextView)
-    TextView errorTextView;
 
     @InjectView(R.id.bitcoinBalance)
     TextView bitcoinBalance;
@@ -62,6 +54,26 @@ public class WalletFragment extends BaseFragment implements WalletView
     @InjectView(R.id.bitcoinValue)
     TextView bitcoinValue;
 
+    @InjectView(android.R.id.empty)
+    View empty;
+
+    @InjectView(R.id.emptyTextView)
+    TextView emptyTextView;
+
+    @InjectView(R.id.retry)
+    View retry;
+
+    @InjectView(R.id.retryTextView)
+    TextView retryTextView;
+
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
+
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.onResume();
+    }
 
     @OnClick(R.id.walletFloatingButton)
     public void scanButtonClicked()
@@ -112,6 +124,9 @@ public class WalletFragment extends BaseFragment implements WalletView
         super.onActivityCreated(savedInstanceState);
 
         ButterKnife.inject(this, getActivity());
+
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
         View headerView = getLayoutInflater(savedInstanceState).inflate(R.layout.view_wallet_header, null, false);
         list.addHeaderView(headerView, null, false);
@@ -199,26 +214,53 @@ public class WalletFragment extends BaseFragment implements WalletView
     }
 
     @Override
+    public void onRefresh()
+    {
+        presenter.onResume();
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        swipeLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onRetry(String message)
+    {
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        empty.setVisibility(View.GONE);
+        retry.setVisibility(View.VISIBLE);
+        retryTextView.setText(message);
+    }
+
+    @Override
+    public void onError(String message)
+    {
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        retry.setVisibility(View.GONE);
+        empty.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
+    }
+
+    @Override
     public void showProgress()
     {
-        progress.setVisibility(View.VISIBLE);
+        empty.setVisibility(View.GONE);
+        retry.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
+        progress.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void hideProgress()
     {
+        empty.setVisibility(View.GONE);
+        retry.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void showError(String message)
-    {
-        progress.setVisibility(View.GONE);
-        list.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        emptyTextView.setText(message);
     }
 
     @Override

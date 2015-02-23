@@ -139,7 +139,8 @@ public class WalletPresenterImpl implements WalletPresenter
         subscription = dataService.getWallet(new Observer<Wallet>() {
             @Override
             public void onCompleted() {
-                view.hideProgress();
+                getView().hideProgress();
+                getView().onRefreshStop();
             }
 
             @Override
@@ -149,10 +150,10 @@ public class WalletPresenterImpl implements WalletPresenter
                     Toast.makeText(getContext(), retroError.getMessage(), Toast.LENGTH_SHORT).show();
                     ((BaseActivity) getContext()).logOut();
                 } else {
-                    getView().showError(retroError.getMessage());
+                    getView().onError(retroError.getMessage());
                 }
 
-                ((BaseActivity) getContext()).onRefreshStop();
+                getView().onRefreshStop();
             }
 
             @Override
@@ -160,7 +161,7 @@ public class WalletPresenterImpl implements WalletPresenter
                 wallet = result; // set data
                 view.setWallet(wallet);
 
-                ((BaseActivity) getContext()).onRefreshStop();
+                
             }
         });
     }

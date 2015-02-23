@@ -232,18 +232,6 @@ public class TradeRequestActivity extends BaseActivity implements TradeRequestVi
     }
 
     @Override
-    public void onRefreshStop()
-    {
-        // TODO implement refresh
-    }
-
-    @Override
-    public void onError(String message)
-    {
-        // TODO implement
-    }
-
-    @Override
     protected void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);

@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-public class Message
+package com.thanksmister.bitcoin.localtrader.data.database;
+
+import android.net.Uri;
+
+public class BaseContract
 {
-    public String msg;
-    public String contact_id;
-    public String created_at;
-    public Boolean is_admin;
-    public String attachment_name;
-    public String attachment_type;
-    public String attachment_url;
-    public Sender sender = new Sender();
-    public boolean seen = false;
-    
-    public class Sender {
-        public String id;
-        public String name;
-        public String username;
-        public String trade_count;
-        public String last_seen_on;
-    }
+    /**
+     * Content provider authority.
+     */
+    public static final String CONTENT_AUTHORITY = "com.thanksmister.bitcoin.localtrader.provider";
+
+    /**
+     * Base URI. (content://com.thanksmister.bitcoin.localtrader.provider)
+     */
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+
 }

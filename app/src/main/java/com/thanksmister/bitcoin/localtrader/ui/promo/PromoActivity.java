@@ -122,18 +122,6 @@ public class PromoActivity extends BaseActivity implements PromoView
     }
 
     @Override
-    public void onRefreshStop()
-    {
-        // ignore
-    }
-
-    @Override
-    public void onError(String message)
-    {
-        // TODO implement
-    }
-
-    @Override
     protected List<Object> getModules()
     {
         return Arrays.<Object>asList(new PromoModule(this));

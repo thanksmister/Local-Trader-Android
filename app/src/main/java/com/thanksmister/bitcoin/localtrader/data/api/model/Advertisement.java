@@ -77,6 +77,7 @@ public class Advertisement
     public String price_equation;
     public String currency;
     public String account_info;
+    public String message;
     public double lat;
     public double lon;
   

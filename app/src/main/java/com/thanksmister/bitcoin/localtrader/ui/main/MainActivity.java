@@ -3,7 +3,7 @@ package com.thanksmister.bitcoin.localtrader.ui.main;
 
 import android.content.Context;
 import android.content.Intent;
-import android.location.LocationManager;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -46,7 +46,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 
 @BaseActivity.RequiresAuthentication
-public class MainActivity extends BaseActivity implements MainView, NavigationDrawerFragment.NavigationDrawerCallbacks, SwipeRefreshLayout.OnRefreshListener
+public class MainActivity extends BaseActivity implements MainView, NavigationDrawerFragment.NavigationDrawerCallbacks
 {
     private static final String BITCOIN_URI = "com.thanksmister.extra.BITCOIN_URI";
     private static final String DASHBOARD_FRAGMENT = "com.thanksmister.fragment.DASHBOARD_FRAGMENT";
@@ -80,28 +80,10 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     @Inject
     Bus bus;
 
-    @Inject
-    LocationManager locationManager;
-
-    @InjectView(android.R.id.empty)
-    View empty;
-
-    @InjectView(R.id.retryButton)
-    View retryButton;
-
-    @InjectView(R.id.retryTextView)
-    TextView errorTextView;
-
-    @OnClick(R.id.retryButton)
-    public void retryButtonClicked()
-    {
-        onRefresh();
-    }
-
     private MaterialDialog alertDialog;
     private MaterialDialog progressDialog;
     private String contactId;
-    private SwipeRefreshLayout swipeLayout;
+    
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -140,9 +122,7 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
             setSupportActionBar(toolbar);
         }
 
-        swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
-        swipeLayout.setOnRefreshListener(this);
-        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+     
 
         mTitle = "";
 
@@ -153,11 +133,11 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
             SyncUtils.CreateSyncAccount(getApplicationContext());
             SyncUtils.TriggerRefresh(getApplicationContext()); 
         } else {
-            SyncUtils.ClearSyncAccount(getApplicationContext());
+            //SyncUtils.ClearSyncAccount(getApplicationContext());
         }
     }
 
-    @Override
+    /*@Override
     public void onRefresh()
     {
         empty.setVisibility(View.GONE);
@@ -180,21 +160,7 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
             }
         }, 2500);
 
-    }
-
-    @Override
-    public void onRefreshStop()
-    {
-        if(swipeLayout != null)
-            swipeLayout.setRefreshing(false);
-    }
-
-    @Override
-    public void onError(String message)
-    {
-        empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
-    }
+    }*/
     
     @Override
     public void onPause()
@@ -222,39 +188,25 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
     {
         clearActionBar();
 
-        if(empty != null)
-            empty.setVisibility(View.GONE);
-
         if(service.isLoggedIn()) {
 
             if (position == DRAWER_WALLET) {
-                if(swipeLayout != null)
-                    swipeLayout.setEnabled(true);
-                
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, WalletFragment.newInstance(position), WALLET_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_SEARCH) {
-                if(swipeLayout != null)
-                    swipeLayout.setEnabled(false);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, SearchFragment.newInstance(position), SEARCH_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_SEND) {
-                if(swipeLayout != null)
-                    swipeLayout.setEnabled(false);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, RequestFragment.newInstance(position, RequestFragment.WalletTransactionType.SEND), SEND_RECEIVE_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_DASHBOARD) {
-                if(swipeLayout != null)
-                    swipeLayout.setEnabled(true);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, DashboardFragment.newInstance(position), DASHBOARD_FRAGMENT)
                         .commit();
             } else if (position == DRAWER_ABOUT) {
-                if(swipeLayout != null)
-                    swipeLayout.setEnabled(false);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, AboutFragment.newInstance(position), ABOUT_FRAGMENT)
                         .commit();

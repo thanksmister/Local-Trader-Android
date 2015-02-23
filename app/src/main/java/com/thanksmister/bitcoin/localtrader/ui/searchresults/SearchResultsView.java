@@ -19,6 +19,8 @@ public interface SearchResultsView
 {
     Context getContext();
 
+    void onRefreshStop();
+
     public void onError(String message);
     
     public void showProgress();

@@ -43,7 +43,7 @@
 
         <include
                 android:id="@+id/contactEmpty"
-                layout="@layout/view_error"
+                layout="@layout/view_empty"
                 tools:visibility="visible"
                 android:visibility="gone"/>
 

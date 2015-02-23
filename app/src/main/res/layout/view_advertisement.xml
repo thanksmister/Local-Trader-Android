@@ -44,9 +44,12 @@
 
         <include
                 android:id="@+id/advertisementEmpty"
-                layout="@layout/view_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                layout="@layout/view_retry"
                 tools:visibility="visible"
-                android:visibility="gone"/>
+                android:visibility="gone"
+                android:layout_gravity="bottom"/>
 
         <ScrollView
                 android:id="@+id/advertisementMainView"
@@ -54,7 +57,7 @@
                 android:layout_height="match_parent"
                 android:scrollbars="none"
                 android:fillViewport="true"
-                tools:visibility="visible"
+                tools:visibility="gone"
                 android:visibility="gone">
 
             <LinearLayout

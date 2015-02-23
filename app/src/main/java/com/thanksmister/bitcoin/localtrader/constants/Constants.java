@@ -20,6 +20,7 @@ public class Constants
 {
     public static final String CONTENT_AUTHORITY = "com.thanksmister.bitcoin.localtrader.provider";
     public static final String AUTHORITY = "com.thanksmister.bitcoin.localtrader.provider";
+    
     public static final String ACCOUNT_TYPE = "com.thanksmister.bitcoin.localtrader.sync";
     public static final String ACCOUNT_NAME = "LocalBitcoins";
     

@@ -39,6 +39,7 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 
 public class ContactActivity extends BaseActivity implements ContactView, SwipeRefreshLayout.OnRefreshListener
 {
@@ -53,9 +54,6 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
     @InjectView(R.id.contactEmpty)
     View empty;
 
-    @InjectView(R.id.retryTextView)
-    TextView errorTextView;
-
     @InjectView(R.id.contactList)
     ListView list;
 
@@ -64,6 +62,15 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
     
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
+
+    @InjectView(R.id.emptyTextView)
+    TextView emptyTextView;
+
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.getContact(contactId);
+    }
 
     private TextView tradePrice;
     private TextView tradeAmount;
@@ -180,7 +187,7 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
         adapter = new MessageAdapter(this);
         setAdapter(adapter);
         
-        presenter.getContact(contactId);
+        
     }
 
     @Override
@@ -224,6 +231,8 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
         registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         presenter.onResume();
+
+        presenter.getContact(contactId);
     }
 
     @Override
@@ -256,8 +265,9 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
     {
         progress.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
+        
         empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
+        emptyTextView.setText(message);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent)

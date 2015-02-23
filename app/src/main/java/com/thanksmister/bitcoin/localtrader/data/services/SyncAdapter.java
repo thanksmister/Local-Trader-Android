@@ -19,41 +19,36 @@ package com.thanksmister.bitcoin.localtrader.data.services;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.os.Bundle;
 
 import com.squareup.okhttp.OkHttpClient;
-import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContactSyncs;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.data.database.CupboardProvider;
+import com.thanksmister.bitcoin.localtrader.data.database.DatabaseManager;
 import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
-import com.thanksmister.bitcoin.localtrader.data.prefs.BooleanPreference;
-import com.thanksmister.bitcoin.localtrader.data.prefs.IntPreference;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
+import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
@@ -68,30 +63,26 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import timber.log.Timber;
 
-import static android.content.Context.MODE_PRIVATE;
-import static nl.qbusict.cupboard.CupboardFactory.cupboard;
-
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {  
-    private static String WALLET_KEY = "wallet_balance";
-    
-    PublishSubject<List<ContactSync>> contactsPublishSubject;
+    PublishSubject<List<Contact>> contactsPublishSubject;
     PublishSubject<List<Contact>> contactsInfoPublishSubject;
     PublishSubject<Wallet> walletPublishSubject;
+    PublishSubject<List<Message>> messagePublishSubject;
     private LocalBitcoins localBitcoins;
-    private SharedPreferences sharedPreferences;
+    private DatabaseManager databaseManager;
   
     public SyncAdapter(Context context, boolean autoInitialize)
     {
         super(context, autoInitialize);
         localBitcoins = initLocalBitcoins();
-        sharedPreferences = getContext().getApplicationContext().getSharedPreferences("com.thanksmister.localtrader", MODE_PRIVATE);
+        databaseManager = new DatabaseManager();
     }
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult)
     {
-        if(getAuthorization() != null) {
+        if(isLoggedIn()) {
             getBalance();
             getContacts();
         }
@@ -99,6 +90,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private void getBalance()
     {
+        Timber.d("GET Wallet Balance");
+        
         if(walletPublishSubject != null) {
             return;
         }
@@ -112,34 +105,39 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
             @Override
             public void onError(Throwable throwable) {
-                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                /*RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
                 Timber.e("Sync Wallet Error Message: " + retroError.getMessage());
-                Timber.e("Sync Wallet Error Code: " + retroError.getCode());
+                Timber.e("Sync Wallet Error Code: " + retroError.getCode());*/
+                walletPublishSubject = null;
             }
 
             @Override
             public void onNext(Wallet wallet) {
+  
                 Timber.d("Wallet Balance: " + wallet.total.balance);
-                
-                StringPreference stringPreference = new StringPreference(sharedPreferences, WALLET_KEY, "");
-                String balance = stringPreference.get();
 
-                Timber.d("Wallet Balance Shared: " + balance);
-              
-                // TODO reset wallet balance on logout
-                // TODO open wallet screen
-                if(balance.equals("")) {
-                    NotificationUtils.createMessageNotification(getContext(), "Wallet Balance", "Wallet balance", "Your current wallet balance is " + wallet.total.balance + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
-                } else if(!wallet.total.balance.equals(balance)) {
-                    double oldBalance = Doubles.convertToDouble(balance);
+                Wallet current = databaseManager.getWallet(getContext());
+
+                Timber.d("Current Wallet: " + current);
+                
+                if(current != null) {
+
+                    Timber.d("Current Wallet Balance: " + current.total.balance);
+                    
+                    double oldBalance = Doubles.convertToDouble(current.total.balance);
                     double newBalance = Doubles.convertToDouble(wallet.total.balance);
-                    if(oldBalance < newBalance) {
-                        String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
+                    String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
+                    if(oldBalance < newBalance){
                         NotificationUtils.createMessageNotification(getContext(), "Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
-                    }  
+
+                    }
+                    
+                } else {
+                    NotificationUtils.createMessageNotification(getContext(), "Wallet Balance", "Wallet balance", "Your current wallet balance is " + wallet.total.balance + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
                 }
 
-                stringPreference.set(wallet.total.balance);
+                boolean updated = databaseManager.updateWallet(wallet, getContext());
+                Timber.d(updated?"Wallet updated!":"Wallet update failed!");
             }
         });
 
@@ -157,7 +155,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
 
         contactsPublishSubject = PublishSubject.create();
-        contactsPublishSubject.subscribe(new Observer<List<ContactSync>>() {
+        contactsPublishSubject.subscribe(new Observer<List<Contact>>() {
             @Override
             public void onCompleted() {
                 contactsPublishSubject = null;
@@ -170,7 +168,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             }
 
             @Override
-            public void onNext(List<ContactSync> contacts) {
+            public void onNext(List<Contact> contacts) {
                 if(!contacts.isEmpty()){
                     Timber.e("Sync Contacts: " + contacts.size());
                     saveContactsAndNotify(contacts);
@@ -185,7 +183,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .subscribe(contactsPublishSubject);
     }
     
-    private void getDeletedContactsInfo(List<ContactSync> contacts)
+    private void getDeletedContactsInfo(List<Contact> contacts)
     {
         if(contactsInfoPublishSubject != null) {
             return;
@@ -209,9 +207,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             public void onNext(List<Contact> results) {
                 if(results.size() > 1) {
                     NotificationUtils.createNotification(getContext(), "Trades canceled or released", "Trades canceled or released..", "Two or more of your trades have been canceled or released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-                    for (Contact contact : results) {
-                        deleteContact(contact); // delete contact list
-                    }
                 } else {
                     Contact contact = results.get(0);
                     String contactName = TradeUtils.getContactName(contact);
@@ -221,8 +216,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     } else if (TradeUtils.isReleased(contact)) {
                         NotificationUtils.createNotification(getContext(), "Trade Released", ("Trade with" + contactName + " released."), ("Trade #" + contact.contact_id + saleType + contactName + " has been released."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
                     }
-
-                    deleteContact(contact); // remove from database
                 }
             }
         });
@@ -245,14 +238,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .map(new ResponseToWalletBalance());
     }
 
-    private Observable<List<Contact>> getContactInfo(List<ContactSync> contacts)
+    private Observable<List<Contact>> getContactInfo(List<Contact> contacts)
     {
         String access_token = getAccessToken();
         List<Contact> contactList = Collections.emptyList();
         return Observable.just(Observable.from(contacts)
-                .flatMap(new Func1<ContactSync, Observable<? extends List<Contact>>>() {
+                .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>() {
                     @Override
-                    public Observable<? extends List<Contact>> call(final ContactSync contact) {
+                    public Observable<? extends List<Contact>> call(final Contact contact) {
                         return localBitcoins.getContact(contact.contact_id, access_token)
                                 .map(new ResponseToContact())
                                 .map(new Func1<Contact, List<Contact>>() {
@@ -266,15 +259,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 }).toBlockingObservable().last());
     }
 
-    private Observable<List<ContactSync>> getContactsObservable()
+    private Observable<List<Contact>> getContactsObservable()
     {
         String access_token = getAccessToken();
         return localBitcoins.getDashboard(access_token)
-            .map(new ResponseToContactSyncs())
-            .flatMap(new Func1<List<ContactSync>, Observable<? extends List<ContactSync>>>()
+            .map(new ResponseToContacts())
+            .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
             {
                 @Override
-                public Observable<? extends List<ContactSync>> call(final List<ContactSync> contacts)
+                public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                 {
                     if (contacts.isEmpty()) {
                         return Observable.just(contacts);
@@ -284,21 +277,19 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             });
     }
 
-    private Observable<List<ContactSync>> getContactsMessageObservable(final List<ContactSync> contacts)
+    private Observable<List<Contact>> getContactsMessageObservable(final List<Contact> contacts)
     {
         String access_token = getAccessToken();
         return Observable.just(Observable.from(contacts)
-                .flatMap(new Func1<ContactSync, Observable<? extends List<ContactSync>>>() {
+                .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>() {
                     @Override
-                    public Observable<? extends List<ContactSync>> call(final ContactSync contact) {
+                    public Observable<? extends List<Contact>> call(final Contact contact) {
                         return localBitcoins.contactMessages(contact.contact_id, access_token)
                                 .map(new ResponseToMessages())
-                                .map(new Func1<List<Message>, List<ContactSync>>() {
+                                .map(new Func1<List<Message>, List<Contact>>() {
                                     @Override
-                                    public List<ContactSync> call(List<Message> messages) {
-                                        contact.messageCount = messages.size();
-                                        contact.lastMessageText = messages.get(0).msg;
-                                        contact.lastMessageSender = messages.get(0).sender.name;
+                                    public List<Contact> call(List<Message> messages) {
+                                        contact.messages = messages;
                                         return contacts;
                                     }
                                 });
@@ -306,33 +297,25 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 }).toBlockingObservable().last());
     }
 
-    private String getAccessToken()
+    public boolean isLoggedIn()
     {
-        Authorization authorization = getAuthorization();
-        if(authorization == null)
-            return null;
-            
-        return authorization.access_token;
+        final String token = getAccessToken();
+        return (!Strings.isBlank(token));
     }
 
-    private Authorization getAuthorization()
+    private String getAccessToken()
     {
-        List<Authorization> list = cupboard().withContext(getContext().getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
-        if (list != null && list.size() > 0) {
-            return list.get(0);
-        }
-        return null;
+        return databaseManager.getAccessToken(getContext());
+    }
+
+    private String getRefreshToken()
+    {
+        return databaseManager.getRefreshToken(getContext());
     }
 
     private void saveAuthorization(Authorization authorization)
     {
-        Timber.e("Save Authorization: " + authorization.access_token);
-
-        Authorization oldToken = getAuthorization();
-        if(oldToken != null) {
-            cupboard().withContext(getContext().getApplicationContext()).delete(CupboardProvider.TOKEN_URI, oldToken);
-        }
-        cupboard().withContext(getContext().getApplicationContext()).put(CupboardProvider.TOKEN_URI, authorization);
+        databaseManager.updateTokens(getContext(), authorization.access_token, authorization.refresh_token);
     }
 
     LocalBitcoins initLocalBitcoins()
@@ -371,9 +354,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private Observable<String> refreshTokens()
     {
-        Authorization authorization = getAuthorization();
-        Timber.e("Get Refresh token: " + authorization.refresh_token);
-        return localBitcoins.refreshToken("refresh_token", authorization.refresh_token, Constants.CLIENT_ID, Constants.CLIENT_SECRET)
+        String refresh_token = getRefreshToken();
+
+        return localBitcoins.refreshToken("refresh_token", refresh_token, Constants.CLIENT_ID, Constants.CLIENT_SECRET)
                 .map(new ResponseToAuthorize())
                 .flatMap(new Func1<Authorization, Observable<? extends String>>() {
                     @Override
@@ -385,64 +368,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
-    private void saveContactsAndNotify(List<ContactSync> contacts)
+    private void saveContactsAndNotify(List<Contact> contacts)
     {
-        TreeMap<String, ContactSync> deleteMap = new TreeMap<String, ContactSync>();
-        TreeMap<String, ContactSync> updateMap = new TreeMap<String, ContactSync>();
-        TreeMap<String, ContactSync> entryMap = new TreeMap<String, ContactSync>();
-        for (ContactSync syncNew : contacts) {
-            entryMap.put(syncNew.contact_id, syncNew);
-        }
+        TreeMap<String, ArrayList<Contact>> updatedContactList = databaseManager.updateContactsList(contacts, getContext());
         
-        List<ContactSync> contactList = cupboard().withContext(getContext()).query(CupboardProvider.TOKEN_URI, ContactSync.class).list();
-        for (ContactSync sync : contactList) {
-            String id = sync.contact_id;
-            ContactSync match = entryMap.get(id);
-            if (match != null) {
-                entryMap.remove(id); //remove from entry map to prevent insert later.
-                if (sync.messageCount > match.messageCount || sync.is_funded != match.is_funded) {
-                    updateMap.put(id, match); // update item
-                }
-            } else {
-                deleteMap.put(id, sync);
-            }
-        }
-
-        List <ContactSync> updateList = Collections.emptyList();
-        for (ContactSync updated : updateMap.values()) {
-            Timber.d("Sync contact updated");
-            updateContact(updated);
-            updateList.add(updated);
-        }
-
-        List <ContactSync> addList = Collections.emptyList();
-        for (ContactSync added : entryMap.values()) {
-            Timber.d("Sync contact added");
-            saveContact(added);
-            addList.add(added);
-        }
-
-        List <ContactSync> deleteList = Collections.emptyList();
-        for (ContactSync deleted : deleteMap.values()) {
-            Timber.d("Sync contact deleted");
-            deleteList.add(deleted);
-        }
-
         // notify user of any new trades
-        if (updateList.size() > 0){
+        
+        ArrayList<Contact> updatedContacts = updatedContactList.get(DatabaseManager.UPDATES); 
+        if (updatedContacts.size() > 0){
             NotificationUtils.createNotification(getContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
         } else {
-            ContactSync contact = updateList.get(0);
+            Contact contact = updatedContacts.get(0);
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling)? " with buyer ":" with seller ";
             NotificationUtils.createNotification(getContext(), "Trade Updated", ("The trade with" + contactName + " updated."), ("Trade #" + contact.contact_id + saleType + contactName + " has been updated."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
         }
 
         // notify user of any new trades
-        if (addList.size() > 0){
-            NotificationUtils.createNotification(getContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + entryMap.values() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
+        ArrayList<Contact> addedContacts = updatedContactList.get(DatabaseManager.ADDITIONS);
+        if (addedContacts.size() > 0){
+            NotificationUtils.createNotification(getContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + addedContacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
         } else {
-            ContactSync contact = addList.get(0);
+            Contact contact = addedContacts.get(0);
             String username = TradeUtils.getContactName(contact);
             String type = (contact.is_buying)? "sell":"buy";
             String location = (TradeUtils.isLocalTrade(contact))? "local":"online";
@@ -450,56 +397,76 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
 
         // look up deleted trades and find the reason
-        if(deleteList.size() > 0) {
-            getDeletedContactsInfo(deleteList); // 
+        ArrayList<Contact> deletedContacts = updatedContactList.get(DatabaseManager.DELETIONS);
+        if(deletedContacts.size() > 0) {
+            getDeletedContactsInfo(deletedContacts); // 
         }
+
+        updateMessages(updatedContacts);
     }
 
-    private void setHasMessages(String contact_id)
+    private void updateMessages(final List<Contact> contacts)
     {
-        BooleanPreference booleanPreference = new BooleanPreference(sharedPreferences, contact_id, true);
-        booleanPreference.set(true);
+        if(messagePublishSubject != null) {
+            return;
+        }
+
+        messagePublishSubject = PublishSubject.create();
+        messagePublishSubject.subscribe(new Observer<List<Message>>() {
+            @Override
+            public void onCompleted(){
+                messagePublishSubject = null;
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                messagePublishSubject = null;
+            }
+
+            @Override
+            public void onNext(List<Message> messages) {
+                if (messages.size() > 1) { // if just single arrived
+                    NotificationUtils.createMessageNotification(getContext(), "New Messages", "You have new messages!", "You have " + messages.size() + " new trade messages.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
+                } else {
+
+                    if(messages.size() > 0) {
+                        Message message = messages.get(0);
+                        String username = message.sender.username;
+                        NotificationUtils.createMessageNotification(getContext(), "New message from " + username, "New message from " + username, message.msg, NotificationUtils.NOTIFICATION_TYPE_MESSAGE, message.contact_id);
+                    }
+                }
+            }
+        });
+
+        updateMessagesObservable(contacts, getContext())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(messagePublishSubject);
     }
 
-    private void clearHasMessages(String contact_id)
+    private Observable<List<Message>> updateMessagesObservable(final List<Contact> contacts, final Context context)
     {
-        BooleanPreference booleanPreference = new BooleanPreference(sharedPreferences, contact_id);
-        booleanPreference.delete();
-    }
-    
-    private int getMessageCount(String contact_id)
-    {
-        IntPreference intPreference = new IntPreference(sharedPreferences, contact_id, 0);
-        return intPreference.get();
+        final ArrayList<Message> messages = new ArrayList<Message>();
+        return Observable.just(Observable.from(contacts)
+                .flatMap(new Func1<Contact, Observable<List<Message>>>() {
+                    @Override
+                    public Observable<List<Message>> call(final Contact contact) {
+                        return Observable.just(databaseManager.updateMessages(contact.contact_id, contact.messages, context))
+                               .flatMap(new Func1<ArrayList<Message>, Observable<List<Message>>>()
+                               {
+                                   @Override
+                                   public Observable<List<Message>> call(ArrayList<Message> results)
+                                   {
+                                       messages.addAll(results);
+                                       return Observable.just(messages);
+                                   }
+                               });
+                               
+                    }
+                }).toBlockingObservable().last());
     }
 
-    private void updateMessageCount(String contact_id, int count)
-    {
-        IntPreference intPreference = new IntPreference(sharedPreferences, contact_id);
-        intPreference.set(count);
-    }
-
-    private void clearMessageCount(String contact_id)
-    {
-        IntPreference intPreference = new IntPreference(sharedPreferences, contact_id);
-        intPreference.delete();
-    }
    
-    private void deleteContact(Contact contact)
-    {
-        cupboard().withContext(getContext()).delete(CupboardProvider.CONTACT_URI, contact);
-    }
-
-    private void updateContact(ContactSync contact)
-    {
-        cupboard().withContext(getContext()).put(CupboardProvider.CONTACT_URI, contact);
-    }
-
-    private void saveContact(ContactSync contact)
-    {
-        cupboard().withContext(getContext()).put(CupboardProvider.CONTACT_URI, contact);
-    }
-    
     /*
     if (messages.size() > 1) { // if just single arrived
                 NotificationUtils.createMessageNotification(getContext(), "New Messages", "You have new messages!", "You have " + messages.size() + " new trade messages.", null);

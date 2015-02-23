@@ -27,13 +27,9 @@ public interface DashboardPresenter
 
     void createAdvertisementScreen();
 
-    void logOut();
-
-    void endRefresh();
-
-    void refreshError(String message);
-
     void showTradesScreen();
 
     void showSearchScreen();
+
+    void logOut();
 }

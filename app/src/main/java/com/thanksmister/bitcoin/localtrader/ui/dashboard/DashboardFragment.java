@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -39,7 +40,7 @@ import timber.log.Timber;
  * Date: 12/30/14
  * Copyright 2013, ThanksMister LLC
  */
-public class DashboardFragment extends BaseFragment implements DashboardView
+public class DashboardFragment extends BaseFragment implements DashboardView, SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_METHODS = "com.thanksmister.extras.EXTRA_METHODS";
     private static final String ARG_SECTION_NUMBER = "section_number";
@@ -52,8 +53,6 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     
     @InjectView(android.R.id.progress)
     View progress;
-
-   
 
     @InjectView(R.id.advertisementList)
     LinearListView advertisementList;
@@ -78,6 +77,27 @@ public class DashboardFragment extends BaseFragment implements DashboardView
 
     @InjectView(R.id.advertisementsLayout)
     View advertisementsLayout;
+
+    @InjectView(android.R.id.empty)
+    View empty;
+
+    @InjectView(R.id.emptyTextView)
+    TextView emptyTextView;
+
+    @InjectView(R.id.retry)
+    View retry;
+
+    @InjectView(R.id.retryTextView)
+    TextView retryTextView;
+    
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
+    
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.onResume();
+    }
 
     @OnClick(R.id.emptyTradesLayout)
     public void emptyTradesButtonClicked()
@@ -127,6 +147,7 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     private DashboardContactAdapter contactAdapter;
     private DashboardAdvertisementAdapter advertisementAdapter;
 
+
     /**
      * Returns a new instance of this fragment for the given section
      * number.
@@ -163,6 +184,9 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     public void onActivityCreated(Bundle savedInstanceState)
     {
         super.onActivityCreated(savedInstanceState);
+
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
         contactAdapter = new DashboardContactAdapter(getActivity());
         advertisementAdapter = new DashboardAdvertisementAdapter(getActivity());
@@ -251,22 +275,55 @@ public class DashboardFragment extends BaseFragment implements DashboardView
         return getActivity();
     }
 
+
     @Override
-    public void showError(String message)
+    public void onRefresh()
     {
-       
+        presenter.onResume();
+    }
+
+    @Override
+    public void onRefreshStop()
+    {
+        swipeLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void onRetry(String message)
+    {
+        progress.setVisibility(View.GONE);
+        content.setVisibility(View.GONE);
+        empty.setVisibility(View.GONE);
+        retry.setVisibility(View.VISIBLE);
+        retryTextView.setText(message);
+    }
+    
+    @Override
+    public void onError(String message)
+    {
+        progress.setVisibility(View.GONE);
+        content.setVisibility(View.GONE);
+        retry.setVisibility(View.GONE);
+        empty.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
     }
 
     @Override
     public void showProgress()
     {
-        //empty.setVisibility(View.GONE);
+        empty.setVisibility(View.GONE);
+        retry.setVisibility(View.GONE);
+        content.setVisibility(View.GONE);
+        progress.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void hideProgress()
     {
-        //empty.setVisibility(View.GONE);
+        empty.setVisibility(View.GONE);
+        retry.setVisibility(View.GONE);
+        progress.setVisibility(View.GONE);
+        content.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -326,4 +383,5 @@ public class DashboardFragment extends BaseFragment implements DashboardView
     {
         return advertisementAdapter;
     }
+
 }

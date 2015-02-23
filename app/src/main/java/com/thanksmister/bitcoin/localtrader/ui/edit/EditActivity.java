@@ -345,18 +345,6 @@ public class EditActivity extends BaseActivity implements EditView
         presenter.onDestroy();
     }
 
-    @Override
-    public void onRefreshStop()
-    {
-        // ignore refresh
-    }
-
-    @Override
-    public void onError(String message)
-    {
-        // TODO implement
-    }
-
     @Override 
     public Context getContext() 
     {

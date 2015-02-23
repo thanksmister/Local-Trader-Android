@@ -23,7 +23,11 @@ public interface WalletView
 
     public void hideProgress();
 
-    public void showError(String message);
+    void onRetry(String message);
+
+    void onError(String message);
 
     public void setWallet(Wallet wallet);
+
+    void onRefreshStop();
 }
