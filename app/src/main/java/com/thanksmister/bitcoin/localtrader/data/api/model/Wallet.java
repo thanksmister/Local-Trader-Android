@@ -51,6 +51,7 @@ import java.util.List;
  */
 public class Wallet
 {
+    public String id;
     public String message;
     public Bitmap qrImage;
     public List<Transaction> sent_transactions = Collections.emptyList();

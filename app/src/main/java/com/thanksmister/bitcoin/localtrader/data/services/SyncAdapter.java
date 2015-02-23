@@ -22,8 +22,10 @@ import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 
+import com.google.zxing.WriterException;
 import com.squareup.okhttp.OkHttpClient;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -47,6 +49,7 @@ import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -127,17 +130,37 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     double oldBalance = Doubles.convertToDouble(current.total.balance);
                     double newBalance = Doubles.convertToDouble(wallet.total.balance);
                     String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
-                    if(oldBalance < newBalance){
-                        NotificationUtils.createMessageNotification(getContext(), "Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
-
-                    }
+                    boolean updateWallet = false;
                     
+                    Timber.d("Current Wallet diff: " + diff);
+                    
+                    // notify user of balance change
+                    if(oldBalance < newBalance){
+                        updateWallet = true;
+                        NotificationUtils.createMessageNotification(getContext(), "Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
+                    }
+
+                    // generate new qrcode if wallet address has changed
+                    if(!current.address.address.equals(wallet.address.address)) {
+                        try {
+                            Bitmap qrCode = WalletUtils.encodeAsBitmap(wallet.address.address, getContext());
+                            databaseManager.updateWalletQrCode(current.id, qrCode, getContext());
+                            updateWallet = true;
+                        } catch (WriterException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // update wallet if needed
+                    if(updateWallet) {
+                        boolean updated = databaseManager.updateWallet(current.id, wallet, getContext());
+                        Timber.d(updated?"Wallet updated!":"Wallet update failed!");
+                    }
                 } else {
+                    boolean inserted = databaseManager.insertWallet(wallet, getContext());
+                    Timber.d(inserted?"Wallet inserted!":"Wallet insertion failed!");
                     NotificationUtils.createMessageNotification(getContext(), "Wallet Balance", "Wallet balance", "Your current wallet balance is " + wallet.total.balance + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
                 }
-
-                boolean updated = databaseManager.updateWallet(wallet, getContext());
-                Timber.d(updated?"Wallet updated!":"Wallet update failed!");
             }
         });
 

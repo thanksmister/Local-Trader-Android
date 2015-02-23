@@ -1004,19 +1004,6 @@ public class DatabaseManager
         return null;
     }
 
-    public boolean updateWallet(Wallet wallet, Context context)
-    {
-        boolean dropped = deleteWallet(context);
-        
-        Timber.d("Updated wallet table dropped: " + dropped);
-        
-        boolean inserted = insertWallet(wallet, context);
-        
-        Timber.d("Inserted wallet: " + inserted);
-        
-        return dropped && inserted;
-    }
-
     public boolean deleteWallet( Context context)
     {
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
@@ -1025,7 +1012,7 @@ public class DatabaseManager
         return true;
     }
 
-    /*public boolean updateWallet(String _id, Wallet wallet, Context context)
+    public boolean updateWallet(String _id, Wallet wallet, Context context)
     {
         final ContentResolver resolver = context.getContentResolver();
         ContentValues contentValues = new ContentValues();
@@ -1047,10 +1034,12 @@ public class DatabaseManager
                 new String[]{_id});
 
         return noUpdate > 0;
-    }*/
+    }
 
-    /*public boolean updateWalletQrCode(String _id, Bitmap qrcode, Context context)
+    public boolean updateWalletQrCode(String _id, Bitmap qrcode, Context context)
     {
+        Timber.d("Insert Wallet");
+        
         final ContentResolver resolver = context.getContentResolver();
         ContentValues contentValues = new ContentValues();
 
@@ -1068,62 +1057,43 @@ public class DatabaseManager
             return noUpdate > 0;
         }
         return false;
-    }*/
+    }
 
-    private boolean insertWallet(Wallet wallet, Context context)
+    public boolean insertWallet(Wallet wallet, Context context)
     {
         Timber.d("Insert Wallet");
 
-        final ContentResolver contentResolver = context.getContentResolver();
-        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        final ContentResolver resolver = context.getContentResolver();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(WalletContract.Wallet.COLUMN_WALLET_ADDRESS, wallet.address.address);
+        contentValues.put(WalletContract.Wallet.COLUMN_WALLET_ADDRESS_RECEIVABLE, wallet.address.received);
+        contentValues.put(WalletContract.Wallet.COLUMN_WALLET_BALANCE, wallet.total.balance);
+        contentValues.put(WalletContract.Wallet.COLUMN_WALLET_SENDABLE, wallet.total.sendable);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        
-        Timber.d("wallet.address.address: " + wallet.address.address);
-        Timber.d("wallet.address.received: " + wallet.address.received);
-        Timber.d("wallet.total.balance: " + wallet.total.balance);
-        Timber.d("wallet.total.sendable: " + wallet.total.sendable);
-        Timber.d("wallet.message: " + wallet.message);
-        
-        batch.add(ContentProviderOperation.newInsert(WalletContract.Wallet.CONTENT_URI)
-                .withValue(WalletContract.Wallet.COLUMN_WALLET_ADDRESS, wallet.address.address)
-                .withValue(WalletContract.Wallet.COLUMN_WALLET_ADDRESS_RECEIVABLE, wallet.address.received)
-                .withValue(WalletContract.Wallet.COLUMN_WALLET_BALANCE, wallet.total.balance)
-                .withValue(WalletContract.Wallet.COLUMN_WALLET_SENDABLE, wallet.total.sendable)
-                .withValue(WalletContract.Wallet.COLUMN_WALLET_MESSAGE, wallet.message)
-                .withValue(WalletContract.Wallet.COLUMN_WALLET_QRCODE, baos.toByteArray())
-                .build());
-
-        try {
-            contentResolver.applyBatch(WalletContract.CONTENT_AUTHORITY, batch);
-            contentResolver.notifyChange(WalletContract.Wallet.CONTENT_URI, null, false);
-            return true;
-        } catch (RemoteException | OperationApplicationException e) {
-            Timber.e(e.getMessage());
+        if(wallet.qrImage != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            contentValues.put(WalletContract.Wallet.COLUMN_WALLET_QRCODE, baos.toByteArray());
         }
-
-        return false;
+        
+        resolver.insert(WalletContract.Wallet.CONTENT_URI, contentValues);
+        
+        return true;
     }
 
     public Wallet cursorToWallet(Cursor cursor)
     {
+        Timber.d("cursorToWallet");
+        
         Wallet item = new Wallet();
 
-        //item.setId(cursor.getString(WalletContract.Wallet.COLUMN_INDEX_ID));
+        item.id = (cursor.getString(WalletContract.Wallet.COLUMN_INDEX_ID));
         item.message = (cursor.getString(WalletContract.Wallet.COLUMN_INDEX_WALLET_MESSAGE));
         item.total.balance = (cursor.getString(WalletContract.Wallet.COLUMN_INDEX_WALLET_BALANCE));
         item.total.sendable = (cursor.getString(WalletContract.Wallet.COLUMN_INDEX_WALLET_SENDABLE));
-
         item.address.address = cursor.getString(WalletContract.Wallet.COLUMN_INDEX_WALLET_ADDRESS);
         item.address.received = (cursor.getString(WalletContract.Wallet.COLUMN_INDEX_WALLET_ADDRESS_RECEIVABLE));
 
-        Timber.d("item.address.address: " + item.address.address);
-        Timber.d("item.address.received: " + item.address.received);
-        Timber.d("item.total.balance: " + item.total.balance);
-        Timber.d("item.total.sendable: " + item.total.sendable);
-        Timber.d("item.message: " + item.message);
-       
         try {
             byte[] bb = cursor.getBlob(WalletContract.Wallet.COLUMN_INDEX_WALLET_QRCODE);
             item.qrImage = (BitmapFactory.decodeByteArray(bb, 0, bb.length));  
