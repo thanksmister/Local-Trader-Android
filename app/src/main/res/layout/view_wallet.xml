@@ -73,8 +73,8 @@
             <include
                     android:id="@android:id/progress"
                     layout="@layout/view_progress"
-                    android:visibility="gone"
-                    tools:visibility="visible"/>
+                    android:visibility="visible"
+                    tools:visibility="gone"/>
 
             <include
                     android:id="@android:id/empty"

@@ -175,21 +175,24 @@ public class TradeUtils
         return contact.closed_at != null;
     }
 
-    /*public static boolean canDisputeTrade(Contact contact)
+    public static boolean canDisputeTrade(Contact contact)
     {
-        if(isClosedTrade(contact))
-            return false;
-        
-        return contact.actions.dispute_url != null;
+        if(isClosedTrade(contact) && !isDisputed(contact)) {
+            return contact.actions.dispute_url != null;
+        }
+            
+        return false; 
     }
 
     public static boolean canCancelTrade(Contact contact)
     {
-        if(isClosedTrade(contact)) 
-            return false;
+        if(!isClosedTrade(contact) && !isCanceledTrade(contact)) {
+
+            return contact.actions.cancel_url != null;
+        }
         
-       return contact.actions.cancel_url != null;
-    }*/
+        return false;
+    }
 
     public static boolean canReleaseTrade(Contact contact)
     {

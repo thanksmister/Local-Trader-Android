@@ -122,8 +122,6 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
             setSupportActionBar(toolbar);
         }
 
-     
-
         mTitle = "";
 
         if(service.isLoggedIn()) {
@@ -335,8 +333,11 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
         int type = extras.getInt(EXTRA_TYPE, 0);
         if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT) {
             contactId = extras.getString(EXTRA_CONTACT);
+            assert  contactId != null;
+            
             Intent contactIntent = ContactActivity.createStartIntent(this, contactId);
             startActivity(contactIntent);
+  
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_BALANCE) {
             navigationDrawerFragment.selectItem(DRAWER_WALLET);
         }

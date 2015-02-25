@@ -46,7 +46,7 @@ public class ContactPresenterImpl implements ContactPresenter
 {
     private ContactView view;
     private DataService service;
-    private Bus bus;;
+    private Bus bus;
     private Subscription subscription;
     private Contact contact;
 
@@ -88,7 +88,7 @@ public class ContactPresenterImpl implements ContactPresenter
                     Toast.makeText(getContext(), retroError.getMessage(), Toast.LENGTH_SHORT).show();
                     ((BaseActivity) getContext()).logOut();
                 } else {
-                    getView().onError(getContext().getString(R.string.error_no_trade_data));
+                    getView().onError("Error loading trade.");
                 }
                 
                 getView().onRefreshStop();

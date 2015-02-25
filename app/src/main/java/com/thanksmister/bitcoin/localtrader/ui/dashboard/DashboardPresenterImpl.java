@@ -71,8 +71,6 @@ public class DashboardPresenterImpl implements DashboardPresenter
             subscription.unsubscribe();
  
         bus.unregister(this);
-        
-       // cancelCheck();
     }
 
     @Override
@@ -100,9 +98,14 @@ public class DashboardPresenterImpl implements DashboardPresenter
     private void getData()
     {
         subscription = service.getDashboardInfo(new Observer<Dashboard>() {
+            
             @Override
             public void onCompleted()
-            {        
+            {
+                if(dashboard != null && methods != null) {
+                    getView().onRefreshStop();
+                    getView().hideProgress();
+                }
             }
 
             @Override
@@ -130,12 +133,14 @@ public class DashboardPresenterImpl implements DashboardPresenter
                 dashboard = results;
                 
                 if (methods != null) {
+                    
                     getView().setDashboard(dashboard, methods);
-                    getView().onRefreshStop();
-                    getView().hideProgress();
+                    
                 } else {
                     getOnlineProviders(dashboard); 
                 }
+
+                
             }
         });
     }

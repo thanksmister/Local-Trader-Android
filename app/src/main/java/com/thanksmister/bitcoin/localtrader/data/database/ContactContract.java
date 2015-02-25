@@ -29,7 +29,7 @@ public class ContactContract extends BaseContract
     /**
      * Path component for "escrow"-type resources..
      */
-    private static final String PATH = "lbc_contacts";
+    private static final String PATH = "contacts";
 
     /**
      * Columns supported by "escrow" records.
@@ -40,26 +40,28 @@ public class ContactContract extends BaseContract
         /**
          * MIME type for lists of escrows.
          */
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.localtrader.lbc_contacts";
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.localtrader.contacts";
 
         /**
          * MIME type for individual escrows.
          */
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.localtrader.lbc_contact";
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.localtrader.contact";
 
         /**
          * Fully qualified URI for "escrow" resources.
          */
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH).build();
 
-        public static final String TABLE_NAME = "lbc_contact_table";
+        public static final String TABLE_NAME = "contacts_table";
 
         public static final String COLUMN_NAME_CONTACT_ID = "contact_id";
+        public static final String COLUMN_NAME_TRADE_TYPE = "trade_type";
+        public static final String COLUMN_NAME_CREATED_AT = "created_at";
+        
         public static final String COLUMN_NAME_REFERENCE_CODE = "reference_code";
         public static final String COLUMN_NAME_CURRENCY = "currency";
         public static final String COLUMN_NAME_AMOUNT = "amount";
         public static final String COLUMN_NAME_AMOUNT_BTC = "amount_btc";
-        public static final String COLUMN_NAME_CREATED_AT = "created_at";
         
         public static final String COLUMN_NAME_PAYMENT_COMPLETED_AT = "payment_completed_at";
         public static final String COLUMN_NAME_CLOSED_AT = "closed_at";
@@ -90,9 +92,8 @@ public class ContactContract extends BaseContract
         public static final String COLUMN_NAME_SWIFT_BIC = "swift_bic";
         public static final String COLUMN_NAME_REFERENCE = "reference";
 
-        // advertisement
+        // advertisement 3
         public static final String COLUMN_NAME_ADVERTISEMENT_ID = "ad_id";
-        public static final String COLUMN_NAME_TRADE_TYPE = "trade_type";
         public static final String COLUMN_NAME_PAYMENT_METHOD = "payment_method";
 
         // ADVERTISER
@@ -113,30 +114,12 @@ public class ContactContract extends BaseContract
         public static final String COLUMN_NAME_FUND_URL = "fund_url";
         public static final String COLUMN_NAME_IS_FUNDED = "is_funded";
 
-
-        public static final String[] PROJECTION_SMALL = new String[]{
-                ContactData._ID,
-                ContactData.COLUMN_NAME_CONTACT_ID,
-                ContactData.COLUMN_NAME_TRADE_TYPE,
-                ContactData.COLUMN_NAME_CREATED_AT,
-                ContactData.COLUMN_NAME_PAYMENT_COMPLETED_AT,
-                ContactData.COLUMN_NAME_AMOUNT,
-                ContactData.COLUMN_NAME_AMOUNT_BTC,
-                ContactData.COLUMN_NAME_CURRENCY,
-                ContactData.COLUMN_NAME_REFERENCE_CODE};
-
         public static final String[] PROJECTION = new String[] {
-                
-                ContactData._ID,
-                
+     
+                ContactData._ID,   
                 ContactData.COLUMN_NAME_CONTACT_ID,
                 ContactData.COLUMN_NAME_TRADE_TYPE,
                 ContactData.COLUMN_NAME_CREATED_AT,
-                
-                ContactData.COLUMN_NAME_AMOUNT,
-                ContactData.COLUMN_NAME_AMOUNT_BTC,
-                ContactData.COLUMN_NAME_CURRENCY,
-                ContactData.COLUMN_NAME_REFERENCE_CODE,
 
                 ContactData.COLUMN_NAME_PAYMENT_COMPLETED_AT,
                 ContactData.COLUMN_NAME_CLOSED_AT,
@@ -145,7 +128,12 @@ public class ContactContract extends BaseContract
                 ContactData.COLUMN_NAME_ESCROWED_AT,
                 ContactData.COLUMN_NAME_RELEASED_AT,
                 ContactData.COLUMN_NAME_EXCHANGE_RATE_UPDATED_AT,
-                ContactData.COLUMN_NAME_CLOSED_AT,
+                ContactData.COLUMN_NAME_CANCELED_AT,
+                
+                ContactData.COLUMN_NAME_AMOUNT,
+                ContactData.COLUMN_NAME_AMOUNT_BTC,
+                ContactData.COLUMN_NAME_CURRENCY,
+                ContactData.COLUMN_NAME_REFERENCE_CODE,
 
                 ContactData.COLUMN_NAME_BUYER_USERNAME,
                 ContactData.COLUMN_NAME_BUYER_TRADES,
@@ -185,12 +173,14 @@ public class ContactContract extends BaseContract
         };
 
         // Constants representing column positions from PROJECTION.
+        
+        // general 4
         public static final int COLUMN_INDEX_ID = 0;
         public static final int COLUMN_INDEX_CONTACT_ID = 1;
-
         public static final int COLUMN_INDEX_TRADE_TYPE = 2; // advertisement trade type
         public static final int COLUMN_INDEX_CREATED_AT = 3;
-        
+
+        // dates 8 
         public static final int COLUMN_INDEX_PAYMENT_COMPLETED_AT = 4;
         public static final int COLUMN_INDEX_CLOSED_AT = 5;
         public static final int COLUMN_INDEX_DISPUTED_AT = 6;
@@ -200,43 +190,45 @@ public class ContactContract extends BaseContract
         public static final int COLUMN_INDEX_EXCHANGE_RATE_UPDATED_AT = 10;
         public static final int COLUMN_INDEX_CANCELED_AT = 11;
 
+        // contact 4
         public static final int COLUMN_INDEX_AMOUNT = 12;
         public static final int COLUMN_INDEX_AMOUNT_BTC = 13;
         public static final int COLUMN_INDEX_CURRENCY = 14;
         public static final int COLUMN_INDEX_REFERENCE_CODE = 15;
 
-        // BUYER
+        
+        // BUYER 5
         public static final int COLUMN_INDEX_BUYER_USERNAME = 16;
         public static final int COLUMN_INDEX_BUYER_TRADES = 17;
         public static final int COLUMN_INDEX_BUYER_FEEDBACK = 18;
         public static final int COLUMN_INDEX_BUYER_NAME = 19;
         public static final int COLUMN_INDEX_BUYER_LAST_SEEN = 20;
 
-        // SELLER
+        // SELLER 5
         public static final int COLUMN_INDEX_SELLER_USERNAME = 21;
         public static final int COLUMN_INDEX_SELLER_TRADES = 22;
         public static final int COLUMN_INDEX_SELLER_FEEDBACK = 23;
         public static final int COLUMN_INDEX_SELLER_NAME = 24;
         public static final int COLUMN_INDEX_SELLER_LAST_SEEN = 25;
 
-        // details
+        // details 4
         public static final int COLUMN_INDEX_RECEIVER = 26;
         public static final int COLUMN_INDEX_IBAN = 27;
         public static final int COLUMN_INDEX_SWIFT_BIC = 28;
         public static final int COLUMN_INDEX_REFERENCE = 29;
 
-        // advertisement
+        // advertisement 2
         public static final int COLUMN_INDEX_ADVERTISEMENT_ID = 30;
         public static final int COLUMN_INDEX_PAYMENT_METHOD = 31;
-
-        // advertiser
+        
+        // advertiser 5
         public static final int COLUMN_INDEX_ADVERTISER_USERNAME = 32;
         public static final int COLUMN_INDEX_ADVERTISER_TRADES = 33;
         public static final int COLUMN_INDEX_ADVERTISER_FEEDBACK = 34;
         public static final int COLUMN_INDEX_ADVERTISER_NAME = 35;
         public static final int COLUMN_INDEX_ADVERTISER_LAST_SEEN = 36;
-
-        // actions
+        
+        // actions 9
         public static final int COLUMN_INDEX_RELEASE_URL = 37;
         public static final int COLUMN_INDEX_ADVERTISEMENT_URL = 38;
         public static final int COLUMN_INDEX_MESSAGE_URL = 39;

@@ -92,6 +92,8 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
     private Contact contact;
     private String contactId;
     private DownloadManager downloadManager;
+    private MenuItem cancelItem;
+    private MenuItem disputeItem;
 
     public static Intent createStartIntent(Context context, String contactId)
     {
@@ -220,6 +222,9 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
         if(toolbar != null)
             toolbar.inflateMenu(R.menu.contact);
 
+        cancelItem = menu.findItem(R.id.action_cancel);
+        disputeItem = menu.findItem(R.id.action_dispute);
+
         return true;
     }
 
@@ -295,6 +300,9 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
                     case R.id.action_dispute:
                         presenter.disputeContact();
                         return true;
+                    case R.id.action_cancel:
+                        presenter.cancelContact();
+                        return true;
                 }
                 return false;
             }
@@ -364,8 +372,8 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
 
         buttonLayout.setVisibility((buttonTag == 0)? View.GONE:View.VISIBLE);
 
-        if(buttonTag == R.string.button_cancel) {
-            contactButton.setBackgroundResource(R.drawable.button_red_small_selector);
+        if(buttonTag == R.string.button_cancel) {    
+            contactButton.setBackgroundResource(R.drawable.button_red_small_selector);   
         } else {
             contactButton.setBackgroundResource(R.drawable.button_green_small_selector);
         }
@@ -375,6 +383,14 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
         noteText.setMovementMethod(LinkMovementMethod.getInstance());
         contactHeaderLayout.setVisibility((description == null)? View.GONE:View.VISIBLE);
 
+        if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
+            disputeItem.setVisible(buttonTag != R.string.button_dispute);
+        }
+          
+        if(TradeUtils.canCancelTrade(contact)) {
+            cancelItem.setVisible(buttonTag != R.string.button_cancel);
+        }
+            
         getAdapter().replaceWith(contact.messages);
     }
 

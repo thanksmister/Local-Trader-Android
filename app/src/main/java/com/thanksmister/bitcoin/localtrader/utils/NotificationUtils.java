@@ -50,7 +50,7 @@ public class NotificationUtils
         notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         
         notificationIntent.putExtra(MainActivity.EXTRA_TYPE, type);
-        if(type == NOTIFICATION_TYPE_CONTACT) {
+        if(type == NOTIFICATION_TYPE_CONTACT && contact_id != null) {
             notificationIntent.putExtra(MainActivity.EXTRA_CONTACT, contact_id);
         }
 
@@ -94,7 +94,7 @@ public class NotificationUtils
         notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         
         notificationIntent.putExtra(MainActivity.EXTRA_TYPE, type);
-        if(type == NOTIFICATION_TYPE_CONTACT) {
+        if(type == NOTIFICATION_TYPE_CONTACT && contact_id != null) {
             notificationIntent.putExtra(MainActivity.EXTRA_CONTACT, contact_id);
         }
 

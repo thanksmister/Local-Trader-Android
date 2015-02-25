@@ -13,6 +13,12 @@
           android:icon="@drawable/ic_action_news"
           thanksmister:showAsAction="ifRoom"/>
 
+    <item android:id="@+id/action_cancel"
+          android:title="@string/menu_action_cancel"
+          android:icon="@drawable/ic_action_navigation_cancel"
+          thanksmister:showAsAction="ifRoom"
+          android:visible="false"/>
+
     <item android:id="@+id/action_dispute"
           android:title="@string/menu_action_dispute"
           android:icon="@drawable/ic_action_gavel"

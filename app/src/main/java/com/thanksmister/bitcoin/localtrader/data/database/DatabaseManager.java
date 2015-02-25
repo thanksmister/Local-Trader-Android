@@ -311,6 +311,7 @@ public class DatabaseManager
 
     public TreeMap<String, ArrayList<Contact>> updateContactsList(final List<Contact> items, final Context context)
     {
+        Timber.d("update contact list");
         final ContentResolver contentResolver = context.getContentResolver();
         ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
 
@@ -502,6 +503,8 @@ public class DatabaseManager
         updateMap.put(UPDATES, updatedContacts);
         updateMap.put(ADDITIONS, newContacts);
         updateMap.put(DELETIONS, deletedContacts);
+
+        Timber.d("returning contacts");
         
         return updateMap;
     }
@@ -1102,5 +1105,11 @@ public class DatabaseManager
         }
 
         return item;
+    }
+    
+    public void deleteDatabase(Context context)
+    {
+        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+        databaseHelper.removeAll();
     }
 }

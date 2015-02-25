@@ -1448,7 +1448,7 @@ public class DataService
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER);
         stringPreference.delete();
         
-        deleteAuthorization();
+        databaseManager.deleteDatabase(application.getApplicationContext());
     }
 
     public Subscription getAuthorization(final Observer<Authorization> observer, String code)
@@ -1581,11 +1581,6 @@ public class DataService
         synchronized (this) {
             databaseManager.updateTokens(application.getApplicationContext(), authorization.access_token, authorization.refresh_token);
         }
-        /*Authorization oldToken = getAuthorization();
-        if(oldToken != null) {
-            cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, oldToken);
-        }
-        cupboard().withContext(application.getApplicationContext()).put(CupboardProvider.TOKEN_URI, authorization);*/
     }
     
     private void deleteAuthorization()
@@ -1593,13 +1588,6 @@ public class DataService
         synchronized (this) {
             databaseManager.deleteTokens(application.getApplicationContext());
         }
-        
-        /*List<Authorization> list = cupboard().withContext(application.getApplicationContext()).query(CupboardProvider.TOKEN_URI, Authorization.class).list();
-        if (list != null && list.size() > 0) {
-            Authorization authorization = list.get(0);
-            //Uri uri = ContentUris.withAppendedId(CupboardProvider.TOKEN_URI, authorization._id);
-            cupboard().withContext(application.getApplicationContext()).delete(CupboardProvider.TOKEN_URI, authorization);
-        }*/
     }
 
     private void setTokenExpire(String expires_in)

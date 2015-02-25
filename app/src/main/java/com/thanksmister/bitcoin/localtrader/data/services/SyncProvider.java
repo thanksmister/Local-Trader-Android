@@ -57,7 +57,7 @@ public class SyncProvider extends ContentProvider
     public static final int PATH_ADVERTISEMENTS_ID = 6;
 
     public static final int PATH_MESSAGES = 7;
-    public static final int PATH_MESSAGES_ID = 18;
+    public static final int PATH_MESSAGES_ID = 8;
 
     public static final int PATH_SESSION = 9;
     public static final int PATH_SESSION_ID = 10;
@@ -75,8 +75,8 @@ public class SyncProvider extends ContentProvider
         sUriMatcher.addURI(AUTHORITY, "advertisements", PATH_ADVERTISEMENTS);
         sUriMatcher.addURI(AUTHORITY, "advertisements/*", PATH_ADVERTISEMENTS_ID);
         
-        sUriMatcher.addURI(AUTHORITY, "lbc_contacts", PATH_CONTACTS);
-        sUriMatcher.addURI(AUTHORITY, "lbc_contacts/*", PATH_CONTACTS_ID);
+        sUriMatcher.addURI(AUTHORITY, "contacts", PATH_CONTACTS);
+        sUriMatcher.addURI(AUTHORITY, "contacts/*", PATH_CONTACTS_ID);
         
         sUriMatcher.addURI(AUTHORITY, "messages", PATH_MESSAGES);
         sUriMatcher.addURI(AUTHORITY, "messages/*", PATH_MESSAGES_ID);

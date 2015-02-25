@@ -26,7 +26,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.SessionContract;
 public class DatabaseHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "bitcoin_local_trader_2.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
   
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_INTEGER = " INTEGER";
@@ -51,14 +51,13 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     private static final String SQL_CREATE_CONTACTS =
             "CREATE TABLE IF NOT EXISTS " + ContactContract.ContactData.TABLE_NAME + " (" +
+                    
                     ContactContract.ContactData._ID + " INTEGER PRIMARY KEY," +
                     ContactContract.ContactData.COLUMN_NAME_CONTACT_ID + TYPE_TEXT + COMMA_SEP +
-                    ContactContract.ContactData.COLUMN_NAME_REFERENCE_CODE + TYPE_TEXT + COMMA_SEP +
-                    ContactContract.ContactData.COLUMN_NAME_CURRENCY + TYPE_TEXT + COMMA_SEP +
-                    ContactContract.ContactData.COLUMN_NAME_AMOUNT + TYPE_TEXT + COMMA_SEP +
-                    ContactContract.ContactData.COLUMN_NAME_AMOUNT_BTC + TYPE_TEXT + COMMA_SEP +
+                    ContactContract.ContactData.COLUMN_NAME_TRADE_TYPE + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_CREATED_AT + TYPE_TEXT + COMMA_SEP +
-                    
+                    // general 4 
+
                     ContactContract.ContactData.COLUMN_NAME_PAYMENT_COMPLETED_AT + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_DISPUTED_AT + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_FUNDED_AT + TYPE_TEXT + COMMA_SEP +
@@ -66,30 +65,43 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     ContactContract.ContactData.COLUMN_NAME_RELEASED_AT + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_EXCHANGE_RATE_UPDATED_AT + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_CANCELED_AT + TYPE_TEXT + COMMA_SEP +
+                    ContactContract.ContactData.COLUMN_NAME_CLOSED_AT + TYPE_TEXT + COMMA_SEP +
+                    //dates 8
+                    
+                    ContactContract.ContactData.COLUMN_NAME_REFERENCE_CODE + TYPE_TEXT + COMMA_SEP +
+                    ContactContract.ContactData.COLUMN_NAME_CURRENCY + TYPE_TEXT + COMMA_SEP +
+                    ContactContract.ContactData.COLUMN_NAME_AMOUNT + TYPE_TEXT + COMMA_SEP +
+                    ContactContract.ContactData.COLUMN_NAME_AMOUNT_BTC + TYPE_TEXT + COMMA_SEP +
+                    // 4 contact
+
                     
                     ContactContract.ContactData.COLUMN_NAME_BUYER_USERNAME + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_BUYER_TRADES + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_BUYER_FEEDBACK + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_BUYER_NAME + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_BUYER_LAST_SEEN + TYPE_TEXT + COMMA_SEP +
+                    //buyer 5
                     
                     ContactContract.ContactData.COLUMN_NAME_SELLER_USERNAME + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_SELLER_TRADES + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_SELLER_FEEDBACK + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_SELLER_NAME + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_SELLER_LAST_SEEN + TYPE_TEXT + COMMA_SEP +
+                    //seller 5
                     
                     ContactContract.ContactData.COLUMN_NAME_ADVERTISER_USERNAME + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_ADVERTISER_TRADES + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_ADVERTISER_FEEDBACK + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_ADVERTISER_NAME + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_ADVERTISER_LAST_SEEN + TYPE_TEXT + COMMA_SEP + 
+                    //advertiser 5
                     
                     ContactContract.ContactData.COLUMN_NAME_RECEIVER + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_IBAN + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_SWIFT_BIC + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_REFERENCE + TYPE_TEXT + COMMA_SEP +
-
+                    //details 4
+                    
                     ContactContract.ContactData.COLUMN_NAME_RELEASE_URL + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_MESSAGE_URL + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_MESSAGE_POST_URL + TYPE_TEXT + COMMA_SEP +
@@ -98,13 +110,13 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     ContactContract.ContactData.COLUMN_NAME_CANCEL_URL + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_FUND_URL + TYPE_TEXT + COMMA_SEP +
                     ContactContract.ContactData.COLUMN_NAME_IS_FUNDED + TYPE_INTEGER + COMMA_SEP +
-
-                    ContactContract.ContactData.COLUMN_NAME_PAYMENT_METHOD + TYPE_TEXT + COMMA_SEP +
+                    ContactContract.ContactData.COLUMN_NAME_ADVERTISEMENT_URL + TYPE_TEXT + COMMA_SEP +
+                    //actions 9
                     
-                    ContactContract.ContactData.COLUMN_NAME_TRADE_TYPE + TYPE_TEXT + COMMA_SEP +
-                    ContactContract.ContactData.COLUMN_NAME_ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP +
-                    ContactContract.ContactData.COLUMN_NAME_ADVERTISEMENT_URL + TYPE_TEXT + ")";
-
+                    ContactContract.ContactData.COLUMN_NAME_PAYMENT_METHOD + TYPE_TEXT + COMMA_SEP +
+                    ContactContract.ContactData.COLUMN_NAME_ADVERTISEMENT_ID + TYPE_TEXT + ")";
+                    // ad 2
+  
 
     /** SQL statement to create "update" table. */
     private static final String SQL_CREATE_MESSAGES =
@@ -156,6 +168,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     /** SQL statement to drop table. */
     private static final String SQL_DELETE_EXCHANGES = "DROP TABLE IF EXISTS " + "exchange_table";
+    private static final String SQL_DELETE_CONTACTS = "DROP TABLE IF EXISTS " + "contacts_table";
 
     public DatabaseHelper(Context context) 
     {
@@ -175,9 +188,10 @@ public class DatabaseHelper extends SQLiteOpenHelper
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) 
     {
-        //if (newVersion > oldVersion) {
-            //db.execSQL(SQL_DELETE_EXCHANGES);
-        //}
+        if (newVersion > oldVersion) {
+            //db.execSQL(SQL_DELETE_CONTACTS);
+            //db.execSQL(SQL_CREATE_CONTACTS);
+        }
     }
 
     public void removeAll()

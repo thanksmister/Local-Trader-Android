@@ -192,10 +192,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
             @Override
             public void onNext(List<Contact> contacts) {
-                if(!contacts.isEmpty()){
-                    Timber.e("Sync Contacts: " + contacts.size());
-                    saveContactsAndNotify(contacts);
-                }   
+
+                Timber.e("Sync Contacts: " + contacts.size());
+                saveContactsAndNotify(contacts);
             }
         });
 
@@ -208,6 +207,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void getDeletedContactsInfo(List<Contact> contacts)
     {
+        Timber.d("getDeletedContactsInfo");
         if(contactsInfoPublishSubject != null) {
             return;
         }
@@ -224,6 +224,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 /*RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
                 Timber.e("Sync Dashboard Error Message: " + retroError.getMessage());
                 Timber.e("Sync Dashboard Error Code: " + retroError.getCode());*/
+                contactsInfoPublishSubject = null;
             }
 
             @Override
@@ -397,10 +398,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         
         // notify user of any new trades
         
-        ArrayList<Contact> updatedContacts = updatedContactList.get(DatabaseManager.UPDATES); 
-        if (updatedContacts.size() > 0){
+        ArrayList<Contact> updatedContacts = updatedContactList.get(DatabaseManager.UPDATES);
+        Timber.d("updated contacts: " + updatedContacts.size());
+        ArrayList<Contact> addedContacts = updatedContactList.get(DatabaseManager.ADDITIONS);
+        Timber.d("added contacts: " + addedContacts.size());
+        ArrayList<Contact> deletedContacts = updatedContactList.get(DatabaseManager.DELETIONS);
+        Timber.d("deleted contacts: " + deletedContacts.size());
+        
+        if (updatedContacts.size() > 1){
             NotificationUtils.createNotification(getContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
-        } else {
+        } else if (updatedContactList.size() == 1) {
             Contact contact = updatedContacts.get(0);
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling)? " with buyer ":" with seller ";
@@ -408,10 +415,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
 
         // notify user of any new trades
-        ArrayList<Contact> addedContacts = updatedContactList.get(DatabaseManager.ADDITIONS);
-        if (addedContacts.size() > 0){
+        if (addedContacts.size() > 1){
             NotificationUtils.createNotification(getContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + addedContacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-        } else {
+        } else if (addedContacts.size() == 1) {
             Contact contact = addedContacts.get(0);
             String username = TradeUtils.getContactName(contact);
             String type = (contact.is_buying)? "sell":"buy";
@@ -420,7 +426,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
 
         // look up deleted trades and find the reason
-        ArrayList<Contact> deletedContacts = updatedContactList.get(DatabaseManager.DELETIONS);
         if(deletedContacts.size() > 0) {
             getDeletedContactsInfo(deletedContacts); // 
         }
