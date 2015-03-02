@@ -16,7 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-public class DefaultExchange
+public class Exchange
 {
     public String name;
     public String mid;

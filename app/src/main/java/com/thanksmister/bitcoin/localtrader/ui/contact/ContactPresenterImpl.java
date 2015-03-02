@@ -49,6 +49,7 @@ public class ContactPresenterImpl implements ContactPresenter
     private Bus bus;
     private Subscription subscription;
     private Contact contact;
+    private String pinCode;
 
     public ContactPresenterImpl(ContactView view, DataService service, Bus bus) 
     {
@@ -134,19 +135,19 @@ public class ContactPresenterImpl implements ContactPresenter
     @Override
     public void disputeContact()
     {
-        createAlert("Dispute Trade", getContext().getString(R.string.contact_dispute_confirm), contact.contact_id, ContactAction.DISPUTE);
+        createAlert("Dispute Trade", getContext().getString(R.string.contact_dispute_confirm), contact.contact_id, null, ContactAction.DISPUTE);
     }
 
     @Override
     public void fundContact()
     {
-        createAlert("Fund Trade", getContext().getString(R.string.contact_fund_confirm), contact.contact_id, ContactAction.FUND);
+        createAlert("Fund Trade", getContext().getString(R.string.contact_fund_confirm), contact.contact_id, null, ContactAction.FUND);
     }
 
     @Override
     public void markContactPaid()
     {
-        createAlert("Mark Paid", getContext().getString(R.string.contact_paid_confirm), contact.contact_id, ContactAction.PAID);
+        createAlert("Mark Paid", getContext().getString(R.string.contact_paid_confirm), contact.contact_id, null, ContactAction.PAID);
     }
 
     @Override
@@ -161,29 +162,29 @@ public class ContactPresenterImpl implements ContactPresenter
     public void releaseTradeWithPin(String pinCode)
     {
         ((BaseActivity) getContext()).showProgressDialog(new ProgressDialogEvent("Releasing trade..."));
-        contactAction(contact.contact_id, ContactAction.RELEASE);
+        contactAction(contact.contact_id, pinCode, ContactAction.RELEASE);
     }
 
     @Override
     public void cancelContact()
     {
-        createAlert("Cancel Trade", getContext().getString(R.string.contact_cancel_confirm), contact.contact_id, ContactAction.CANCEL);
+        createAlert("Cancel Trade", getContext().getString(R.string.contact_cancel_confirm), contact.contact_id, null, ContactAction.CANCEL);
     }
 
-    public void createAlert(String title, String message, final String contactId, final ContactAction action)
+    public void createAlert(String title, String message, final String contactId, final String pinCode, final ContactAction action)
     {
         Context context = getView().getContext();
         ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getContext().getString(R.string.button_ok), getContext().getString(R.string.button_cancel), new Action0() {
             @Override
             public void call() {
-                contactAction(contactId, action);
+                contactAction(contactId, pinCode, action);
             }
         });
 
         ((BaseActivity) context).showConfirmationDialog(event);
     }
 
-    private void contactAction(final String contactId, final ContactAction action)
+    private void contactAction(final String contactId, final String pinCode, final ContactAction action)
     {
         subscription = service.contactAction(new Observer<Object>() {
             @Override
@@ -203,7 +204,7 @@ public class ContactPresenterImpl implements ContactPresenter
             public void onNext(Object o) {
                 getContact(contactId); // refresh contact
             }
-        }, contactId, action);
+        }, contactId, pinCode, action);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

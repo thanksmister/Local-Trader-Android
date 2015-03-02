@@ -43,10 +43,19 @@
                 layout="@layout/view_progress"/>
 
         <include
-                android:id="@+id/advertisementEmpty"
+                android:id="@+id/advertisementRetry"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 layout="@layout/view_retry"
+                tools:visibility="visible"
+                android:visibility="gone"
+                android:layout_gravity="bottom"/>
+
+        <include
+                android:id="@+id/advertisementEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                layout="@layout/view_empty"
                 tools:visibility="visible"
                 android:visibility="gone"
                 android:layout_gravity="bottom"/>
@@ -57,7 +66,7 @@
                 android:layout_height="match_parent"
                 android:scrollbars="none"
                 android:fillViewport="true"
-                tools:visibility="gone"
+                tools:visibility="visible"
                 android:visibility="gone">
 
             <LinearLayout

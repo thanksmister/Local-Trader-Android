@@ -26,7 +26,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.SessionContract;
 public class DatabaseHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "bitcoin_local_trader_2.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
   
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_INTEGER = " INTEGER";
@@ -48,6 +48,20 @@ public class DatabaseHelper extends SQLiteOpenHelper
                     WalletContract.Wallet.COLUMN_WALLET_ADDRESS_RECEIVABLE + TYPE_TEXT + COMMA_SEP +
                     WalletContract.Wallet.COLUMN_WALLET_MESSAGE + TYPE_TEXT + COMMA_SEP +
                     WalletContract.Wallet.COLUMN_WALLET_QRCODE + TYPE_TEXT + ")";
+
+    /** SQL statement to create "update" table. */
+    private static final String SQL_CREATE_EXCHANGES =
+            "CREATE TABLE IF NOT EXISTS " + ExchangeContract.Exchange.TABLE_NAME + " (" +
+                    ExchangeContract.Exchange._ID + " INTEGER PRIMARY KEY," +
+                    ExchangeContract.Exchange.COLUMN_NAME_EXCHANGE + TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_TIME_STAMP + TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_BID + TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_ASK + TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_LAST+ TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_HIGH + TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_VOLUME + TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_LOW + TYPE_TEXT + COMMA_SEP +
+                    ExchangeContract.Exchange.COLUMN_NAME_MID + TYPE_TEXT + ")";
 
     private static final String SQL_CREATE_CONTACTS =
             "CREATE TABLE IF NOT EXISTS " + ContactContract.ContactData.TABLE_NAME + " (" +
@@ -189,8 +203,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) 
     {
         if (newVersion > oldVersion) {
-            //db.execSQL(SQL_DELETE_CONTACTS);
-            //db.execSQL(SQL_CREATE_CONTACTS);
+            db.execSQL(SQL_CREATE_EXCHANGES);
         }
     }
 

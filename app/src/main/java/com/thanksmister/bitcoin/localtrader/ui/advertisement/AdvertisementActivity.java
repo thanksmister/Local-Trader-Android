@@ -28,6 +28,7 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 
 public class AdvertisementActivity extends BaseActivity implements AdvertisementView
 {
@@ -72,17 +73,29 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
     @InjectView(R.id.advertisementProgress)
     View progress;
 
-    @InjectView(R.id.advertisementEmpty)
-    View empty;
-
-    @InjectView(R.id.retryTextView)
-    TextView errorTextView;
-
     @InjectView(R.id.advertisementMainView)
     View content;
 
     @InjectView(R.id.advertisementToolBar)
     Toolbar toolbar;
+
+    @InjectView(R.id.advertisementEmpty)
+    View empty;
+
+    @InjectView(R.id.advertisementRetry)
+    View retry;
+    
+    @InjectView(R.id.emptyTextView)
+    TextView emptyTextView;
+
+    @InjectView(R.id.retryTextView)
+    TextView retryTextView;
+
+    @OnClick(R.id.emptyRetryButton)
+    public void emptyButtonClicked()
+    {
+        presenter.getAdvertisement(adId);
+    }
     
     private String adId;
     private Menu menu;
@@ -123,8 +136,6 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
             getSupportActionBar().setTitle("");
             setToolBarMenu(toolbar);
         }
-        
-        presenter.getAdvertisement(adId);
     }
 
     @Override
@@ -178,6 +189,8 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
         super.onResume();
 
         presenter.onResume();
+
+        presenter.getAdvertisement(adId);
     }
 
     @Override
@@ -228,12 +241,23 @@ public class AdvertisementActivity extends BaseActivity implements Advertisement
     }
 
     @Override
+    public void onError(String message)
+    {
+        progress.setVisibility(View.GONE);
+        content.setVisibility(View.GONE);
+
+        empty.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
+    }
+    
+    @Override
     public void showError(String message)
     {
         progress.setVisibility(View.GONE);
         content.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
+
+        retry.setVisibility(View.VISIBLE);
+        retryTextView.setText(message);
     }
 
     @Override

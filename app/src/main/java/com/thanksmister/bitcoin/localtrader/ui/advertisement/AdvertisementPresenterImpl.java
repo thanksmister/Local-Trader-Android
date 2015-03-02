@@ -12,11 +12,13 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.DataModel;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.contact.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.edit.EditActivity;
+import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import org.json.JSONObject;
@@ -76,13 +78,19 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
 
             @Override
             public void onError(Throwable throwable) {
-                getView().showError(throwable.getMessage());
+                RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+                if(retroError.isAuthenticationError()) {
+                    Toast.makeText(getContext(), retroError.getMessage(), Toast.LENGTH_SHORT).show();
+                    ((BaseActivity) getContext()).logOut();
+                } else if (retroError.isNetworkError()) {
+                    getView().onError(retroError.getMessage());
+                } else {
+                    getView().onError("Unable to retrieve advertisement data.");
+                }
             }
 
             @Override
             public void onNext(Advertisement advertisement) {
-
-                Timber.d("Advertisement Id: " + advertisement.ad_id);
 
                 if(TradeUtils.isOnlineTrade(advertisement)) {
                     getOnlineProviders(advertisement); // get methods

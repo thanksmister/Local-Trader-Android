@@ -20,7 +20,6 @@ import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -33,7 +32,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
@@ -394,7 +392,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private void saveContactsAndNotify(List<Contact> contacts)
     {
-        TreeMap<String, ArrayList<Contact>> updatedContactList = databaseManager.updateContactsList(contacts, getContext());
+        TreeMap<String, ArrayList<Contact>> updatedContactList = databaseManager.updateContacts(contacts, getContext());
         
         // notify user of any new trades
         

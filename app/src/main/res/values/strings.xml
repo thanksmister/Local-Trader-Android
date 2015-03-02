@@ -32,7 +32,7 @@
     <string name="warning_no_google_play_services_title">Google Play Services</string>
     <string name="error_generic_server_down">Service temporarily down or unreachable.</string>
     <string name="error_resource_not_found">Resource not found on server.</string>
-    <string name="error_server_time_out">Call to the service timed out</string>
+    <string name="error_server_time_out">Call to the service timed out.</string>
     <string name="error_no_internet">Weak or no internet connection</string>
     <string name="error_login">There was a login error. The error has been reported.</string>
     <string name="error_generic_error">Service unreachable, check network connection.</string>

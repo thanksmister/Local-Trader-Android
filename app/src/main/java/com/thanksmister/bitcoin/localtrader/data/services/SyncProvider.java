@@ -28,6 +28,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementContract;
 import com.thanksmister.bitcoin.localtrader.data.database.BaseContract;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactContract;
 import com.thanksmister.bitcoin.localtrader.data.database.DatabaseHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeContract;
 import com.thanksmister.bitcoin.localtrader.data.database.MessagesContract;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletContract;
 import com.thanksmister.bitcoin.localtrader.utils.SelectionBuilder;
@@ -62,6 +63,9 @@ public class SyncProvider extends ContentProvider
     public static final int PATH_SESSION = 9;
     public static final int PATH_SESSION_ID = 10;
 
+    public static final int PATH_EXCHANGES = 11;
+    public static final int PATH_EXCHANGES_ID = 12;
+
     // Uri Matcher for the content provider
     /**
      * UriMatcher, used to decode incoming URIs.
@@ -83,6 +87,9 @@ public class SyncProvider extends ContentProvider
 
         sUriMatcher.addURI(AUTHORITY , "session", PATH_SESSION);
         sUriMatcher.addURI(AUTHORITY , "session/*", PATH_SESSION_ID);
+
+        sUriMatcher.addURI(AUTHORITY, "exchanges", PATH_EXCHANGES);
+        sUriMatcher.addURI(AUTHORITY, "exchanges/*", PATH_EXCHANGES_ID);
     }
 
     @Override
@@ -100,12 +107,14 @@ public class SyncProvider extends ContentProvider
                 return ContactContract.ContactData.CONTENT_TYPE;
             case PATH_CONTACTS_ID:
                 return ContactContract.ContactData.CONTENT_ITEM_TYPE; 
-            
             case PATH_MESSAGES:
                 return MessagesContract.Message.CONTENT_TYPE;
             case PATH_MESSAGES_ID:
                 return MessagesContract.Message.CONTENT_ITEM_TYPE;
-           
+            case PATH_EXCHANGES:
+                return ExchangeContract.Exchange.CONTENT_TYPE;
+            case PATH_EXCHANGES_ID:
+                return ExchangeContract.Exchange.CONTENT_ITEM_TYPE;
             case PATH_ADVERTISEMENTS:
                 return AdvertisementContract.Advertisement.CONTENT_TYPE;
             case PATH_ADVERTISEMENTS_ID:
@@ -150,8 +159,18 @@ public class SyncProvider extends ContentProvider
                 c = builder.query(db, projection, sortOrder);
                 assert ctx != null;
                 c.setNotificationUri(ctx.getContentResolver(), uri);
-                return c; 
-            
+                return c;
+            case PATH_EXCHANGES_ID :
+                // Return a single entry, by ID.
+                id = uri.getLastPathSegment();
+                builder.where(ExchangeContract.Exchange._ID + "=?", id);
+            case PATH_EXCHANGES:
+                // Return all known entries.
+                builder.table(ExchangeContract.Exchange.TABLE_NAME).where(selection, selectionArgs);
+                c = builder.query(db, projection, sortOrder);
+                assert ctx != null;
+                c.setNotificationUri(ctx.getContentResolver(), uri);
+                return c;
             case PATH_MESSAGES_ID :
                 // Return a single entry, by ID.
                 id = uri.getLastPathSegment();
@@ -227,7 +246,10 @@ public class SyncProvider extends ContentProvider
                 result = Uri.parse(MessagesContract.Message.CONTENT_URI + "/" + id);
 
                 break;
-
+            case PATH_EXCHANGES:
+                id = db.insertOrThrow(ExchangeContract.Exchange.TABLE_NAME, null, values);
+                result = Uri.parse(ExchangeContract.Exchange.CONTENT_URI + "/" + id);
+                break;
             case PATH_ADVERTISEMENTS:
                 id = db.insertOrThrow(AdvertisementContract.Advertisement.TABLE_NAME, null, values);
                 result = Uri.parse(AdvertisementContract.Advertisement.CONTENT_URI + "/" + id);
@@ -242,6 +264,7 @@ public class SyncProvider extends ContentProvider
                 result = Uri.parse(WalletContract.Wallet.CONTENT_URI + "/" + id);
     
                 break;
+            case PATH_EXCHANGES_ID:
             case PATH_CONTACTS_ID:
             case PATH_MESSAGES_ID:
             case PATH_ADVERTISEMENTS_ID:
@@ -296,6 +319,20 @@ public class SyncProvider extends ContentProvider
                         .delete(db);
                 break;
 
+            case PATH_EXCHANGES:
+                count = builder.table(ExchangeContract.Exchange.TABLE_NAME)
+                        .where(selection, selectionArgs)
+                        .delete(db);
+                break;
+            case PATH_EXCHANGES_ID:
+                id = uri.getLastPathSegment();
+                count = builder.table(ExchangeContract.Exchange.TABLE_NAME)
+                        .where(ExchangeContract.Exchange._ID + "=?", id)
+                        .where(selection, selectionArgs)
+                        .delete(db);
+                break;
+
+            
             case PATH_ADVERTISEMENTS:
                 count = builder.table(AdvertisementContract.Advertisement.TABLE_NAME)
                         .where(selection, selectionArgs)
@@ -366,6 +403,20 @@ public class SyncProvider extends ContentProvider
                         .where(selection, selectionArgs)
                         .update(db, values);
                 break;
+
+            case PATH_EXCHANGES:
+                count = builder.table(ExchangeContract.Exchange.TABLE_NAME)
+                        .where(selection, selectionArgs)
+                        .update(db, values);
+                break;
+            case PATH_EXCHANGES_ID:
+                id = uri.getLastPathSegment();
+                count = builder.table(ExchangeContract.Exchange.TABLE_NAME)
+                        .where(ExchangeContract.Exchange._ID + "=?", id)
+                        .where(selection, selectionArgs)
+                        .update(db, values);
+                break;
+
             
             case PATH_MESSAGES:
                 count = builder.table(MessagesContract.Message.TABLE_NAME)

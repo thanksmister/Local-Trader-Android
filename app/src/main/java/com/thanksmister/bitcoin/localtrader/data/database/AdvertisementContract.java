@@ -103,6 +103,7 @@ public class AdvertisementContract extends BaseContract
         public static final String COLUMN_NAME_TRACK_MAX_AMOUNT = "track_max_amount";
         
         public static final int COLUMN_ID = 0;
+        
         public static final int COLUMN_AD_ID = 1;
         public static final int COLUMN_CREATED_AT = 2;
         public static final int COLUMN_VISIBLE = 3;
@@ -113,23 +114,24 @@ public class AdvertisementContract extends BaseContract
         public static final int COLUMN_TRADE_TYPE= 8;
         public static final int COLUMN_ONLINE_PROVIDER = 9;
 
-        public static final int COLUMN_SMS_VERIFICATION_REQUIRED = 13;
-        public static final int COLUMN_PRICE_EQUATION = 14;
-        public static final int COLUMN_CURRENCY = 15;
-        public static final int COLUMN_ACCOUNT_INFO = 16;
-        public static final int COLUMN_LAT = 17;
-        public static final int COLUMN_LON= 18;
-        public static final int COLUMN_MIN_AMOUNT = 19;
-        public static final int COLUMN_MAX_AMOUNT = 20;
-        public static final int COLUMN_PUBLIC_VIEW = 21;
-        public static final int COLUMN_PRICE = 22;
+        public static final int COLUMN_SMS_VERIFICATION_REQUIRED = 10;
+        public static final int COLUMN_PRICE_EQUATION = 11;
+        public static final int COLUMN_REFERENCE_TYPE = 12;
+        public static final int COLUMN_CURRENCY = 13;
+        public static final int COLUMN_ACCOUNT_INFO = 14;
+        public static final int COLUMN_LAT = 15;
+        public static final int COLUMN_LON= 16;
+        public static final int COLUMN_MIN_AMOUNT = 17;
+        public static final int COLUMN_MAX_AMOUNT = 18;
+        public static final int COLUMN_PUBLIC_VIEW = 19;
+        public static final int COLUMN_PRICE = 20;
 
-        public static final int COLUMN_PROFILE_ID = 23;
-        public static final int COLUMN_PROFILE_NAME = 24;
-        public static final int COLUMN_PROFILE_USERNAME = 25;
-        public static final int COLUMN_BANK_NAME = 26;
-        public static final int COLUMN_TRUSTED_REQUIRED= 27;
-        public static final int COLUMN_MESSAGE = 28;
-        public static final int COLUMN_TRACK_MAX_AMOUNT= 29;
+        public static final int COLUMN_PROFILE_ID = 21;
+        public static final int COLUMN_PROFILE_NAME = 22;
+        public static final int COLUMN_PROFILE_USERNAME = 23;
+        public static final int COLUMN_BANK_NAME = 24;
+        public static final int COLUMN_TRUSTED_REQUIRED= 25;
+        public static final int COLUMN_MESSAGE = 26;
+        public static final int COLUMN_TRACK_MAX_AMOUNT= 27;
     }
 }

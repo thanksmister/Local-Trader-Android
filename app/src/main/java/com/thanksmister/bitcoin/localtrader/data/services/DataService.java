@@ -16,8 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 
@@ -36,7 +34,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Dashboard;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DefaultExchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
@@ -71,8 +69,10 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -82,6 +82,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import rx.Observable;
 import rx.Observer;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -89,6 +90,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 
@@ -102,8 +104,12 @@ public class DataService
     public static final String PREFS_USER = "pref_user";
     public static final String PREFS_LOGGED_IN = "pref_logged_in";
     public static final String PREFS_SELECTED_EXCHANGE = "selected_exchange";
+    public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
+    public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
 
     public static final int CHECK_EXCHANGE_DATA = 5 * 60 * 1000;// 5 minutes
+    public static final int CHECK_DATABASE_DATA = 60 * 1000;// 30 seconds
+    public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 mintues
 
     public static final String USD = "USD";
 
@@ -142,6 +148,7 @@ public class DataService
     private List<Method> methods;
     private List<Method> paymentMethods;
     private HashMap<DashboardType, List<Contact>> contacts = new HashMap<DashboardType, List<Contact>>();
+    private List<Currency> currencies;
     
     @Inject
     public DataService(BaseApplication application, DatabaseManager databaseManager, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitstampExchange bitstampExchange, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
@@ -248,12 +255,101 @@ public class DataService
         return subscription;
     }
 
-    public Subscription getDashboardInfo(Observer<Dashboard> observer)
+    public Observable<Dashboard> getDashboardCached()
     {
-        if(dashboardInfo != null) {
-            observer.onNext(dashboardInfo);
-        }
-        
+        return Observable.create(new Observable.OnSubscribe<Dashboard>() {
+            
+            @Override
+            public void call(Subscriber<? super Dashboard> subscriber) {
+                
+                Schedulers.newThread().schedulePeriodically(new Action1<Scheduler.Inner>() {
+                    @Override
+                    public void call(Scheduler.Inner inner) {
+                        ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
+                        ArrayList<Contact> contacts = databaseManager.getContacts(application);
+                        Exchange exchange = databaseManager.getExchange(application);
+
+                        final Dashboard dashboard = new Dashboard();
+                        dashboard.advertisements = advertisements;
+                        dashboard.exchange = exchange;
+                        dashboard.contacts = contacts;
+
+                        if(contacts!= null && advertisements != null && exchange != null) {
+                            subscriber.onNext(dashboard); // returned cached data
+                        } else {
+                            subscriber.onError(new Throwable("Error loading cached dashboard data."));
+                        }
+                    }
+                }, 0, CHECK_DATABASE_DATA, TimeUnit.MILLISECONDS);
+            }
+        })
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread());
+    }
+    
+    /*public Observable<Dashboard> getDashBoardObservable()
+    {
+        return Observable.create(new Observable.OnSubscribe<Dashboard>() {
+            @Override
+            public void call(Subscriber<? super Dashboard> subscriber) {
+                
+                Schedulers.newThread().schedulePeriodically(new Action1<Scheduler.Inner>() {
+                    @Override
+                    public void call(Scheduler.Inner inner)
+                    {
+                        ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
+                        ArrayList<Contact> contacts = databaseManager.getContacts(application);
+                        Exchange exchange = databaseManager.getExchange(application);
+
+                        final Dashboard dashboard = new Dashboard();
+                        dashboard.advertisements = advertisements;
+                        dashboard.exchange = exchange;
+                        dashboard.contacts = contacts;
+                        
+                        if(advertisements != null && exchange != null) {
+                            //subscriber.onNext(dashboard); // returned cached data
+                        }
+                        
+                        // get advertisements updates
+                        Observable<List<Advertisement>> advertisementsObservable = getAdvertisementsObservable();
+                        advertisementsObservable.doOnNext(new Action1<List<Advertisement>>() {
+                            @Override
+                            public void call(List<Advertisement> advertisements) {
+
+                                Timber.d("Advertisement Returned");
+                                
+                                dashboard.advertisements = advertisements;
+                                //subscriber.onNext(dashboard);
+                                Observable<Exchange> exchangeObservable = getBitstamp();
+                                exchangeObservable
+                                .doOnNext(new Action1<Exchange>() {
+                                    @Override
+                                    public void call(Exchange exchange) {
+                                        
+                                        Timber.d("Exchange Returned");
+                                        dashboard.exchange = exchange;
+                                        subscriber.onNext(dashboard);
+                                    }
+                                })
+                                .doOnError(new Action1<Throwable>() {
+                                    @Override
+                                    public void call(Throwable throwable) {
+                                        Timber.e(throwable.getMessage());
+                                        subscriber.onNext(dashboard);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }, 0, CHECK_DATABASE_DATA, TimeUnit.MILLISECONDS);
+            }
+        }) 
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread()); 
+    }*/
+
+    public Subscription getDashboardInfo(Observer<Dashboard> observer, final boolean manualRefresh)
+    {
         if(dashboardPublishSubject != null) {
             return dashboardPublishSubject.subscribe(observer); // join it
         }
@@ -271,14 +367,20 @@ public class DataService
             }
 
             @Override
-            public void onNext(Dashboard dashboard) {
-                dashboardInfo = dashboard; // cache it for a bit
+            public void onNext(Dashboard dashboard) {  
+                /*databaseManager.updateContacts(dashboard.contacts, application);
+                databaseManager.updateAdvertisements(dashboard.advertisements, application);       
+                databaseManager.updateExchange(dashboard.exchange, application);
+                
+                for (Contact contact : dashboard.contacts){
+                    databaseManager.updateMessages(contact.contact_id, contact.messages, application);
+                }*/
             }
         });
 
         Subscription subscription = dashboardPublishSubject.subscribe(observer);
-        getDashboardObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getDashboardObservable()))
+        getDashboardObservable(manualRefresh)
+                .onErrorResumeNext(refreshTokenAndRetry(getDashboardObservable(manualRefresh)))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(dashboardPublishSubject);
@@ -428,7 +530,7 @@ public class DataService
         return subscription;
     }
 
-    public Subscription contactAction(Observer<Object> observer, String contact_id, ContactAction action)
+    public Subscription contactAction(Observer<Object> observer, String contact_id, String pinCode, ContactAction action)
     {
         if(contactActionPublishSubject != null) {
             return contactActionPublishSubject.subscribe(observer); // join it
@@ -464,8 +566,8 @@ public class DataService
         Subscription subscription = contactActionPublishSubject.subscribe(observer);
         switch (action) {
             case RELEASE:
-                releaseContactObservable(contact_id)
-                        .onErrorResumeNext(refreshTokenAndRetry(releaseContactObservable(contact_id)))
+                releaseContactObservable(contact_id, pinCode)
+                        .onErrorResumeNext(refreshTokenAndRetry(releaseContactObservable(contact_id, pinCode)))
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(contactActionPublishSubject);
@@ -797,6 +899,11 @@ public class DataService
 
     public Subscription getCurrencies(final Observer<List<Currency>> observer)
     {
+        if(currencies != null){
+            observer.onNext(currencies);
+            return Subscriptions.empty();
+        }
+        
         if(currencyRequest != null) { // join the request
             currencyRequest.subscribe(observer);
         }
@@ -812,19 +919,12 @@ public class DataService
             @Override
             public void onError(Throwable throwable) {
                 currencyRequest = null;
-                /*if (throwable instanceof RetrofitError) {
-                    if (((RetrofitError) throwable).isNetworkError()) {
-                        Toast.makeText(application, application.getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show();
-                    } else  {
-                        Timber.e(throwable.getMessage());
-                    }
-                }*/
             }
 
             @Override
-            public void onNext(List<Currency> exchanges)
+            public void onNext(List<Currency> results)
             {
-                // cache exchanges
+                currencies = results;
             }
         });
 
@@ -850,19 +950,18 @@ public class DataService
 
     private Observable<Response> updateAdvertisementObservable(final Advertisement advertisement)
     {
-        Timber.d("Update Advertisement Id: " + advertisement.ad_id);
         String access_token = getAccessToken();
         return localBitcoins.updateAdvertisement(advertisement.ad_id, access_token, String.valueOf(advertisement.visible), advertisement.min_amount,
                 advertisement.max_amount, advertisement.price_equation, String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
-                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.trusted_required));
+                advertisement.sms_verification_required, advertisement.track_max_amount, advertisement.trusted_required);
 
     }
 
-    private Observable<Response> releaseContactObservable(String contact_id)
+    private Observable<Response> releaseContactObservable(String contact_id, String pinCode)
     {
         String access_token = getAccessToken();
-        return localBitcoins.releaseContact(contact_id, access_token);
+        return localBitcoins.releaseContactPinCode(contact_id, pinCode, access_token);
     }
 
     private Observable<Response> cancelContactObservable(String contact_id)
@@ -983,7 +1082,6 @@ public class DataService
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread());
     }
-
 
     public Observable<JSONObject> deleteAdvertisement(final String ad_id)
     {
@@ -1185,23 +1283,39 @@ public class DataService
                         }).toBlockingObservable().last());
             }
 
-    private Observable<Dashboard> getDashboardObservable()
+    private Observable<Dashboard> getDashboardObservable(boolean manualRefresh)
     {
         return getBitstamp()
-                .flatMap(new Func1<DefaultExchange, Observable<Dashboard>>() {
+                .flatMap(new Func1<Exchange, Observable<Dashboard>>() {
                     @Override
-                    public Observable<Dashboard> call(DefaultExchange exchange) {
-                        return getDashboardActiveContactsObservable(exchange);
+                    public Observable<Dashboard> call(Exchange exchange) {
+                        
+                        if(manualRefresh) {
+                            return getDashboardActiveContactsObservable(exchange);
+                        } else {
+                            Dashboard dashboard = new Dashboard();
+                            dashboard.exchange = exchange;
+                            dashboard.contacts = databaseManager.getContacts(application);
+                            return Observable.just(dashboard);
+                        }
                     }
                 })
                 .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {
                     @Override
                     public Observable<Dashboard> call(Dashboard dashboard) {
+                        
                         if(dashboard.contacts.isEmpty()) {
                             return Observable.just(dashboard);
                         }
-                        
-                        return Observable.just(getDashboardMessageObservable(dashboard));
+
+                        if(manualRefresh) {
+                            return Observable.just(getDashboardMessageObservable(dashboard));
+                        } else {
+                            for (Contact contact : dashboard.contacts) {
+                                contact.messages = databaseManager.getMessages(contact.contact_id, application);
+                            }
+                            return Observable.just(dashboard);
+                        } 
                     }
                 })
                 .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {
@@ -1236,6 +1350,12 @@ public class DataService
                    {
                        return localBitcoins.contactMessages(contact.contact_id, access_token)
                                .map(new ResponseToMessages())
+                               .doOnNext(new Action1<List<Message>>(){
+                                   @Override
+                                   public void call(List<Message> messages) {
+                                       databaseManager.updateMessages(contact.contact_id, messages, application);
+                                   }
+                               })
                                .map(new Func1<List<Message>, Dashboard>() {
                                    @Override
                                    public Dashboard call(List<Message> messages) {
@@ -1245,7 +1365,8 @@ public class DataService
                                    }
                                });
                    }
-               }).toBlockingObservable().last();
+               })
+               .toBlockingObservable().last();
     }
 
     private Observable<Contact> getContactObservable(String contact_id)
@@ -1275,7 +1396,7 @@ public class DataService
                 });
     }
 
-    private Observable<Dashboard> getDashboardActiveContactsObservable(final DefaultExchange exchange)
+    private Observable<Dashboard> getDashboardActiveContactsObservable(final Exchange exchange)
     {
         assert exchange != null;
         
@@ -1298,6 +1419,12 @@ public class DataService
                                     dashboard.exchange = exchange;
                                     dashboard.contacts = contacts;
                                     return dashboard;
+                                })
+                                .doOnNext(new Action1<Dashboard>(){
+                                    @Override
+                                    public void call(Dashboard dashboard) {
+                                        databaseManager.updateContacts(dashboard.contacts, application);
+                                    }
                                 });
                     }
     
@@ -1309,12 +1436,24 @@ public class DataService
 
         String access_token = getAccessToken();
         return localBitcoins.getAds(access_token)
-                .map(new ResponseToAds());
+                .map(new ResponseToAds())
+                .doOnNext(new Action1<List<Advertisement>>() {
+                    @Override
+                    public void call(List<Advertisement> advertisements)
+                    {
+                        Timber.d("update advertisement data");
+                        databaseManager.updateAdvertisements(advertisements, application);
+                        setAdvertisementsExpireTime();
+                    }
+                });
     }
 
-    private Observable<Dashboard> getAdvertisementsObservable(final Dashboard dashboard)
+    public Observable<Dashboard> getAdvertisementsObservable(final Dashboard dashboard)
     {
-        assert dashboard != null;
+        if(!needToRefreshAdvertisements()) {
+            dashboard.advertisements = databaseManager.getAdvertisements(application);
+            return Observable.just(dashboard);
+        }
         
         if(Constants.USE_MOCK_DATA) {
             return Observable.just(Parser.parseAdvertisements(MockData.ADVERTISEMENT_LIST_SUCCESS))
@@ -1327,16 +1466,44 @@ public class DataService
         String access_token = getAccessToken();
         return localBitcoins.getAds(access_token)
                 .map(new ResponseToAds())
-                .map(ads -> {
-                    dashboard.advertisements = ads;
-                    return dashboard;
+                .map(new Func1<List<Advertisement>, Dashboard>()
+                {
+                    @Override
+                    public Dashboard call(List<Advertisement> advertisements)
+                    {
+                        dashboard.advertisements = advertisements;
+                        return dashboard;
+                    }
+                })
+                .doOnNext(new Action1<Dashboard>()
+                {
+                    @Override
+                    public void call(Dashboard dashboard)
+                    {
+                        Timber.d("update advertisement data");
+                        databaseManager.updateAdvertisements(dashboard.advertisements, application);
+                        setAdvertisementsExpireTime();
+                    }
                 });
     }
 
-    private Observable<DefaultExchange> getBitstamp()
+    private Observable<Exchange> getBitstamp()
     {
+        if(!needToRefreshExchanges()){
+            return Observable.just(databaseManager.getExchange(application));
+        }
+        
         return bitstampExchange.ticker()
                .map(new ResponseBitstampToExchange())
+               .doOnNext(new Action1<Exchange>()
+               {
+                   @Override
+                   public void call(Exchange exchange)
+                   {
+                       databaseManager.updateExchange(exchange, application);
+                       setExchangeExpireTime();
+                   }
+               })
                .onErrorResumeNext(getBitfinex());
     }
 
@@ -1345,9 +1512,9 @@ public class DataService
         return bitstampExchange.ticker()
                .map(new ResponseBitstampToExchange())
                .onErrorResumeNext(getBitfinex())
-               .map(new Func1<DefaultExchange, Wallet>() {
+               .map(new Func1<Exchange, Wallet>() {
                    @Override
-                   public Wallet call(DefaultExchange defaultExchange) {
+                   public Wallet call(Exchange defaultExchange) {
                        if (defaultExchange != null) {
                            wallet.exchange = defaultExchange;
                        }
@@ -1356,14 +1523,23 @@ public class DataService
                });
     }
 
-    private Observable<DefaultExchange> getBitfinex()
+    private Observable<Exchange> getBitfinex()
     {
         return bitfinexExchange.ticker()
                 .map(new ResponseBitfinexToExchange())
-                .onErrorReturn(new Func1<Throwable, DefaultExchange>() {
+                .doOnNext(new Action1<Exchange>()
+                {
                     @Override
-                    public DefaultExchange call(Throwable throwable) {
-                        return new DefaultExchange();
+                    public void call(Exchange exchange)
+                    {
+                        databaseManager.updateExchange(exchange, application);
+                        setExchangeExpireTime();
+                    }
+                })
+                .onErrorReturn(new Func1<Throwable, Exchange>() {
+                    @Override
+                    public Exchange call(Throwable throwable) {
+                        return new Exchange();
                     }
                 });
     }
@@ -1381,23 +1557,7 @@ public class DataService
         preference.set(name);
     }
 
-    private void setExchangeExpireTime()
-    {
-        synchronized (this) {
-            long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA; // 1 hours
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putLong(PREFS_EXPIRE_TIME, expire);
-            editor.apply();
-        }
-    }
-
-    private boolean needToRefreshExchanges()
-    {
-        synchronized (this) {
-            long expiresAt = sharedPreferences.getLong(PREFS_EXPIRE_TIME, -1);
-            return System.currentTimeMillis() >= expiresAt;
-        }
-    }
+   
 
     // ---- AUTHORIZATION ------
 
@@ -1597,6 +1757,42 @@ public class DataService
             long expire = System.currentTimeMillis() + expireMilliseconds;
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putLong(PREFS_TOKENS_EXPIRE_TIME, expire);
+            editor.apply();
+        }
+    }
+
+    private boolean needToRefreshExchanges()
+    {
+        synchronized (this) {
+            long expiresAt = sharedPreferences.getLong(PREFS_EXPIRE_TIME, -1);
+            return System.currentTimeMillis() >= expiresAt;
+        }
+    }
+
+    private boolean needToRefreshAdvertisements()
+    {
+        synchronized (this) {
+            long expiresAt = sharedPreferences.getLong(PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
+            return System.currentTimeMillis() >= expiresAt;
+        }
+    }
+
+    private void setExchangeExpireTime()
+    {
+        synchronized (this) {
+            long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA; // 1 hours
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong(PREFS_EXPIRE_TIME, expire);
+            editor.apply();
+        }
+    }
+
+    private void setAdvertisementsExpireTime()
+    {
+        synchronized (this) {
+            long expire = System.currentTimeMillis() + CHECK_ADVERTISEMENT_DATA; // 1 hours
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong(PREFS_ADVERTISEMENT_EXPIRE_TIME, expire);
             editor.apply();
         }
     }

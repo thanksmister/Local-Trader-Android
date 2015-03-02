@@ -14,7 +14,9 @@ import java.util.List;
 public interface DashboardPresenter
 {
     public void onResume();
-    
+
+    void onRefresh();
+
     public void onDestroy();
 
     public void scanQrCode();

@@ -18,24 +18,16 @@ package com.thanksmister.bitcoin.localtrader.data.api.transforms;
 
 
 import com.thanksmister.bitcoin.localtrader.data.api.model.Bitstamp;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DefaultExchange;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-import retrofit.client.Response;
 import rx.functions.Func1;
-import timber.log.Timber;
 
-public class ResponseBitstampToExchange implements Func1<Bitstamp, DefaultExchange>
+public class ResponseBitstampToExchange implements Func1<Bitstamp, Exchange>
 {
     @Override
-    public DefaultExchange call(Bitstamp bitstamp)
+    public Exchange call(Bitstamp bitstamp)
     {
-        DefaultExchange exchange = new DefaultExchange();
+        Exchange exchange = new Exchange();
         exchange.name = "Bitstamp";
         exchange.ask = bitstamp.ask;
         exchange.bid = bitstamp.bid;
@@ -43,6 +35,7 @@ public class ResponseBitstampToExchange implements Func1<Bitstamp, DefaultExchan
         exchange.low = bitstamp.low;
         exchange.volume = bitstamp.volume;
         exchange.last = bitstamp.last;
+        exchange.timestamp = bitstamp.timestamp;
                 
         return exchange;
     }

@@ -389,10 +389,16 @@ public class EditActivity extends BaseActivity implements EditView
             currentLocation.setText(advertisement.location);
         }
 
+        Timber.d("Max Amount: " + advertisement.track_max_amount);
+        Timber.d("SMS Verified: " + advertisement.sms_verification_required);
+        Timber.d("Trusted: " + advertisement.trusted_required);
+       
         liquidityCheckBox.setChecked(advertisement.track_max_amount);
         smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required);
         trustedCheckBox.setChecked(advertisement.trusted_required);
         activeCheckBox.setChecked(advertisement.visible);
+        
+        
         editBankNameText.setText(advertisement.bank_name);
         editMinimumAmount.setText(advertisement.min_amount);
         editMaximumAmount.setText(advertisement.max_amount);
@@ -404,6 +410,7 @@ public class EditActivity extends BaseActivity implements EditView
             bankNameLayout.setVisibility(View.GONE);
             paymentMethodLayout.setVisibility(View.GONE);
         } else {
+            editPaymentDetailsLayout.setVisibility(View.VISIBLE);
             paymentMethodLayout.setVisibility(create?View.VISIBLE:View.GONE);
             bankNameLayout.setVisibility(create?View.VISIBLE:View.GONE);
         }

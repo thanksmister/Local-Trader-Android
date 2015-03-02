@@ -18,6 +18,8 @@ public interface DashboardView
 {
     Context getContext();
 
+    boolean hasDataSet();
+
     void onRefreshStop();
 
     void onRetry(String message);

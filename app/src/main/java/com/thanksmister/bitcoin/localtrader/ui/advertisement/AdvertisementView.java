@@ -17,6 +17,8 @@ public interface AdvertisementView
 
     Context getContext();
 
+    void onError(String message);
+
     public void showError(String message);
     
     public void showProgress();

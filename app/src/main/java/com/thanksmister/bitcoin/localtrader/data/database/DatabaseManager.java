@@ -32,6 +32,7 @@ import android.os.RemoteException;
 
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
@@ -136,15 +137,9 @@ public class DatabaseManager
     public ArrayList<Contact> getContacts(Context context)
     {
         ArrayList<Contact> items = new ArrayList<Contact>();
-        final ContentResolver contentResolver = context.getContentResolver();
-
+        
         // Get list of all items
-        Cursor c = contentResolver.query(
-                ContactContract.ContactData.CONTENT_URI, // URI
-                ContactContract.ContactData.PROJECTION,                // Projection
-                null,
-                null,
-                ContactContract.ContactData.COLUMN_NAME_CREATED_AT + " desc"); // Sort
+        Cursor c = getContactsCursor(context);
 
         while (c.moveToNext()) {
             Contact item = cursorToContact(c);
@@ -152,6 +147,19 @@ public class DatabaseManager
         }
 
         return items;
+    }
+    
+    public Cursor getContactsCursor(Context context)
+    {
+        final ContentResolver contentResolver = context.getContentResolver();
+
+        // Get list of all items
+        return contentResolver.query(
+                ContactContract.ContactData.CONTENT_URI, // URI
+                ContactContract.ContactData.PROJECTION,                // Projection
+                null,
+                null,
+                ContactContract.ContactData.COLUMN_NAME_CREATED_AT + " desc"); // Sort
     }
 
     public Contact getContactById(String contactId, Context context)
@@ -309,7 +317,7 @@ public class DatabaseManager
         return item;
     }
 
-    public TreeMap<String, ArrayList<Contact>> updateContactsList(final List<Contact> items, final Context context)
+    public TreeMap<String, ArrayList<Contact>> updateContacts(final List<Contact> items, final Context context)
     {
         Timber.d("update contact list");
         final ContentResolver contentResolver = context.getContentResolver();
@@ -507,6 +515,26 @@ public class DatabaseManager
         Timber.d("returning contacts");
         
         return updateMap;
+    }
+
+    public List<Message> getMessages(String contactId, Context context)
+    {
+        final ContentResolver resolver = context.getContentResolver();
+
+        Cursor c = resolver.query(
+                MessagesContract.Message.CONTENT_URI, // URI
+                MessagesContract.PROJECTION,                // Projection
+                MessagesContract.Message.COLUMN_NAME_CONTACT_ID + " = ? ",
+                new String[] {contactId},  // Select new and pending orders
+                null); // Sort
+
+        List<Message> messages = new ArrayList<Message>();
+        while (c.moveToNext()) {
+            Message message = cursorToMessage(c);
+            messages.add(message);
+        }
+
+        return messages;
     }
 
     public int getMessageCount(String contactId, Context context)
@@ -735,25 +763,29 @@ public class DatabaseManager
         return cursorToAdvertisement(c);
     }
     
-    public ArrayList<Advertisement> getAllLocalAdvertisements(Context context)
+    public ArrayList<Advertisement> getAdvertisements(Context context)
     {
         ArrayList<Advertisement> items = new ArrayList<Advertisement>();
-        final ContentResolver contentResolver = context.getContentResolver();
-
-        // Get list of all items
-        Cursor c = contentResolver.query(
-                AdvertisementContract.Advertisement.CONTENT_URI, // URI
-                AdvertisementContract.Advertisement.PROJECTION,                // Projection
-                null,                           // Selection
-                null,                           // Selection args
-                AdvertisementContract.Advertisement.COLUMN_NAME_CREATED_AT + " desc"); // Sort
-        
+        Cursor c = getAdvertisementsCursor(context);
         while (c.moveToNext()) {
             Advertisement advertisement = cursorToAdvertisement(c);
             items.add(advertisement);
         }
 
         return items;
+    }
+    
+    public Cursor getAdvertisementsCursor(Context context)
+    {
+        final ContentResolver contentResolver = context.getContentResolver();
+
+        // Get list of all items
+        return contentResolver.query(
+                AdvertisementContract.Advertisement.CONTENT_URI, // URI
+                AdvertisementContract.Advertisement.PROJECTION,                // Projection
+                null,                           // Selection
+                null,                           // Selection args
+                AdvertisementContract.Advertisement.COLUMN_NAME_CREATED_AT + " asc"); // Sort
     }
 
     public Advertisement cursorToAdvertisement(Cursor cursor)
@@ -804,7 +836,7 @@ public class DatabaseManager
         return (c.getCount() > 0);
     }
 
-    public void updateAdvertisementData(final ArrayList<Advertisement> advertisements, Context context)
+    public void updateAdvertisements(final List<Advertisement> advertisements, Context context)
     {
         final ContentResolver contentResolver = context.getContentResolver();
         ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
@@ -1104,6 +1136,142 @@ public class DatabaseManager
             Timber.e(e.getMessage());
         }
 
+        return item;
+    }
+
+    public void updateExchange(final Exchange exchanges, Context context)
+    {
+        final ContentResolver contentResolver = context.getContentResolver();
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+
+        // Build hash table of incoming entries
+        HashMap<String, Exchange> entryMap = new HashMap<String, Exchange>();
+        entryMap.put(exchanges.name, exchanges);
+
+        // Get exchange, should only be one
+        Uri uri = ExchangeContract.Exchange.CONTENT_URI; // Get all entries
+        Cursor c = contentResolver.query(uri, ExchangeContract.Exchange.PROJECTION, null, null, null);
+        assert c != null;
+
+        // Find stale data
+        int id;
+        String name;
+        String ask;
+        String bid;
+        String last;
+
+        while (c.moveToNext()) {
+
+            id = c.getInt(ExchangeContract.Exchange.COLUMN_ID);
+            name = c.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_EXCHANGE);
+            ask = c.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_ASK);
+            bid = c.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_BID);
+            last = c.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_LAST);
+
+            Exchange match = entryMap.get(name);
+
+            if (match != null) {
+                // Entry exists. Remove from entry map to prevent insert later.
+                entryMap.remove(name);
+
+                // Check to see if the entry needs to be updated
+                Uri existingUri = ExchangeContract.Exchange.CONTENT_URI.buildUpon().appendPath(Integer.toString(id)).build();
+
+                if ((match.ask != null && !match.ask.equals(ask)) ||
+                        (match.bid != null && !match.bid.equals(bid)) ||
+                        (match.last != null && !match.last.equals(last))) {
+
+                    // Update existing record
+                    // Log.i(CLASS_NAME +  "Scheduling update: " + existingUri);
+                    batch.add(ContentProviderOperation.newUpdate(existingUri)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_ASK, match.ask)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_BID, match.bid)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_LAST, match.last)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_TIME_STAMP, match.timestamp)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_VOLUME, match.volume)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_HIGH, match.high)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_LOW, match.low)
+                            .withValue(ExchangeContract.Exchange.COLUMN_NAME_MID, match.mid)
+                            .build());
+                } 
+            } else {
+                // Entry doesn't exist. Remove it from the database.
+                Uri deleteUri = ExchangeContract.Exchange.CONTENT_URI.buildUpon().appendPath(Integer.toString(id)).build();
+                batch.add(ContentProviderOperation.newDelete(deleteUri).build());
+            }
+        }
+        c.close();
+
+        // Add new items
+        for (Exchange item : entryMap.values()) {
+            batch.add(ContentProviderOperation.newInsert(ExchangeContract.Exchange.CONTENT_URI)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_EXCHANGE, item.name)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_ASK, item.ask)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_BID, item.bid)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_LAST, item.last)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_TIME_STAMP, item.timestamp)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_VOLUME, item.volume)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_HIGH, item.high)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_LOW, item.low)
+                    .withValue(ExchangeContract.Exchange.COLUMN_NAME_MID, item.mid)
+                    .build());
+        }
+
+        try {
+            contentResolver.applyBatch(ExchangeContract.CONTENT_AUTHORITY, batch);
+            contentResolver.notifyChange(
+                    ExchangeContract.Exchange.CONTENT_URI, // URI where data was modified
+                    null,                           // No local observer
+                    false);                         // IMPORTANT: Do not sync to network
+
+        } catch (RemoteException | OperationApplicationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Exchange getExchange(Context context)
+    {
+        Cursor cursor = getCursorExchange(context);
+
+        try {
+            if (cursor.moveToFirst()) {
+                return cursorToExchange(cursor);
+            }
+            return null;
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+        } finally {
+            cursor.close();
+        }
+
+        return null;
+    }
+    
+    public Cursor getCursorExchange(Context context)
+    {
+        final ContentResolver resolver = context.getContentResolver();
+        return resolver.query(ExchangeContract.Exchange.CONTENT_URI,
+                ExchangeContract.Exchange.PROJECTION,
+                null,
+                null,
+                null);
+
+    }
+
+    public Exchange cursorToExchange(Cursor cursor)
+    {
+        Exchange item = new Exchange();
+
+        item.name = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_EXCHANGE));
+        item.bid = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_BID));
+        item.last = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_LAST));
+        item.ask = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_ASK));
+        item.high = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_HIGH));
+        item.low = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_LOW));
+        item.mid = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_MID));
+        item.volume = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_VOLUME));
+        item.timestamp = (cursor.getString(ExchangeContract.Exchange.COLUMN_INDEX_NAME_TIME_STAMP));
+        
         return item;
     }
     

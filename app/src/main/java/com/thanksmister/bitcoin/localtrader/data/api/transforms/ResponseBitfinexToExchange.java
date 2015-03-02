@@ -18,17 +18,16 @@ package com.thanksmister.bitcoin.localtrader.data.api.transforms;
 
 
 import com.thanksmister.bitcoin.localtrader.data.api.model.Bitfinex;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Bitstamp;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DefaultExchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 
 import rx.functions.Func1;
 
-public class ResponseBitfinexToExchange implements Func1<Bitfinex, DefaultExchange>
+public class ResponseBitfinexToExchange implements Func1<Bitfinex, Exchange>
 {
     @Override
-    public DefaultExchange call(Bitfinex bitfinex)
+    public Exchange call(Bitfinex bitfinex)
     {
-        DefaultExchange exchange = new DefaultExchange();
+        Exchange exchange = new Exchange();
         exchange.name = "Bitfinex";
         exchange.ask = bitfinex.ask;
         exchange.bid = bitfinex.bid;

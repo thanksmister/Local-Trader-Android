@@ -793,12 +793,13 @@ public class Parser
             String trade_type = data.getString("trade_type");
             item.trade_type = (TradeType.valueOf(trade_type));
             item.online_provider = (data.getString("online_provider"));
+            
             if (data.has("price_equation"))
                 item.price_equation = (data.getString("price_equation"));
 
             if (data.has("track_max_amount")) item.track_max_amount = (data.getBoolean("track_max_amount"));
             if (data.has("trusted_required")) item.trusted_required = (data.getBoolean("trusted_required"));
-            if (data.has("sms_verification_required")) item.track_max_amount = (data.getBoolean("sms_verification_required"));
+            if (data.has("sms_verification_required")) item.sms_verification_required = (data.getBoolean("sms_verification_required"));
 
             item.currency = (data.getString("currency"));
             if (data.has("account_info")) item.account_info = (data.getString("account_info"));

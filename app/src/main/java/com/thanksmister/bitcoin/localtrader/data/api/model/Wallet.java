@@ -56,7 +56,7 @@ public class Wallet
     public Bitmap qrImage;
     public List<Transaction> sent_transactions = Collections.emptyList();
     public List<Transaction> receiving_transactions = Collections.emptyList();
-    public DefaultExchange exchange = new DefaultExchange();
+    public Exchange exchange = new Exchange();
 
     public Total total = new Total();
     public Address address = new Address();

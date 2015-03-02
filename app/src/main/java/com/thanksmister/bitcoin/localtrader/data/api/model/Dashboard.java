@@ -27,7 +27,7 @@ public class Dashboard
     public List<Contact> contacts = Collections.emptyList();
     public List<Advertisement> advertisements = Collections.emptyList();
     //public Wallet wallet = new Wallet();
-    public DefaultExchange exchange;
+    public Exchange exchange;
     
     public List<Advertisement> getActiveAdvertisements()
     {

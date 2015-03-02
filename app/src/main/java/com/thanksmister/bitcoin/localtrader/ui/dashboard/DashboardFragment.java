@@ -96,7 +96,7 @@ public class DashboardFragment extends BaseFragment implements DashboardView, Sw
     @OnClick(R.id.emptyRetryButton)
     public void emptyButtonClicked()
     {
-        presenter.onResume();
+        onRefresh();
     }
 
     @OnClick(R.id.emptyTradesLayout)
@@ -128,7 +128,6 @@ public class DashboardFragment extends BaseFragment implements DashboardView, Sw
     {
         presenter.scanQrCode();
     }
-
 
     @Optional
     @OnClick(R.id.searchButton)
@@ -275,11 +274,16 @@ public class DashboardFragment extends BaseFragment implements DashboardView, Sw
         return getActivity();
     }
 
-
     @Override
     public void onRefresh()
     {
-        presenter.onResume();
+        presenter.onRefresh();
+    }
+
+    @Override
+    public boolean hasDataSet()
+    {
+        return (getContactAdapter().getCount() > 0);
     }
 
     @Override

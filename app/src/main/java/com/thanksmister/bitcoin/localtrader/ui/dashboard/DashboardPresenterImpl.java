@@ -2,7 +2,12 @@ package com.thanksmister.bitcoin.localtrader.ui.dashboard;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.widget.Toast;
 
 import com.squareup.otto.Bus;
@@ -15,6 +20,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Dashboard;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.data.database.ContactContract;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
@@ -44,10 +50,11 @@ public class DashboardPresenterImpl implements DashboardPresenter
     private DashboardView view;
     private Bus bus;
     private DataService service;
-    private Subscription subscription;
+    private Subscription subscriptionInfo;
+    private Subscription subscriptionCached;
     private Dashboard dashboard;
     private List<Method> methods;
- 
+
     public DashboardPresenterImpl(DashboardView view, DataService service, Bus bus) 
     {
         this.view = view;
@@ -61,14 +68,35 @@ public class DashboardPresenterImpl implements DashboardPresenter
     {
         bus.register(this);
 
-        getData();
+        Timber.d("Resume");
+
+        if (methods == null) {
+            getOnlineProviders();
+        } else {
+            getDashboardCached(methods);
+        }
+    }
+
+    @Override
+    public void onRefresh()
+    {
+        Timber.d("Manual Refresh");
+        
+        if (methods == null) {
+            getOnlineProviders();
+        } else {
+            getDashboard(methods, true);
+        }
     }
 
     @Override
     public void onDestroy()
     {
-        if(subscription != null)
-            subscription.unsubscribe();
+        if(subscriptionInfo != null)
+            subscriptionInfo.unsubscribe();
+
+        if(subscriptionCached != null)
+            subscriptionCached.unsubscribe();
  
         bus.unregister(this);
     }
@@ -95,33 +123,66 @@ public class DashboardPresenterImpl implements DashboardPresenter
         getView().getContext().startActivity(intent);
     }
 
-    private void getData()
+    private void getDashboardCached(List<Method> methods)
     {
-        subscription = service.getDashboardInfo(new Observer<Dashboard>() {
-            
+        Timber.d("getDashboardCached");
+        
+        Observable<Dashboard> observable = service.getDashboardCached();
+        subscriptionCached = observable.subscribe(new Observer<Dashboard>() {
             @Override
-            public void onCompleted()
+            public void onCompleted() {
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                
+                // should be no errors
+                
+                getView().hideProgress();
+                
+                getDashboard(methods, true);
+            }
+
+            @Override
+            public void onNext(Dashboard results)
             {
-                if(dashboard != null && methods != null) {
-                    getView().onRefreshStop();
-                    getView().hideProgress();
-                }
+                Timber.d("Dashboard cache returned");
+                
+                getView().hideProgress();
+                
+                dashboard = results;
+                
+                getView().setDashboard(dashboard, methods);
+                
+                getDashboard(methods, false);
+            }
+        });
+    }
+
+    private void getDashboard(List<Method> methods, boolean manualRefresh)
+    {
+        Timber.d("getDashboard refresh: " + manualRefresh);
+        
+        subscriptionInfo = service.getDashboardInfo(new Observer<Dashboard>() {
+            @Override
+            public void onCompleted() {
+                getView().onRefreshStop();
             }
 
             @Override
             public void onError(Throwable throwable)
             {
                 RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
-                
-                Timber.e("Error: " + retroError.getMessage());
-                Timber.e("Code: " + retroError.getCode());
-                
                 if (retroError.isAuthenticationError()) {
                     logOut();
                 } else if (retroError.isNetworkError()) {
-                    getView().onRetry(getContext().getString(R.string.error_no_internet));  
+                    getView().onRetry(getContext().getString(R.string.error_no_internet));
                 } else {
-                    getView().onError(retroError.getMessage());
+                    if (dashboard == null) {
+                        getView().onError(getContext().getString(R.string.error_service_error));
+                    } else {
+                        getView().onRetry(getContext().getString(R.string.error_service_error));
+                    }
                 }
 
                 getView().onRefreshStop();
@@ -130,42 +191,33 @@ public class DashboardPresenterImpl implements DashboardPresenter
             @Override
             public void onNext(Dashboard results)
             {
+                Timber.d("Dashboard data returned");
+                
                 dashboard = results;
-                
-                if (methods != null) {
-                    
-                    getView().setDashboard(dashboard, methods);
-                    
-                } else {
-                    getOnlineProviders(dashboard); 
-                }
-
-                
+                getView().setDashboard(dashboard, methods);
             }
-        });
+        }, manualRefresh);
     }
 
-    public void getOnlineProviders(final Dashboard dashboard)
+    private void getOnlineProviders()
     {
         Observable<List<Method>> observable = service.getOnlineProviders();
-        subscription = observable.subscribe(new Observer<List<Method>>() {
+        subscriptionInfo = observable.subscribe(new Observer<List<Method>>() {
             @Override
             public void onCompleted() {
-
-                getView().onRefreshStop();
+                //getView().onRefreshStop();
             }
 
             @Override
             public void onError(Throwable e) {
                 methods = new ArrayList<Method>();
-                getView().setDashboard(dashboard, methods);
-                getView().onRefreshStop();
+                getDashboard(methods, false);
             }
 
             @Override
             public void onNext(List<Method> results) {
                 methods = results;
-                getView().setDashboard(dashboard, methods);
+                getDashboard(methods, false);
             }
         });
     }
@@ -244,7 +296,7 @@ public class DashboardPresenterImpl implements DashboardPresenter
     Runnable doRunnable = new Runnable() {
         @Override
         public void run(){
-            getData();
+            //getData();
         }
     };
 }
