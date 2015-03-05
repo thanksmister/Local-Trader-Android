@@ -38,6 +38,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseBitfinexToExchange;
@@ -61,7 +62,9 @@ import com.thanksmister.bitcoin.localtrader.data.prefs.IntPreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.rx.EndObserver;
+import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
+import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
@@ -98,8 +101,7 @@ import timber.log.Timber;
 public class DataService
 {
     // TODO add "fields" to all API calls to reduce info
-    
-    public static final String PREFS_EXPIRE_TIME = "pref_exchange_expire";
+    public static final String PREFS_DASHBOARD_EXPIRE_TIME = "pref_dashboard_expire";
     public static final String PREFS_TOKENS_EXPIRE_TIME = "pref_tokens_expire";
     public static final String PREFS_USER = "pref_user";
     public static final String PREFS_LOGGED_IN = "pref_logged_in";
@@ -107,8 +109,9 @@ public class DataService
     public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
     public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
 
+    public static final int CHECK_DASHBOARD_DATA = 5 * 60 * 1000;// 5 minutes
     public static final int CHECK_EXCHANGE_DATA = 5 * 60 * 1000;// 5 minutes
-    public static final int CHECK_DATABASE_DATA = 60 * 1000;// 30 seconds
+    public static final int CHECK_DATABASE_DATA = 30 * 1000;// 30 seconds
     public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 mintues
 
     public static final String USD = "USD";
@@ -140,15 +143,14 @@ public class DataService
     
     PublishSubject<String> pinCodePublishSubject;
     PublishSubject<String> sendMoneyPublishSubject;
-   
-    private Dashboard dashboardInfo;
+
     private Wallet wallet;
-    private Wallet walletBalance;
     private List<Advertisement> advertisements;
     private List<Method> methods;
     private List<Method> paymentMethods;
     private HashMap<DashboardType, List<Contact>> contacts = new HashMap<DashboardType, List<Contact>>();
     private List<Currency> currencies;
+    private List<Transaction> transactions = new ArrayList<Transaction>();
     
     @Inject
     public DataService(BaseApplication application, DatabaseManager databaseManager, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitstampExchange bitstampExchange, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
@@ -265,6 +267,7 @@ public class DataService
                 Schedulers.newThread().schedulePeriodically(new Action1<Scheduler.Inner>() {
                     @Override
                     public void call(Scheduler.Inner inner) {
+                        
                         ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
                         ArrayList<Contact> contacts = databaseManager.getContacts(application);
                         Exchange exchange = databaseManager.getExchange(application);
@@ -286,74 +289,19 @@ public class DataService
         .subscribeOn(Schedulers.newThread())
         .observeOn(AndroidSchedulers.mainThread());
     }
-    
-    /*public Observable<Dashboard> getDashBoardObservable()
-    {
-        return Observable.create(new Observable.OnSubscribe<Dashboard>() {
-            @Override
-            public void call(Subscriber<? super Dashboard> subscriber) {
-                
-                Schedulers.newThread().schedulePeriodically(new Action1<Scheduler.Inner>() {
-                    @Override
-                    public void call(Scheduler.Inner inner)
-                    {
-                        ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
-                        ArrayList<Contact> contacts = databaseManager.getContacts(application);
-                        Exchange exchange = databaseManager.getExchange(application);
-
-                        final Dashboard dashboard = new Dashboard();
-                        dashboard.advertisements = advertisements;
-                        dashboard.exchange = exchange;
-                        dashboard.contacts = contacts;
-                        
-                        if(advertisements != null && exchange != null) {
-                            //subscriber.onNext(dashboard); // returned cached data
-                        }
-                        
-                        // get advertisements updates
-                        Observable<List<Advertisement>> advertisementsObservable = getAdvertisementsObservable();
-                        advertisementsObservable.doOnNext(new Action1<List<Advertisement>>() {
-                            @Override
-                            public void call(List<Advertisement> advertisements) {
-
-                                Timber.d("Advertisement Returned");
-                                
-                                dashboard.advertisements = advertisements;
-                                //subscriber.onNext(dashboard);
-                                Observable<Exchange> exchangeObservable = getBitstamp();
-                                exchangeObservable
-                                .doOnNext(new Action1<Exchange>() {
-                                    @Override
-                                    public void call(Exchange exchange) {
-                                        
-                                        Timber.d("Exchange Returned");
-                                        dashboard.exchange = exchange;
-                                        subscriber.onNext(dashboard);
-                                    }
-                                })
-                                .doOnError(new Action1<Throwable>() {
-                                    @Override
-                                    public void call(Throwable throwable) {
-                                        Timber.e(throwable.getMessage());
-                                        subscriber.onNext(dashboard);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                }, 0, CHECK_DATABASE_DATA, TimeUnit.MILLISECONDS);
-            }
-        }) 
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread()); 
-    }*/
 
     public Subscription getDashboardInfo(Observer<Dashboard> observer, final boolean manualRefresh)
     {
+        Timber.d("getDashboardInfo attempt");
+
         if(dashboardPublishSubject != null) {
             return dashboardPublishSubject.subscribe(observer); // join it
         }
-
+        
+        if(!needToRefreshDashboard() && !manualRefresh) {
+            return Subscriptions.empty();
+        }
+        
         dashboardPublishSubject = PublishSubject.create();
         dashboardPublishSubject.subscribe(new Observer<Dashboard>(){
             @Override
@@ -367,18 +315,27 @@ public class DataService
             }
 
             @Override
-            public void onNext(Dashboard dashboard) {  
-                /*databaseManager.updateContacts(dashboard.contacts, application);
-                databaseManager.updateAdvertisements(dashboard.advertisements, application);       
+            public void onNext(Dashboard dashboard) {
+
+                Timber.d("updating dashboard info in database");
+                
+                databaseManager.updateContacts(dashboard.contacts, application);
+                
+                databaseManager.updateAdvertisements(dashboard.advertisements, application); 
+                setAdvertisementsExpireTime();
+                
                 databaseManager.updateExchange(dashboard.exchange, application);
+                setExchangeExpireTime();
                 
                 for (Contact contact : dashboard.contacts){
                     databaseManager.updateMessages(contact.contact_id, contact.messages, application);
-                }*/
+                }
+                
+                setDashboardExpireTime();
             }
         });
 
-        Subscription subscription = dashboardPublishSubject.subscribe(observer);
+        Subscription subscription = dashboardPublishSubject.subscribe(observer);         
         getDashboardObservable(manualRefresh)
                 .onErrorResumeNext(refreshTokenAndRetry(getDashboardObservable(manualRefresh)))
                 .subscribeOn(Schedulers.newThread())
@@ -431,10 +388,18 @@ public class DataService
 
     public Subscription getWallet(Observer<Wallet> observer)
     {
+        final Wallet wallet = databaseManager.getWallet(application);
+        
         if(wallet != null) {
+            
+            if(transactions != null && !transactions.isEmpty()){
+                wallet.sent_transactions = transactions;
+            }
+            
+            wallet.exchange = databaseManager.getExchange(application);
             observer.onNext(wallet); // return account info then refresh
         }
-        
+
         if(walletPublishSubject != null) {
             return walletPublishSubject.subscribe(observer); // join it
         }
@@ -449,12 +414,29 @@ public class DataService
 
             @Override
             public void onError(Throwable e){
-                Timber.e("Accounts Dashboard error: " + e);
+                walletPublishSubject = null;
             }
 
             @Override
-            public void onNext(Wallet results) {
-                wallet = results; // cache it for a bit
+            public void onNext(Wallet wallet) {
+
+                final Wallet currentWallet = databaseManager.getWallet(application);
+                if(currentWallet != null) {
+                    double oldBalance = Doubles.convertToDouble(currentWallet.total.balance);
+                    double newBalance = Doubles.convertToDouble(wallet.total.balance);
+                    if(wallet.address.address.equals(currentWallet.address.address) || oldBalance < newBalance){
+                        databaseManager.updateWallet(currentWallet.id, wallet, application.getApplicationContext());
+                    } 
+                } else {
+                    databaseManager.insertWallet(wallet, application.getApplicationContext());
+                }
+
+                if(wallet.getTransactions().size() > 0) {
+                    transactions = wallet.getTransactions();
+                }
+                
+                databaseManager.updateExchange(wallet.exchange, application);
+                setExchangeExpireTime(); 
             }
         });
 
@@ -470,9 +452,9 @@ public class DataService
 
     public Subscription getWalletBalance(final Observer<Wallet> observer)
     {
-        if(walletBalance != null) {
-            observer.onNext(walletBalance); // return walletBalance right away then refresh
-            // TODO lets set some timers on updates
+        final Wallet wallet = databaseManager.getWallet(application);
+        if(wallet != null) {
+            observer.onNext(wallet); // return walletBalance right away then refresh
         }
         
         if(walletBalancePublishSubject != null) {
@@ -487,8 +469,21 @@ public class DataService
             }
 
             @Override
-            public void onNext(Wallet data) {
-                walletBalance = data; // store walletBalance
+            public void onNext(Wallet wallet) {
+
+                final Wallet currentWallet = databaseManager.getWallet(application);
+                if(currentWallet != null) {
+                    double oldBalance = Doubles.convertToDouble(currentWallet.total.balance);
+                    double newBalance = Doubles.convertToDouble(wallet.total.balance);
+                    if(wallet.address.address.equals(currentWallet.address.address) || oldBalance < newBalance){
+                        databaseManager.updateWallet(currentWallet.id, wallet, application.getApplicationContext());
+                    }
+                } else {
+                    databaseManager.insertWallet(wallet, application.getApplicationContext());
+                }
+
+                databaseManager.updateExchange(wallet.exchange, application);
+                setExchangeExpireTime();
             }
         });
 
@@ -806,7 +801,7 @@ public class DataService
                 String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
                 String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
-                String.valueOf(advertisement.trusted_required));
+                String.valueOf(advertisement.trusted_required), advertisement.msg);
     }
     
     public Subscription getAdvertisement(Observer<Advertisement> observer, final String adId)
@@ -954,7 +949,8 @@ public class DataService
         return localBitcoins.updateAdvertisement(advertisement.ad_id, access_token, String.valueOf(advertisement.visible), advertisement.min_amount,
                 advertisement.max_amount, advertisement.price_equation, String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
-                advertisement.sms_verification_required, advertisement.track_max_amount, advertisement.trusted_required);
+                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.trusted_required), 
+                advertisement.msg);
 
     }
 
@@ -1058,6 +1054,7 @@ public class DataService
         return methods;
     }
 
+    // TODO save methods to database so we don't have to retreive them but once a week/month
     public Observable<List<Method>> getOnlineProviders()
     {
         if(Constants.USE_MOCK_DATA) {
@@ -1126,29 +1123,6 @@ public class DataService
                 });
     }
 
-    /*private Observable<Dashboard> getWalletBalance(final Bitstamp bitstamp)
-    {
-        if(Constants.USE_MOCK_DATA) return Observable.just(Parser.parseWalletBalance(MockData.WALLET_BALANCE))
-                .flatMap(this::getWalletBitmap)
-                .map(walletBalance -> {
-                    walletBalance.bitstamp = bitstamp;
-                    Dashboard dashboard = new Dashboard();
-                    dashboard.walletBalance = walletBalance;
-                    return dashboard;
-                });
-
-        String access_token = getAccessToken();
-        return localBitcoins.getWalletBalance(access_token)
-                .map(new ResponseToWalletBalance())
-                .flatMap(this::getWalletBitmap)
-                .map(walletBalance -> {
-                    walletBalance.bitstamp = bitstamp;
-                    Dashboard dashboard = new Dashboard();
-                    dashboard.walletBalance = walletBalance;
-                    return dashboard;
-                });
-    }*/
-
     private Observable<Wallet> getWalletBalanceObservable()
     {
         if(Constants.USE_MOCK_DATA) {
@@ -1160,8 +1134,7 @@ public class DataService
         return localBitcoins.getWalletBalance(access_token)
                 .map(new ResponseToWalletBalance())
                 .flatMap(this::getWalletBitmap)
-                .flatMap(new Func1<Wallet, Observable<? extends Wallet>>()
-                {
+                .flatMap(new Func1<Wallet, Observable<? extends Wallet>>() {
                     @Override
                     public Observable<? extends Wallet> call(Wallet wallet)
                     {
@@ -1285,15 +1258,17 @@ public class DataService
 
     private Observable<Dashboard> getDashboardObservable(boolean manualRefresh)
     {
+        Timber.d("getDashboardObservable");
+        
         return getBitstamp()
                 .flatMap(new Func1<Exchange, Observable<Dashboard>>() {
                     @Override
                     public Observable<Dashboard> call(Exchange exchange) {
                         
-                        if(manualRefresh) {
+                        if(!manualRefresh) {
                             return getDashboardActiveContactsObservable(exchange);
                         } else {
-                            Dashboard dashboard = new Dashboard();
+                           Dashboard dashboard = new Dashboard();
                             dashboard.exchange = exchange;
                             dashboard.contacts = databaseManager.getContacts(application);
                             return Observable.just(dashboard);
@@ -1304,23 +1279,27 @@ public class DataService
                     @Override
                     public Observable<Dashboard> call(Dashboard dashboard) {
                         
-                        if(dashboard.contacts.isEmpty()) {
+                        if (dashboard.contacts.isEmpty()) {
                             return Observable.just(dashboard);
                         }
-
-                        if(manualRefresh) {
-                            return Observable.just(getDashboardMessageObservable(dashboard));
+                        
+                        if(!manualRefresh) {
+                            return Observable.just(getDashboardMessageObservable(dashboard)); 
                         } else {
                             for (Contact contact : dashboard.contacts) {
                                 contact.messages = databaseManager.getMessages(contact.contact_id, application);
                             }
+                           
                             return Observable.just(dashboard);
-                        } 
+                        }
+
+                        
                     }
                 })
                 .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {
                     @Override
-                    public Observable<Dashboard> call(Dashboard dashboard) {
+                    public Observable<Dashboard> call(Dashboard dashboard)
+                    {
                         return getAdvertisementsObservable(dashboard);
                     }
                 })
@@ -1350,13 +1329,7 @@ public class DataService
                    {
                        return localBitcoins.contactMessages(contact.contact_id, access_token)
                                .map(new ResponseToMessages())
-                               .doOnNext(new Action1<List<Message>>(){
-                                   @Override
-                                   public void call(List<Message> messages) {
-                                       databaseManager.updateMessages(contact.contact_id, messages, application);
-                                   }
-                               })
-                               .map(new Func1<List<Message>, Dashboard>() {
+                               .map(new Func1<List<Message>, Dashboard>(){
                                    @Override
                                    public Dashboard call(List<Message> messages) {
                                        Timber.d("Messages: " + messages.size());
@@ -1420,9 +1393,12 @@ public class DataService
                                     dashboard.contacts = contacts;
                                     return dashboard;
                                 })
-                                .doOnNext(new Action1<Dashboard>(){
+                                .doOnNext(new Action1<Dashboard>()
+                                {
                                     @Override
-                                    public void call(Dashboard dashboard) {
+                                    public void call(Dashboard dashboard)
+                                    {
+                                        Timber.d("Update contacts in database");
                                         databaseManager.updateContacts(dashboard.contacts, application);
                                     }
                                 });
@@ -1449,12 +1425,7 @@ public class DataService
     }
 
     public Observable<Dashboard> getAdvertisementsObservable(final Dashboard dashboard)
-    {
-        if(!needToRefreshAdvertisements()) {
-            dashboard.advertisements = databaseManager.getAdvertisements(application);
-            return Observable.just(dashboard);
-        }
-        
+    {   
         if(Constants.USE_MOCK_DATA) {
             return Observable.just(Parser.parseAdvertisements(MockData.ADVERTISEMENT_LIST_SUCCESS))
                     .map(ads -> {
@@ -1466,49 +1437,32 @@ public class DataService
         String access_token = getAccessToken();
         return localBitcoins.getAds(access_token)
                 .map(new ResponseToAds())
-                .map(new Func1<List<Advertisement>, Dashboard>()
-                {
+                .map(new Func1<List<Advertisement>, Dashboard>(){
                     @Override
                     public Dashboard call(List<Advertisement> advertisements)
                     {
                         dashboard.advertisements = advertisements;
                         return dashboard;
                     }
-                })
-                .doOnNext(new Action1<Dashboard>()
-                {
-                    @Override
-                    public void call(Dashboard dashboard)
-                    {
-                        Timber.d("update advertisement data");
-                        databaseManager.updateAdvertisements(dashboard.advertisements, application);
-                        setAdvertisementsExpireTime();
-                    }
                 });
     }
 
     private Observable<Exchange> getBitstamp()
     {
-        if(!needToRefreshExchanges()){
-            return Observable.just(databaseManager.getExchange(application));
-        }
-        
         return bitstampExchange.ticker()
                .map(new ResponseBitstampToExchange())
-               .doOnNext(new Action1<Exchange>()
-               {
-                   @Override
-                   public void call(Exchange exchange)
-                   {
-                       databaseManager.updateExchange(exchange, application);
-                       setExchangeExpireTime();
-                   }
-               })
                .onErrorResumeNext(getBitfinex());
     }
 
     private Observable<Wallet> getBitstamp(final Wallet wallet)
     {
+        if(!needToRefreshExchanges()){
+            synchronized (this){
+                wallet.exchange = databaseManager.getExchange(application);
+                return Observable.just(wallet);
+            }
+        }
+        
         return bitstampExchange.ticker()
                .map(new ResponseBitstampToExchange())
                .onErrorResumeNext(getBitfinex())
@@ -1525,17 +1479,15 @@ public class DataService
 
     private Observable<Exchange> getBitfinex()
     {
+        if(!needToRefreshExchanges()){
+            synchronized (this){
+                Exchange exchange = databaseManager.getExchange(application);
+                return Observable.just(exchange);
+            }
+        }
+        
         return bitfinexExchange.ticker()
                 .map(new ResponseBitfinexToExchange())
-                .doOnNext(new Action1<Exchange>()
-                {
-                    @Override
-                    public void call(Exchange exchange)
-                    {
-                        databaseManager.updateExchange(exchange, application);
-                        setExchangeExpireTime();
-                    }
-                })
                 .onErrorReturn(new Func1<Throwable, Exchange>() {
                     @Override
                     public Exchange call(Throwable throwable) {
@@ -1543,21 +1495,6 @@ public class DataService
                     }
                 });
     }
-    
-    // ---- Schedulers ----- 
-
-    public boolean dataRefreshable()
-    {
-        return (needToRefreshExchanges());
-    }
-
-    public void setSelectedExchange(String name)
-    {
-        StringPreference preference = new StringPreference(sharedPreferences, PREFS_SELECTED_EXCHANGE, "Bitstamp");
-        preference.set(name);
-    }
-
-   
 
     // ---- AUTHORIZATION ------
 
@@ -1764,7 +1701,7 @@ public class DataService
     private boolean needToRefreshExchanges()
     {
         synchronized (this) {
-            long expiresAt = sharedPreferences.getLong(PREFS_EXPIRE_TIME, -1);
+            long expiresAt = sharedPreferences.getLong(PREFS_EXCHANGE_EXPIRE_TIME, -1);
             return System.currentTimeMillis() >= expiresAt;
         }
     }
@@ -1777,12 +1714,30 @@ public class DataService
         }
     }
 
+    private boolean needToRefreshDashboard()
+    {
+        synchronized (this) {
+            long expiresAt = sharedPreferences.getLong(PREFS_DASHBOARD_EXPIRE_TIME, -1);
+            return System.currentTimeMillis() >= expiresAt;
+        }
+    }
+
+    private void setDashboardExpireTime()
+    {
+        synchronized (this) {
+            long expire = System.currentTimeMillis() + CHECK_DASHBOARD_DATA; // 1 hours
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong(PREFS_DASHBOARD_EXPIRE_TIME, expire);
+            editor.apply();
+        }
+    }
+
     private void setExchangeExpireTime()
     {
         synchronized (this) {
             long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA; // 1 hours
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putLong(PREFS_EXPIRE_TIME, expire);
+            editor.putLong(PREFS_EXCHANGE_EXPIRE_TIME, expire);
             editor.apply();
         }
     }

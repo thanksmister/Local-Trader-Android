@@ -56,6 +56,7 @@ public class Wallet
     public Bitmap qrImage;
     public List<Transaction> sent_transactions = Collections.emptyList();
     public List<Transaction> receiving_transactions = Collections.emptyList();
+    public List<Transaction> transactions = Collections.emptyList();
     public Exchange exchange = new Exchange();
 
     public Total total = new Total();
@@ -71,6 +72,11 @@ public class Wallet
         public String received;
     }
     
+    public void setTransactions(List<Transaction> transactions)
+    {
+        this.transactions = transactions;
+    }
+    
     public List<Transaction> getTransactions()
     {
         ArrayList<Transaction> transactions = new ArrayList<>();
@@ -81,7 +87,7 @@ public class Wallet
         if(!receiving_transactions.isEmpty()) {
             transactions.addAll(receiving_transactions);
         }
-
+        
         Collections.sort(transactions, sortByDate);
         
         return  transactions;

@@ -356,7 +356,32 @@
 
             </LinearLayout>
 
-           
+
+            <View
+                    style="@style/DividerHorizontal"
+                    android:layout_marginTop="@dimen/activity_padding"
+                    android:layout_marginBottom="@dimen/activity_padding"/>
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Message"/>
+
+            <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/view_padding_small"/>
+
+
+                <EditText
+                        android:id="@+id/messageText"
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:theme="@style/CustomAccent"
+                        android:minLines="3"
+                        android:textIsSelectable="true"/>
 
 
             <View

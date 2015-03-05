@@ -130,17 +130,17 @@ public class DashboardPresenterImpl implements DashboardPresenter
         Observable<Dashboard> observable = service.getDashboardCached();
         subscriptionCached = observable.subscribe(new Observer<Dashboard>() {
             @Override
-            public void onCompleted() {
+            public void onCompleted() {    
             }
 
             @Override
             public void onError(Throwable throwable) {
                 
-                // should be no errors
+                Timber.e("Dashboard Cached Error");
                 
                 getView().hideProgress();
-                
-                getDashboard(methods, true);
+
+                getDashboard(methods, false);
             }
 
             @Override
@@ -166,26 +166,31 @@ public class DashboardPresenterImpl implements DashboardPresenter
         subscriptionInfo = service.getDashboardInfo(new Observer<Dashboard>() {
             @Override
             public void onCompleted() {
+                getView().hideProgress();
                 getView().onRefreshStop();
             }
 
             @Override
             public void onError(Throwable throwable)
             {
+                getView().hideProgress();
+                getView().onRefreshStop();
+                
                 RetroError retroError = DataServiceUtils.convertRetroError(throwable, getContext());
+
+                Timber.d("getDashboard error: " + retroError.getMessage());
+                
                 if (retroError.isAuthenticationError()) {
                     logOut();
                 } else if (retroError.isNetworkError()) {
                     getView().onRetry(getContext().getString(R.string.error_no_internet));
                 } else {
                     if (dashboard == null) {
-                        getView().onError(getContext().getString(R.string.error_service_error));
+                        getView().onError(retroError.getMessage());
                     } else {
-                        getView().onRetry(getContext().getString(R.string.error_service_error));
+                        getView().onRetry(retroError.getMessage());
                     }
                 }
-
-                getView().onRefreshStop();
             }
 
             @Override

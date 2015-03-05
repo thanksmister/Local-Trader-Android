@@ -21,6 +21,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Bitstamp;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 
 import rx.functions.Func1;
+import timber.log.Timber;
 
 public class ResponseBitstampToExchange implements Func1<Bitstamp, Exchange>
 {
@@ -28,15 +29,23 @@ public class ResponseBitstampToExchange implements Func1<Bitstamp, Exchange>
     public Exchange call(Bitstamp bitstamp)
     {
         Exchange exchange = new Exchange();
-        exchange.name = "Bitstamp";
-        exchange.ask = bitstamp.ask;
-        exchange.bid = bitstamp.bid;
-        exchange.high = bitstamp.high;
-        exchange.low = bitstamp.low;
-        exchange.volume = bitstamp.volume;
-        exchange.last = bitstamp.last;
-        exchange.timestamp = bitstamp.timestamp;
-                
+        
+        try {
+            exchange.name = "Bitstamp";
+            exchange.ask = bitstamp.ask;
+            exchange.bid = bitstamp.bid;
+            exchange.high = bitstamp.high;
+            exchange.low = bitstamp.low;
+            exchange.volume = bitstamp.volume;
+            exchange.last = bitstamp.last;
+            exchange.timestamp = bitstamp.timestamp;
+
+        } catch (NullPointerException e) {
+            Timber.d("ResponseBitstampToExchange e: " + e.getMessage()); 
+        }
+        
+        Timber.d("ResponseBitstampToExchange");
+        
         return exchange;
     }
 }

@@ -81,7 +81,7 @@ public class EditActivity extends BaseActivity implements EditView
     CheckBox activeCheckBox;
 
     @InjectView(R.id.currentLocation)
-    TextView currentLocation;
+    EditText currentLocation;
 
     @InjectView(R.id.mapLayout)
     View mapLayout;
@@ -93,19 +93,19 @@ public class EditActivity extends BaseActivity implements EditView
     AutoCompleteTextView editLocation;
 
     @InjectView(R.id.editPriceEquation)
-    TextView editPriceEquation;
+    EditText editPriceEquation;
 
     @InjectView(R.id.editMinimumAmount)
-    TextView editMinimumAmount;
+    EditText editMinimumAmount;
 
     @InjectView(R.id.editMaximumAmount)
-    TextView editMaximumAmount;
+    EditText editMaximumAmount;
 
     @InjectView(R.id.editPaymentDetails)
-    TextView editPaymentDetails;
+    EditText editPaymentDetails;
 
     @InjectView(R.id.editBankNameText)
-    TextView editBankNameText;
+    EditText editBankNameText;
 
     @InjectView(R.id.paymentMethodLayout)
     View paymentMethodLayout;
@@ -114,10 +114,10 @@ public class EditActivity extends BaseActivity implements EditView
     View editPaymentDetailsLayout;
 
     @InjectView(R.id.editMinimumAmountCurrency)
-    TextView editMinimumAmountCurrency;
+    EditText editMinimumAmountCurrency;
 
     @InjectView(R.id.editMaximumAmountCurrency)
-    TextView editMaximumAmountCurrency;
+    EditText editMaximumAmountCurrency;
 
     @InjectView(R.id.bankNameLayout)
     View bankNameLayout;
@@ -136,6 +136,9 @@ public class EditActivity extends BaseActivity implements EditView
 
     @InjectView(R.id.marginText)
     EditText marginText;
+
+    @InjectView(R.id.messageText)
+    EditText messageText;
 
     @InjectView(R.id.paymentMethodSpinner)
     Spinner paymentMethodSpinner;
@@ -398,7 +401,7 @@ public class EditActivity extends BaseActivity implements EditView
         trustedCheckBox.setChecked(advertisement.trusted_required);
         activeCheckBox.setChecked(advertisement.visible);
         
-        
+        messageText.setText(advertisement.msg);
         editBankNameText.setText(advertisement.bank_name);
         editMinimumAmount.setText(advertisement.min_amount);
         editMaximumAmount.setText(advertisement.max_amount);
@@ -465,6 +468,7 @@ public class EditActivity extends BaseActivity implements EditView
         String max = editMaximumAmount.getText().toString();
         String equation = editPriceEquation.getText().toString();
         String accountInfo = editPaymentDetails.getText().toString();
+        String msg = messageText.getText().toString();
 
         if (TextUtils.isEmpty(equation)) {
             Toast.makeText(getContext(), "Price equation can't be blank.", Toast.LENGTH_SHORT).show();
@@ -489,6 +493,7 @@ public class EditActivity extends BaseActivity implements EditView
         advertisement.min_amount = min;
         advertisement.max_amount = max;
         advertisement.bank_name = bankName;
+        advertisement.msg = msg;
 
         advertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
         advertisement.track_max_amount = liquidityCheckBox.isChecked();

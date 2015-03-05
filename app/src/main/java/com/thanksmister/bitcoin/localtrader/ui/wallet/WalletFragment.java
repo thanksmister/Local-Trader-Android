@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.AutoResizeTextView;
@@ -270,9 +271,13 @@ public class WalletFragment extends BaseFragment implements WalletView, SwipeRef
         qrImage.setImageBitmap(wallet.qrImage);
         bitcoinBalance.setText(Conversions.formatBitcoinAmount(wallet.total.balance) + " " + getString(R.string.btc));
 
-        bitcoinValue.setText("≈ $" + wallet.getBitcoinValue() + " " + getString(R.string.usd) + " (" + wallet.exchange.name + ")");
+        bitcoinValue.setText("≈ $" + wallet.getBitcoinValue() + " " + getString(R.string.usd) + " (" + wallet.exchange.name + ")");;
+    }
 
-        getAdapter().replaceWith(wallet.getTransactions());
+    @Override
+    public void setTransactions(List<Transaction> transactions)
+    {
+        getAdapter().replaceWith(transactions);
     }
 
     private void setAdapter(TransactionsAdapter adapter)

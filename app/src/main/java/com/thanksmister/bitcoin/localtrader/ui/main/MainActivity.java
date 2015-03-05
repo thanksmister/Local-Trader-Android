@@ -128,10 +128,10 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
             // Set up the drawer.
             navigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
             navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
-            SyncUtils.CreateSyncAccount(getApplicationContext());
-            SyncUtils.TriggerRefresh(getApplicationContext()); 
+           // SyncUtils.CreateSyncAccount(getApplicationContext());
+           // SyncUtils.TriggerRefresh(getApplicationContext()); 
         } else {
-            //SyncUtils.ClearSyncAccount(getApplicationContext());
+            SyncUtils.ClearSyncAccount(getApplicationContext());
         }
     }
 

@@ -16,9 +16,9 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
-import android.app.Application;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
@@ -28,8 +28,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.RemoteException;
 
+import com.google.zxing.WriterException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
@@ -39,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.SessionContract;
+import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -58,6 +61,7 @@ public class DatabaseManager
     public static String ADDITIONS = "additions";
     public static String DELETIONS = "deletions";
 
+    private Context context;
 
     public static DatabaseManager getInstance()
     {
@@ -1057,23 +1061,38 @@ public class DatabaseManager
         contentValues.put(WalletContract.Wallet.COLUMN_WALLET_SENDABLE, wallet.total.sendable);
         contentValues.put(WalletContract.Wallet.COLUMN_WALLET_MESSAGE, wallet.message);
 
+        boolean updateQrCode = true;
         if(wallet.qrImage != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
             contentValues.put(WalletContract.Wallet.COLUMN_WALLET_QRCODE, baos.toByteArray());
-        }
+            updateQrCode = false;
+        } 
 
         int noUpdate = resolver.update(WalletContract.Wallet.CONTENT_URI,
                 contentValues,
                 WalletContract.Wallet._ID + " = ? ",
                 new String[]{_id});
+        
+        if(noUpdate > 0 && updateQrCode) {
+            updateWalletQrCodeTask(context.getApplicationContext());
+        }
 
         return noUpdate > 0;
     }
-
-    public boolean updateWalletQrCode(String _id, Bitmap qrcode, Context context)
+    
+    private void updateWalletQrCodeTask(Context context)
     {
-        Timber.d("Insert Wallet");
+        Wallet wallet = getWallet(context);
+        if(wallet !=  null) {
+            QrCodeTask qrCodeTask = new QrCodeTask();
+            qrCodeTask.execute(wallet, context);
+        }
+    }
+
+    private boolean updateWalletQrCode(String _id, Bitmap qrcode, Context context)
+    {
+        Timber.d("Update QrCode Wallet");
         
         final ContentResolver resolver = context.getContentResolver();
         ContentValues contentValues = new ContentValues();
@@ -1083,6 +1102,7 @@ public class DatabaseManager
         byte[] byteArray = baos.toByteArray();
 
         if(byteArray != null) { // FIXME the bytes can't be null but sometimes it appears as though they are
+            
             contentValues.put(WalletContract.Wallet.COLUMN_WALLET_QRCODE, byteArray);
             int noUpdate = resolver.update(WalletContract.Wallet.CONTENT_URI,
                     contentValues,
@@ -1091,6 +1111,7 @@ public class DatabaseManager
 
             return noUpdate > 0;
         }
+        
         return false;
     }
 
@@ -1105,15 +1126,21 @@ public class DatabaseManager
         contentValues.put(WalletContract.Wallet.COLUMN_WALLET_BALANCE, wallet.total.balance);
         contentValues.put(WalletContract.Wallet.COLUMN_WALLET_SENDABLE, wallet.total.sendable);
 
-        if(wallet.qrImage != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-            contentValues.put(WalletContract.Wallet.COLUMN_WALLET_QRCODE, baos.toByteArray());
+        /*ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        contentValues.put(WalletContract.Wallet.COLUMN_WALLET_QRCODE, baos.toByteArray());*/
+        
+        //resolver.insert(WalletContract.Wallet.CONTENT_URI, contentValues);
+
+        Uri uri = resolver.insert(WalletContract.Wallet.CONTENT_URI, contentValues);
+        Timber.d("updated uri record number: " + ContentUris.parseId(uri));
+        long noUpdate = ContentUris.parseId(uri);
+
+        if(noUpdate > 0) {
+            updateWalletQrCodeTask(context);
         }
-        
-        resolver.insert(WalletContract.Wallet.CONTENT_URI, contentValues);
-        
-        return true;
+       
+        return (noUpdate > 0);
     }
 
     public Wallet cursorToWallet(Cursor cursor)
@@ -1136,6 +1163,8 @@ public class DatabaseManager
             Timber.e(e.getMessage());
         }
 
+        Timber.d("Return Wallet");
+        
         return item;
     }
 
@@ -1255,7 +1284,6 @@ public class DatabaseManager
                 null,
                 null,
                 null);
-
     }
 
     public Exchange cursorToExchange(Cursor cursor)
@@ -1279,5 +1307,37 @@ public class DatabaseManager
     {
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
         databaseHelper.removeAll();
+    }
+
+    private class QrCodeTask extends AsyncTask<Object, Void, Object[]>
+    {
+        private Context context;
+        
+        @Override
+        protected void onPreExecute()
+        {
+            super.onPreExecute();
+        }
+
+        protected Object[] doInBackground(Object... params)
+        {
+            Wallet wallet = (Wallet) params[0];
+            context = (Context) params[1];
+            Bitmap qrCode = null;
+
+            try {
+                wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address.address, context.getApplicationContext());
+            } catch (WriterException e) {
+                e.printStackTrace();
+            }
+            
+            return new Object[]{wallet};
+        }
+
+        protected void onPostExecute(Object[] result)
+        {
+            Wallet wallet = (Wallet) result[0];
+            updateWalletQrCode(wallet.id, wallet.qrImage, context);
+        }
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Dashboard;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 
 import java.util.ArrayList;
@@ -30,4 +31,6 @@ public interface WalletView
     public void setWallet(Wallet wallet);
 
     void onRefreshStop();
+
+    void setTransactions(List<Transaction> transactions);
 }

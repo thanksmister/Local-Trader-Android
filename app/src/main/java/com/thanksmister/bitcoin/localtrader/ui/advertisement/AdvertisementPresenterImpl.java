@@ -72,8 +72,8 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
     {
         subscription = service.getAdvertisement(new Observer<Advertisement>() {
             @Override
-            public void onCompleted() {
-                getView().hideProgress();
+            public void onCompleted() { 
+                //getView().hideProgress();
             }
 
             @Override
@@ -96,9 +96,8 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
                     getOnlineProviders(advertisement); // get methods
                 } else {
                     setAdvertisement(advertisement, null);
+                    getView().hideProgress();
                 }
-
-                getView().hideProgress();
             }
         }, adId);
     }

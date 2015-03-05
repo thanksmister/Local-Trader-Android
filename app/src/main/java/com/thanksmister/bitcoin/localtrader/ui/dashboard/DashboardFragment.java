@@ -96,6 +96,7 @@ public class DashboardFragment extends BaseFragment implements DashboardView, Sw
     @OnClick(R.id.emptyRetryButton)
     public void emptyButtonClicked()
     {
+        retry.setVisibility(View.GONE);
         onRefresh();
     }
 
@@ -295,20 +296,28 @@ public class DashboardFragment extends BaseFragment implements DashboardView, Sw
     @Override
     public void onRetry(String message)
     {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.GONE);
-        empty.setVisibility(View.GONE);
+        Timber.e("Retry error: " + message);
+        
         retry.setVisibility(View.VISIBLE);
         retryTextView.setText(message);
+        
+        progress.setVisibility(View.GONE);
+        empty.setVisibility(View.GONE);
     }
     
     @Override
     public void onError(String message)
     {
+        Timber.e("Empty error: " + message);
+        
         progress.setVisibility(View.GONE);
+        
         content.setVisibility(View.GONE);
+        
         retry.setVisibility(View.GONE);
+        
         empty.setVisibility(View.VISIBLE);
+        
         emptyTextView.setText(message);
     }
 
