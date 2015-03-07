@@ -189,7 +189,11 @@ public class ContactPresenterImpl implements ContactPresenter
         subscription = service.contactAction(new Observer<Object>() {
             @Override
             public void onCompleted() {
-                
+                ((BaseActivity) getContext()).hideProgressDialog();
+                if(action == ContactAction.RELEASE) {
+                    Toast.makeText(getContext(), getContext().getString(R.string.trade_released_toast_text), Toast.LENGTH_SHORT).show();
+                    //((BaseActivity) getView()).finish();
+                }
             }
 
             @Override
@@ -202,8 +206,10 @@ public class ContactPresenterImpl implements ContactPresenter
 
             @Override
             public void onNext(Object o) {
+                
                 getContact(contactId); // refresh contact
             }
+            
         }, contactId, pinCode, action);
     }
 

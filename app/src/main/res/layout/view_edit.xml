@@ -362,6 +362,14 @@
                     android:layout_marginTop="@dimen/activity_padding"
                     android:layout_marginBottom="@dimen/activity_padding"/>
 
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/activity_padding"
+                android:layout_marginRight="@dimen/activity_padding"
+                android:orientation="vertical">
+
             <TextView
                     style="@style/TextSmall"
                     android:layout_width="match_parent"
@@ -378,11 +386,11 @@
                         style="@style/TextMedium.SmallAction"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textMultiLine|textNoSuggestions"
                         android:theme="@style/CustomAccent"
-                        android:minLines="3"
-                        android:textIsSelectable="true"/>
+                        android:minLines="3"/>
 
+
+            </LinearLayout>
 
             <View
                     style="@style/DividerHorizontal"

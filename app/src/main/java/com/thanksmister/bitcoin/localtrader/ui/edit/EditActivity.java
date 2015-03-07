@@ -81,7 +81,7 @@ public class EditActivity extends BaseActivity implements EditView
     CheckBox activeCheckBox;
 
     @InjectView(R.id.currentLocation)
-    EditText currentLocation;
+    TextView currentLocation;
 
     @InjectView(R.id.mapLayout)
     View mapLayout;
@@ -114,10 +114,10 @@ public class EditActivity extends BaseActivity implements EditView
     View editPaymentDetailsLayout;
 
     @InjectView(R.id.editMinimumAmountCurrency)
-    EditText editMinimumAmountCurrency;
+    TextView editMinimumAmountCurrency;
 
     @InjectView(R.id.editMaximumAmountCurrency)
-    EditText editMaximumAmountCurrency;
+    TextView editMaximumAmountCurrency;
 
     @InjectView(R.id.bankNameLayout)
     View bankNameLayout;

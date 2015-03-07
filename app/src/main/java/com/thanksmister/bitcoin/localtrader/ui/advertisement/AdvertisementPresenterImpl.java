@@ -108,11 +108,12 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
         subscription = methods.subscribe(new Observer<List<Method>>() {
             @Override
             public void onCompleted() {
+                getView().hideProgress();
             }
 
             @Override
             public void onError(Throwable e) {
-                Timber.e("Error getting providers!");
+                getView().hideProgress();
                 setAdvertisement(advertisement, null);
             }
 
@@ -126,7 +127,7 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
 
     public void setAdvertisement(Advertisement advertisement, Method method)
     {
-        setAdvertisement(advertisement); // save data on model
+        dataModel.advertisement = advertisement;
         getView().setAdvertisement(advertisement, method);
     }
 
@@ -253,10 +254,7 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
         return dataModel.advertisement;
     }
 
-    private void setAdvertisement(Advertisement advertisement)
-    {
-        dataModel.advertisement = advertisement;
-    }
+ 
 
     private AdvertisementView getView()
     {

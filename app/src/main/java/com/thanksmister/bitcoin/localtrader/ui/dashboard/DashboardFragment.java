@@ -298,7 +298,7 @@ public class DashboardFragment extends BaseFragment implements DashboardView, Sw
     {
         Timber.e("Retry error: " + message);
         
-        retry.setVisibility(View.VISIBLE);
+        retry.setVisibility(View.GONE);
         retryTextView.setText(message);
         
         progress.setVisibility(View.GONE);

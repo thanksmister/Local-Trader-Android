@@ -90,6 +90,6 @@ public class MessagesContract extends BaseContract
         public static final int COLUMN_INDEX_SENDER_USERNAME = 7;
         public static final int COLUMN_INDEX_SENDER_TRADE_COUNT = 8;
         public static final int COLUMN_INDEX_SENDER_LAST_ONLINE = 9;
-        public static final int COLUMN_INDEX_IS_ADMIN = 11;
+        public static final int COLUMN_INDEX_IS_ADMIN = 10;
     }
 }

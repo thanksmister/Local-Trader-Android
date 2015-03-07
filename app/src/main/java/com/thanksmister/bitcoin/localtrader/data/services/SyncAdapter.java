@@ -276,9 +276,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 @Override
                 public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                 {
+                    Timber.d("Contacts: " + contacts);
+                    
                     if (contacts.isEmpty()) {
                         return Observable.just(contacts);
                     }
+                    
                     return getContactsMessageObservable(contacts);
                 }
             });
@@ -296,6 +299,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                 .map(new Func1<List<Message>, List<Contact>>() {
                                     @Override
                                     public List<Contact> call(List<Message> messages) {
+                                        Timber.d("Messages: " + messages.size());
                                         contact.messages = messages;
                                         return contacts;
                                     }
@@ -413,7 +417,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             getDeletedContactsInfo(deletedContacts); // 
         }
 
-        updateMessages(updatedContacts);
+        updateMessages(contacts);
     }
 
     private void updateMessages(final List<Contact> contacts)
@@ -436,6 +440,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
             @Override
             public void onNext(List<Message> messages) {
+          
                 if (messages.size() > 1) { // if just single arrived
                     NotificationUtils.createMessageNotification(getContext(), "New Messages", "You have new messages!", "You have " + messages.size() + " new trade messages.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
                 } else {
@@ -458,10 +463,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     private Observable<List<Message>> updateMessagesObservable(final List<Contact> contacts, final Context context)
     {
         final ArrayList<Message> messages = new ArrayList<Message>();
+        
         return Observable.just(Observable.from(contacts)
                 .flatMap(new Func1<Contact, Observable<List<Message>>>() {
                     @Override
                     public Observable<List<Message>> call(final Contact contact) {
+                        
+                        Timber.d("Update contact messages: " + contact.messages.size());
+                        
                         return Observable.just(databaseManager.updateMessages(contact.contact_id, contact.messages, context))
                                .flatMap(new Func1<ArrayList<Message>, Observable<List<Message>>>()
                                {

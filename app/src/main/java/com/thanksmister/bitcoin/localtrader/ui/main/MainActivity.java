@@ -128,8 +128,8 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
             // Set up the drawer.
             navigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
             navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
-           // SyncUtils.CreateSyncAccount(getApplicationContext());
-           // SyncUtils.TriggerRefresh(getApplicationContext()); 
+            SyncUtils.CreateSyncAccount(getApplicationContext());
+            SyncUtils.TriggerRefresh(getApplicationContext()); 
         } else {
             SyncUtils.ClearSyncAccount(getApplicationContext());
         }
@@ -331,13 +331,15 @@ public class MainActivity extends BaseActivity implements MainView, NavigationDr
         Bundle extras = intent.getExtras();
 
         int type = extras.getInt(EXTRA_TYPE, 0);
+        
         if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT) {
-            contactId = extras.getString(EXTRA_CONTACT);
-            assert  contactId != null;
             
-            Intent contactIntent = ContactActivity.createStartIntent(this, contactId);
-            startActivity(contactIntent);
-  
+            String contactId = extras.getString(EXTRA_CONTACT);
+            if(contactId != null) {
+                Intent contactIntent = ContactActivity.createStartIntent(this, contactId);
+                startActivity(contactIntent);
+            }
+            
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_BALANCE) {
             navigationDrawerFragment.selectItem(DRAWER_WALLET);
         }

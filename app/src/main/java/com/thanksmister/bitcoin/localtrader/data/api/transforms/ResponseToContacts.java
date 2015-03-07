@@ -52,8 +52,11 @@ public class ResponseToContacts implements Func1<Response, List<Contact>>
         }
 
         String result = sb.toString();
+        
         List<Contact> contacts = Parser.parseContacts(result);
+        
         Timber.d("Contacts: " + contacts.size());
+        
         return contacts;
     }
 }

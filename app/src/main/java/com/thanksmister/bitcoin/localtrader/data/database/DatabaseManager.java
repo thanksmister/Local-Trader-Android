@@ -144,12 +144,12 @@ public class DatabaseManager
         
         // Get list of all items
         Cursor c = getContactsCursor(context);
-
         while (c.moveToNext()) {
             Contact item = cursorToContact(c);
             items.add(item);
         }
 
+        c.close();
         return items;
     }
     
@@ -175,14 +175,16 @@ public class DatabaseManager
                 new String[]{contactId},
                 null);
 
+        Contact item = null;
         if(cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
-            Contact item = cursorToContact(cursor);
-            cursor.close();
-            return  item;
+            item = cursorToContact(cursor);
         }
 
-        return null;
+        if(cursor != null && !cursor.isClosed())
+            cursor.close();
+
+        return item;
     }
 
     public int deleteContactById(String contactId, Context context)
@@ -619,9 +621,11 @@ public class DatabaseManager
         ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
 
         ArrayList<Message> newMessages = new ArrayList<Message>();
+        
         HashMap<String, Message> entryMap = new HashMap<String, Message>();
-        for (Message item : messages) {
-            entryMap.put(item.created_at, item);
+        for (Message message : messages) {
+            message.contact_id = contactId;
+            entryMap.put(message.created_at, message);
         }
 
         Uri uri = MessagesContract.Message.CONTENT_URI; // Get all entries
@@ -634,15 +638,22 @@ public class DatabaseManager
         // Find stale data
         int id;
         String createdAt;
+        
         while (c.moveToNext()) {
+            
             id = c.getInt(MessagesContract.Message.COLUMN_INDEX_ID);
             createdAt = c.getString(MessagesContract.Message.COLUMN_INDEX_CREATED_AT);
             Message match = entryMap.get(createdAt);
+            
             if (match != null) {
                 // Entry exists. Remove from entry map to prevent insert later. Do not update message
+                Timber.d("Message exists: " + match.created_at);
                 entryMap.remove(createdAt);
+                // no update since messages would never be updated.
+                
             } else {
                 // Entry doesn't exist. Remove it from the database.
+                Timber.d("Message deleted: " + createdAt);
                 Uri deleteUri = MessagesContract.Message.CONTENT_URI.buildUpon().appendPath(Integer.toString(id)).build();
                 batch.add(ContentProviderOperation.newDelete(deleteUri).build());
             }
@@ -652,17 +663,18 @@ public class DatabaseManager
         // Add new items
         for (Message item : entryMap.values()) {
 
+            Timber.d("Message added: " + item.created_at);
+            
             batch.add(ContentProviderOperation.newInsert(MessagesContract.Message.CONTENT_URI)
-                    .withValue(MessagesContract.Message.COLUMN_NAME_CONTACT_ID, item.contact_id)
+                    .withValue(MessagesContract.Message.COLUMN_NAME_CONTACT_ID, contactId)
                     .withValue(MessagesContract.Message.COLUMN_NAME_MESSAGE, item.msg)
-                    .withValue(MessagesContract.Message.COLUMN_NAME_SEEN, item.seen ? 1 : 0)
+                    .withValue(MessagesContract.Message.COLUMN_NAME_SEEN, 0)
                     .withValue(MessagesContract.Message.COLUMN_NAME_CREATED_AT, item.created_at)
                     .withValue(MessagesContract.Message.COLUMN_NAME_SENDER_ID, item.sender.id)
                     .withValue(MessagesContract.Message.COLUMN_NAME_SENDER_NAME, item.sender.name)
                     .withValue(MessagesContract.Message.COLUMN_NAME_SENDER_USERNAME, item.sender.username)
                     .withValue(MessagesContract.Message.COLUMN_NAME_SENDER_TRADE_COUNT, item.sender.trade_count)
                     .withValue(MessagesContract.Message.COLUMN_NAME_SENDER_LAST_ONLINE, item.sender.last_seen_on)
-                    .withValue(MessagesContract.Message.COLUMN_NAME_SEEN, item.seen ? 1 : 0)
                     .withValue(MessagesContract.Message.COLUMN_NAME_IS_ADMIN, item.is_admin ? 1 : 0)
                     .build());
 
@@ -672,6 +684,7 @@ public class DatabaseManager
             
             // ignore messages by logged in user as being "new"
             if(!item.sender.username.toLowerCase().equals(stringPreference.get())) {
+                Timber.d("New message: " + item.created_at);
                 newMessages.add(item);
             }
         }
@@ -690,7 +703,7 @@ public class DatabaseManager
     {
         Message item = new Message();
 
-        //item.id(cursor.getString(MessagesContract.Message.COLUMN_INDEX_ID));
+        item.id = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_ID));
         item.contact_id = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_CONTACT_ID));
         item.msg = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_MESSAGE));
         item.created_at = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_CREATED_AT));
@@ -705,7 +718,7 @@ public class DatabaseManager
         return item;
     }
 
-    public boolean updateAdvertisement(Context context, Advertisement advertisement)
+    public boolean updateAdvertisement(Advertisement advertisement, Context context)
     {
         final ContentResolver contentResolver = context.getContentResolver();
 
@@ -1029,6 +1042,19 @@ public class DatabaseManager
                 null,
                 null);
 
+
+        Wallet item = null;
+        if(cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            item = cursorToWallet(cursor);
+        }
+
+        if(cursor != null && !cursor.isClosed())
+            cursor.close();
+
+        return item;
+        
+/*
         try {
             if (cursor.moveToFirst()) {
                 return cursorToWallet(cursor);
@@ -1039,8 +1065,7 @@ public class DatabaseManager
         } finally {
             cursor.close();
         }
-        
-        return null;
+        */
     }
 
     public boolean deleteWallet( Context context)
@@ -1261,19 +1286,32 @@ public class DatabaseManager
     public Exchange getExchange(Context context)
     {
         Cursor cursor = getCursorExchange(context);
+        Exchange exchange = new Exchange();
+        exchange.ask = "0.00";
+        exchange.bid = "0.00";
+        exchange.name = "Bitstamp";
 
-        try {
+        Exchange item = null;
+        if(cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            item = cursorToExchange(cursor);
+        }
+
+        if(cursor != null && !cursor.isClosed())
+            cursor.close();
+
+        return item;
+        
+        /*try {
             if (cursor.moveToFirst()) {
                 return cursorToExchange(cursor);
             }
-            return null;
+            return exchange;
         } catch (Exception e) {
             Timber.e(e.getMessage());
         } finally {
             cursor.close();
-        }
-
-        return null;
+        }*/
     }
     
     public Cursor getCursorExchange(Context context)

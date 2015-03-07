@@ -17,6 +17,7 @@ package com.thanksmister.bitcoin.localtrader.data.api.model;
 
 public class Message
 {
+    public String id;
     public String msg;
     public String contact_id;
     public String created_at;

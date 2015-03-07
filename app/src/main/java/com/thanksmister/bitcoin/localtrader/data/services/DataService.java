@@ -179,6 +179,10 @@ public class DataService
 
             @Override
             public void onNext(Contact contact) {
+                // messages seen 
+                for (Message message : contact.messages) {
+                    databaseManager.updateMessageSeen(message.id, true, application);
+                }
             }
         });
 
@@ -268,20 +272,27 @@ public class DataService
                     @Override
                     public void call(Scheduler.Inner inner) {
                         
-                        ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
-                        ArrayList<Contact> contacts = databaseManager.getContacts(application);
-                        Exchange exchange = databaseManager.getExchange(application);
+                        try {
+                            ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
+                            ArrayList<Contact> contacts = databaseManager.getContacts(application);
+                            for (Contact contact : contacts) {
+                                contact.messages = databaseManager.getMessages(contact.contact_id, application);
+                            }
 
-                        final Dashboard dashboard = new Dashboard();
-                        dashboard.advertisements = advertisements;
-                        dashboard.exchange = exchange;
-                        dashboard.contacts = contacts;
+                            Exchange exchange = databaseManager.getExchange(application);
+                            final Dashboard dashboard = new Dashboard();
+                            dashboard.advertisements = advertisements;
+                            dashboard.exchange = exchange;
+                            dashboard.contacts = contacts;
 
-                        if(contacts!= null && advertisements != null && exchange != null) {
-                            subscriber.onNext(dashboard); // returned cached data
-                        } else {
-                            subscriber.onError(new Throwable("Error loading cached dashboard data."));
+                            subscriber.onNext(dashboard); // returned cached data 
+                            
+                        } catch (Error error){
+                            
+                            Timber.e(error.getMessage());
+                            subscriber.onError(new Throwable("Error retrieving cached data."));
                         }
+                        
                     }
                 }, 0, CHECK_DATABASE_DATA, TimeUnit.MILLISECONDS);
             }
@@ -319,18 +330,21 @@ public class DataService
 
                 Timber.d("updating dashboard info in database");
                 
-                databaseManager.updateContacts(dashboard.contacts, application);
-                
+                if(dashboard.contacts != null) {
+                    Timber.d("updating dashboard info in database contacts: " + dashboard.contacts.size());
+                    for (Contact contact : dashboard.contacts){
+                        Timber.d("Contact " + contact.contact_id + "has " + contact.messages.size() + " messages");
+                        databaseManager.updateMessages(contact.contact_id, contact.messages, application);
+                    }
+                    databaseManager.updateContacts(dashboard.contacts, application);
+                }
+
                 databaseManager.updateAdvertisements(dashboard.advertisements, application); 
                 setAdvertisementsExpireTime();
                 
                 databaseManager.updateExchange(dashboard.exchange, application);
                 setExchangeExpireTime();
-                
-                for (Contact contact : dashboard.contacts){
-                    databaseManager.updateMessages(contact.contact_id, contact.messages, application);
-                }
-                
+
                 setDashboardExpireTime();
             }
         });
@@ -480,6 +494,10 @@ public class DataService
                     }
                 } else {
                     databaseManager.insertWallet(wallet, application.getApplicationContext());
+                }
+
+                if(wallet.getTransactions().size() > 0) {
+                    transactions = wallet.getTransactions();
                 }
 
                 databaseManager.updateExchange(wallet.exchange, application);
@@ -825,7 +843,9 @@ public class DataService
             }
 
             @Override
-            public void onNext(Advertisement o){
+            public void onNext(Advertisement advertisement) {
+                // update latest advertisement changes in database
+                databaseManager.updateAdvertisement(advertisement, application);
             }
         });
 
@@ -1266,13 +1286,19 @@ public class DataService
                     public Observable<Dashboard> call(Exchange exchange) {
                         
                         if(!manualRefresh) {
+                            
                             return getDashboardActiveContactsObservable(exchange);
+                            
                         } else {
-                           Dashboard dashboard = new Dashboard();
+                            
+                            Dashboard dashboard = new Dashboard();
                             dashboard.exchange = exchange;
                             dashboard.contacts = databaseManager.getContacts(application);
+                            
                             return Observable.just(dashboard);
                         }
+
+                        //return getDashboardActiveContactsObservable(exchange);
                     }
                 })
                 .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {
@@ -1284,7 +1310,9 @@ public class DataService
                         }
                         
                         if(!manualRefresh) {
+                            
                             return Observable.just(getDashboardMessageObservable(dashboard)); 
+                            
                         } else {
                             for (Contact contact : dashboard.contacts) {
                                 contact.messages = databaseManager.getMessages(contact.contact_id, application);
@@ -1293,7 +1321,7 @@ public class DataService
                             return Observable.just(dashboard);
                         }
 
-                        
+                        //return Observable.just(getDashboardMessageObservable(dashboard));
                     }
                 })
                 .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {

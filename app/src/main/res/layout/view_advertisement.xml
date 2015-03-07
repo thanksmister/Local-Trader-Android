@@ -58,7 +58,7 @@
                 layout="@layout/view_empty"
                 tools:visibility="visible"
                 android:visibility="gone"
-                android:layout_gravity="bottom"/>
+                android:layout_gravity="center"/>
 
         <ScrollView
                 android:id="@+id/advertisementMainView"
@@ -66,7 +66,7 @@
                 android:layout_height="match_parent"
                 android:scrollbars="none"
                 android:fillViewport="true"
-                tools:visibility="visible"
+                tools:visibility="invisible"
                 android:visibility="invisible">
 
             <LinearLayout

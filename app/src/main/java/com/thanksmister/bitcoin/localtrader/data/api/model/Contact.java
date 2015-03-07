@@ -96,4 +96,15 @@ public class Contact
             public String name;
         }
     }
+    
+    public boolean hasUnseenMessages()
+    {
+        for (Message message : messages) {
+            if (!message.seen) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

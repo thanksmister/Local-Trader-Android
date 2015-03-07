@@ -183,6 +183,67 @@ public class Parser
         return null;
     }
 
+    /*
+    {
+   "data":{
+      "contact_list":[
+         {
+            "data":{
+               "exchange_rate_updated_at":"2015-03-06T13:41:37+00:00",
+               "advertisement":{
+                  "advertiser":{
+                     "username":"thanksmister",
+                     "feedback_score":100,
+                     "trade_count":"100+",
+                     "last_online":"2015-03-06T13:46:45+00:00",
+                     "name":"thanksmister (100+; 100%)"
+                  },
+                  "trade_type":"LOCAL_SELL",
+                  "id":21981
+               },
+               "is_buying":false,
+               "payment_completed_at":null,
+               "released_at":null,
+               "created_at":"2015-03-06T13:41:37+00:00",
+               "contact_id":1849151,
+               "seller":{
+                  "username":"thanksmister",
+                  "feedback_score":100,
+                  "trade_count":"100+",
+                  "last_online":"2015-03-06T13:46:45+00:00",
+                  "name":"thanksmister (100+; 100%)"
+               },
+               "currency":"ARS",
+               "amount":"6000.00",
+               "is_selling":true,
+               "escrowed_at":null,
+               "amount_btc":"1.72630000",
+               "reference_code":"BITCOIN L1849151B13MTB",
+               "buyer":{
+                  "username":"quorthonafull",
+                  "feedback_score":100,
+                  "trade_count":"5",
+                  "last_online":"2015-03-06T13:41:45+00:00",
+                  "name":"quorthonafull (5; 100%)"
+               },
+               "closed_at":null,
+               "disputed_at":null,
+               "funded_at":null,
+               "canceled_at":null
+            },
+            "actions":{
+               "message_post_url":"https://localbitcoins.com/api/contact_message_post/1849151/",
+               "advertisement_url":"https://localbitcoins.com/api/ad-get/21981/",
+               "messages_url":"https://localbitcoins.com/api/contact_messages/1849151/",
+               "cancel_url":"https://localbitcoins.com/api/contact_cancel/1849151/",
+               "advertisement_public_view":"https://localbitcoins.com/ad/21981"
+            }
+         }
+      ],
+      "contact_count":1
+   }
+}
+     */
     public static ArrayList<Contact> parseContacts(String response)
     {
         JSONObject jsonObject;
@@ -814,7 +875,7 @@ public class Parser
 
             if (data.has("msg") && !data.isNull("msg")) {
                 String message = (data.getString("msg"));
-                message = message.replace("\n", "").replace("\r", "<br>");
+                //message = message.replace("\n", "").replace("\r", "<br>");
                 item.msg = message;
             }
 

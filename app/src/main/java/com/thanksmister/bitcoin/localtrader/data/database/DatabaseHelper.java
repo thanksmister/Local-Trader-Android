@@ -26,7 +26,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.SessionContract;
 public class DatabaseHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "bitcoin_local_trader_2.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 6;
   
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_INTEGER = " INTEGER";
@@ -183,6 +183,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     /** SQL statement to drop table. */
     private static final String SQL_DELETE_EXCHANGES = "DROP TABLE IF EXISTS " + "exchange_table";
     private static final String SQL_DELETE_CONTACTS = "DROP TABLE IF EXISTS " + "contacts_table";
+    private static final String SQL_DELETE_MESSAGES = "DROP TABLE IF EXISTS " + "message_table";
 
     public DatabaseHelper(Context context) 
     {
@@ -203,7 +204,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) 
     {
         if (newVersion > oldVersion) {
-            db.execSQL(SQL_CREATE_EXCHANGES);
+            //db.execSQL(SQL_CREATE_MESSAGES);
         }
     }
 
