@@ -603,16 +603,18 @@ public class DatabaseManager
                 new String[]{contact_id});
     }
 
-    public int updateMessageSeen(String id, Boolean seen, Context context)
+    public boolean updateMessageSeen(String id, Boolean seen, Context context)
     {
         final ContentResolver resolver = context.getContentResolver();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(MessagesContract.Message.COLUMN_NAME_SEEN, seen?1:0);
+        contentValues.put(MessagesContract.Message.COLUMN_NAME_SEEN, seen ? 1 : 0);
 
-        return resolver.update(MessagesContract.Message.CONTENT_URI,
+        int updated = resolver.update(MessagesContract.Message.CONTENT_URI,
                 contentValues,
                 MessagesContract.Message._ID + " = ? ",
                 new String[]{id});
+        
+        return (updated > 0);
     }
 
     public ArrayList<Message> updateMessages(final String contactId, final List<Message> messages, Context context)
@@ -638,22 +640,35 @@ public class DatabaseManager
         // Find stale data
         int id;
         String createdAt;
+        boolean seen;
         
         while (c.moveToNext()) {
             
             id = c.getInt(MessagesContract.Message.COLUMN_INDEX_ID);
+
+            Timber.d("Message exists: " + id);
+                    
             createdAt = c.getString(MessagesContract.Message.COLUMN_INDEX_CREATED_AT);
+            seen = c.getInt(MessagesContract.Message.COLUMN_INDEX_SEEN) == 1;
             Message match = entryMap.get(createdAt);
             
             if (match != null) {
                 // Entry exists. Remove from entry map to prevent insert later. Do not update message
-                Timber.d("Message exists: " + match.created_at);
+                //Timber.d("Message exists: " + id);
                 entryMap.remove(createdAt);
-                // no update since messages would never be updated.
+
+                Uri existingUri = MessagesContract.Message.CONTENT_URI.buildUpon().appendPath(Integer.toString(id)).build();
+
+                if (!seen && match.seen != seen )   {
+                    // Update existing record
+                    batch.add(ContentProviderOperation.newUpdate(existingUri)
+                            .withValue(MessagesContract.Message.COLUMN_NAME_SEEN, match.seen ? 1 : 0)
+                            .build());
+                }
                 
             } else {
                 // Entry doesn't exist. Remove it from the database.
-                Timber.d("Message deleted: " + createdAt);
+                Timber.d("Message deleted: " + id);
                 Uri deleteUri = MessagesContract.Message.CONTENT_URI.buildUpon().appendPath(Integer.toString(id)).build();
                 batch.add(ContentProviderOperation.newDelete(deleteUri).build());
             }
@@ -668,7 +683,7 @@ public class DatabaseManager
             batch.add(ContentProviderOperation.newInsert(MessagesContract.Message.CONTENT_URI)
                     .withValue(MessagesContract.Message.COLUMN_NAME_CONTACT_ID, contactId)
                     .withValue(MessagesContract.Message.COLUMN_NAME_MESSAGE, item.msg)
-                    .withValue(MessagesContract.Message.COLUMN_NAME_SEEN, 0)
+                    .withValue(MessagesContract.Message.COLUMN_NAME_SEEN, item.seen? 1:0 )
                     .withValue(MessagesContract.Message.COLUMN_NAME_CREATED_AT, item.created_at)
                     .withValue(MessagesContract.Message.COLUMN_NAME_SENDER_ID, item.sender.id)
                     .withValue(MessagesContract.Message.COLUMN_NAME_SENDER_NAME, item.sender.name)
@@ -704,6 +719,8 @@ public class DatabaseManager
         Message item = new Message();
 
         item.id = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_ID));
+        
+        Timber.d("Cursor to Message Id: " + item.id);
         item.contact_id = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_CONTACT_ID));
         item.msg = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_MESSAGE));
         item.created_at = (cursor.getString(MessagesContract.Message.COLUMN_INDEX_CREATED_AT));

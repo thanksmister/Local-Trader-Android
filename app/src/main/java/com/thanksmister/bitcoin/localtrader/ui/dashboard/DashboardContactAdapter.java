@@ -25,6 +25,8 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.ui.misc.ContactAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 
+import timber.log.Timber;
+
 public class DashboardContactAdapter extends ContactAdapter
 {
     public DashboardContactAdapter(Context context)
@@ -66,6 +68,8 @@ public class DashboardContactAdapter extends ContactAdapter
         holder.tradeType.setText(type + " - " + amount);
         holder.tradeDetails.setText("With " + person + " (" + date + ")");
         boolean hasUnseenMessages = contact.hasUnseenMessages();
+
+        Timber.d("Has unseen messages: " + hasUnseenMessages);
         
         if(hasUnseenMessages) {
             holder.icon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_communication_messenger_active));

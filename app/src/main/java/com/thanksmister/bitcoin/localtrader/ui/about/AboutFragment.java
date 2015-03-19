@@ -63,7 +63,8 @@ public class AboutFragment extends BaseFragment implements AboutView
     @OnClick(R.id.donateBitcoinButton)
     public void donateButtonClicked()
     {
-        donate();
+        //donate();
+        changeTipMe();
     }
 
     @OnClick(R.id.rateApplicationButton)
@@ -182,7 +183,7 @@ public class AboutFragment extends BaseFragment implements AboutView
         }
     }
 
-    protected void donate()
+    /*protected void donate()
     {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("bitcoin:" + Constants.BITCOIN_ADDRESS + "?amount=" + ".01")));
@@ -191,6 +192,19 @@ public class AboutFragment extends BaseFragment implements AboutView
             sendEmail.setType("text/plain");
             sendEmail.putExtra(Intent.EXTRA_SUBJECT, "Donation Bitcoin Address");
             sendEmail.putExtra(Intent.EXTRA_TEXT, Constants.BITCOIN_ADDRESS);
+            startActivity(Intent.createChooser(sendEmail, "Share using:"));
+        }
+    }*/
+
+    protected void changeTipMe()
+    {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.CHANGE_TIP_ADDRESS)));
+        } catch (android.content.ActivityNotFoundException ex) {
+            Intent sendEmail = new Intent(Intent.ACTION_SEND);
+            sendEmail.setType("text/plain");
+            sendEmail.putExtra(Intent.EXTRA_SUBJECT, "Change Tip Address");
+            sendEmail.putExtra(Intent.EXTRA_TEXT, Constants.CHANGE_TIP_ADDRESS);
             startActivity(Intent.createChooser(sendEmail, "Share using:"));
         }
     }

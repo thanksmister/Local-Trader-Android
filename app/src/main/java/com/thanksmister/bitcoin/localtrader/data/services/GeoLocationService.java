@@ -26,11 +26,11 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -84,7 +84,7 @@ public class GeoLocationService
 
     private BehaviorSubject<Location> behaviorSubject;
     private PublishSubject<List<Advertisement>> advertisementPublishSubject;
-    private LocationClient locationClient;
+    private GoogleApiClient googleApiClient;
     private List<Advertisement> advertisements;
 
     static class Direction
@@ -217,50 +217,59 @@ public class GeoLocationService
         final LocationRequest locationRequest = LocationRequest.create()
                 .setInterval(30000)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        
-        locationClient = new LocationClient(application, new GooglePlayServicesClient.ConnectionCallbacks() {
-            @Override
-            public void onConnected(Bundle bundle) {
 
-                if(behaviorSubject != null)
-                    behaviorSubject.onNext(locationClient.getLastLocation());
-                
-                locationClient.requestLocationUpdates(locationRequest, new LocationListener() {
+        /*googleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(mConnectionCallbacks)
+                .addOnConnectionFailedListener(mOnConnectionFailedListener)
+                .build();
+        */
+
+        googleApiClient = new GoogleApiClient.Builder(application)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
-                    public void onLocationChanged(Location location) {
+                    public void onConnected(Bundle bundle) {
                         if(behaviorSubject != null)
-                            behaviorSubject.onNext(location);
+                            behaviorSubject.onNext(LocationServices.FusedLocationApi.getLastLocation(googleApiClient));
+
+                        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, new LocationListener() {
+                            @Override
+                            public void onLocationChanged(Location location)
+                            {
+                                if (behaviorSubject != null)
+                                    behaviorSubject.onNext(location);
+                            }
+                        });
                     }
-                });
-            }
 
-            @Override
-            public void onDisconnected() {
-                if(behaviorSubject != null)
-                    behaviorSubject.onCompleted();
-            }
-
-        }, new GooglePlayServicesClient.OnConnectionFailedListener() {
-            @Override
-            public void onConnectionFailed(ConnectionResult connectionResult){
-                Timber.d("Error: " + connectionResult.toString());
-                if(behaviorSubject != null)
-                    behaviorSubject.onError(new Error("2"));
-            }
-        });
+                    @Override
+                    public void onConnectionSuspended(int i)
+                    {
+                        if(behaviorSubject != null)
+                            behaviorSubject.onCompleted();
+                    }
+                }).addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(ConnectionResult connectionResult) {
+                        Timber.e("Error: " + connectionResult.toString());
+                        if(behaviorSubject != null)
+                            behaviorSubject.onError(new Error("2"));
+                    }
+                }).build();
     }
 
     public void start()
     {
-        if (!locationClient.isConnected() || !locationClient.isConnecting()) {
-            locationClient.connect();
+        if (!googleApiClient.isConnected() || !googleApiClient.isConnecting()) {
+            googleApiClient.connect();
         } 
     }
 
     public void stop()
     {
-        if (locationClient.isConnected())
-            locationClient.disconnect();
+        if (googleApiClient.isConnected())
+            googleApiClient.disconnect();
 
         if(behaviorSubject != null)
             behaviorSubject.onCompleted();

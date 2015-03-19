@@ -105,20 +105,24 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
     public void getOnlineProviders(final Advertisement advertisement)
     {
         Observable<List<Method>> methods = service.getOnlineProviders();
-        subscription = methods.subscribe(new Observer<List<Method>>() {
+        subscription = methods.subscribe(new Observer<List<Method>>()
+        {
             @Override
-            public void onCompleted() {
+            public void onCompleted()
+            {
                 getView().hideProgress();
             }
 
             @Override
-            public void onError(Throwable e) {
+            public void onError(Throwable e)
+            {
                 getView().hideProgress();
                 setAdvertisement(advertisement, null);
             }
 
             @Override
-            public void onNext(List<Method> methods){
+            public void onNext(List<Method> methods)
+            {
                 Method method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
                 setAdvertisement(advertisement, method);
             }
@@ -142,6 +146,10 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
     @Override
     public void updateAdvertisementVisibility()
     {
+        if(getAdvertisement() == null) {
+            return;
+        }
+        
         getAdvertisement().visible = !getAdvertisement().visible;
         subscription = service.updateAdvertisement(new Observer<Advertisement>() {
             @Override
@@ -165,6 +173,10 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
     @Override
     public void deleteAdvertisement()
     {
+        if(getAdvertisement() == null) {
+            return;
+        }
+        
         Context context = getView().getContext();
         ConfirmationDialogEvent event = new ConfirmationDialogEvent("Delete Advertisement", 
                 context.getString(R.string.advertisement_delete_confirm), 
@@ -204,6 +216,10 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
     @Override
     public void shareAdvertisement()
     {
+        if(getAdvertisement() == null) {
+            return;
+        }
+        
         Context context = getView().getContext();
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
@@ -228,6 +244,10 @@ public class AdvertisementPresenterImpl implements AdvertisementPresenter
     @Override
     public void viewOnlineAdvertisement()
     {
+        if(getAdvertisement() == null) {
+            return;
+        }
+        
         Context context = getView().getContext();
         if(getAdvertisement().actions.public_view == null) return;
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getAdvertisement().actions.public_view));

@@ -69,6 +69,7 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
     @OnClick(R.id.emptyRetryButton)
     public void emptyButtonClicked()
     {
+        showProgress();
         presenter.getContact(contactId);
     }
 
@@ -188,8 +189,8 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
 
         adapter = new MessageAdapter(this);
         setAdapter(adapter);
-        
-        
+
+        presenter.getContact(contactId);
     }
 
     @Override
@@ -236,8 +237,6 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
         registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         presenter.onResume();
-
-        presenter.getContact(contactId);
     }
 
     @Override
@@ -320,6 +319,7 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
     {
         progress.setVisibility(View.VISIBLE);
         list.setVisibility(View.GONE);
+        empty.setVisibility(View.GONE);
     }
 
     @Override
@@ -327,6 +327,7 @@ public class ContactActivity extends BaseActivity implements ContactView, SwipeR
     {
         progress.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
+        empty.setVisibility(View.GONE);
     }
 
     @Override

@@ -179,10 +179,20 @@ public class DataService
 
             @Override
             public void onNext(Contact contact) {
-                // messages seen 
+                
+                databaseManager.updateContact(contact, application);
+                
                 for (Message message : contact.messages) {
-                    databaseManager.updateMessageSeen(message.id, true, application);
+                    message.seen = true;
                 }
+                
+                databaseManager.updateMessages(contact.contact_id, contact.messages, application);
+                
+                // messages seen 
+                /*for (Message message : contact.messages) {
+                    boolean updated = databaseManager.updateMessageSeen(message.id, true, application);
+                    Timber.d("Message Updated : " + updated);
+                }*/
             }
         });
 
@@ -427,7 +437,7 @@ public class DataService
             }
 
             @Override
-            public void onError(Throwable e){
+            public void onError(Throwable e) {
                 walletPublishSubject = null;
             }
 

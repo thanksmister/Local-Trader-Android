@@ -469,8 +469,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<List<Message>> call(final Contact contact) {
                         
-                        Timber.d("Update contact messages: " + contact.messages.size());
-                        
                         return Observable.just(databaseManager.updateMessages(contact.contact_id, contact.messages, context))
                                .flatMap(new Func1<ArrayList<Message>, Observable<List<Message>>>()
                                {

@@ -79,7 +79,8 @@ public class ContactPresenterImpl implements ContactPresenter
         subscription = service.getContact(new Observer<Contact>() {
             @Override
             public void onCompleted() {
-
+                getView().onRefreshStop();
+                getView().hideProgress();
             }
 
             @Override
@@ -97,13 +98,8 @@ public class ContactPresenterImpl implements ContactPresenter
 
             @Override
             public void onNext(Contact results) {
-  
-                getView().hideProgress();
                 contact = results;
                 getView().setContact(contact);
-
-                getView().onRefreshStop();
-                //setTitle(contact);
             }
         }, contactId);
     }

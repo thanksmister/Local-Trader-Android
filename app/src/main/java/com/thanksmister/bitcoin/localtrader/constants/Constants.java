@@ -38,6 +38,7 @@ public class Constants
     public static final String GOOGLE_PLUS_COMMUNITY = "https://plus.google.com/u/0/communities/114531451627808630329";
     public static final String GOOGLE_PLAY_RATING = "com.thanksmister.bitcoin.localtrader";
     public static final String BITCOIN_ADDRESS = "18M4NaYiCrtWhrifTuZY4uPMudcHLXCdNX";
+    public static final String CHANGE_TIP_ADDRESS = "http://thanksmister.tip.me";
     public static final String BITCOIN_URL = "https://blockchain.info/payment_request?address=18M4NaYiCrtWhrifTuZY4uPMudcHLXCdNX&amount=0.01#";
     public static final String EMAIL_ADDRESS = "mister@thanksmister.com";
     
@@ -47,8 +48,6 @@ public class Constants
     public static final String BLOCKCHAIN_INFO_ADDRESS = "https://blockchain.info/address/";
     
     public static final String REGISTRATION_URL = "http://goo.gl/xgUVP8";
-    
-    //public static final String CHANGE_TIP_URL = "https://www.changetip.com/tipme/thanksmister";
     
     public static Boolean USE_MOCK_DATA = false;
 }

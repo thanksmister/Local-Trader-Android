@@ -26,7 +26,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.SessionContract;
 public class DatabaseHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "bitcoin_local_trader_2.db";
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
   
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_INTEGER = " INTEGER";
@@ -198,13 +198,14 @@ public class DatabaseHelper extends SQLiteOpenHelper
         db.execSQL(SQL_CREATE_MESSAGES);
         db.execSQL(SQL_CREATE_SESSION);
         db.execSQL(SQL_CREATE_WALLET);
+        db.execSQL(SQL_CREATE_EXCHANGES);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) 
     {
         if (newVersion > oldVersion) {
-            //db.execSQL(SQL_CREATE_MESSAGES);
+            db.execSQL(SQL_CREATE_EXCHANGES);
         }
     }
 

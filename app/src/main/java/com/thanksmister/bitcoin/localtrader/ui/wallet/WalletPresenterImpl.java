@@ -131,7 +131,8 @@ public class WalletPresenterImpl implements WalletPresenter
     {
         subscription = dataService.getWallet(new Observer<Wallet>() {
             @Override
-            public void onCompleted() {   
+            public void onCompleted() {  
+                
                 getView().onRefreshStop();
             }
 
