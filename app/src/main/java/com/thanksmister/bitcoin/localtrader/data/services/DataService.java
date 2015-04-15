@@ -100,7 +100,6 @@ import timber.log.Timber;
 @Singleton
 public class DataService
 {
-    // TODO add "fields" to all API calls to reduce info
     public static final String PREFS_DASHBOARD_EXPIRE_TIME = "pref_dashboard_expire";
     public static final String PREFS_TOKENS_EXPIRE_TIME = "pref_tokens_expire";
     public static final String PREFS_USER = "pref_user";
@@ -111,7 +110,7 @@ public class DataService
 
     public static final int CHECK_DASHBOARD_DATA = 5 * 60 * 1000;// 5 minutes
     public static final int CHECK_EXCHANGE_DATA = 5 * 60 * 1000;// 5 minutes
-    public static final int CHECK_DATABASE_DATA = 30 * 1000;// 30 seconds
+    public static final int CHECK_DATABASE_DATA = 3 * 1000;// 30 seconds
     public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 mintues
 
     public static final String USD = "USD";
@@ -166,10 +165,15 @@ public class DataService
 
     public Subscription getContact(final Observer<Contact> observer, final String contact_id)
     {
+        Contact contact = databaseManager.getContactById(contact_id, application);
+        if(contact != null) {
+            observer.onNext(contact);
+        }
+        
         if(contactPublishSubject != null) {
             return contactPublishSubject.subscribe(observer);
         }
-
+        
         contactPublishSubject = PublishSubject.create();
         contactPublishSubject.subscribe(new EndObserver<Contact>() {
             @Override
@@ -187,12 +191,6 @@ public class DataService
                 }
                 
                 databaseManager.updateMessages(contact.contact_id, contact.messages, application);
-                
-                // messages seen 
-                /*for (Message message : contact.messages) {
-                    boolean updated = databaseManager.updateMessageSeen(message.id, true, application);
-                    Timber.d("Message Updated : " + updated);
-                }*/
             }
         });
 
@@ -271,47 +269,87 @@ public class DataService
         return subscription;
     }
 
-    public Observable<Dashboard> getDashboardCached()
+    public Subscription getDashboardCached(Observer<Dashboard> observer)
     {
-        return Observable.create(new Observable.OnSubscribe<Dashboard>() {
-            
+        if(dashboardPublishSubject != null) {
+            return dashboardPublishSubject.subscribe(observer); // join it
+        }
+
+        dashboardPublishSubject = PublishSubject.create();
+        Subscription subscription = dashboardPublishSubject.subscribe(observer);
+        
+        /*Observable.create(new Observable.OnSubscribe<Dashboard>() {
             @Override
             public void call(Subscriber<? super Dashboard> subscriber) {
                 
                 Schedulers.newThread().schedulePeriodically(new Action1<Scheduler.Inner>() {
                     @Override
                     public void call(Scheduler.Inner inner) {
-                        
-                        try {
-                            ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
-                            ArrayList<Contact> contacts = databaseManager.getContacts(application);
-                            for (Contact contact : contacts) {
-                                contact.messages = databaseManager.getMessages(contact.contact_id, application);
+
+                        if(needToRefreshDashboard()) {
+
+                            Timber.i("Get live data");
+
+                            Observable<Dashboard> observable = getDashboardObservable(false);
+                            observable.subscribe(new Observer<Dashboard>() {
+                                @Override
+                                public void onCompleted()
+                                {
+                                }
+
+                                @Override
+                                public void onError(Throwable throwable)
+                                {
+                                    Timber.e(throwable.getMessage());
+                                    subscriber.onError(throwable);
+                                }
+
+                                @Override
+                                public void onNext(Dashboard dashboard)
+                                {
+                                    setDashboardExpireTime();
+                                    subscriber.onNext(dashboard); // returned cached data
+                                }
+                            });
+                            
+                        } else {
+
+                            Timber.i("Get database data");
+
+                            try {
+                                ArrayList<Advertisement> advertisements = databaseManager.getAdvertisements(application);
+                                ArrayList<Contact> contacts = databaseManager.updateData(application);
+                                for (Contact contact : contacts) {
+                                    contact.messages = databaseManager.getMessages(contact.contact_id, application);
+                                }
+
+                                Exchange exchange = databaseManager.getExchange(application);
+                                final Dashboard dashboard = new Dashboard();
+                                dashboard.advertisements = advertisements;
+                                dashboard.exchange = exchange;
+                                dashboard.contacts = contacts;
+
+                                subscriber.onNext(dashboard); // returned cached data 
+
+                            } catch (Error error) {
+
+                                Timber.e(error.getMessage());
+                                
+                                subscriber.onError(new Throwable("Error retrieving cached data."));
                             }
-
-                            Exchange exchange = databaseManager.getExchange(application);
-                            final Dashboard dashboard = new Dashboard();
-                            dashboard.advertisements = advertisements;
-                            dashboard.exchange = exchange;
-                            dashboard.contacts = contacts;
-
-                            subscriber.onNext(dashboard); // returned cached data 
-                            
-                        } catch (Error error){
-                            
-                            Timber.e(error.getMessage());
-                            subscriber.onError(new Throwable("Error retrieving cached data."));
                         }
-                        
                     }
                 }, 0, CHECK_DATABASE_DATA, TimeUnit.MILLISECONDS);
             }
         })
         .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread());
+        .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(dashboardPublishSubject);*/
+
+        return subscription;
     }
 
-    public Subscription getDashboardInfo(Observer<Dashboard> observer, final boolean manualRefresh)
+    public Subscription getDashboardInfo(Observer<Dashboard> observer, boolean manualRefresh)
     {
         Timber.d("getDashboardInfo attempt");
 
@@ -319,20 +357,16 @@ public class DataService
             return dashboardPublishSubject.subscribe(observer); // join it
         }
         
-        if(!needToRefreshDashboard() && !manualRefresh) {
-            return Subscriptions.empty();
-        }
-        
         dashboardPublishSubject = PublishSubject.create();
         dashboardPublishSubject.subscribe(new Observer<Dashboard>(){
             @Override
             public void onCompleted(){
-                dashboardPublishSubject = null;
+                //dashboardPublishSubject = null;
             }
 
             @Override
             public void onError(Throwable e){
-                dashboardPublishSubject = null;
+                //dashboardPublishSubject = null;
             }
 
             @Override
@@ -349,18 +383,17 @@ public class DataService
                     databaseManager.updateContacts(dashboard.contacts, application);
                 }
 
-                databaseManager.updateAdvertisements(dashboard.advertisements, application); 
-                setAdvertisementsExpireTime();
-                
+                //databaseManager.updateAdvertisements(dashboard.advertisements, application);
                 databaseManager.updateExchange(dashboard.exchange, application);
-                setExchangeExpireTime();
 
+                setAdvertisementsExpireTime();
+                setExchangeExpireTime();
                 setDashboardExpireTime();
             }
         });
 
         Subscription subscription = dashboardPublishSubject.subscribe(observer);         
-        getDashboardObservable(manualRefresh)
+        getDashboardObservable(true)
                 .onErrorResumeNext(refreshTokenAndRetry(getDashboardObservable(manualRefresh)))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -653,16 +686,20 @@ public class DataService
         updateAdvertisementObservable(advertisement)
                 .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement)))
                 .map(new ResponseToJSONObject())
-                .map(new Func1<JSONObject, String>() {
+                .map(new Func1<JSONObject, String>()
+                {
                     @Override
-                    public String call(JSONObject response) {
+                    public String call(JSONObject response)
+                    {
                         // Check JSON response for errors
                         return advertisement.ad_id;
                     }
                 })
-                .flatMap(new Func1<String, Observable<Advertisement>>() {
+                .flatMap(new Func1<String, Observable<Advertisement>>()
+                {
                     @Override
-                    public Observable<Advertisement> call(String ad_id) {
+                    public Observable<Advertisement> call(String ad_id)
+                    {
                         return getAdvertisementObservable(ad_id); // refresh updated advertisement
                     }
                 })
@@ -744,14 +781,16 @@ public class DataService
         Subscription subscription = pinCodePublishSubject.subscribe(observer);
         validatePinCode(pinCode)
                 .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<String>>() {
+                .flatMap(new Func1<JSONObject, Observable<String>>()
+                {
                     @Override
-                    public Observable<String> call(JSONObject jsonObject) {
+                    public Observable<String> call(JSONObject jsonObject)
+                    {
                         try {
                             JSONObject object = jsonObject.getJSONObject("data");
                             Boolean valid = (object.getString("pincode_ok").equals("true"));
                             Timber.d("IS OK: " + valid);
-                            if(valid) {
+                            if (valid) {
                                 return Observable.just(pinCode);
                             } else {
                                 Timber.d(object.toString());
@@ -829,11 +868,16 @@ public class DataService
                 String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
                 String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
-                String.valueOf(advertisement.trusted_required), advertisement.msg);
+                String.valueOf(advertisement.trusted_required), advertisement.message);
     }
     
     public Subscription getAdvertisement(Observer<Advertisement> observer, final String adId)
     {
+        Advertisement advertisement = databaseManager.getAdvertisementById(application, adId);
+        if(advertisement != null) {
+            observer.onNext(advertisement);
+        }
+        
         if(advertisementPublishSubject != null) {
             return advertisementPublishSubject.subscribe(observer); // join it
         }
@@ -977,10 +1021,10 @@ public class DataService
     {
         String access_token = getAccessToken();
         return localBitcoins.updateAdvertisement(advertisement.ad_id, access_token, String.valueOf(advertisement.visible), advertisement.min_amount,
-                advertisement.max_amount, advertisement.price_equation, String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
+                advertisement.max_amount, advertisement.price_equation, advertisement.currency, String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
-                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.trusted_required), 
-                advertisement.msg);
+                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.trusted_required),
+                advertisement.message);
 
     }
 
@@ -1099,11 +1143,13 @@ public class DataService
 
         return localBitcoins.getOnlineProviders()
                 .map(new ResponseToMethod())
-                .flatMap(new Func1<List<Method>, Observable<List<Method>>>() {
+                .flatMap(new Func1<List<Method>, Observable<List<Method>>>()
+                {
                     @Override
-                    public Observable<List<Method>> call(List<Method> results) {
+                    public Observable<List<Method>> call(List<Method> results)
+                    {
                         methods = results;
-                        return  Observable.just(methods);
+                        return Observable.just(methods);
                     }
                 })
                 .subscribeOn(Schedulers.newThread())
@@ -1137,14 +1183,16 @@ public class DataService
  
         return localBitcoins.getWallet(access_token)
                 .map(new ResponseToWallet())
-                .flatMap(new Func1<Wallet, Observable<Wallet>>() {
+                .flatMap(new Func1<Wallet, Observable<Wallet>>()
+                {
                     @Override
                     public Observable<Wallet> call(Wallet wallet)
                     {
                         return getWalletBitmap(wallet);
                     }
                 })
-                .flatMap(new Func1<Wallet, Observable<Wallet>>() {
+                .flatMap(new Func1<Wallet, Observable<Wallet>>()
+                {
                     @Override
                     public Observable<Wallet> call(Wallet wallet)
                     {
@@ -1164,7 +1212,8 @@ public class DataService
         return localBitcoins.getWalletBalance(access_token)
                 .map(new ResponseToWalletBalance())
                 .flatMap(this::getWalletBitmap)
-                .flatMap(new Func1<Wallet, Observable<? extends Wallet>>() {
+                .flatMap(new Func1<Wallet, Observable<? extends Wallet>>()
+                {
                     @Override
                     public Observable<? extends Wallet> call(Wallet wallet)
                     {
@@ -1270,79 +1319,88 @@ public class DataService
     {
         String access_token = getAccessToken();
                 return Observable.just(Observable.from(contacts)
-                        .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>() {
+                        .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>()
+                        {
                             @Override
-                            public Observable<? extends List<Contact>> call(final Contact contact) {
+                            public Observable<? extends List<Contact>> call(final Contact contact)
+                            {
                                 return localBitcoins.contactMessages(contact.contact_id, access_token)
                                         .map(new ResponseToMessages())
-                                        .map(new Func1<List<Message>, List<Contact>>() {
+                                        .map(new Func1<List<Message>, List<Contact>>()
+                                        {
                                             @Override
-                                            public List<Contact> call(List<Message> messages) {
+                                            public List<Contact> call(List<Message> messages)
+                                            {
                                                 contact.messages = messages;
                                                 return contacts;
                                             }
                                         });
                             }
-                        }).toBlockingObservable().last());
+                        }).toBlocking().last());
             }
 
-    private Observable<Dashboard> getDashboardObservable(boolean manualRefresh)
+    public Observable<Dashboard> getDashboardObservable(boolean manualRefresh)
     {
         Timber.d("getDashboardObservable");
         
         return getBitstamp()
                 .flatMap(new Func1<Exchange, Observable<Dashboard>>() {
                     @Override
-                    public Observable<Dashboard> call(Exchange exchange) {
+                    public Observable<Dashboard> call(Exchange exchange)
+                    {
+                        setExchangeExpireTime();
                         
-                        if(!manualRefresh) {
-                            
+                        if(manualRefresh || needToRefreshAdvertisements()) {
+
                             return getDashboardActiveContactsObservable(exchange);
-                            
+
                         } else {
-                            
+
                             Dashboard dashboard = new Dashboard();
                             dashboard.exchange = exchange;
                             dashboard.contacts = databaseManager.getContacts(application);
-                            
                             return Observable.just(dashboard);
                         }
-
-                        //return getDashboardActiveContactsObservable(exchange);
-                    }
-                })
-                .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {
-                    @Override
-                    public Observable<Dashboard> call(Dashboard dashboard) {
-                        
-                        if (dashboard.contacts.isEmpty()) {
-                            return Observable.just(dashboard);
-                        }
-                        
-                        if(!manualRefresh) {
-                            
-                            return Observable.just(getDashboardMessageObservable(dashboard)); 
-                            
-                        } else {
-                            for (Contact contact : dashboard.contacts) {
-                                contact.messages = databaseManager.getMessages(contact.contact_id, application);
-                            }
-                           
-                            return Observable.just(dashboard);
-                        }
-
-                        //return Observable.just(getDashboardMessageObservable(dashboard));
                     }
                 })
                 .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {
                     @Override
                     public Observable<Dashboard> call(Dashboard dashboard)
                     {
-                        return getAdvertisementsObservable(dashboard);
+                        if (dashboard.contacts.isEmpty()) {
+                            return Observable.just(dashboard);
+                        }
+                        
+                        if(manualRefresh) {
+
+                            return Observable.just(getDashboardMessageObservable(dashboard));
+
+                        } else {
+
+                            for (Contact contact : dashboard.contacts) {
+                                contact.messages = databaseManager.getMessages(contact.contact_id, application);
+                            }
+
+                            return Observable.just(dashboard);
+                        }
                     }
                 })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread());
+                .flatMap(new Func1<Dashboard, Observable<Dashboard>>() {
+                    @Override
+                    public Observable<Dashboard> call(Dashboard dashboard)
+                    {
+                        if(manualRefresh || needToRefreshAdvertisements()) {
+
+                            return getAdvertisementsObservable(dashboard);
+
+                        } else {
+
+                            //dashboard.advertisements = databaseManager.getAdvertisements(application);
+                                    
+                            return Observable.just(dashboard);
+                        }
+                    }
+                });
     }
 
     private Dashboard getDashboardMessageObservable(final Dashboard dashboard)
@@ -1361,23 +1419,27 @@ public class DataService
 
          String access_token = getAccessToken();
          return Observable.from(dashboard.contacts)
-               .flatMap(new Func1<Contact, Observable<? extends Dashboard>>() {
+               .flatMap(new Func1<Contact, Observable<? extends Dashboard>>()
+               {
                    @Override
                    public Observable<? extends Dashboard> call(final Contact contact)
                    {
                        return localBitcoins.contactMessages(contact.contact_id, access_token)
                                .map(new ResponseToMessages())
-                               .map(new Func1<List<Message>, Dashboard>(){
+                               .map(new Func1<List<Message>, Dashboard>()
+                               {
                                    @Override
-                                   public Dashboard call(List<Message> messages) {
+                                   public Dashboard call(List<Message> messages)
+                                   {
                                        Timber.d("Messages: " + messages.size());
+                                       databaseManager.updateMessages(contact.contact_id, contact.messages, application);
                                        contact.messages = messages;
                                        return dashboard;
                                    }
                                });
                    }
                })
-               .toBlockingObservable().last();
+               .toBlocking().last();
     }
 
     private Observable<Contact> getContactObservable(String contact_id)
@@ -1391,14 +1453,18 @@ public class DataService
         final String access_token = getAccessToken();
         return localBitcoins.getContact(contact_id, access_token)
                 .map(new ResponseToContact())
-                .flatMap(new Func1<Contact, Observable<? extends Contact>>() {
+                .flatMap(new Func1<Contact, Observable<? extends Contact>>()
+                {
                     @Override
-                    public Observable<? extends Contact> call(Contact contact) {
+                    public Observable<? extends Contact> call(Contact contact)
+                    {
                         return localBitcoins.contactMessages(contact.contact_id, access_token)
                                 .map(new ResponseToMessages())
-                                .map(new Func1<List<Message>, Contact>() {
+                                .map(new Func1<List<Message>, Contact>()
+                                {
                                     @Override
-                                    public Contact call(List<Message> messages) {
+                                    public Contact call(List<Message> messages)
+                                    {
                                         contact.messages = messages;
                                         return contact;
                                     }
@@ -1410,8 +1476,8 @@ public class DataService
     private Observable<Dashboard> getDashboardActiveContactsObservable(final Exchange exchange)
     {
         assert exchange != null;
-        
-        if(Constants.USE_MOCK_DATA) {
+
+        if (Constants.USE_MOCK_DATA) {
             return Observable.just(Parser.parseContacts(MockData.DASHBOARD))
                     .map(contacts -> {
                         Dashboard dashboard = new Dashboard();
@@ -1422,27 +1488,23 @@ public class DataService
         }
 
         String access_token = getAccessToken();
-                        return  localBitcoins.getDashboard(access_token)
-                                .map(new ResponseToContacts())
-                                .map(contacts -> {
-                                    Timber.d("We have contact: " + contacts.size());
-                                    Dashboard dashboard = new Dashboard();
-                                    dashboard.exchange = exchange;
-                                    dashboard.contacts = contacts;
-                                    return dashboard;
-                                })
-                                .doOnNext(new Action1<Dashboard>()
-                                {
-                                    @Override
-                                    public void call(Dashboard dashboard)
-                                    {
-                                        Timber.d("Update contacts in database");
-                                        databaseManager.updateContacts(dashboard.contacts, application);
-                                    }
-                                });
+        return localBitcoins.getDashboard(access_token)
+                .map(new ResponseToContacts())
+                .map(new Func1<List<Contact>, Dashboard>() {
+                    @Override
+                    public Dashboard call(List<Contact> contacts)
+                    {
+                        Timber.d("We have contact: " + contacts.size());
+                        databaseManager.updateContacts(contacts, application);
+                        Dashboard dashboard = new Dashboard();
+                        dashboard.exchange = exchange;
+                        dashboard.contacts = contacts;
+                        return dashboard;
                     }
+                });
+    }             
     
-    private Observable<List<Advertisement>> getAdvertisementsObservable()
+    public Observable<List<Advertisement>> getAdvertisementsObservable()
     {
         if(Constants.USE_MOCK_DATA) {
             return Observable.just(Parser.parseAdvertisements(MockData.ADVERTISEMENT_LIST_SUCCESS));
@@ -1456,7 +1518,7 @@ public class DataService
                     public void call(List<Advertisement> advertisements)
                     {
                         Timber.d("update advertisement data");
-                        databaseManager.updateAdvertisements(advertisements, application);
+                        //databaseManager.updateAdvertisements(advertisements, application);
                         setAdvertisementsExpireTime();
                     }
                 });
@@ -1467,7 +1529,7 @@ public class DataService
         if(Constants.USE_MOCK_DATA) {
             return Observable.just(Parser.parseAdvertisements(MockData.ADVERTISEMENT_LIST_SUCCESS))
                     .map(ads -> {
-                        dashboard.advertisements = ads;
+                        //dashboard.advertisements = ads;
                         return dashboard;
                     });
         }
@@ -1475,17 +1537,20 @@ public class DataService
         String access_token = getAccessToken();
         return localBitcoins.getAds(access_token)
                 .map(new ResponseToAds())
-                .map(new Func1<List<Advertisement>, Dashboard>(){
+                .map(new Func1<List<Advertisement>, Dashboard>()
+                {
                     @Override
                     public Dashboard call(List<Advertisement> advertisements)
                     {
-                        dashboard.advertisements = advertisements;
+                        setAdvertisementsExpireTime();
+                        databaseManager.updateAdvertisements(advertisements, application);
+                        //dashboard.advertisements = advertisements;
                         return dashboard;
                     }
                 });
     }
 
-    private Observable<Exchange> getBitstamp()
+    public Observable<Exchange> getBitstamp()
     {
         return bitstampExchange.ticker()
                .map(new ResponseBitstampToExchange())
@@ -1503,19 +1568,21 @@ public class DataService
         
         return bitstampExchange.ticker()
                .map(new ResponseBitstampToExchange())
-               .onErrorResumeNext(getBitfinex())
-               .map(new Func1<Exchange, Wallet>() {
-                   @Override
-                   public Wallet call(Exchange defaultExchange) {
-                       if (defaultExchange != null) {
-                           wallet.exchange = defaultExchange;
-                       }
-                       return wallet;
-                   }
-               });
+                .onErrorResumeNext(getBitfinex())
+                .map(new Func1<Exchange, Wallet>()
+                {
+                    @Override
+                    public Wallet call(Exchange defaultExchange)
+                    {
+                        if (defaultExchange != null) {
+                            wallet.exchange = defaultExchange;
+                        }
+                        return wallet;
+                    }
+                });
     }
 
-    private Observable<Exchange> getBitfinex()
+    public Observable<Exchange> getBitfinex()
     {
         if(!needToRefreshExchanges()){
             synchronized (this){
@@ -1523,12 +1590,14 @@ public class DataService
                 return Observable.just(exchange);
             }
         }
-        
+
         return bitfinexExchange.ticker()
                 .map(new ResponseBitfinexToExchange())
-                .onErrorReturn(new Func1<Throwable, Exchange>() {
+                .onErrorReturn(new Func1<Throwable, Exchange>()
+                {
                     @Override
-                    public Exchange call(Throwable throwable) {
+                    public Exchange call(Throwable throwable)
+                    {
                         return new Exchange();
                     }
                 });
@@ -1593,7 +1662,8 @@ public class DataService
         }
 
         authorizationRequest = PublishSubject.create();
-        authorizationRequest.subscribe(new Observer<Authorization>() {
+        authorizationRequest.subscribe(new Observer<Authorization>()
+        {
             @Override
             public void onCompleted()
             {
@@ -1608,11 +1678,12 @@ public class DataService
             }
 
             @Override
-            public void onNext(Authorization authorization) {
+            public void onNext(Authorization authorization)
+            {
                 Timber.d("Access Token: " + authorization.access_token);
                 Timber.d("Refresh Token: " + authorization.refresh_token);
                 Timber.d("Expires: " + authorization.expires_in);
-                
+
                 saveAuthorization(authorization);
             }
         });
@@ -1683,12 +1754,14 @@ public class DataService
 
         return localBitcoins.refreshToken("refresh_token", refresh_token, Constants.CLIENT_ID, Constants.CLIENT_SECRET)
                 .map(new ResponseToAuthorize())
-                .flatMap(new Func1<Authorization, Observable<? extends String>>() {
+                .flatMap(new Func1<Authorization, Observable<? extends String>>()
+                {
                     @Override
-                    public Observable<? extends String> call(Authorization authorization) {
+                    public Observable<? extends String> call(Authorization authorization)
+                    {
 
                         Timber.d("New Access tokens: " + authorization.access_token);
-                        
+
                         saveAuthorization(authorization);
                         return Observable.just(authorization.access_token);
                     }
@@ -1757,6 +1830,16 @@ public class DataService
         synchronized (this) {
             long expiresAt = sharedPreferences.getLong(PREFS_DASHBOARD_EXPIRE_TIME, -1);
             return System.currentTimeMillis() >= expiresAt;
+        }
+    }
+
+    public void resetDashboardExpireTime()
+    {
+        synchronized (this) {
+            long expire = System.currentTimeMillis(); // 1 hours
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong(PREFS_DASHBOARD_EXPIRE_TIME, expire);
+            editor.apply();
         }
     }
 

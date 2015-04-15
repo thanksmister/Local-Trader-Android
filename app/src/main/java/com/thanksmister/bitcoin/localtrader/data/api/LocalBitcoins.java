@@ -86,7 +86,8 @@ public interface LocalBitcoins
     @POST("/api/ad/{ad_id}/")
     Observable<Response> updateAdvertisement(@Path("ad_id") String ad_id,
                                              @Query("access_token") String token, @Field("visible") String visible,
-                                             @Field("min_amount") String min_amount, @Field("max_amount") String max_amount, @Field("price_equation") String price_equation,
+                                             @Field("min_amount") String min_amount, @Field("max_amount") String max_amount, 
+                                             @Field("price_equation") String price_equation, @Field("currency") String currency,
                                              @Field("lat") String lat, @Field("lon") String lon, @Field("city") String city,
                                              @Field("location_string") String location_string, @Field("countrycode") String countrycode,
                                              @Field("account_info") String account_info, @Field("bank_name") String bank_name,

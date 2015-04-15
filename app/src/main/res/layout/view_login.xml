@@ -2,7 +2,7 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                tools:context="com.thanksmister.bitcoin.localtrader.ui.login.LoginActivity">
+                tools:context="com.thanksmister.bitcoin.localtrader.ui.LoginActivity">
     
     <include android:id="@android:id/progress" 
              layout="@layout/view_progress"

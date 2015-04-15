@@ -27,6 +27,8 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 
 import java.util.Collections;
@@ -38,7 +40,7 @@ import butterknife.Optional;
 
 public class ContactAdapter extends BaseAdapter
 {
-    protected List<Contact> contacts = Collections.emptyList();
+    protected List<ContactItem> contacts = Collections.emptyList();
     protected Context context;
     protected final LayoutInflater inflater;
     
@@ -61,7 +63,7 @@ public class ContactAdapter extends BaseAdapter
     }
 
     @Override
-    public Contact getItem(int position)
+    public ContactItem getItem(int position)
     {
         return contacts.get(position);
     }
@@ -72,7 +74,7 @@ public class ContactAdapter extends BaseAdapter
         return position;
     }
 
-    public void replaceWith(List<Contact> data)
+    public void replaceWith(List<ContactItem> data)
     {
         contacts = data;
         notifyDataSetChanged();
@@ -90,28 +92,31 @@ public class ContactAdapter extends BaseAdapter
             view.setTag(holder);
         }
 
-        Contact contact = getItem(position);
+        ContactItem contact = getItem(position);
 
+        TradeType tradeType = TradeType.valueOf(contact.advertisement_trade_type());
         String type = "";
-        switch (contact.advertisement.trade_type) {
+        switch (tradeType) {
             case LOCAL_BUY:
             case LOCAL_SELL:
-                type = (contact.is_buying)? "Buying Locally":"Selling Locally";
+                type = (contact.is_buying())? "Buying Locally":"Selling Locally";
                 break;
             case ONLINE_BUY:
             case ONLINE_SELL:
-                type = (contact.is_buying)? "Buying Online":"Selling Online";
+                type = (contact.is_buying())? "Buying Online":"Selling Online";
                 break;
         }
 
-        String amount =  contact.amount + " " + contact.currency;
-        String btc =  contact.amount_btc + context.getString(R.string.btc);
-        String person = (contact.is_buying)? contact.seller.username:contact.buyer.username;
-        String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at);
+        String amount =  contact.amount() + " " + contact.currency();
+        String btc =  contact.amount_btc() + context.getString(R.string.btc);
+        String person = (contact.is_buying())? contact.seller_username():contact.buyer_username();
+        String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
 
         holder.tradeType.setText(type + " - " + amount);
         holder.tradeDetails.setText("With " + person + " (" + date + ")");
-        holder.contactMessageCount.setText(String.valueOf(contact.messages.size()));
+        
+        // TODO combine messages
+        //holder.contactMessageCount.setText(String.valueOf(contact.messages.size()));
         
         return view;
     }

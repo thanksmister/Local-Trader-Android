@@ -24,7 +24,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
@@ -36,7 +35,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,7 +42,7 @@ import android.widget.Toast;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.qrcode.QRCodeActivity;
 import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
@@ -568,11 +566,5 @@ public class RequestFragment extends BaseFragment implements RequestView
         computeBalance(Doubles.convertToDouble(bitcoin));
         String value = Calculations.computedValueOfBitcoin(wallet.exchange.ask, wallet.exchange.bid, bitcoin);
         usdEditText.setText(value);
-    }
-
-    @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new RequestModule(this));
     }
 }

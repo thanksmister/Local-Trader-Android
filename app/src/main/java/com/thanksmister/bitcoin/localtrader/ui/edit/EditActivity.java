@@ -3,7 +3,11 @@ package com.thanksmister.bitcoin.localtrader.ui.edit;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -23,13 +27,19 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
@@ -48,22 +58,36 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.Optional;
+import rx.Observable;
+import rx.Observer;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import timber.log.Timber;
 
-public class EditActivity extends BaseActivity implements EditView
+import static rx.android.app.AppObservable.bindActivity;
+
+public class EditActivity extends BaseActivity
 {
     public static final String EXTRA_ADDRESS = "com.thanksmister.extras.EXTRA_ADDRESS";
     public static final String EXTRA_CREATE = "com.thanksmister.extras.EXTRA_CREATE";
-  
-    
+    public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
+
     public static final int REQUEST_CODE = 10937;
-    
     public static final int RESULT_UPDATED = 72322;
     public static final int RESULT_CANCELED = 72321;
 
     @Inject
-    EditPresenter presenter;
+    SqlBrite db;
+    
+    @Inject
+    DbManager dbManager;
 
+    @Inject
+    GeoLocationService geoLocationService;
+
+    @Inject
+    LocationManager locationManager;
+    
     @Optional
     @InjectView(R.id.editToolBar)
     Toolbar toolbar;
@@ -150,7 +174,7 @@ public class EditActivity extends BaseActivity implements EditView
     public void clearButtonClicked()
     {
         showSearchLayout();
-        presenter.stopLocationCheck(); // stop current check
+        stopLocationCheck(); // stop current check
     }
 
     @OnClick(R.id.mapButton)
@@ -158,18 +182,23 @@ public class EditActivity extends BaseActivity implements EditView
     {
         showMapLayout();
         currentLocation.setText("- - - -");
-        presenter.stopLocationCheck(); // stop current check
-        presenter.startLocationCheck(); // get new location
+        stopLocationCheck(); // stop current check
+        startLocationCheck(); // get new location
     }
 
     private boolean create;
     private PredictAdapter predictAdapter;
     private Address address;
+    private String adId;
 
-    public static Intent createStartIntent(Context context, Boolean create)
+    private Observable<Location> locationObservable;
+    private Observable<AdvertisementItem> advertisementItemObservable;
+
+    public static Intent createStartIntent(Context context, Boolean create, String adId)
     {
         Intent intent = new Intent(context, EditActivity.class);
         intent.putExtra(EXTRA_CREATE, create);
+        intent.putExtra(EXTRA_AD_ID, adId);
         return intent;
     }
     
@@ -177,16 +206,18 @@ public class EditActivity extends BaseActivity implements EditView
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        
         setContentView(R.layout.view_edit);
 
         ButterKnife.inject(this);
 
         if (savedInstanceState == null) {
-            //advertisement =  getIntent().getStringExtra(EXTRA_ADVERTISEMENT);
+            adId = getIntent().getStringExtra(EXTRA_AD_ID);
             create = getIntent().getBooleanExtra(EXTRA_CREATE, false);
         } else {
             address = savedInstanceState.getParcelable(EXTRA_ADDRESS);
             create = savedInstanceState.getBoolean(EXTRA_CREATE);
+            adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
         
         if(toolbar != null) {
@@ -199,74 +230,97 @@ public class EditActivity extends BaseActivity implements EditView
         String[] typeTitles = getResources().getStringArray(R.array.list_advertisement_type_spinner);
         List<String> typeList = new ArrayList<String>(Arrays.asList(typeTitles));
 
-        SpinnerAdapter typeAdapter = new SpinnerAdapter(getContext(), R.layout.spinner_layout, typeList);
+        SpinnerAdapter typeAdapter = new SpinnerAdapter(this, R.layout.spinner_layout, typeList);
         typeSpinner.setAdapter(typeAdapter);
-        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
             @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l){
-                presenter.setAdvertisementType(TradeType.values()[i]);
-                if(create) setPriceEquation();
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                //presenter.setAdvertisementType(TradeType.values()[i]);
+                if (create) setPriceEquation();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView){}
+            public void onNothingSelected(AdapterView<?> adapterView)
+            {
+            }
         });
 
-        currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+        currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
             @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l){
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+            {
                 Timber.d("Currency Selected: " + i);
                 Currency exchange = (Currency) currencySpinner.getAdapter().getItem(i);
                 editMinimumAmountCurrency.setText(exchange.ticker);
                 editMaximumAmountCurrency.setText(exchange.ticker);
-                if(create)
+                if (create)
                     setPriceEquation();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView){}
+            public void onNothingSelected(AdapterView<?> adapterView)
+            {
+            }
         });
 
         editLocation.setOnItemClickListener((parent, view, position, id) -> {
-            presenter.stopLocationCheck();
+            //presenter.stopLocationCheck();
             Address address1 = predictAdapter.getItem(position);
             showMapLayout();
             setAddress(address1);
             editLocation.setText("");
         });
 
-        editLocation.addTextChangedListener(new TextWatcher() {
+        editLocation.addTextChangedListener(new TextWatcher()
+        {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3){}
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
+            }
 
             @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
                 if (!Strings.isBlank(charSequence)) {
-                    presenter.doAddressLookup(charSequence.toString());
+                    //presenter.doAddressLookup(charSequence.toString());
                 }
             }
 
             @Override
-            public void afterTextChanged(Editable editable){}
+            public void afterTextChanged(Editable editable)
+            {
+            }
         });
         
-        marginText.addTextChangedListener(new TextWatcher() {
+        marginText.addTextChangedListener(new TextWatcher()
+        {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3){}
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
+            }
 
             @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
                 setPriceEquation();
             }
 
             @Override
-            public void afterTextChanged(Editable editable){
-                
+            public void afterTextChanged(Editable editable)
+            {
+
             }
         });
 
-        predictAdapter = new PredictAdapter(getContext(), Collections.emptyList());
+        predictAdapter = new PredictAdapter(this, Collections.emptyList());
         setEditLocationAdapter(predictAdapter);
+        
+        advertisementItemObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
+        
+        //subScribeData
     }
 
     @Override
@@ -275,6 +329,7 @@ public class EditActivity extends BaseActivity implements EditView
         super.onSaveInstanceState(outState);
         outState.putParcelable(EXTRA_ADDRESS, address);
         outState.putBoolean(EXTRA_CREATE, create);
+        outState.putString(EXTRA_AD_ID, adId);
     }
 
     @Override
@@ -298,27 +353,23 @@ public class EditActivity extends BaseActivity implements EditView
 
     public void setToolBarMenu(Toolbar toolbar)
     {
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener()
+        {
             @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
+            public boolean onMenuItemClick(MenuItem menuItem)
+            {
 
                 switch (menuItem.getItemId()) {
                     case R.id.action_cancel:
-                        presenter.cancelChanges(create);
+                        cancelChanges(create);
                         return true;
                     case R.id.action_save:
-                        presenter.validateChanges();
+                        //validateChanges();
                         return true;
                 }
                 return false;
             }
         });
-    }
-    
-    @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new EditModule(this));
     }
 
     @Override
@@ -334,48 +385,38 @@ public class EditActivity extends BaseActivity implements EditView
     public void onResume()
     {
         super.onResume();
-
-        presenter.onResume(create);
     }
-
-    @Override
-    public void onDestroy()
+    
+    public void subScribeData()
     {
-        super.onDestroy();
-
-        ButterKnife.reset(this);
-
-        presenter.onDestroy();
+        advertisementItemObservable.subscribe(new Action1<AdvertisementItem>()
+        {
+            @Override
+            public void call(AdvertisementItem advertisementItem)
+            {
+                setAdvertisement(advertisementItem);
+            }
+        });
     }
-
-    @Override 
-    public Context getContext() 
-    {
-        return this;
-    }
-
-
-    @Override
+    
     public void setTradeType(TradeType tradeType)
     {
         typeSpinner.setSelection(tradeType.ordinal());
     }
-
-    @Override
+    
     public void setMethods(List<Method> methods)
     {
-        MethodAdapter typeAdapter = new MethodAdapter(getContext(), R.layout.spinner_layout, methods);
+        MethodAdapter typeAdapter = new MethodAdapter(this, R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
     }
-
-    @Override
+    
     public void setCurrencies(List<Currency> currencies, Advertisement advertisement)
     {
-        CurrencyAdapter typeAdapter = new CurrencyAdapter(getContext(), R.layout.spinner_layout, currencies);
+        CurrencyAdapter typeAdapter = new CurrencyAdapter(this, R.layout.spinner_layout, currencies);
         currencySpinner.setAdapter(typeAdapter);
 
         int i = 0;
-        String defaultCurrency = (create)? getContext().getString(R.string.usd):advertisement.currency;
+        String defaultCurrency = (create)? this.getString(R.string.usd):advertisement.currency;
         for (Currency currency : currencies) {
             if(currency.ticker.equals(defaultCurrency)) {
                 currencySpinner.setSelection(i);
@@ -384,31 +425,31 @@ public class EditActivity extends BaseActivity implements EditView
             i++;
         }
     }
-
-    @Override
-    public void setAdvertisement(Advertisement advertisement)
+    
+    public void setAdvertisement(AdvertisementItem advertisement)
     {
         if(!create) {
-            currentLocation.setText(advertisement.location);
+            currentLocation.setText(advertisement.location_string());
         }
 
-        Timber.d("Max Amount: " + advertisement.track_max_amount);
-        Timber.d("SMS Verified: " + advertisement.sms_verification_required);
-        Timber.d("Trusted: " + advertisement.trusted_required);
+        Timber.d("Max Amount: " + advertisement.track_max_amount());
+        Timber.d("SMS Verified: " + advertisement.sms_verification_required());
+        Timber.d("Trusted: " + advertisement.trusted_required());
        
-        liquidityCheckBox.setChecked(advertisement.track_max_amount);
-        smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required);
-        trustedCheckBox.setChecked(advertisement.trusted_required);
-        activeCheckBox.setChecked(advertisement.visible);
+        liquidityCheckBox.setChecked(advertisement.track_max_amount());
+        smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required());
+        trustedCheckBox.setChecked(advertisement.trusted_required());
+        activeCheckBox.setChecked(advertisement.visible());
         
-        messageText.setText(advertisement.msg);
-        editBankNameText.setText(advertisement.bank_name);
-        editMinimumAmount.setText(advertisement.min_amount);
-        editMaximumAmount.setText(advertisement.max_amount);
-        editPaymentDetails.setText(advertisement.account_info);
-        advertisementTypeLayout.setVisibility(create?View.VISIBLE:View.GONE);
+        messageText.setText(advertisement.message());
+        editBankNameText.setText(advertisement.bank_name());
+        editMinimumAmount.setText(advertisement.min_amount());
+        editMaximumAmount.setText(advertisement.max_amount());
+        editPaymentDetails.setText(advertisement.account_info());
+        advertisementTypeLayout.setVisibility(create ? View.VISIBLE : View.GONE);
 
-        if(advertisement.trade_type == TradeType.LOCAL_SELL || advertisement.trade_type == TradeType.LOCAL_BUY) {
+        TradeType tradeType = TradeType.valueOf(advertisement.trade_type());
+        if(tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
             editPaymentDetailsLayout.setVisibility(View.GONE);
             bankNameLayout.setVisibility(View.GONE);
             paymentMethodLayout.setVisibility(View.GONE);
@@ -419,13 +460,13 @@ public class EditActivity extends BaseActivity implements EditView
         }
 
         if(create) {
-            editMinimumAmountCurrency.setText(getContext().getString(R.string.usd));
-            editMaximumAmountCurrency.setText(getContext().getString(R.string.usd));
+            editMinimumAmountCurrency.setText(this.getString(R.string.usd));
+            editMaximumAmountCurrency.setText(this.getString(R.string.usd));
             activeLayout.setVisibility(View.GONE);
         } else {
-            editMinimumAmountCurrency.setText(advertisement.currency);
-            editMaximumAmountCurrency.setText(advertisement.currency);
-            editPriceEquation.setText(advertisement.price_equation);
+            editMinimumAmountCurrency.setText(advertisement.currency());
+            editMaximumAmountCurrency.setText(advertisement.currency());
+            editPriceEquation.setText(advertisement.price_equation());
             marginLayout.setVisibility(View.GONE);
         }
     }
@@ -459,8 +500,7 @@ public class EditActivity extends BaseActivity implements EditView
         
         editPriceEquation.setText(equation);
     }
-
-    @Override
+    
     public void validateChangesAndSend(Advertisement advertisement)
     {
         String min = editMinimumAmount.getText().toString();
@@ -471,13 +511,13 @@ public class EditActivity extends BaseActivity implements EditView
         String msg = messageText.getText().toString();
 
         if (TextUtils.isEmpty(equation)) {
-            Toast.makeText(getContext(), "Price equation can't be blank.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Price equation can't be blank.", Toast.LENGTH_SHORT).show();
             return;
         } else  if (Strings.isBlank(min)) {
-            Toast.makeText(getContext(), "Enter a valid minimum amount.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Enter a valid minimum amount.", Toast.LENGTH_SHORT).show();
             return;
         } else if (Strings.isBlank(max)) {
-            Toast.makeText(getContext(), "Enter a valid maximum amount.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Enter a valid maximum amount.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -493,7 +533,7 @@ public class EditActivity extends BaseActivity implements EditView
         advertisement.min_amount = min;
         advertisement.max_amount = max;
         advertisement.bank_name = bankName;
-        advertisement.msg = msg;
+        advertisement.message = msg;
 
         advertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
         advertisement.track_max_amount = liquidityCheckBox.isChecked();
@@ -512,10 +552,9 @@ public class EditActivity extends BaseActivity implements EditView
         advertisement.country_code = code;
         advertisement.account_info = accountInfo;
 
-        presenter.updateAdvertisement(advertisement, create);
+        //updateAdvertisement(advertisement, create);
     }
-
-    @Override
+    
     public void setAddress(Address address)
     {
         if (address == null) return;
@@ -527,16 +566,16 @@ public class EditActivity extends BaseActivity implements EditView
 
     public void showSearchLayout()
     {
-        mapLayout.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_out_right));
-        searchLayout.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_in_left));
+        mapLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right));
+        searchLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_in_left));
         mapLayout.setVisibility(View.GONE);
         searchLayout.setVisibility(View.VISIBLE);
     }
 
     public void showMapLayout()
     {
-        mapLayout.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_in_left));
-        searchLayout.startAnimation(AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_out_right));
+        mapLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_in_left));
+        searchLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right));
         mapLayout.setVisibility(View.VISIBLE);
         searchLayout.setVisibility(View.GONE);
     }
@@ -546,10 +585,153 @@ public class EditActivity extends BaseActivity implements EditView
         if (editLocation != null)
             editLocation.setAdapter(adapter);
     }
-
-    @Override
+    
     public PredictAdapter getEditLocationAdapter()
     {
         return predictAdapter;
+    }
+
+    public void cancelChanges(Boolean create)
+    {
+        String message = (create)? "New trade canceled":"Trade update canceled";
+        toast(message);
+        finish();
+    }
+
+    public void startLocationCheck()
+    {
+       /* if(!geoLocationService.isGooglePlayServicesAvailable()) {
+            missingGooglePlayServices();
+            return;
+        }
+
+        if(hasLocationServices()) {
+            
+            geoLocationService.start();
+            
+            subscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
+                @Override
+                public void onCompleted(){
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    Timber.e(e.getMessage());
+                    if (e.getMessage().equals("1")) {
+                        showEnableLocationDialog();
+                    }
+                }
+
+                @Override
+                public void onNext(Location location) {
+                    Timber.d("Location: " + location.toString());
+                    geoLocationService.stop();
+                    getAddressFromLocation(location);
+                }
+            });
+        } else {
+            showEnableLocationDialog();
+        }*/
+    }
+
+    public void stopLocationCheck()
+    {
+        geoLocationService.stop();
+    }
+    
+    private void showEnableLocationDialog()
+    {
+        createAlert(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active), false);
+    }
+
+    private void missingGooglePlayServices()
+    {
+        createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
+    }
+
+    public void createAlert(String title, String message, final boolean googlePlay)
+    {
+        int positiveButton = (googlePlay)? R.string.button_install:R.string.button_enable;
+        ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(positiveButton), getString(R.string.button_cancel), new Action0() {
+            @Override
+            public void call() {
+                if(googlePlay) {
+                    installGooglePlayServices();
+                } else {
+                    openLocationServices();
+                }
+            }
+        });
+
+        showConfirmationDialog(event);
+    }
+
+    private void openLocationServices()
+    {
+        Intent viewIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivity(viewIntent);
+    }
+
+    private void installGooglePlayServices()
+    {
+        final String appPackageName = "com.google.android.gms"; // getPackageName() from Context or Activity object
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+        } catch (android.content.ActivityNotFoundException anfe) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appPackageName)));
+        }
+    }
+
+    public boolean hasLocationServices()
+    {
+        return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
+    }
+    
+    public void getCurrencies()
+    {
+        /*subscription = service.getCurrencies(new Observer<List<Currency>>() {
+            @Override
+            public void onCompleted()
+            {
+            }
+
+            @Override
+            public void onError(Throwable e)
+            {
+            }
+
+            @Override
+            public void onNext(List<Currency> exchanges)
+            {
+                setCurrencies(exchanges, getAdvertisement());
+            }
+        });*/
+    }
+    
+    public void getAddressFromLocation(Location location)
+    {
+        geoLocationService.geoDecodeLocation(location).subscribe(new Observer<List<Address>>()
+        {
+            @Override
+            public void onCompleted()
+            {
+            }
+
+            @Override
+            public void onError(Throwable throwable)
+            {
+                handleError(throwable);
+            }
+
+            @Override
+            public void onNext(List<Address> addresses)
+            {
+                if (!addresses.isEmpty()) {
+                    setAddress(addresses.get(0));
+                }
+            }
+        });
+        
     }
 }

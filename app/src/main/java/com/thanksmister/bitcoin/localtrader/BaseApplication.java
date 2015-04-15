@@ -17,22 +17,15 @@
 package com.thanksmister.bitcoin.localtrader;
 
 import android.app.Application;
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
 
-import java.util.Arrays;
-import java.util.List;
-
-import dagger.ObjectGraph;
 import timber.log.Timber;
 
 public class BaseApplication extends Application
 {
-    private ObjectGraph applicationGraph;
+    //private ObjectGraph applicationGraph;
     
     @Override
     public void onCreate() 
@@ -47,43 +40,25 @@ public class BaseApplication extends Application
             Timber.plant(new CrashlyticsTree());
         }
 
-        applicationGraph = ObjectGraph.create(getModules().toArray());
+        Injector.init(this);
     }
 
-    /**
-     * A list of modules to use for the application graph. Subclasses can override this method to
-     * provide additional modules provided they call {@code super.getModules()}.
-     */
-    protected List<Object> getModules() {
+    /*public ObjectGraph getApplicationGraph()
+    {
+        return applicationGraph;
+    }
+
+    protected List<Object> getModules()
+    {
         return Arrays.<Object>asList(new ApplicationModule(this));
     }
-
-    public boolean isConnected()
-    {
-        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-    }
-
-    public boolean connectedOnWiFi()
-    {
-        ConnectivityManager cm = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
-    }
-
-    public ObjectGraph createScopedGraph(Object... modules) 
-    {
-        return applicationGraph.plus(modules);
-    }
-
-    public void inject(Object o) 
-    {
+    
+    public void inject(Object o) {
         applicationGraph.inject(o);
     }
 
     public static BaseApplication get(Context context) 
     {
         return (BaseApplication) context.getApplicationContext();
-    }
+    }*/
 }

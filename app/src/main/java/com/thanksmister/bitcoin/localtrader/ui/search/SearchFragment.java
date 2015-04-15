@@ -23,7 +23,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.ui.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.PredictAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -38,7 +38,6 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import butterknife.Optional;
 
 public class SearchFragment extends BaseFragment implements SearchView
 {
@@ -295,13 +294,7 @@ public class SearchFragment extends BaseFragment implements SearchView
         
         ButterKnife.reset(this);
     }
-
-    @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new SearchModule(this));
-    }
-
+    
     @Override
     public void showError(String message)
     {

@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 
 import retrofit.client.Response;
 import rx.functions.Func1;
+import timber.log.Timber;
 
 public class ResponseToWallet implements Func1<Response, Wallet>
 {

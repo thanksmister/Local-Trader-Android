@@ -16,58 +16,13 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-public class Method implements Parcelable
+public class Method
 {
-    public String key;
-    public String code;
-    public String name;
-    public String countryCode;
-    public String countryName;
-
-    public Method()
-    {
-    }
-
-    // Parcelling part
-    public Method(Parcel parcel)
-    {
-        this();
-        key = parcel.readString();
-        code = parcel.readString();
-        name = parcel.readString();
-        countryCode = parcel.readString();
-        countryName = parcel.readString();
-    }
-
-    @Override
-    public int describeContents()
-    {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i)
-    {
-        parcel.writeString(key);
-        parcel.writeString(code);
-        parcel.writeString(name);
-        parcel.writeString(countryCode);
-        parcel.writeString(countryName);
-    }
-
-    public static Creator<Method> CREATOR = new Creator<Method>()
-    {
-        public Method createFromParcel(Parcel parcel) {
-            return new Method(parcel);
-        }
-
-        public Method[] newArray(int size) {
-            return new Method[size];
-        }
-    };
+    public String key = "";
+    public String code = "";
+    public String name = "";
+    public String countryCode = "";
+    public String countryName = "";
 }
 
 

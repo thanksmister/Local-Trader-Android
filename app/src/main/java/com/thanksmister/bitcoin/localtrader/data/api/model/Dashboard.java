@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 
 import java.util.ArrayList;
@@ -25,15 +27,16 @@ import java.util.List;
 public class Dashboard
 {
     public List<Contact> contacts = Collections.emptyList();
-    public List<Advertisement> advertisements = Collections.emptyList();
+    public List<MethodItem> methods = Collections.emptyList();
+    public List<AdvertisementItem> advertisements = Collections.emptyList();
     //public Wallet wallet = new Wallet();
     public Exchange exchange;
     
-    public List<Advertisement> getActiveAdvertisements()
+    public List<AdvertisementItem> getActiveAdvertisements()
     {
-        ArrayList<Advertisement> list = new ArrayList<>();
-        for(Advertisement advertisement : advertisements) {
-            if(advertisement.visible) {
+        ArrayList<AdvertisementItem> list = new ArrayList<>();
+        for(AdvertisementItem advertisement : advertisements) {
+            if(advertisement.visible()) {
                 list.add(advertisement);
             }
         }
@@ -41,11 +44,11 @@ public class Dashboard
         return list;
     }
 
-    public List<Advertisement> getInactiveAdvertisements()
+    public List<AdvertisementItem> getInactiveAdvertisements()
     {
-        ArrayList<Advertisement> list = new ArrayList<>();
-        for(Advertisement advertisement : advertisements) {
-            if(!advertisement.visible) {
+        ArrayList<AdvertisementItem> list = new ArrayList<>();
+        for(AdvertisementItem advertisement : advertisements) {
+            if(!advertisement.visible()) {
                 list.add(advertisement);
             }
         }

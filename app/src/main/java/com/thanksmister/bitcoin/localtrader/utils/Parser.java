@@ -71,6 +71,24 @@ public class Parser
             return null;
         }
     }
+
+    //{"data": {"message": "Ad deleted successfully!"}}
+    public static String parseJSONResponse(JSONObject jsonObject)
+    {
+        String message = "";
+
+        try {
+            if (jsonObject.has("data")) {
+                JSONObject data = jsonObject.getJSONObject("data");
+                message = data.getString("message");
+            }
+            return message;
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+        }
+
+        return null;
+    }
     
     public static String parseRetrofitResponse(Response response)
     {
@@ -102,7 +120,7 @@ public class Parser
         return parseError(json);
     }
 
-    private static boolean containsError(JSONObject jsonObject)
+    public static boolean containsError(JSONObject jsonObject)
     {
         String response = jsonObject.toString();
         return containsError(response);
@@ -410,22 +428,22 @@ public class Parser
             item.amount_btc = (data.getString("amount_btc"));
             item.created_at = (data.getString("created_at"));
 
-            if (!data.isNull("released_at") && data.has("released_at"))
+            if (!data.isNull("released_at"))
                 item.released_at = (data.getString("released_at"));
 
-            if (!data.isNull("disputed_at") && data.has("disputed_at"))
+            if (!data.isNull("disputed_at"))
                 item.disputed_at = (data.getString("disputed_at"));
 
-            if (!data.isNull("closed_at") && data.has("closed_at"))
+            if (!data.isNull("closed_at"))
                 item.closed_at = (data.getString("closed_at"));
 
-            if (!data.isNull("escrowed_at") && data.has("escrowed_at"))
+            if (!data.isNull("escrowed_at"))
                 item.escrowed_at = (data.getString("escrowed_at"));
 
-            if (!data.isNull("canceled_at") && data.has("canceled_at"))
+            if (!data.isNull("canceled_at"))
                 item.canceled_at = (data.getString("canceled_at"));
 
-            if (!data.isNull("funded_at") && data.has("funded_at")) {
+            if (!data.isNull("funded_at")) {
                 item.funded_at = (data.getString("funded_at"));
                 item.is_funded = true;
             }
@@ -470,36 +488,39 @@ public class Parser
             }
 
             JSONObject actions = object.getJSONObject("actions");
-            if (actions.has("release_url") && !actions.isNull("release_url")) {
+            
+            if (actions.has("release_url")) {
                 item.actions.release_url = (actions.getString("release_url"));
             }
 
-            if (actions.has("cancel_url") && !actions.isNull("cancel_url")) {
+            if (actions.has("cancel_url")) {
                 item.actions.cancel_url = (actions.getString("cancel_url"));
             }
 
-            if (actions.has("mark_as_paid_url") && !actions.isNull("mark_as_paid_url")) {
+            if (actions.has("mark_as_paid_url")) {
                 item.actions.mark_as_paid_url = (actions.getString("mark_as_paid_url"));
             }
 
-            if (actions.has("dispute_url") && !actions.isNull("dispute_url")) {
+            if (actions.has("dispute_url")) {
                 item.actions.dispute_url = (actions.getString("dispute_url"));
             }
 
-            if (actions.has("fund_url") && !actions.isNull("fund_url")) {
+            if (actions.has("fund_url")) {
                 item.actions.fund_url = (actions.getString("fund_url"));
             }
 
-            if (actions.has("advertisement_public_view"))
-                item.actions.advertisement_public_view = (actions.getString("advertisement_public_view"));
+            if (actions.has("advertisement_public_view")) {
+                item.actions.advertisement_public_view = actions.getString("advertisement_public_view");
+            }
 
-            if (actions.has("message_url"))
-                item.actions.message_url = (actions.getString("message_url"));
+            if (actions.has("messages_url")) {
+                item.actions.messages_url = actions.getString("messages_url");
+            }
 
-            if (actions.has("message_post_url"))
-                item.actions.message_post_url = (actions.getString("message_post_url"));
-
-
+            if (actions.has("message_post_url")) {
+                item.actions.message_post_url = actions.getString("message_post_url");
+            }
+            
             return item;
 
         } catch (JSONException e) {
@@ -584,6 +605,7 @@ public class Parser
         try {
 
             JSONObject data = jsonObject.getJSONObject("data");
+
             wallet.message = (data.getString("message"));
 
             JSONObject total = data.getJSONObject("total");
@@ -591,6 +613,7 @@ public class Parser
             wallet.total.sendable = (total.getString("sendable"));
 
             JSONArray sent_transactions = data.getJSONArray("sent_transactions_30d");
+
             ArrayList<Transaction> sentTransactions = new ArrayList<>();
             for (int i = 0; i < sent_transactions.length(); i++) {
 
@@ -845,7 +868,15 @@ public class Parser
             }
 
             item.visible = (data.getBoolean("visible"));
-            item.price = ((data.getString("temp_price")));
+            item.temp_price = ((data.getString("temp_price")));
+            item.temp_price_usd = ((data.getString("temp_price_usd")));
+            
+            item.temp_price_usd = ((data.getString("temp_price_usd")));
+            item.temp_price_usd = ((data.getString("temp_price_usd")));
+            
+            item.require_feedback_score = ((data.getString("require_feedback_score")));
+            item.require_trade_volume = ((data.getString("require_trade_volume")));
+            
             item.email = (data.getString("email"));
             item.location = (data.getString("location_string"));
             item.country_code = (data.getString("countrycode"));
@@ -857,7 +888,10 @@ public class Parser
             
             if (data.has("price_equation"))
                 item.price_equation = (data.getString("price_equation"));
-
+            
+            if (data.has("reference_type"))
+                item.reference_type = (data.getString("reference_type"));
+            
             if (data.has("track_max_amount")) item.track_max_amount = (data.getBoolean("track_max_amount"));
             if (data.has("trusted_required")) item.trusted_required = (data.getBoolean("trusted_required"));
             if (data.has("sms_verification_required")) item.sms_verification_required = (data.getBoolean("sms_verification_required"));
@@ -876,7 +910,7 @@ public class Parser
             if (data.has("msg") && !data.isNull("msg")) {
                 String message = (data.getString("msg"));
                 //message = message.replace("\n", "").replace("\r", "<br>");
-                item.msg = message;
+                item.message = message;
             }
 
             if (data.has("min_amount") && !data.isNull("min_amount")) {

@@ -75,7 +75,33 @@ public class DataServiceUtils
 
         return false;
     }
-    
+
+    public static boolean isHttp404Error(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetrofitError retroError = (RetrofitError) throwable;
+            Response response = retroError.getResponse();
+            return (response.getStatus() == 404);
+        }
+
+        return false;
+    }
+
+    public static boolean isHttp400GrantError(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+
+            try {
+                String response =  new String(((TypedByteArray) ((RetrofitError) throwable).getResponse().getBody()).getBytes());
+                return (response.contains("invalid_grant"));
+            } catch (ClassCastException error) {
+                return (throwable.getLocalizedMessage().contains("invalid_grant"));
+            }
+        }
+
+        return false;
+    }
+
     public static RetroError convertRetroError(Throwable throwable, Context context)
     {
         RetroError retroError;

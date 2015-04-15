@@ -6,15 +6,9 @@ package com.thanksmister.bitcoin.localtrader.ui.searchresults;
  * Copyright 2013, ThanksMister LLC
  */
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.ApplicationModule;
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactActivity;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactPresenter;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactPresenterImpl;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactView;
 
 import javax.inject.Singleton;
 

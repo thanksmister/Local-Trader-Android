@@ -70,7 +70,6 @@ public class Advertisement
     public String country_code;
     public String city;
     public TradeType trade_type = TradeType.LOCAL_SELL;
-    public String msg;
     public String min_amount;
     public String max_amount;
     public String max_amount_available;
@@ -81,7 +80,8 @@ public class Advertisement
     public double lat;
     public double lon;
   
-    public String price;
+    public String temp_price;
+    public String temp_price_usd;
     public String bank_name;
     public String nextUrl;
     public String atm_model;
@@ -91,11 +91,13 @@ public class Advertisement
     public boolean trusted_required = false;
     
     public String online_provider;
-    public String online_provider_name;
     public Profile profile = new Profile();
     public Actions actions = new Actions();
     public String distance;
-    
+    public String require_trade_volume;
+    public String require_feedback_score;
+    public String reference_type;
+
     public boolean isATM()
     {
         return atm_model != null;

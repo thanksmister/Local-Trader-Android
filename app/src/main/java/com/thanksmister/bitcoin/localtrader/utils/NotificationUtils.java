@@ -27,7 +27,7 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
-import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 
 import timber.log.Timber;

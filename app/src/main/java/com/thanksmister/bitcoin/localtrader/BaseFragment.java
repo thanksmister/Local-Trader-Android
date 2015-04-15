@@ -5,47 +5,122 @@ package com.thanksmister.bitcoin.localtrader;
  * Date: 12/30/14
  * Copyright 2013, ThanksMister LLC
  */
+
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.widget.Toast;
 
-import com.thanksmister.bitcoin.localtrader.BaseActivity;
+import com.thanksmister.bitcoin.localtrader.ui.BlockingProgressFragment;
+import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 
-import java.util.List;
+import butterknife.ButterKnife;
+import rx.Observable;
+import rx.Observer;
+import rx.Subscription;
+import rx.functions.Action0;
+import timber.log.Timber;
 
-import dagger.ObjectGraph;
+import static rx.android.app.AppObservable.bindFragment;
 
-/** Base fragment which performs injection using the activity object graph of its parent. */
-public abstract class BaseFragment extends Fragment 
+/**
+ * Base fragment which performs injection using the activity object graph of its parent.
+ */
+public abstract class BaseFragment extends DialogFragment
 {
-    private ObjectGraph activityGraph;
-    
-    @Override 
-    public void onActivityCreated(Bundle savedInstanceState) 
-    {
-        super.onActivityCreated(savedInstanceState);
+    private BlockingProgressFragment blockingProgressFragment;
+    private Toolbar toolbar;
 
-        BaseApplication application = (BaseApplication) (getActivity()).getApplication();
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        Injector.inject(this);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState)
+    {
+        super.onViewCreated(view, savedInstanceState);
+        ButterKnife.inject(this, view);
+    }
+
+    public Toolbar getToolbar()
+    {
+        if (toolbar == null) {
+            throw new RuntimeException("Toolbar has not been set.  Make sure not to call getToolbar() until onViewCreated() at the earliest.");
+        }
+        return toolbar;
+    }
+
+    protected <T> Subscription blockingSubscribe(Fragment fragment, Observable<T> observable, final Observer<T> observer)
+    {
+        Subscription subscription = bindFragment(fragment, observable)
+                .doOnTerminate(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        dismissBlockingProgress();
+                    }
+                })
+                .subscribe(observer);
+        showBlockingProgress();
         
-        activityGraph = application.createScopedGraph(getModules().toArray());
-        activityGraph.inject(this);
+        return subscription;
     }
 
-    public void inject(Object object)
+    protected void dismissBlockingProgress()
     {
-        activityGraph.inject(object);
+        if (blockingProgressFragment != null) {
+            blockingProgressFragment.dismiss();
+            blockingProgressFragment = null;
+        }
     }
 
-    protected abstract List<Object> getModules();
-
-    /**
-     * Shows a {@link android.widget.Toast} message.
-     *
-     * @param message An string representing a message to be shown.
-     */
-    protected void showToastMessage(String message) 
+    protected void showBlockingProgress()
     {
-        if(getActivity() != null)
-            ((BaseActivity)getActivity()).showToastMessage(message);
+        blockingProgressFragment = BlockingProgressFragment.newInstance();
+        blockingProgressFragment.show(getFragmentManager(), BlockingProgressFragment.TAG);
+        blockingProgressFragment.setOnCancelListener(null);
+    }
+
+    //{"error_description": "* error\n  * i\n  * n\n  * v\n  * a\n  * l\n  * i\n  * d\n  * _\n  * g\n  * r\n  * a\n  * n\n  * t", "error": "invalid_grant"}
+    protected void handleError(Throwable throwable)
+    {
+        if(DataServiceUtils.isHttp403Error(throwable)) {
+            toast(getString(R.string.error_authentication) + " Code 403");
+            ((BaseActivity)getActivity()).logOut();
+        } else if(DataServiceUtils.isHttp401Error(throwable)) {
+            toast(getString(R.string.error_no_internet) + " Code 401");
+        } else if(DataServiceUtils.isHttp500Error(throwable)) {
+            toast(getString(R.string.error_service_error) + " Code 500");
+        } else if(DataServiceUtils.isHttp404Error(throwable)) {
+            toast(getString(R.string.error_service_error) + " Code 404");
+        } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
+            toast(getString(R.string.error_authentication) + " Code 400 Grant Invalid");
+            ((BaseActivity)getActivity()).logOut();
+        } else if(DataServiceUtils.isHttp400Error(throwable)) {
+            toast(getString(R.string.error_service_error) + " Code 400");
+        } else {
+            toast(R.string.error_generic_error);
+        }
+    }
+
+    protected void toast(int messageId)
+    {
+        Toast.makeText(getActivity(), messageId, Toast.LENGTH_SHORT).show();
+    }
+
+    protected void toast(String message)
+    {
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    protected int getColor(int colorRes)
+    {
+        return getResources().getColor(colorRes);
     }
 }

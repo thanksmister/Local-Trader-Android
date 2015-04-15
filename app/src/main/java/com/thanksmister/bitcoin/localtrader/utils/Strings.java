@@ -25,7 +25,7 @@ public final class Strings
 
     public static boolean isBlank(CharSequence string)
     {
-        return (string == null || string.toString().trim().length() == 0 || string.equals(""));
+        return (string == null || string.toString().trim().length() == 0 || string.equals("") || string.equals("null"));
     }
 
     public static String valueOrDefault(String string, String defaultString)

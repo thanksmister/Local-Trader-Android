@@ -42,24 +42,6 @@
                 android:id="@+id/advertisementProgress"
                 layout="@layout/view_progress"/>
 
-        <include
-                android:id="@+id/advertisementRetry"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                layout="@layout/view_retry"
-                tools:visibility="visible"
-                android:visibility="gone"
-                android:layout_gravity="bottom"/>
-
-        <include
-                android:id="@+id/advertisementEmpty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                layout="@layout/view_empty"
-                tools:visibility="visible"
-                android:visibility="gone"
-                android:layout_gravity="center"/>
-
         <ScrollView
                 android:id="@+id/advertisementMainView"
                 android:layout_width="match_parent"

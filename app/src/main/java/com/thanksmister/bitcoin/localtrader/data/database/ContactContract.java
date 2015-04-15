@@ -105,7 +105,7 @@ public class ContactContract extends BaseContract
 
         // actions
         public static final String COLUMN_NAME_RELEASE_URL = "release_url";
-        public static final String COLUMN_NAME_MESSAGE_URL = "message_url";
+        public static final String COLUMN_NAME_MESSAGE_URL = "messages_url";
         public static final String COLUMN_NAME_MESSAGE_POST_URL = "message_post_url";
         public static final String COLUMN_NAME_PAID_URL = "mark_as_paid_url";
         public static final String COLUMN_NAME_ADVERTISEMENT_URL = "ad_url";

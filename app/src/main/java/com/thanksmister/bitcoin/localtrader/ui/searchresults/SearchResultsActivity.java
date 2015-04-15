@@ -137,12 +137,6 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     }
 
     @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new SearchResultsModule(this));
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         if(toolbar != null)

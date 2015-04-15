@@ -36,10 +36,7 @@ import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
-
-import java.util.Arrays;
-import java.util.List;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import javax.inject.Inject;
 
@@ -166,13 +163,7 @@ public class AboutFragment extends BaseFragment implements AboutView
 
         presenter.onDestroy();
     }
-
-    @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new AboutModule(this));
-    }
-
+    
     protected void rate()
     {
         final String appName = Constants.GOOGLE_PLAY_RATING;

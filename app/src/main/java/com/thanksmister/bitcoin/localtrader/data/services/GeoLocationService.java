@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -41,6 +42,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToPlace;
 import com.thanksmister.bitcoin.localtrader.data.rx.EndObserver;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
+import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -273,6 +275,23 @@ public class GeoLocationService
 
         if(behaviorSubject != null)
             behaviorSubject.onCompleted();
+    }
+
+    private Observable<Location> getLocation()
+    {
+        return Observable.create(new Observable.OnSubscribe<Location>()
+        {
+            @Override
+            public void call(Subscriber<? super Location> subscriber)
+            {
+                try {
+                    subscriber.onNext(new Location("initProvider"));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
     }
 
     public Subscription subscribeToLocation(final Observer<Location> observer)

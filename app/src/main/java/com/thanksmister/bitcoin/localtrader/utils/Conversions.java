@@ -193,7 +193,6 @@ public class Conversions
 
     public static String formatCurrencyAmount(Float amount, int maxDecimal, int minDecimal)
     {
-
         BigDecimal balanceNumber = new BigDecimal(amount);
         DecimalFormat df = new DecimalFormat();
         df.setMaximumFractionDigits(maxDecimal);
@@ -211,12 +210,19 @@ public class Conversions
     {
         if(btc == null) return null;
 
-        Double balanceNumber = Double.parseDouble(btc);
-        DecimalFormat df = new DecimalFormat();
-        df.setMaximumFractionDigits(maxDecimal);
-        df.setMinimumFractionDigits(minDecimal);
-        df.setGroupingUsed(false);
-        return df.format(balanceNumber);
+        try {
+            Double balanceNumber = Double.parseDouble(btc);
+            DecimalFormat df = new DecimalFormat();
+            df.setMaximumFractionDigits(maxDecimal);
+            df.setMinimumFractionDigits(minDecimal);
+            df.setGroupingUsed(false);
+
+            return df.format(balanceNumber);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
     }
 
     public static String formatDealAmount(String btc, String amount)

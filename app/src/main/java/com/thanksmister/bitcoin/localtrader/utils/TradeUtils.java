@@ -27,6 +27,8 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -225,6 +227,16 @@ public class TradeUtils
         return (advertisement.trade_type == TradeType.LOCAL_BUY || advertisement.trade_type == TradeType.LOCAL_SELL);
     }
 
+    public static boolean isLocalTrade(AdvertisementItem advertisement)
+    {
+        return (advertisement.trade_type().equals(TradeType.LOCAL_BUY.name()) || advertisement.trade_type().equals(TradeType.LOCAL_SELL.name()));
+    }
+
+    public static boolean isAtm(AdvertisementItem advertisement)
+    {
+        return (!Strings.isBlank(advertisement.atm_model()));
+    }
+
     public static boolean isOnlineTrade(Contact contact)
     {
         return (contact.advertisement.trade_type == TradeType.ONLINE_BUY || contact.advertisement.trade_type == TradeType.ONLINE_SELL);
@@ -233,6 +245,21 @@ public class TradeUtils
     public static boolean isOnlineTrade(Advertisement advertisement)
     {
         return (advertisement.trade_type == TradeType.ONLINE_BUY || advertisement.trade_type == TradeType.ONLINE_SELL);
+    }
+
+    public static boolean isSellTrade(AdvertisementItem advertisement)
+    {
+        return (advertisement.trade_type().equals(TradeType.ONLINE_SELL.name()) || advertisement.trade_type().equals(TradeType.LOCAL_SELL.name()));
+    }
+
+    public static boolean isBuyTrade(AdvertisementItem advertisement)
+    {
+        return (advertisement.trade_type().equals(TradeType.ONLINE_BUY.name()) || advertisement.trade_type().equals(TradeType.LOCAL_BUY.name()));
+    }
+
+    public static boolean isOnlineTrade(AdvertisementItem advertisement)
+    {
+        return (advertisement.trade_type().equals(TradeType.ONLINE_BUY.name()) || advertisement.trade_type().equals(TradeType.ONLINE_SELL.name()));
     }
 
     public static Method getMethodForAdvertisement(String online_provider, List<Method> methods)
@@ -257,6 +284,17 @@ public class TradeUtils
         return null;
     }
 
+    public static MethodItem getMethodForAdvertisement(AdvertisementItem advertisement, List<MethodItem> methods)
+    {
+        for (MethodItem m : methods) {
+            if(advertisement.online_provider().equals(m.code())) {
+                return m;
+            }
+        }
+
+        return null;
+    }
+
     public static Method getPaymentMethod(String code, List<Method> methods)
     {
         for (Method method : methods) {
@@ -265,6 +303,30 @@ public class TradeUtils
             }
         }
         return null;
+    }
+
+    public static String getPaymentMethodFromItems(Advertisement advertisement, List<MethodItem> methodItems)
+    {
+        String paymentMethod = "";
+        for (MethodItem method : methodItems) {
+            if(method.code().equals(advertisement.online_provider)) {
+                paymentMethod = getPaymentMethod(advertisement, method);
+                break;
+            }
+        }
+        return paymentMethod;
+    }
+
+    public static String getPaymentMethodFromItems(AdvertisementItem advertisement, List<MethodItem> methodItems)
+    {
+        String paymentMethod = "";
+        for (MethodItem method : methodItems) {
+            if(method.code().equals(advertisement.online_provider())) {
+                paymentMethod = getPaymentMethod(advertisement, method);
+                break;
+            }
+        }
+        return paymentMethod;
     }
 
     public static String getPaymentMethod(Advertisement advertisement, List<Method> methods)
@@ -279,6 +341,26 @@ public class TradeUtils
         return paymentMethod;
     }
 
+    public static String getPaymentMethodName(Advertisement advertisement, MethodItem method)
+    {
+        String paymentMethod = "Other";
+        if(method != null && method.code().equals(advertisement.online_provider)) {
+            paymentMethod = method.name();
+        }
+
+        return paymentMethod;
+    }
+
+    public static String getPaymentMethodName(AdvertisementItem advertisement, MethodItem method)
+    {
+        String paymentMethod = "Other";
+        if(method != null && method.code().equals(advertisement.online_provider())) {
+            paymentMethod = method.name();
+        }
+
+        return paymentMethod;
+    }
+
     public static String getPaymentMethodName(Advertisement advertisement, Method method)
     {
         String paymentMethod = "Other";
@@ -289,6 +371,69 @@ public class TradeUtils
         return paymentMethod;
     }
 
+    public static String getPaymentMethod(AdvertisementItem advertisement, MethodItem method)
+    {
+        String paymentMethod = "Online";
+        if (method != null && method.code().equals(advertisement.online_provider())) {
+            if (method.code().equals("NATIONAL_BANK")) {
+                if (Strings.isBlank(method.countryName()))
+                    return "national bank transfer";
+
+                return "bank transfer in " + method.countryName();
+            } else if (method.code().equals("CASH_DEPOSIT")) {
+                if (Strings.isBlank(method.countryName()))
+                    return "cash deposit";
+
+                return "cash deposit in " + method.countryName();
+            } else if (method.code().equals("SPECIFIC_BANK")) {
+                if (Strings.isBlank(method.countryName()))
+                    return "bank transfer";
+
+                return "bank transfer in " + method.countryName();
+            }
+
+            paymentMethod = method.name();
+        }
+
+        if(!Strings.isBlank(advertisement.bank_name()) && advertisement.online_provider().equals("NATIONAL_BANK")) {
+            return paymentMethod + " with " + advertisement.bank_name();
+        }
+
+        return paymentMethod;
+    }
+    
+    public static String getPaymentMethod(Advertisement advertisement, MethodItem method)
+    {
+        String paymentMethod = "Online";
+        if (method != null && method.code().equals(advertisement.online_provider)) {
+            if (method.code().equals("NATIONAL_BANK")) {
+                if (Strings.isBlank(method.countryName()))
+                    return "national bank transfer";
+
+                return "bank transfer in " + method.countryName();
+            } else if (method.code().equals("CASH_DEPOSIT")) {
+                if (Strings.isBlank(method.countryName()))
+                    return "cash deposit";
+
+                return "cash deposit in " + method.countryName();
+            } else if (method.code().equals("SPECIFIC_BANK")) {
+                if (Strings.isBlank(method.countryName()))
+                    return "bank transfer";
+
+                return "bank transfer in " + method.countryName();
+            }
+
+            paymentMethod = method.name();
+        }
+
+        if(!Strings.isBlank(advertisement.bank_name) && advertisement.online_provider.equals("NATIONAL_BANK")) {
+            return paymentMethod + " with " + advertisement.bank_name;
+        }
+
+        return paymentMethod;
+    }
+
+    @Deprecated
     public static String getPaymentMethod(Advertisement advertisement, Method method)
     {
         String paymentMethod = "Online";

@@ -35,18 +35,18 @@ import timber.log.Timber;
  * Date: 12/31/14
  * Copyright 2014, ThanksMister LLC
  */
-public class EditPresenterImpl implements EditPresenter
+public class EditPresenterImpl 
 {
-    private EditView view;
+    
     private DataService service;
     private GeoLocationService geoLocationService;
     LocationManager locationManager;
     private Subscription subscription;
     private DataModel dataModel;
 
-    public EditPresenterImpl(EditView view, DataService dataService, GeoLocationService geoLocationService, LocationManager locationManager, DataModel dataModel) 
+    /*public EditPresenterImpl( DataService dataService, GeoLocationService geoLocationService, LocationManager locationManager, DataModel dataModel) 
     {
-        this.view = view;
+
         this.service = dataService;
         this.geoLocationService = geoLocationService;
         this.locationManager = locationManager;
@@ -350,15 +350,7 @@ public class EditPresenterImpl implements EditPresenter
         }
         
         return dataModel.advertisement;
-    }
+    }*/
 
-    private EditView getView()      
-    {
-        return view;
-    }
-
-    private Context getContext()
-    {
-        return getView().getContext();
-    }
+   
 }

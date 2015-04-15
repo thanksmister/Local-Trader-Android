@@ -28,7 +28,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
 
-import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 

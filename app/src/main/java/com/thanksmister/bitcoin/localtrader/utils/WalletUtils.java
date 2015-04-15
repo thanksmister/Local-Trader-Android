@@ -49,12 +49,12 @@ public class WalletUtils
     private static final String CLASS_NAME = " " + WalletUtils.class.getSimpleName() + " ";
     private static int BITCOIN_ADDRESS_BYTES_LENGTH = 21;
     
-    public static Bitmap encodeAsBitmap(String address, Context appContext) throws WriterException
+    public static Bitmap encodeAsBitmap(String address, Context appContext)
     {
         return encodeAsBitmap(address, null, appContext);
     }
 
-    public static Bitmap encodeAsBitmap(String address, String amount, Context appContext) throws WriterException
+    public static Bitmap encodeAsBitmap(String address, String amount, Context appContext)
     {
         String contentsToEncode;
         if(amount == null) {
@@ -82,6 +82,8 @@ public class WalletUtils
         BitMatrix result;
         try {
             result = new QRCodeWriter().encode(contentsToEncode, BarcodeFormat.QR_CODE, windowSize, windowSize, hints);
+        } catch (WriterException we) {
+            return null;
         } catch (IllegalArgumentException iae) {
             // Unsupported format
             return null;

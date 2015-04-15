@@ -21,6 +21,7 @@ import android.location.LocationManager;
 
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
+import com.thanksmister.bitcoin.localtrader.ActivityModule;
 import com.thanksmister.bitcoin.localtrader.ApplicationModule;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
@@ -74,20 +75,7 @@ public final class DataModule
         return new DataModel();
     }
 
-    @Provides
-    @Singleton
-    DataService provideDataService(BaseApplication app, DatabaseManager databaseManager, SharedPreferences preferences, LocalBitcoins localBitcoins, BitstampExchange exchange, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
-    {
-        return new DataService(app, databaseManager, preferences, localBitcoins, exchange, bitcoinAverage, bitfinexExchange);
-    }
-
-    @Provides
-    @Singleton
-    GeoLocationService provideGeoLocationService(BaseApplication app, SharedPreferences preferences, LocationManager locationManager, LocalBitcoins localBitcoins)
-    {
-        return new GeoLocationService(app, preferences, locationManager, localBitcoins);
-    }
-
+   
     /*@Provides
     @Singleton
     CupboardSQLiteOpenHelper provideCupboardSQLiteOpenHelper(BaseApplication app)

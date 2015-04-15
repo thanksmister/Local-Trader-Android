@@ -108,7 +108,7 @@ public class AdvertiseAdapter extends BaseAdapter
         if(advertisement.isATM()) {
             holder.tradePrice.setText("ATM");
         } else {
-            holder.tradePrice.setText(context.getString(R.string.trade_price, advertisement.price, advertisement.currency));
+            holder.tradePrice.setText(context.getString(R.string.trade_price, advertisement.temp_price, advertisement.currency));
         }
         
         holder.traderName.setText(advertisement.profile.username);

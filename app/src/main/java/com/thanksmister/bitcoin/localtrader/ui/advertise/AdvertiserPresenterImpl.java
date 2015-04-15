@@ -2,11 +2,9 @@ package com.thanksmister.bitcoin.localtrader.ui.advertise;
 
 import android.content.Context;
 import android.content.Intent;
-import android.location.Address;
 import android.net.Uri;
 import android.widget.Toast;
 
-import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -14,10 +12,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
-import com.thanksmister.bitcoin.localtrader.ui.searchresults.SearchResultsPresenter;
-import com.thanksmister.bitcoin.localtrader.ui.searchresults.SearchResultsView;
 import com.thanksmister.bitcoin.localtrader.ui.traderequest.TradeRequestActivity;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -129,7 +123,7 @@ public class AdvertiserPresenterImpl implements AdvertiserPresenter
     @Override
     public void showTradeRequest()
     {
-        Intent intent = TradeRequestActivity.createStartIntent(getView().getContext(), advertisement.ad_id, advertisement.price, advertisement.min_amount, advertisement.max_amount, advertisement.currency, advertisement.profile.username);
+        Intent intent = TradeRequestActivity.createStartIntent(getView().getContext(), advertisement.ad_id, advertisement.temp_price, advertisement.min_amount, advertisement.max_amount, advertisement.currency, advertisement.profile.username);
         intent.setClass(getView().getContext(), TradeRequestActivity.class);
         getView().getContext().startActivity(intent);
     }

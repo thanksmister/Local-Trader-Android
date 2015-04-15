@@ -28,9 +28,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.AdvertisementType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.ArrayList;
@@ -43,12 +46,12 @@ import butterknife.Optional;
 
 public class AdvertisementAdapter extends BaseAdapter implements Filterable
 {
-    protected List<Advertisement> data = Collections.emptyList();
-    protected List<Method> methods = Collections.emptyList();
+    protected List<AdvertisementItem> data = Collections.emptyList();
+    protected List<MethodItem> methods = Collections.emptyList();
     protected Context context;
     protected final LayoutInflater inflater;
     private ValueFilter valueFilter;
-    private List<Advertisement> dataFiltered;
+    private List<AdvertisementItem> dataFiltered;
 
     public AdvertisementAdapter(Context context)
     {
@@ -69,7 +72,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
     }
 
     @Override
-    public Advertisement getItem(int position)
+    public AdvertisementItem getItem(int position)
     {
         return data.get(position);
     }
@@ -80,7 +83,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
         return position;
     }
 
-    public void replaceWith(List<Advertisement> data, List<Method> methods)
+    public void replaceWith(List<AdvertisementItem> data, List<MethodItem> methods)
     {
         this.data = data;
         this.methods = methods;
@@ -100,15 +103,16 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
             view.setTag(holder);
         }
 
-        Advertisement advertisement = getItem(position);
+        AdvertisementItem advertisement = getItem(position);
 
-        if (advertisement.visible)
+        if (advertisement.visible())
             holder.row.setBackgroundColor(context.getResources().getColor(R.color.white));
         else
             holder.row.setBackgroundColor(context.getResources().getColor(R.color.list_gray_color));
 
+        TradeType tradeType = TradeType.valueOf(advertisement.trade_type());
         String type = "";
-        switch (advertisement.trade_type) {
+        switch (tradeType) {
             case LOCAL_BUY:
                 type = "Local Buy - ";
                 break;
@@ -123,35 +127,35 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
                 break;
         }
         
-        /*holder.tradePrice.setText(advertisement.price + " " + advertisement.currency);
+        /*holder.tradePrice.setText(advertisement.temp_price + " " + advertisement.currency);
         if(advertisement.max_amount == null) {
             holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
         } else { // no maximum set
             holder.tradeLimit.setText(context.getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount));
         }*/
 
-        String price = advertisement.price + " " + advertisement.currency;
-        String location = advertisement.location;
+        String price = advertisement.temp_price() + " " + advertisement.currency();
+        String location = advertisement.location_string();
 
         if (TradeUtils.isLocalTrade(advertisement)) {
-            //holder.tradeType.setText(Html.fromHtml(context.getString(R.string.advertisement_list_text_local, type, price, location)));
+            //holder.tradeType.setText(Html.fromHtml(context.getString(R.string.advertisement_list_text_local, type, temp_price, location)));
 
-            if(advertisement.isATM()) {
+            if(TradeUtils.isAtm(advertisement)) {
                 holder.advertisementType.setText("ATM");
-                holder.advertisementDetails.setText("ATM" + " in " + advertisement.city);
+                holder.advertisementDetails.setText("ATM" + " in " + advertisement.city());
             } else {
                 holder.advertisementType.setText(type + " " + price);
                 holder.advertisementDetails.setText("In " + location);
             }
 
         } else {
-            String paymentMethod = TradeUtils.getPaymentMethod(advertisement, methods);
+            String paymentMethod = TradeUtils.getPaymentMethodFromItems(advertisement, methods);
             //String bank = advertisement.bank_name;
             holder.advertisementType.setText(type + " " + price);
-            holder.advertisementDetails.setText("With " + paymentMethod + " in " + advertisement.city);
+            holder.advertisementDetails.setText("With " + paymentMethod + " in " + advertisement.city());
         }
 
-        if (advertisement.visible) {
+        if (advertisement.visible()) {
             holder.icon.setImageResource(R.drawable.ic_action_visibility);
         } else {
             holder.icon.setImageResource(R.drawable.ic_action_visibility_off);
@@ -179,19 +183,19 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
             FilterResults results = new FilterResults();
             
             if (constraint != null && constraint.length() > 0) {
-                ArrayList<Advertisement> filterList = new ArrayList<Advertisement>();
+                ArrayList<AdvertisementItem> filterList = new ArrayList<AdvertisementItem>();
                 
-                for (Advertisement advertisement : dataFiltered) {
+                for (AdvertisementItem advertisement : dataFiltered) {
                     
                     if (constraint.equals(AdvertisementType.INACTIVE.name())) {
                         
-                        if(!advertisement.visible) {
+                        if(!advertisement.visible()) {
                             filterList.add(advertisement);
                         }
                         
                     } else if (constraint.equals(AdvertisementType.ACTIVE.name())) {
 
-                        if(advertisement.visible) {
+                        if(advertisement.visible()) {
                             filterList.add(advertisement);
                         }
   
@@ -213,7 +217,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results)
         {
-            data = (ArrayList<Advertisement>) results.values;
+            data = (ArrayList<AdvertisementItem>) results.values;
             notifyDataSetChanged();
         }
     }
@@ -236,6 +240,102 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
         public ViewHolder(View view)
         {
             ButterKnife.inject(this, view);
+        }
+    }
+
+    public static class ContactAdapter extends BaseAdapter
+    {
+        protected List<Contact> contacts = Collections.emptyList();
+        protected Context context;
+        protected final LayoutInflater inflater;
+        
+        public ContactAdapter(Context context)
+        {
+            this.context = context;
+            this.inflater = LayoutInflater.from(context);
+        }
+    
+        @Override
+        public boolean isEnabled(int position)
+        {
+            return true;
+        }
+    
+        @Override
+        public int getCount()
+        {
+            return contacts.size();
+        }
+    
+        @Override
+        public Contact getItem(int position)
+        {
+            return contacts.get(position);
+        }
+    
+        @Override
+        public long getItemId(int position)
+        {
+            return position;
+        }
+    
+        public void replaceWith(List<Contact> data)
+        {
+            contacts = data;
+            notifyDataSetChanged();
+        }
+    
+        @Override
+        public View getView(final int position, View view, ViewGroup parent)
+        {
+            ViewHolder holder;
+            if (view != null) {
+                holder = (ViewHolder) view.getTag();
+            } else {
+                view = inflater.inflate(R.layout.adapter_contact_list, parent, false);
+                holder = new ViewHolder(view);
+                view.setTag(holder);
+            }
+    
+            Contact contact = getItem(position);
+    
+            String type = "";
+            switch (contact.advertisement.trade_type) {
+                case LOCAL_BUY:
+                case LOCAL_SELL:
+                    type = (contact.is_buying)? "Buying Locally":"Selling Locally";
+                    break;
+                case ONLINE_BUY:
+                case ONLINE_SELL:
+                    type = (contact.is_buying)? "Buying Online":"Selling Online";
+                    break;
+            }
+    
+            String amount =  contact.amount + " " + contact.currency;
+            String person = (contact.is_buying)? contact.seller.username:contact.buyer.username;
+            String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at);
+    
+            holder.tradeType.setText(type + " - " + amount);
+            holder.tradeDetails.setText("With " + person + " (" + date + ")");
+            holder.contactMessageCount.setText(String.valueOf(contact.messages.size()));
+            
+            return view;
+        }
+    
+        static class ViewHolder
+        {   
+            @InjectView(R.id.tradeType) TextView tradeType;
+            @InjectView(android.R.id.icon) ImageView icon;
+            @InjectView(R.id.tradeDetails) TextView tradeDetails;
+            @InjectView(R.id.contactMessageCount) TextView contactMessageCount;
+            
+            @Optional
+            @InjectView(R.id.contactButton)
+            Button contactButton;
+    
+            public ViewHolder(View view) {
+                ButterKnife.inject(this, view);
+            }
         }
     }
 }

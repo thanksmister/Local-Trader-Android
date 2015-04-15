@@ -205,7 +205,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) 
     {
         if (newVersion > oldVersion) {
-            db.execSQL(SQL_CREATE_EXCHANGES);
+            db.execSQL(SQL_CREATE_CONTACTS);
+            db.execSQL(SQL_CREATE_MESSAGES);
         }
     }
 

@@ -92,7 +92,7 @@ public class AdvertisementContract extends BaseContract
         public static final String COLUMN_NAME_MIN_AMOUNT = "min_amount";
         public static final String COLUMN_NAME_MAX_AMOUNT = "max_amount";
         public static final String COLUMN_NAME_PUBLIC_VIEW = "public_view";
-        public static final String COLUMN_NAME_PRICE = "price";
+        public static final String COLUMN_NAME_PRICE = "temp_price";
 
         public static final String COLUMN_NAME_PROFILE_ID = "profile_id";
         public static final String COLUMN_NAME_PROFILE_NAME = "profile_name";

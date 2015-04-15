@@ -26,29 +26,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-/*
-{
-  "message": "OK",
-  "total": {
-    "balance": "0.05",
-    "sendable": "0.05"
-  },
-  "sent_transactions_30d": [
-    {"txid": ...
-     "amount": "0.05",
-     "description": "Internal send",
-     "tx_type": 5,
-     "created_at": "2013-12-20T15:27:36+00:00"
-  }
-  ],
-  "received_transactions_30d": [...],
-  "receiving_address_count": 1,
-  "receiving_address_list": [{
-    "address": "15HfUY9LwwewaWwrKRXzE91tjDnHmye1hc",
-    "received": "0.0"
-  }]
-}
- */
 public class Wallet
 {
     public String id;
@@ -56,7 +33,7 @@ public class Wallet
     public Bitmap qrImage;
     public List<Transaction> sent_transactions = Collections.emptyList();
     public List<Transaction> receiving_transactions = Collections.emptyList();
-    public List<Transaction> transactions = Collections.emptyList();
+    private List<Transaction> transactions = Collections.emptyList();
     public Exchange exchange = new Exchange();
 
     public Total total = new Total();

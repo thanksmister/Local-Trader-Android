@@ -31,7 +31,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.RemoteException;
 
-import com.google.zxing.WriterException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
@@ -78,12 +77,15 @@ public class DatabaseManager
         final ContentResolver contentResolver = context.getContentResolver();
         Uri uri = SessionContract.Session.CONTENT_URI;
         Cursor c = contentResolver.query(uri, SessionContract.PROJECTION, null, null, null);
-        assert c != null;
-        while (c.moveToNext()) {
-            token = c.getString(SessionContract.Session.COLUMN_INDEX_ACCESS_TOKEN);
-            break;
+        if(c != null) {
+            while (c.moveToNext()) {
+                token = c.getString(SessionContract.Session.COLUMN_INDEX_ACCESS_TOKEN);
+                break;
+            }
+
+            c.close();
         }
-        c.close();
+ 
         return token;
     }
 
@@ -93,13 +95,15 @@ public class DatabaseManager
         final ContentResolver contentResolver = context.getContentResolver();
         Uri uri = SessionContract.Session.CONTENT_URI;
         Cursor c = contentResolver.query(uri, SessionContract.PROJECTION, null, null, null);
-        assert c != null;
-        while (c.moveToNext()) {
-            token = c.getString(SessionContract.Session.COLUMN_INDEX_REFRESH_TOKEN);
-            break;
+        if(c != null) {
+            while (c.moveToNext()) {
+                token = c.getString(SessionContract.Session.COLUMN_INDEX_REFRESH_TOKEN);
+                break;
+            }
+
+            c.close();
         }
         
-        c.close();
         return token;
     }
 
@@ -219,7 +223,7 @@ public class DatabaseManager
         contentValues.put(ContactContract.ContactData.COLUMN_NAME_SELLER_LAST_SEEN, contact.seller.last_online);
         contentValues.put(ContactContract.ContactData.COLUMN_NAME_RELEASE_URL, contact.actions.release_url);
         contentValues.put(ContactContract.ContactData.COLUMN_NAME_ADVERTISEMENT_URL, contact.actions.advertisement_public_view);
-        contentValues.put(ContactContract.ContactData.COLUMN_NAME_MESSAGE_URL, contact.actions.message_url);
+        contentValues.put(ContactContract.ContactData.COLUMN_NAME_MESSAGE_URL, contact.actions.messages_url);
         contentValues.put(ContactContract.ContactData.COLUMN_NAME_MESSAGE_POST_URL, contact.actions.message_post_url);
         contentValues.put(ContactContract.ContactData.COLUMN_NAME_PAID_URL, contact.actions.mark_as_paid_url);
         contentValues.put(ContactContract.ContactData.COLUMN_NAME_DISPUTE_URL, contact.actions.dispute_url);
@@ -309,7 +313,7 @@ public class DatabaseManager
         item.account_details.swift_bic = (cursor.getString(ContactContract.ContactData.COLUMN_INDEX_SWIFT_BIC));
         item.account_details.reference = (cursor.getString(ContactContract.ContactData.COLUMN_INDEX_REFERENCE));
 
-        item.actions.message_url = (cursor.getString(ContactContract.ContactData.COLUMN_INDEX_MESSAGE_URL));
+        item.actions.messages_url = (cursor.getString(ContactContract.ContactData.COLUMN_INDEX_MESSAGE_URL));
         item.actions.message_post_url = (cursor.getString(ContactContract.ContactData.COLUMN_INDEX_MESSAGE_POST_URL));
         item.actions.dispute_url = (cursor.getString(ContactContract.ContactData.COLUMN_INDEX_DISPUTE_URL));
         item.actions.cancel_url = (cursor.getString(ContactContract.ContactData.COLUMN_INDEX_CANCEL_URL));
@@ -474,7 +478,7 @@ public class DatabaseManager
                             // actions
                     .withValue(ContactContract.ContactData.COLUMN_NAME_RELEASE_URL, item.actions.release_url)
                     .withValue(ContactContract.ContactData.COLUMN_NAME_ADVERTISEMENT_URL, item.actions.advertisement_public_view)
-                    .withValue(ContactContract.ContactData.COLUMN_NAME_MESSAGE_URL, item.actions.message_url)
+                    .withValue(ContactContract.ContactData.COLUMN_NAME_MESSAGE_URL, item.actions.messages_url)
                     .withValue(ContactContract.ContactData.COLUMN_NAME_MESSAGE_POST_URL, item.actions.message_post_url)
                     .withValue(ContactContract.ContactData.COLUMN_NAME_PAID_URL, item.actions.mark_as_paid_url)
                     .withValue(ContactContract.ContactData.COLUMN_NAME_FUND_URL, item.actions.fund_url)
@@ -787,14 +791,23 @@ public class DatabaseManager
     {
         final ContentResolver contentResolver = context.getContentResolver();
 
-        Cursor c = contentResolver.query(
+        Cursor cursor = contentResolver.query(
                 AdvertisementContract.Advertisement.CONTENT_URI, // URI
                 AdvertisementContract.Advertisement.PROJECTION,                // Projection
                 AdvertisementContract.Advertisement.COLUMN_NAME_AD_ID + "=?",                           // Selection
                 new String[] { String.valueOf(adId) },                           // Selection args
                 null); // Sort
 
-        return cursorToAdvertisement(c);
+        Advertisement item = null;
+        if(cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            item = cursorToAdvertisement(cursor);
+        }
+
+        if(cursor != null && !cursor.isClosed())
+            cursor.close();
+
+        return item;
     }
     
     public ArrayList<Advertisement> getAdvertisements(Context context)
@@ -845,7 +858,7 @@ public class DatabaseManager
         advertisement.min_amount = (cursor.getString(AdvertisementContract.Advertisement.COLUMN_MIN_AMOUNT));
         advertisement.max_amount = (cursor.getString(AdvertisementContract.Advertisement.COLUMN_MAX_AMOUNT));
         advertisement.actions.public_view = (cursor.getString(AdvertisementContract.Advertisement.COLUMN_PUBLIC_VIEW));
-        advertisement.price = (cursor.getString(AdvertisementContract.Advertisement.COLUMN_PRICE));
+        advertisement.temp_price = (cursor.getString(AdvertisementContract.Advertisement.COLUMN_PRICE));
         advertisement.profile.last_online = (cursor.getString(AdvertisementContract.Advertisement.COLUMN_PROFILE_ID));
         advertisement.profile.name =(cursor.getString(AdvertisementContract.Advertisement.COLUMN_PROFILE_NAME));
         advertisement.profile.username =(cursor.getString(AdvertisementContract.Advertisement.COLUMN_PROFILE_USERNAME));
@@ -951,7 +964,7 @@ public class DatabaseManager
 
                 if ((match.created_at != null && !match.created_at.equals(created_at)) ||
                         (match.price_equation != null && !match.price_equation.equals(price_equation)) ||
-                        (match.price != null && !match.price.equals(price)) ||
+                        (match.temp_price != null && !match.temp_price.equals(price)) ||
                         (match.city != null && !match.city.equals(city)) ||
                         (match.country_code != null && !match.country_code.equals(country_code)) ||
                         (match.bank_name != null && !match.bank_name.equals(bank_name)) ||
@@ -981,7 +994,7 @@ public class DatabaseManager
                             .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_MAX_AMOUNT, match.max_amount)
                             .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_MIN_AMOUNT, match.min_amount)
                             .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_ONLINE_PROVIDER, match.online_provider)
-                            .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PRICE, match.price)
+                            .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PRICE, match.temp_price)
                             .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PRICE_EQUATION, match.price_equation)
                             .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PUBLIC_VIEW, match.actions.public_view)
                             .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_TRADE_TYPE, match.trade_type.name())
@@ -1022,7 +1035,7 @@ public class DatabaseManager
                     .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_MAX_AMOUNT, item.max_amount)
                     .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_MIN_AMOUNT, item.min_amount)
                     .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_ONLINE_PROVIDER, item.online_provider)
-                    .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PRICE, item.price)
+                    .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PRICE, item.temp_price)
                     .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PRICE_EQUATION, item.price_equation)
                     .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_PUBLIC_VIEW, item.actions.public_view)
                     .withValue(AdvertisementContract.Advertisement.COLUMN_NAME_SMS_VERIFICATION_REQUIRED, item.sms_verification_required ? 1 : 0)
@@ -1202,7 +1215,7 @@ public class DatabaseManager
             byte[] bb = cursor.getBlob(WalletContract.Wallet.COLUMN_INDEX_WALLET_QRCODE);
             item.qrImage = (BitmapFactory.decodeByteArray(bb, 0, bb.length));  
         } catch (Exception e) {
-            Timber.e(e.getMessage());
+            //Timber.e(e.getMessage());
         }
 
         Timber.d("Return Wallet");
@@ -1380,11 +1393,7 @@ public class DatabaseManager
             context = (Context) params[1];
             Bitmap qrCode = null;
 
-            try {
-                wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address.address, context.getApplicationContext());
-            } catch (WriterException e) {
-                e.printStackTrace();
-            }
+            wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address.address, context.getApplicationContext());
             
             return new Object[]{wallet};
         }

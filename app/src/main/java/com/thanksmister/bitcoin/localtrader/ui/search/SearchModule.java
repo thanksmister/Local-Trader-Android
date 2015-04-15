@@ -8,14 +8,10 @@ package com.thanksmister.bitcoin.localtrader.ui.search;
 
 import android.location.LocationManager;
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.ApplicationModule;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.ui.wallet.WalletFragment;
-import com.thanksmister.bitcoin.localtrader.ui.wallet.WalletPresenter;
-import com.thanksmister.bitcoin.localtrader.ui.wallet.WalletPresenterImpl;
-import com.thanksmister.bitcoin.localtrader.ui.wallet.WalletView;
+
 
 import javax.inject.Singleton;
 

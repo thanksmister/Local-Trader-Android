@@ -244,12 +244,6 @@ public class TradeRequestActivity extends BaseActivity implements TradeRequestVi
     }
 
     @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new TradeRequestModule(this));
-    }
-
-    @Override
     public Context getContext()
     {
         return this;

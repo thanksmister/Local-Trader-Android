@@ -115,20 +115,17 @@
     </style>
 
     <style name="Text">
-        <item name="android:fontFamily">@string/font_fontFamily_medium</item>
         <item name="android:textColor">@color/body_text_1</item>
         <item name="android:ellipsize">end</item>
     </style>
 
     <style name="Text.Headline">
         <item name="android:textSize">@dimen/text_size_login</item>
-        <item name="android:fontFamily">@string/font_fontFamily_medium</item>
         <item name="android:textColor">@color/body_text_2</item>
     </style>
 
     <style name="Text.Headline.Black" >
         <item name="android:textSize">@dimen/text_size_login</item>
-        <item name="android:fontFamily">@string/font_fontFamily_medium</item>
         <item name="android:textColor">@color/body_text_1</item>
     </style>
 

@@ -18,10 +18,8 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-
-import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -150,12 +148,7 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
 
         return super.onOptionsItemSelected(item);
     }
-
-    @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new AdvertiserModule(this));
-    }
+    
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -264,7 +257,7 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
             tradePrice.setText("ATM");
             noteTextAdvertiser.setText(Html.fromHtml(getContext().getString(R.string.advertiser_notes_text_atm, advertisement.currency, location)));
         } else {
-            tradePrice.setText(getContext().getString(R.string.trade_price, advertisement.price, advertisement.currency));
+            tradePrice.setText(getContext().getString(R.string.trade_price, advertisement.temp_price, advertisement.currency));
         }
         
         traderName.setText(advertisement.profile.username);
@@ -279,8 +272,8 @@ public class AdvertiserActivity extends BaseActivity implements AdvertiserView
             tradeLimit.setText(getContext().getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency));
         }
 
-        if(advertisement.msg != null && !advertisement.msg.isEmpty()){
-            tradeTerms.setText(Html.fromHtml(advertisement.msg.trim()));
+        if(!Strings.isBlank(advertisement.message)){
+            tradeTerms.setText(Html.fromHtml(advertisement.message.trim()));
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
         }
 

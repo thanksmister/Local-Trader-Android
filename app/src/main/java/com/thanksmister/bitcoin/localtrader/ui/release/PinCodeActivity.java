@@ -316,11 +316,5 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
     {
         return this;
     }
-
-    @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new PinCodeModule(this));
-    }
-
+    
 }

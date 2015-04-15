@@ -23,14 +23,14 @@ buildscript {
 def versionMajor = 2
 def versionMinor = 0
 def versionPatch = 0
-def versionBuild = 9 // bump for dog food builds, public betas, etc.
+def versionBuild = 10 // bump for dog food builds, public betas, etc.
 
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 21
         applicationId 'com.thanksmister.bitcoin.localtrader'
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
@@ -51,8 +51,7 @@ android {
 
 dependencies {
     //compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    apt 'com.squareup.dagger:dagger-compiler:1.2.1'
+    
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.squareup:otto:1.3.5'
@@ -61,10 +60,19 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.0.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
 
-    compile 'com.squareup.dagger:dagger:1.2.1'
+    apt 'com.squareup.dagger:dagger-compiler:1.2.2'
+    compile 'com.squareup.dagger:dagger:1.2.2'
     compile 'com.jakewharton.timber:timber:2.2.2'
-    compile 'com.netflix.rxjava:rxjava-core:0.17.4'
-    compile 'com.netflix.rxjava:rxjava-android:0.17.4'
+
+    compile 'io.reactivex:rxjava:1.0.8'
+    compile 'io.reactivex:rxandroid:0.24.0'
+
+    compile 'com.squareup.sqlbrite:sqlbrite:0.1.0'
+    compile 'com.github.frankiesardo:auto-parcel:0.3'
+
+    compile 'com.github.frankiesardo:auto-parcel:0.3'
+    apt 'com.github.frankiesardo:auto-parcel-processor:0.3'
+    
     compile 'nl.qbusict:cupboard:2.1.1'
     compile 'com.crashlytics.android:crashlytics:1.+'
     compile 'com.google.guava:guava:18.0'

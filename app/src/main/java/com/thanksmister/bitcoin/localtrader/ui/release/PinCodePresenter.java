@@ -1,8 +1,5 @@
 package com.thanksmister.bitcoin.localtrader.ui.release;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.ui.contact.ContactActivity;
-
 /**
  * Author: Michael Ritchie
  * Date: 12/30/14

@@ -22,23 +22,18 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
+import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.ui.main.MainActivity;
-
-import java.util.Arrays;
-import java.util.List;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import javax.inject.Inject;
 
 import timber.log.Timber;
 
-public class BitcoinHandler extends BaseActivity implements BitcoinView
+public class BitcoinHandler extends BaseActivity
 {
     @Inject
-    BitcoinPresenter presenter;
-    
-    @Inject
-    DataService service;
+    DbManager dbManager;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) 
@@ -56,7 +51,7 @@ public class BitcoinHandler extends BaseActivity implements BitcoinView
 
             Timber.d("BitcoinUriHandler: scheme: " + scheme);
             
-            if(!service.isLoggedIn()) {
+            if(!dbManager.isLoggedIn()) {
                 showToast("You need to be logged in to perform that action.");
                 launchMainApplication();
             } else {
@@ -70,12 +65,6 @@ public class BitcoinHandler extends BaseActivity implements BitcoinView
             launchMainApplication();
         }
 	}
-
-    @Override
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new BitcoinModule(this));
-    }
 
     private void launchMainApplication() 
     {

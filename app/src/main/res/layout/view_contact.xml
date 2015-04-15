@@ -40,13 +40,7 @@
         <include
                 android:id="@+id/contactProgress"
                 layout="@layout/view_progress"/>
-
-        <include
-                android:id="@+id/contactEmpty"
-                layout="@layout/view_empty"
-                tools:visibility="visible"
-                android:visibility="gone"/>
-
+        
         <android.support.v4.widget.SwipeRefreshLayout
                 android:id="@+id/swipeLayout"
                 android:layout_width="match_parent"

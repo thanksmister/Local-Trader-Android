@@ -28,8 +28,8 @@ import dagger.Provides;
 import static android.content.Context.LOCATION_SERVICE;
 
 @Module(
-        injects = { BaseApplication.class},
-        includes = {DataModule.class, DomainModule.class},
+        injects = {BaseApplication.class},
+        includes = {ActivityModule.class},
         library = true
 )
 
@@ -47,20 +47,6 @@ public class ApplicationModule
     {
         return app;
     }
-    
-    /*@Provides
-    @Singleton
-    Gson provideGson()
-    {
-        return new GsonBuilder().create();
-    }*/
- 
-    /*@Provides
-    @Singleton
-    Bus provideBus()
-    {
-        return new ApplicationBus();
-    }*/
 
     @Provides 
     @Singleton
