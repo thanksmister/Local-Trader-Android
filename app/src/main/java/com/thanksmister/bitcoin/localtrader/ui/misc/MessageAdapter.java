@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -40,7 +41,7 @@ import butterknife.InjectView;
 
 public class MessageAdapter extends BaseAdapter
 {
-    private List<Message> data = Collections.emptyList();
+    private List<MessageItem> data = Collections.emptyList();
     private Context context;
     private final LayoutInflater inflater;
     
@@ -63,7 +64,7 @@ public class MessageAdapter extends BaseAdapter
     }
 
     @Override
-    public Message getItem(int position)
+    public MessageItem getItem(int position)
     {
         return data.get(position);
     }
@@ -80,7 +81,7 @@ public class MessageAdapter extends BaseAdapter
         notifyDataSetChanged();
     }
 
-    public void replaceWith(List<Message> data)
+    public void replaceWith(List<MessageItem> data)
     {
         this.data = data;
         notifyDataSetChanged();
@@ -102,29 +103,21 @@ public class MessageAdapter extends BaseAdapter
             holder.row.setBackgroundColor(context.getResources().getColor(R.color.white));
         else
             holder.row.setBackgroundColor(context.getResources().getColor(R.color.list_gray_color));*/
+
+        MessageItem message = getItem(position);
         
-        Message message = getItem(position);
-        
-        holder.senderName.setText(message.sender.username);
-        Date date = Dates.parseLocalDateISO(message.created_at);
+        holder.senderName.setText(message.sender_username());
+        Date date = Dates.parseLocalDateISO(message.create_at());
         holder.createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
-        holder.messageBody.setText(message.msg);
+        holder.messageBody.setText(message.message());
         
-        if(!Strings.isBlank(message.attachment_name)) {
+        if(!Strings.isBlank(message.attachment_name())) {
             holder.attachmentLayout.setVisibility(View.VISIBLE);
-            holder.attachmentName.setText(message.attachment_name);
+            holder.attachmentName.setText(message.attachment_name());
         } else {
             holder.attachmentLayout.setVisibility(View.GONE);
             holder.attachmentName.setText("");
         }
-       
-        /*if (TradeUtils.hasJellyBean()){
-            holder.senderName.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
-            holder.messageBody.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
-        } else {
-            holder.senderName.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
-            holder.messageBody.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
-        }*/
 
         return view;
     }

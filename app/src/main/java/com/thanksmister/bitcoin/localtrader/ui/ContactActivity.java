@@ -31,8 +31,10 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
@@ -94,13 +96,14 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private String message;
 
     private String contactId;
-    private Contact contact;
+    private ContactItem contact;
     
     private DownloadManager downloadManager;
     private MenuItem cancelItem;
     private MenuItem disputeItem;
     
     private Observable<ContactItem> contactItemObservable;
+    private Observable<List<MessageItem>> messagesItemObservable;
     private Observable<Contact> contactObservable;
     private Observable<SessionItem> tokensObservable;
     private Observable<JSONObject> contactActionObservable;
@@ -202,6 +205,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         setAdapter(adapter);
 
         contactItemObservable = bindActivity(this, dbManager.contactQuery(contactId));
+        messagesItemObservable = bindActivity(this, dbManager.messagesQuery(contactId));
         contactObservable = bindActivity(this, dbManager.getContact(contactId));
         tokensObservable =  bindActivity(this, dbManager.getTokens());
                 
@@ -295,7 +299,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                         showProfile();
                         return true;
                     case R.id.action_advertisement:
-                        showAdvertisement(contact.advertisement.id);
+                        showAdvertisement(contact.advertisement_id());
                         return true;
                     case R.id.action_dispute:
                         disputeContact();
@@ -323,37 +327,41 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     public void subscribeData()
     {   
-        /*contactItemObservable.subscribe(new Action1<ContactItem>()
+        contactItemObservable.subscribe(new Action1<ContactItem>()
         {
             @Override
             public void call(ContactItem contactItem)
             {
                 if (contactItem != null) {
-                    
-                    *//*contact = new Contact();
-                    contact = contact.convertContentItemToContact(contactItem);
-
-                    setTitle(contact);
-                    
-                    setContact(contact);*//*
-
+  
                     hideProgress();
+                    
+                    setContact(contactItem);
                 }
             }
-        });*/
+        });
+
+        messagesItemObservable.subscribe(new Action1<List<MessageItem>>()
+        {
+            @Override
+            public void call(List<MessageItem> messageItems)
+            {
+                getAdapter().replaceWith(messageItems);
+            }
+        });
     }
     
     private void updateData()
     {
         onRefreshStart();
         
-       /*contactObservable.subscribe(new Action1<Contact>()
+       contactObservable.subscribe(new Action1<Contact>()
        {
            @Override
            public void call(Contact contact)
            {
                 dbManager.updateContact(contact);
-                dbManager.updateMessages(contact.messages);
+                dbManager.updateMessages(contact.messages, contact.contact_id);
                 onRefreshStop();
                 
            }
@@ -365,38 +373,42 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                handleError(throwable);
                onRefreshStop();
            }
-       }); */
+       }); 
     }
     
-    public void setContact(Contact contact)
+    public void setContact(ContactItem contact)
     {
-        String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at);
-        String amount =  contact.amount + " " + contact.currency;
+        this.contact = contact;
+        
+        String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
+        String amount =  contact.amount() + " " + contact.currency();
         String type = "";
-        switch (contact.advertisement.trade_type) {
+
+        TradeType adTradeType = TradeType.valueOf(contact.advertisement_trade_type());
+        switch (adTradeType) {
             case LOCAL_BUY:
             case LOCAL_SELL:
-                type = (contact.is_buying)? getString(R.string.contact_list_buying_locally, amount, date):getString(R.string.contact_list_selling_locally, amount, date);
+                type = (contact.is_buying())? getString(R.string.contact_list_buying_locally, amount, date):getString(R.string.contact_list_selling_locally, amount, date);
                 //smsReleaseCodeLayout.setVisibility((contact.is_buying)? GONE:VISIBLE);
                 break;
             case ONLINE_BUY:
             case ONLINE_SELL:
-                type = (contact.is_buying)? getString(R.string.contact_list_buying_online, amount, contact.advertisement.payment_method, date):getString(R.string.contact_list_selling_online, amount, contact.advertisement.payment_method, date);
+                type = (contact.is_buying())? getString(R.string.contact_list_buying_online, amount, contact.advertisement_payment_method(), date):getString(R.string.contact_list_selling_online, amount, contact.advertisement_payment_method(), date);
                 //smsReleaseCodeLayout.setVisibility(GONE);
                 break;
         }
 
         tradeType.setText(Html.fromHtml(type));
-        tradePrice.setText(getString(R.string.trade_price, contact.amount, contact.currency));
-        tradeAmount.setText(contact.amount_btc + " " + getString(R.string.btc));
-        dealPrice.setText(Conversions.formatDealAmount(contact.amount_btc, contact.amount) + " " + contact.currency);
+        tradePrice.setText(getString(R.string.trade_price, contact.amount(), contact.currency()));
+        tradeAmount.setText(contact.amount_btc() + " " + getString(R.string.btc));
+        dealPrice.setText(Conversions.formatDealAmount(contact.amount_btc(), contact.amount()) + " " + contact.currency());
 
-        tradeAmount.setText(contact.amount_btc + " " + getString(R.string.btc));
-        traderName.setText((contact.is_buying)? contact.seller.username:contact.buyer.username);
-        tradeFeedback.setText((contact.is_buying)? contact.seller.feedback_score:contact.buyer.feedback_score);
-        tradeCount.setText((contact.is_buying)? contact.seller.trade_count:contact.buyer.trade_count);
+        tradeAmount.setText(contact.amount_btc() + " " + getString(R.string.btc));
+        traderName.setText((contact.is_buying())? contact.seller_username():contact.buyer_username());
+        tradeFeedback.setText((contact.is_buying())? contact.seller_feedback_score():contact.buyer_feedback_score());
+        tradeCount.setText((contact.is_buying())? contact.seller_trade_count():contact.buyer_trade_count());
 
-        lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.advertisement.advertiser.last_online));
+        lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.advertiser_last_online()));
 
         int buttonTag = TradeUtils.getTradeActionButtonLabel(contact);
         if(buttonTag > 0)
@@ -424,8 +436,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         if(TradeUtils.canCancelTrade(contact)) {
             //cancelItem.setVisible(buttonTag != R.string.button_cancel);
         }
-            
-        getAdapter().replaceWith(contact.messages);
     }
 
     private MessageAdapter getAdapter()
@@ -602,7 +612,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     public void showProfile()
     {
-        String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying)? contact.seller.username:contact.buyer.username) + "/";
+        String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying())? contact.seller_username():contact.buyer_username()) + "/";
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(browserIntent);
     }

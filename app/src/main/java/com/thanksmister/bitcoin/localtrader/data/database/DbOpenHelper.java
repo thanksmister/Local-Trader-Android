@@ -15,7 +15,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.SessionContract;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 24;
+    private static final int DATABASE_VERSION = 25;
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_TEXT_NOT_NULL = " TEXT NOT NULL";
     private static final String TYPE_INTEGER = " INTEGER";
@@ -113,6 +113,9 @@ public class DbOpenHelper extends SQLiteOpenHelper
             + MessageItem.SENDER_TRADE_COUNT + TYPE_TEXT + COMMA_SEP
             + MessageItem.SENDER_LAST_ONLINE + TYPE_TEXT + COMMA_SEP
             + MessageItem.IS_ADMIN + TYPE_INTEGER + COMMA_SEP
+            + MessageItem.ATTACHMENT_NAME + TYPE_TEXT + COMMA_SEP
+            + MessageItem.ATTACHMENT_URL + TYPE_TEXT + COMMA_SEP
+            + MessageItem.ATTACHMENT_TYPE + TYPE_TEXT + COMMA_SEP
             + MessageItem.SEEN + " INTEGER NOT NULL DEFAULT 0"
             + ")";
 
@@ -218,11 +221,23 @@ public class DbOpenHelper extends SQLiteOpenHelper
             //db.execSQL(CREATE_CONTACTS);
             //db.execSQL(CREATE_MESSAGES);
             
-            /*final String ALTER_TBL =
-                    "ALTER TABLE " + ContactItem.TABLE +
-                            " ADD COLUMN " + ContactItem.MESSAGE_COUNT + TYPE_INTEGER;
+            final String ALTER_TBL =
+                    "ALTER TABLE " + MessageItem.TABLE +
+                            " ADD COLUMN " + MessageItem.ATTACHMENT_NAME + TYPE_TEXT;
             
-            db.execSQL(ALTER_TBL);*/
+            db.execSQL(ALTER_TBL);
+
+            final String ALTER_TBL1 =
+                    "ALTER TABLE " + MessageItem.TABLE +
+                            " ADD COLUMN " + MessageItem.ATTACHMENT_TYPE + TYPE_TEXT;
+
+            db.execSQL(ALTER_TBL1);
+
+            final String ALTER_TBL2 =
+                    "ALTER TABLE " + MessageItem.TABLE +
+                            " ADD COLUMN " + MessageItem.ATTACHMENT_URL + TYPE_TEXT;
+
+            db.execSQL(ALTER_TBL2);
         }
     }
 }

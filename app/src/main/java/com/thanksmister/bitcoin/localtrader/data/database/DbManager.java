@@ -63,7 +63,9 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class DbManager 
@@ -160,6 +162,8 @@ public class DbManager
                     @Override
                     public Observable<String> call(SessionItem sessionItem)
                     {
+                        Timber.d("Refresh Token: " + sessionItem.refresh_token());
+                        
                         return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
                                 .map(new ResponseToAuthorize())
                                 .flatMap(new Func1<Authorization, Observable<? extends String>>()
@@ -168,12 +172,32 @@ public class DbManager
                                     public Observable<? extends String> call(Authorization authorization)
                                     {
                                         Timber.d("New Access tokens: " + authorization.access_token);
-                                        db.insert(SessionItem.TABLE, new SessionItem.Builder().access_token(authorization.access_token).refresh_token(authorization.refresh_token).build());
+                                        updateTokens(authorization);
                                         return Observable.just(authorization.access_token);
                                     }
                                 });
                     }
                 });
+    }
+
+    private void updateTokens(Authorization authorization)
+    {
+        SessionItem.Builder builder = new SessionItem.Builder()
+                .access_token(authorization.access_token)
+                .refresh_token(authorization.refresh_token);
+
+        Cursor cursor = db.query(SessionItem.QUERY);
+        if(cursor.getCount() > 0) {
+            try {
+                cursor.moveToFirst();
+                long id = Db.getLong(cursor, SessionItem.ID );
+                db.update(SessionItem.TABLE, builder.build(), SessionItem.ID + " = ?", String.valueOf(id));
+            } finally {
+                cursor.close();
+            }
+        } else {
+            db.insert(ContactItem.TABLE, builder.build());
+        }
     }
 
     public Observable<User> getMyself(String token)
@@ -250,7 +274,7 @@ public class DbManager
     {
         for (Contact contact : contacts) {
             updateContact(contact);
-            updateMessages(contact.messages);
+            updateMessages(contact.messages, contact.contact_id);
         }
     }
 
@@ -312,12 +336,13 @@ public class DbManager
                 .advertiser_feedback_score(contact.advertisement.advertiser.feedback_score)
                 .advertiser_last_online(contact.advertisement.advertiser.last_online);
         
-        Cursor cursor = db.query(ContactItem.QUERY_ITEM, String.valueOf(contact.contact_id));
+        Cursor cursor = db.query(ContactItem.QUERY_ITEM, contact.contact_id);
+        
         try {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 long id = Db.getLong(cursor, ContactItem.ID);
-                db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
+                db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", Long.toString(id));
             } else {
                 db.insert(ContactItem.TABLE, builder.build());
             }
@@ -436,9 +461,9 @@ public class DbManager
                 }).toBlocking().last());
     }
 
-    public Observable<List<MessageItem>> queryMessages(long contactId)
+    public Observable<List<MessageItem>> messagesQuery(String contactId)
     {
-        return  db.createQuery(MessageItem.TABLE, MessageItem.QUERY, String.valueOf(contactId))
+        return  db.createQuery(MessageItem.TABLE, MessageItem.QUERY, contactId)
                 .map(MessageItem.MAP);
     }
 
@@ -463,14 +488,15 @@ public class DbManager
                 });
     }
 
-    public void updateMessages(final List<Message> messages)
+    public void updateMessages(final List<Message> messages, String contactId)
     {
         HashMap<String, Message> entryMap = new HashMap<String, Message>();
         for (Message message : messages) {
+            message.contact_id = contactId;
             entryMap.put(message.created_at, message);
         }
 
-        Cursor cursor = db.query(MessageItem.QUERY);
+        Cursor cursor = db.query(MessageItem.QUERY, String.valueOf(contactId));
 
         try {
             while (cursor.moveToNext()) {
@@ -483,6 +509,11 @@ public class DbManager
                     // Entry exists. Do not update message
                     entryMap.remove(createdAt);
 
+                    MessageItem.Builder builder = new MessageItem.Builder()
+                    .seen(true);
+                    
+                    db.update(MessageItem.TABLE, builder.build(), MessageItem.ID + " = ?", String.valueOf(id));
+                    
                 } else {
                     // Entry doesn't exist. Remove it from the database.
                     db.delete(MessageItem.TABLE, String.valueOf(id));
@@ -496,7 +527,8 @@ public class DbManager
         for (Message item : entryMap.values()) {
             
             MessageItem.Builder builder = new MessageItem.Builder()
-                    .contact_list_id(Long.valueOf(item.contact_id))
+                    
+                    .contact_list_id(Long.parseLong(item.contact_id))
                     .message(item.msg)
                     .seen(true)
                     .created_at(item.created_at)
@@ -505,7 +537,10 @@ public class DbManager
                     .sender_username(item.sender.username)
                     .sender_trade_count(item.sender.trade_count)
                     .sender_last_online(item.sender.last_seen_on)
-                    .is_admin(item.is_admin);
+                    .is_admin(item.is_admin)
+                    .attachment_name(item.attachment_name)
+                    .attachment_type(item.attachment_type)
+                    .attachment_url(item.attachment_url);
 
             db.insert(MessageItem.TABLE, builder.build());
         }
@@ -657,6 +692,8 @@ public class DbManager
                     @Override
                     public Observable<List<Advertisement>> call(SessionItem sessionItem)
                     {
+                        Timber.d("Access Token: " + sessionItem.access_token());
+                        
                         return localBitcoins.getAds(sessionItem.access_token())
                                 .map(new ResponseToAds());
                     }
@@ -774,47 +811,58 @@ public class DbManager
         setExchangeExpireTime();
     }
     
+    //rx.exceptions.MissingBackpressureException
     public void updateMethods(final List<Method> methods)
     {
-        HashMap<String, Method> entryMap = new HashMap<String, Method>();
-        for (Method item : methods) {
-            entryMap.put(item.key, item);
-        }
+        Observable<Boolean> observable = Observable.create(new Observable.OnSubscribe<Boolean>()
+        {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber)
+            {
+                HashMap<String, Method> entryMap = new HashMap<String, Method>();
+                for (Method item : methods) {
+                    entryMap.put(item.key, item);
+                }
 
-        // Get list of all items
-        Cursor cursor = db.query(MethodItem.QUERY);
-        try {
-            while (cursor.moveToNext()) {
+                // Get list of all items
+                Cursor cursor = db.query(MethodItem.QUERY);
+                try {
+                    while (cursor.moveToNext()) {
 
-                long id = Db.getLong(cursor, MethodItem.ID);
-                String key = Db.getString(cursor, MethodItem.KEY);
-                
-                Method match = entryMap.get(key);
+                        long id = Db.getLong(cursor, MethodItem.ID);
+                        String key = Db.getString(cursor, MethodItem.KEY);
 
-                if (match != null) {
-                    // Entry exists. Remove from entry map to prevent insert later. Do not update
-                    entryMap.remove(key);
-                } else {
-                    // Entry doesn't exist. Remove it from the database.
-                    db.delete(MethodItem.TABLE, String.valueOf(id));
+                        Method match = entryMap.get(key);
+
+                        if (match != null) {
+                            // Entry exists. Remove from entry map to prevent insert later. Do not update
+                            entryMap.remove(key);
+                        } else {
+                            // Entry doesn't exist. Remove it from the database.
+                            db.delete(MethodItem.TABLE, String.valueOf(id));
+                        }
+                    }
+                } finally {
+                    cursor.close();
+                }
+
+                // Add new items
+                for (Method item : entryMap.values()) {
+
+                    MethodItem.Builder builder = new MethodItem.Builder()
+                            .key(item.key)
+                            .name(item.name)
+                            .code(item.code)
+                            .countryCode(item.countryCode)
+                            .countryName(item.countryName);
+
+                    db.insert(MethodItem.TABLE, builder.build());
                 }
             }
-        } finally {
-            cursor.close();
-        }
-
-        // Add new items
-        for (Method item : entryMap.values()) {
-            
-            MethodItem.Builder builder =  new MethodItem.Builder()
-                    .key(item.key)
-                    .name(item.name)
-                    .code(item.code)
-                    .countryCode(item.countryCode)
-                    .countryName(item.countryName);
-
-            db.insert(MethodItem.TABLE, builder.build());
-        }
+        })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+        .onBackpressureBuffer();
         
         setMethodsExpireTime(); // reset time to expire*/
         

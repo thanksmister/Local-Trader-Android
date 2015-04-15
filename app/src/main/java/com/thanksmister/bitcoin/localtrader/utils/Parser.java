@@ -564,6 +564,8 @@ public class Parser
     public static Message parseMessage(JSONObject messageObj)
     {
         Message message = new Message();
+        
+        Timber.d("Message JSON: " + messageObj);
 
         try {
             if (messageObj.has("sender")) {

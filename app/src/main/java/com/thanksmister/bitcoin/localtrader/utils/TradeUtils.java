@@ -28,6 +28,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import timber.log.Timber;
 
 public class TradeUtils
 {
-    public static String getContactDescription(Contact contact, Context context)
+    public static String getContactDescription(ContactItem contact, Context context)
     {
         Timber.d("Closed " + isClosedTrade(contact));
 
@@ -69,13 +70,10 @@ public class TradeUtils
                 }
             }*/
 
-            Timber.d("Is Advertiser " + youAreAdvertiser(contact));
-            Timber.d("Is Selling " + contact.is_selling);
-            Timber.d("Is Funded " + contact.is_funded);
-            
-            if(youAreAdvertiser(contact) && contact.is_selling) {
+        
+            if(youAreAdvertiser(contact) && contact.is_selling()) {
 
-                if(contact.is_funded) {
+                if(contact.is_funded()) {
                     //return canFundTrade(contact)? context.getString(R.string.order_description_funded_local):context.getString(R.string.order_description_funded_local_no_action);
                     return  context.getString(R.string.order_description_funded_local);
                 } else {
@@ -85,7 +83,7 @@ public class TradeUtils
                 
             } else {
 
-                if(contact.is_funded) {
+                if(contact.is_funded()) {
                     return context.getString(R.string.order_description_funded_local);
                 } else {
                     return  context.getString(R.string.order_description_not_funded_local);
@@ -94,7 +92,7 @@ public class TradeUtils
            
         } else if (isOnlineTrade(contact)) {
              
-            if (contact.is_buying) {
+            if (contact.is_buying()) {
                 return isMarkedPaid(contact)? context.getString(R.string.order_description_paid):context.getString(R.string.order_description_mark_paid);
             } else {
                 return isMarkedPaid(contact)? context.getString(R.string.order_description_online_paid):context.getString(R.string.order_description_online_mark_paid);
@@ -104,7 +102,7 @@ public class TradeUtils
         return null;
     }
 
-    public static int getTradeActionButtonLabel(Contact contact)
+    public static int getTradeActionButtonLabel(ContactItem contact)
     {
         if(isClosedTrade(contact) || isReleased(contact)) {
             return 0;
@@ -112,9 +110,9 @@ public class TradeUtils
         
         if (isLocalTrade(contact)) { // selling or buying locally with ad
             
-            if (contact.is_selling) { // ad to sell bitcoins locally 
+            if (contact.is_selling()) { // ad to sell bitcoins locally 
                 
-                if(contact.is_funded || isFunded(contact)) { // TODO is this available for local?
+                if(contact.is_funded() || isFunded(contact)) { // TODO is this available for local?
                     return R.string.button_release;
                 } else {
                     return R.string.button_fund;
@@ -125,7 +123,7 @@ public class TradeUtils
 
         } else if (isOnlineTrade(contact)) {   // handle online trade ads
             
-            if (contact.is_buying) { // ad to buy bitcoins  
+            if (contact.is_buying()) { // ad to buy bitcoins  
 
                return isMarkedPaid(contact)? R.string.button_dispute: R.string.button_mark_paid;
 
@@ -138,13 +136,18 @@ public class TradeUtils
         return 0;
     }
 
-    public static boolean youAreAdvertiser(Contact contact)
+    public static boolean youAreAdvertiser(ContactItem contact)
     {
-        if(contact.is_selling) { // you are selling
-            return contact.advertisement.advertiser.username.equals(contact.seller.username);
+        if(contact.is_selling()) { // you are selling
+            return contact.advertiser_username().equals(contact.seller_username());
         } else  {  // you are buying
-            return contact.advertisement.advertiser.username.equals(contact.buyer.username);
+            return contact.advertiser_username().equals(contact.buyer_username());
         }
+    }
+
+    public static boolean isCanceledTrade(ContactItem contact)
+    {
+        return contact.canceled_at() != null;
     }
 
     public static boolean isCanceledTrade(Contact contact)
@@ -152,51 +155,56 @@ public class TradeUtils
         return contact.canceled_at != null;
     }
 
-    public static boolean isMarkedPaid(Contact contact)
+    public static boolean isMarkedPaid(ContactItem contact)
     {
-        return contact.payment_completed_at != null;
+        return contact.payment_completed_at() != null;
     }
     
-    public static boolean isFunded(Contact contact)
+    public static boolean isFunded(ContactItem contact)
     {
-        return contact.funded_at != null;
+        return contact.funded_at() != null;
     }
 
+    public static boolean isReleased(ContactItem contact)
+    {
+        return contact.released_at() != null;
+    }
+    
     public static boolean isReleased(Contact contact)
     {
         return contact.released_at != null;
     }
 
-    public static boolean isDisputed(Contact contact)
+    public static boolean isDisputed(ContactItem contact)
     {
-        return contact.disputed_at != null;
+        return contact.disputed_at() != null;
     }
 
-    public static boolean isClosedTrade(Contact contact)
+    public static boolean isClosedTrade(ContactItem contact)
     {
-        return contact.closed_at != null;
+        return contact.closed_at() != null;
     }
 
-    public static boolean canDisputeTrade(Contact contact)
+    public static boolean canDisputeTrade(ContactItem contact)
     {
         if(isClosedTrade(contact) && !isDisputed(contact)) {
-            return contact.actions.dispute_url != null;
+            return contact.dispute_url() != null;
         }
             
         return false; 
     }
 
-    public static boolean canCancelTrade(Contact contact)
+    public static boolean canCancelTrade(ContactItem contact)
     {
         if(!isClosedTrade(contact) && !isCanceledTrade(contact)) {
 
-            return contact.actions.cancel_url != null;
+            return contact.cancel_url() != null;
         }
         
         return false;
     }
 
-    public static boolean canReleaseTrade(Contact contact)
+    public static boolean canReleaseTrade(ContactItem contact)
     {
         if(isClosedTrade(contact))
             return false;
@@ -204,24 +212,26 @@ public class TradeUtils
         return true;
     }
 
-    public static boolean canFundTrade(Contact contact)
+    public static boolean canFundTrade(ContactItem contact)
     {
         if(isClosedTrade(contact))
             return false;
 
         return true;
     }
-    
+
     public static boolean isLocalTrade(Contact contact)
     {
-        return (contact.advertisement.trade_type == TradeType.LOCAL_BUY || contact.advertisement.trade_type == TradeType.LOCAL_SELL);
+        TradeType tradeType = contact.advertisement.trade_type;
+        return (tradeType == TradeType.LOCAL_BUY ||tradeType == TradeType.LOCAL_SELL);
     }
-
-    public static boolean isLocalTrade(ContactSync contact)
+    
+    public static boolean isLocalTrade(ContactItem contact)
     {
-        return (contact.advertisement_trade_type.equals(TradeType.LOCAL_BUY.name()) || contact.advertisement_trade_type.equals(TradeType.LOCAL_SELL.name()));
+        TradeType tradeType = TradeType.valueOf(contact.advertisement_trade_type());
+        return (tradeType == TradeType.LOCAL_BUY ||tradeType == TradeType.LOCAL_SELL);
     }
-
+    
     public static boolean isLocalTrade(Advertisement advertisement)
     {
         return (advertisement.trade_type == TradeType.LOCAL_BUY || advertisement.trade_type == TradeType.LOCAL_SELL);
@@ -237,9 +247,10 @@ public class TradeUtils
         return (!Strings.isBlank(advertisement.atm_model()));
     }
 
-    public static boolean isOnlineTrade(Contact contact)
+    public static boolean isOnlineTrade(ContactItem contact)
     {
-        return (contact.advertisement.trade_type == TradeType.ONLINE_BUY || contact.advertisement.trade_type == TradeType.ONLINE_SELL);
+        TradeType tradeType = TradeType.valueOf(contact.advertisement_trade_type());
+        return (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL);
     }
 
     public static boolean isOnlineTrade(Advertisement advertisement)

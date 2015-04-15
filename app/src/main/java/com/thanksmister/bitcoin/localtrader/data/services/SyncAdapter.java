@@ -159,17 +159,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         Timber.e("handleError: " + throwable.getLocalizedMessage());
 
         if(DataServiceUtils.isHttp403Error(throwable)) {
-            Timber.e("Wallet Error: " + getContext().getString(R.string.error_authentication)  + " Code 404");
+            Timber.e("Error: " + getContext().getString(R.string.error_authentication)  + " Code 404");
         } else if(DataServiceUtils.isHttp401Error(throwable)) {
-            Timber.e("Wallet Error: " + getContext().getString(R.string.error_no_internet)  + " Code 401");
+            Timber.e("Error: " + getContext().getString(R.string.error_no_internet)  + " Code 401");
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
-            Timber.e("Wallet Error: " + getContext().getString(R.string.error_service_error)  + " Code 400");
+            Timber.e("Error: " + getContext().getString(R.string.error_service_error)  + " Code 400");
         } else if(DataServiceUtils.isHttp500Error(throwable)) {
-            Timber.e("Wallet Error: " + getContext().getString(R.string.error_service_error)  + " Code 500");
+            Timber.e("Error: " + getContext().getString(R.string.error_service_error)  + " Code 500");
         } else if(DataServiceUtils.isHttp404Error(throwable)) {
-            Timber.e("Wallet Error: " + getContext().getString(R.string.error_service_error) + " Code 404");
+            Timber.e("Error: " + getContext().getString(R.string.error_service_error) + " Code 404");
         } else {
-            Timber.e("Wallet Error: " + getContext().getString(R.string.error_generic_error));
+            Timber.e("Error: " + getContext().getString(R.string.error_generic_error));
         }
     }
 
@@ -269,8 +269,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<Wallet> call(SessionItem sessionItem)
                     {
-                        Timber.d("Token Wallet: " + sessionItem.access_token());
-                        
+                        Timber.d("Access Token: " + sessionItem.access_token());
+
                         return localBitcoins.getWalletBalance(sessionItem.access_token())
                                 .map(new ResponseToWalletBalance())
                                 .flatMap(new Func1<Wallet, Observable<Wallet>>()
@@ -349,12 +349,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         // TODO handle bad token
         return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<List<Contact>>>() {
+                .flatMap(new Func1<SessionItem, Observable<List<Contact>>>()
+                {
                     @Override
                     public Observable<List<Contact>> call(SessionItem sessionItem)
                     {
-                        Timber.d("Token: " + sessionItem.access_token());
-                        
+                        Timber.d("Access Token: " + sessionItem.access_token());
+
                         return localBitcoins.getDashboard(sessionItem.access_token())
                                 .map(new ResponseToContacts())
                                 .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
@@ -422,7 +423,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .map(SessionItem.MAP);
     }
 
-    private String getRefreshToken()
+ /*   private String getRefreshToken()
     {
         Cursor cursor = db.query(SessionItem.QUERY);
         if(cursor.getCount() > 0) {
@@ -435,7 +436,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         } else {
             return null;
         }
-    }
+    }*/
 
     private void updateTokens(Authorization authorization)
     {
@@ -501,6 +502,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<String> call(SessionItem sessionItem)
                     {
+                        Timber.d("Refresh Token: " + sessionItem.refresh_token());
+                        
                         return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
                                 .map(new ResponseToAuthorize())
                                 .flatMap(new Func1<Authorization, Observable<? extends String>>()
@@ -509,7 +512,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                     public Observable<? extends String> call(Authorization authorization)
                                     {
                                         Timber.d("New Access tokens: " + authorization.access_token);
-                                        db.insert(SessionItem.TABLE, new SessionItem.Builder().access_token(authorization.access_token).refresh_token(authorization.refresh_token).build());
+                                        updateTokens(authorization);
+                                        //db.insert(SessionItem.TABLE, new SessionItem.Builder().access_token(authorization.access_token).refresh_token(authorization.refresh_token).build());
                                         return Observable.just(authorization.access_token);
                                     }
                                 });
@@ -582,6 +586,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         ArrayList<Message> newMessages = new ArrayList<Message>();
         HashMap<String, Message> entryMap = new HashMap<String, Message>();
         for (Message message : messages) {
+            message.contact_id = contact_id;
             entryMap.put(message.created_at, message);
         }
         
@@ -617,7 +622,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             boolean isAccountUser = item.sender.username.toLowerCase().equals(stringPreference.get());
       
             MessageItem.Builder builder = new MessageItem.Builder()
-                    .contact_list_id(Long.valueOf(item.contact_id))
+                    .contact_list_id(Long.parseLong(item.contact_id))
                     .message(item.msg)
                     .seen(isAccountUser)
                     .created_at(item.created_at)
@@ -626,7 +631,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     .sender_username(item.sender.username)
                     .sender_trade_count(item.sender.trade_count)
                     .sender_last_online(item.sender.last_seen_on)
-                    .is_admin(item.is_admin);
+                    .is_admin(item.is_admin)
+                    .attachment_name(item.attachment_name)
+                    .attachment_type(item.attachment_type)
+                    .attachment_url(item.attachment_url);
 
             db.insert(MessageItem.TABLE, builder.build());
 
@@ -642,13 +650,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     public TreeMap<String, ArrayList<Contact>> updateContacts(final List<Contact> items)
     {
         TreeMap<String, ArrayList<Contact>> updateMap = new TreeMap<String, ArrayList<Contact>>();
+        
         ArrayList<Contact> newContacts = new ArrayList<Contact>();
         ArrayList<Contact> deletedContacts = new ArrayList<Contact>();
         ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
 
         HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
         for (Contact item : items) {
-            Timber.d("Item Created At: " + item.created_at);
             entryMap.put(item.contact_id, item);
         }
 
@@ -660,7 +668,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                 long id = Db.getLong(cursor, ContactItem.ID);
                 String contact_id = Db.getString(cursor, ContactItem.CONTACT_ID);
-                String created_at = Db.getString(cursor, ContactItem.CREATED_AT);
                 String payment_complete_at = Db.getString(cursor, ContactItem.PAYMENT_COMPLETED_AT);
                 String closed_at = Db.getString(cursor, ContactItem.CLOSED_AT);
                 String disputed_at = Db.getString(cursor, ContactItem.DISPUTED_AT);
@@ -681,8 +688,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                     entryMap.remove(contact_id);
 
-                    if (  (match.created_at != null && !match.created_at.equals(created_at))  
-                            || (match.payment_completed_at != null && !match.payment_completed_at.equals(payment_complete_at))
+                    if (  (match.payment_completed_at != null && !match.payment_completed_at.equals(payment_complete_at))
                             || (match.closed_at != null && !match.closed_at.equals(closed_at))
                             || (match.disputed_at != null && !match.disputed_at.equals(disputed_at))
                             || (match.escrowed_at != null && !match.escrowed_at.equals(escrowed_at))
@@ -713,11 +719,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                         int updateInt = db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
 
+                        Timber.d("Update contact in database: " + contact_id);
+                        
                         if (updateInt > 0) {
                             updatedContacts.add(match);
                         }
                     }
                 } else {
+                    Timber.d("Delete contact from database: " + contact_id);
                     // Entry doesn't exist. Remove it from the database.
                     db.delete(ContactItem.TABLE, String.valueOf(id));
                     deletedContacts.add(match);
@@ -793,6 +802,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     .advertiser_feedback_score(item.advertisement.advertiser.feedback_score)
                     .advertiser_last_online(item.advertisement.advertiser.last_online);
 
+            Timber.d("Insert contact from database: " + item.contact_id);
+            
             db.insert(ContactItem.TABLE, builder.build());
         }
         

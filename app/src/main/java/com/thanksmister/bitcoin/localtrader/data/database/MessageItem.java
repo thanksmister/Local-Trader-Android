@@ -17,6 +17,7 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,9 @@ public abstract class MessageItem
     public static final String SENDER_TRADE_COUNT = "sender_trader_count";
     public static final String SENDER_LAST_ONLINE = "sender_last_online";
     public static final String IS_ADMIN = "is_admin";
+    public static final String ATTACHMENT_NAME  = "attachment_name";
+    public static final String ATTACHMENT_URL  = "attachment_url";
+    public static final String ATTACHMENT_TYPE  = "attachment_type";
     
     public static final String QUERY = "SELECT * FROM "
             + MessageItem.TABLE
@@ -52,7 +56,7 @@ public abstract class MessageItem
             + MessageItem.CONTACT_LIST_ID
             + " = ? ORDER BY "
             + MessageItem.CREATED_AT
-            + " ASC";
+            + " DESC";
     
     public static final String COUNT_QUERY = "SELECT COUNT(*) FROM "
             + MessageItem.TABLE
@@ -65,12 +69,15 @@ public abstract class MessageItem
     public abstract long contact_id();
     public abstract String message();
     public abstract boolean seen();
-    public abstract String sender_id();
+    @Nullable public abstract String sender_id();
     public abstract String sender_name();
     public abstract String sender_username();
     public abstract String sender_trade_count();
     public abstract String sender_last_online();
     public abstract boolean is_admin();
+    @Nullable public abstract String attachment_name();
+    @Nullable public abstract String attachment_type();
+    @Nullable public abstract String attachment_url();
 
     public static final Func1<Query, List<MessageItem>> MAP = new Func1<Query, List<MessageItem>>() {
         @Override
@@ -90,8 +97,11 @@ public abstract class MessageItem
                     String sender_last_online = Db.getString(cursor, SENDER_LAST_ONLINE);
                     String sender_last_trade_count = Db.getString(cursor, SENDER_TRADE_COUNT);
                     boolean is_admin = Db.getBoolean(cursor, IS_ADMIN);
+                    String attachment_name = Db.getString(cursor, ATTACHMENT_NAME);
+                    String attachment_type = Db.getString(cursor, ATTACHMENT_TYPE);
+                    String attachment_url = Db.getString(cursor, ATTACHMENT_URL);
                     values.add(new AutoParcel_MessageItem(id, created_at, contact_id, message, seen, sender_id, sender_name, sender_username,
-                            sender_last_online, sender_last_trade_count, is_admin));
+                            sender_last_online, sender_last_trade_count, is_admin, attachment_name, attachment_type, attachment_url));
                 }
                 return values;
             } finally {
@@ -155,6 +165,21 @@ public abstract class MessageItem
 
         public Builder is_admin(boolean value) {
             values.put(IS_ADMIN, value);
+            return this;
+        }
+
+        public Builder attachment_name(String value) {
+            values.put(ATTACHMENT_NAME, value);
+            return this;
+        }
+
+        public Builder attachment_type(String value) {
+            values.put(ATTACHMENT_TYPE, value);
+            return this;
+        }
+
+        public Builder attachment_url(String value) {
+            values.put(ATTACHMENT_URL, value);
             return this;
         }
 
