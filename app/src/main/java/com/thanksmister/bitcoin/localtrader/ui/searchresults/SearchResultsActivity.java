@@ -30,15 +30,12 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 
-public class SearchResultsActivity extends BaseActivity implements SearchResultsView, SwipeRefreshLayout.OnRefreshListener
+public class SearchResultsActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_TRADE_TYPE = "com.thanksmister.extras.EXTRA_TRADE_TYPE";
     public static final String EXTRA_ADDRESS = "com.thanksmister.extras.EXTRA_ADDRESS";
     public static final String EXTRA_METHOD = "com.thanksmister.extras.EXTRA_METHOD";
-
-    @Inject
-    SearchResultsPresenter presenter;
-
+    
     @InjectView(android.R.id.list)
     ListView list;
 
@@ -63,7 +60,7 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     @OnClick(R.id.emptyRetryButton)
     public void emptyButtonClicked()
     {
-        presenter.getAdvertisements(tradeType, address, paymentMethod);
+        getAdvertisements(tradeType, address, paymentMethod);
     }
 
     private AdvertiseAdapter adapter;
@@ -109,10 +106,10 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
 
         list.setOnItemClickListener((adapterView, view, i, l) -> {
             Advertisement advertisement = (Advertisement) adapterView.getAdapter().getItem(i);
-            presenter.showAdvertiser(advertisement);
+            showAdvertiser(advertisement);
         });
 
-        adapter = new AdvertiseAdapter(getContext());
+        adapter = new AdvertiseAdapter(this);
         setAdapter(adapter);
     }
 
@@ -150,9 +147,7 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
     {
         super.onResume();
 
-        presenter.onResume();
-
-        presenter.getAdvertisements(tradeType, address, paymentMethod);
+        getAdvertisements(tradeType, address, paymentMethod);
     }
 
     @Override
@@ -161,24 +156,20 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
         super.onDestroy();
 
         ButterKnife.reset(this);
-
-        presenter.onDestroy();
     }
 
     @Override
     public void onRefresh()
     {
-        presenter.getAdvertisements(tradeType, address, paymentMethod);
+        getAdvertisements(tradeType, address, paymentMethod);
     }
-
-    @Override
+    
     public void onRefreshStop()
     {
         if(swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
-
-    @Override
+    
     public void onError(String message)
     {
         progress.setVisibility(View.GONE);
@@ -187,22 +178,14 @@ public class SearchResultsActivity extends BaseActivity implements SearchResults
         empty.setVisibility(View.VISIBLE);
         emptyTextView.setText(message);
     }
-
-    @Override 
-    public Context getContext() 
-    {
-        return this;
-    }
-
-    @Override
+    
     public void showProgress()
     {
         empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         list.setVisibility(View.GONE);
     }
-
-    @Override
+    
     public void hideProgress()
     {
         empty.setVisibility(View.GONE);

@@ -32,7 +32,6 @@ import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.misc.DashboardAdvertisementAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.DashboardContactAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.LinearListView;
-import com.thanksmister.bitcoin.localtrader.ui.edit.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.AdvertisementAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.ContactAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
@@ -151,6 +150,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     private Observable<List<ContactItem>> contactObservable;
     private Observable<ExchangeItem> exchangeObservable;
 
+    private Observable<List<Contact>> contactUpdateObservable;
     private Observable<List<Advertisement>> advertisementUpdateObservable;
     private Observable<List<Method>> methodUpdateObservable;
     private Observable<Exchange> exchangeUpdateObservable;
@@ -161,9 +161,16 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     private DashboardContactAdapter contactAdapter;
     private DashboardAdvertisementAdapter advertisementAdapter;
 
+    
     private class AdvertisementData {
         public List<AdvertisementItem> advertisements;
         public List<MethodItem> methods;
+    }
+
+    private class dashboardData
+    {
+        public List<Advertisement> advertisements;
+        public List<Contact> contacts;
     }
 
     /**
@@ -197,6 +204,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
         
         // update data
+        contactUpdateObservable = bindFragment(this, dbManager.getContacts(DashboardType.ACTIVE));
         advertisementUpdateObservable = bindFragment(this, dbManager.getAdvertisements());
         methodUpdateObservable = bindFragment(this, dbManager.getMethods());
         exchangeUpdateObservable = bindFragment(this, dbManager.getExchange());
@@ -393,7 +401,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(Exchange exchange)
             {
                 Timber.e("Exchange Updated: " + exchange.name);
-                
+
                 dbManager.updateExchange(exchange);
             }
         }, new Action1<Throwable>()
@@ -412,22 +420,37 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(List<Method> methods)
             {
                 Timber.e("Methods Updated: " + methods.size());
-                
+
                 dbManager.updateMethods(methods);
             }
         }));
         
-        updateSubscriptions.add(advertisementUpdateObservable.subscribe(new Action1<List<Advertisement>>()
+        subscriptions.add(Observable.combineLatest(contactUpdateObservable, advertisementUpdateObservable, new Func2<List<Contact>, List<Advertisement>, dashboardData>()
         {
             @Override
-            public void call(List<Advertisement> advertisements)
+            public dashboardData call(List<Contact> contacts, List<Advertisement> advertisements)
+            {
+                dashboardData data = new dashboardData();
+                data.contacts = contacts;
+                data.advertisements = advertisements;
+                return data;
+            }
+        }).subscribe(new Action1<dashboardData>()
+        {
+            @Override
+            public void call(dashboardData data)
             {
                 onRefreshStop();
+                
+                Timber.d("Contacts: " + data.contacts.size());
+                Timber.d("Advertisements: " + data.advertisements.size());
 
-                Timber.e("Advertisement Updated: " + advertisements.size());
+                if (data.advertisements.size() > 0) {
+                    dbManager.updateAdvertisements(data.advertisements);
+                }
 
-                if (advertisements.size() > 0) {
-                    dbManager.updateAdvertisements(advertisements);
+                if (data.contacts.size() > 0) {
+                    dbManager.updateContacts(data.contacts);
                 }
             }
         }, new Action1<Throwable>()
@@ -436,7 +459,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(Throwable throwable)
             {
                 onRefreshStop();
-                Timber.e("Advertisement Errors: " + throwable.getLocalizedMessage());
+                Timber.e("Desktop Errors: " + throwable.getLocalizedMessage());
                 handleError(throwable);
             }
         }));

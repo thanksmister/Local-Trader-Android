@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.ui.edit;
+package com.thanksmister.bitcoin.localtrader.ui.misc;
 
 import android.app.Activity;
 import android.content.Context;

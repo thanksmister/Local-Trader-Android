@@ -382,23 +382,37 @@ public class TradeUtils
         return paymentMethod;
     }
 
+    public static String getPaymentMethodName(String paymentMethod)
+    {
+        switch (paymentMethod) {
+            case "NATIONAL_BANK":
+                return "National Bank transfer";
+            case "CASH_DEPOSIT":
+                return "Cash deposit";
+            case "SPECIFIC_BANK":
+                return "Bank transfer";
+        }
+      
+        return paymentMethod;
+    }
+
     public static String getPaymentMethod(AdvertisementItem advertisement, MethodItem method)
     {
         String paymentMethod = "Online";
         if (method != null && method.code().equals(advertisement.online_provider())) {
             if (method.code().equals("NATIONAL_BANK")) {
                 if (Strings.isBlank(method.countryName()))
-                    return "national bank transfer";
+                    return "National Bank transfer";
 
                 return "bank transfer in " + method.countryName();
             } else if (method.code().equals("CASH_DEPOSIT")) {
                 if (Strings.isBlank(method.countryName()))
-                    return "cash deposit";
+                    return "Cash deposit";
 
                 return "cash deposit in " + method.countryName();
             } else if (method.code().equals("SPECIFIC_BANK")) {
                 if (Strings.isBlank(method.countryName()))
-                    return "bank transfer";
+                    return "Bank transfer";
 
                 return "bank transfer in " + method.countryName();
             }
@@ -419,17 +433,17 @@ public class TradeUtils
         if (method != null && method.code().equals(advertisement.online_provider)) {
             if (method.code().equals("NATIONAL_BANK")) {
                 if (Strings.isBlank(method.countryName()))
-                    return "national bank transfer";
+                    return "National Bank transfer";
 
                 return "bank transfer in " + method.countryName();
             } else if (method.code().equals("CASH_DEPOSIT")) {
                 if (Strings.isBlank(method.countryName()))
-                    return "cash deposit";
+                    return "Cash deposit";
 
                 return "cash deposit in " + method.countryName();
             } else if (method.code().equals("SPECIFIC_BANK")) {
                 if (Strings.isBlank(method.countryName()))
-                    return "bank transfer";
+                    return "Bank transfer";
 
                 return "bank transfer in " + method.countryName();
             }

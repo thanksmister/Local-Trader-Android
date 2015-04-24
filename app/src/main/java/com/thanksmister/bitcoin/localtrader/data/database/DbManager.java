@@ -22,13 +22,16 @@ import android.graphics.Bitmap;
 
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
+import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
@@ -36,10 +39,12 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseBitfinexToExchange;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAd;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToCurrencyList;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToJSONObject;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMethod;
@@ -52,6 +57,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -61,11 +67,17 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import retrofit.client.Response;
 import rx.Observable;
+import rx.Observer;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class DbManager 
@@ -83,16 +95,19 @@ public class DbManager
     private LocalBitcoins localBitcoins;
     private SharedPreferences sharedPreferences;
     private BitfinexExchange bitfinexExchange;
+    private BitcoinAverage bitcoinAverage;
     private BaseApplication baseApplication;
+    private List<Currency> currencies;
     
     @Inject
-    public DbManager(SqlBrite db, LocalBitcoins localBitcoins, SharedPreferences sharedPreferences, BitfinexExchange bitfinexExchange, BaseApplication application)
+    public DbManager(SqlBrite db, LocalBitcoins localBitcoins, SharedPreferences sharedPreferences, BitfinexExchange bitfinexExchange, BitcoinAverage bitcoinAverage, BaseApplication application)
     {
         this.db = db;
         this.localBitcoins = localBitcoins;
         this.bitfinexExchange = bitfinexExchange;
         this.sharedPreferences = sharedPreferences;
         this.baseApplication = baseApplication;
+        this.bitcoinAverage = bitcoinAverage;
     }
 
     /**
@@ -1017,6 +1032,59 @@ public class DbManager
         setAdvertisementsExpireTime();
     }
 
+    public void updateAdvertisement(Advertisement advertisement)
+    {
+        AdvertisementItem.Builder builder = new AdvertisementItem.Builder()
+                .created_at(advertisement.created_at)
+                .ad_id(advertisement.ad_id)
+                .city(advertisement.city)
+                .country_code(advertisement.country_code)
+                .currency(advertisement.currency)
+                .email(advertisement.email)
+                .lat(advertisement.lat)
+                .lon(advertisement.lon)
+                .location_string(advertisement.location)
+                .max_amount(advertisement.max_amount)
+                .min_amount(advertisement.min_amount)
+                .max_amount_available(advertisement.max_amount_available)
+                .online_provider(advertisement.online_provider)
+                .require_trade_volume(advertisement.require_trade_volume)
+                .require_feedback_score(advertisement.require_feedback_score)
+                .atm_model(advertisement.atm_model)
+                .temp_price(advertisement.temp_price)
+                .temp_price_usd(advertisement.temp_price_usd)
+                .price_equation(advertisement.price_equation)
+                .reference_type(advertisement.reference_type)
+                .action_public_view(advertisement.actions.public_view)
+                .sms_verification_required(advertisement.sms_verification_required)
+                .trade_type(advertisement.trade_type.name())
+                .visible(advertisement.visible)
+                .account_info(advertisement.account_info)
+                .profile_last_online(advertisement.profile.last_online)
+                .profile_name(advertisement.profile.name)
+                .profile_username(advertisement.profile.username)
+                .profile_feedback_score(advertisement.profile.feedback_score)
+                .profile_trade_count(advertisement.profile.trade_count)
+                .bank_name(advertisement.bank_name)
+                .message(advertisement.message)
+                .track_max_amount(advertisement.track_max_amount)
+                .trusted_required(advertisement.trusted_required);
+
+        Cursor cursor = db.query(AdvertisementItem.QUERY_ITEM, advertisement.ad_id);
+
+        try {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                long id = Db.getLong(cursor, AdvertisementItem.ID);
+                db.update(AdvertisementItem.TABLE, builder.build(), AdvertisementItem.ID + " = ?", Long.toString(id));
+            } else {
+                db.insert(AdvertisementItem.TABLE, builder.build());
+            }
+        } finally {
+            cursor.close();
+        }
+    } 
+
     private boolean needToRefreshExchanges()
     {
         synchronized (this) {
@@ -1128,6 +1196,64 @@ public class DbManager
                 });
     }
 
+    public Observable<List<Currency>> getCurrencies()
+    {
+        if(currencies != null){
+            return Observable.just(currencies);
+        }
+        
+        return bitcoinAverage.tickers()
+                .map(new ResponseToCurrencyList())
+                .doOnNext(new Action1<List<Currency>>()
+                {
+                    @Override
+                    public void call(List<Currency> results)
+                    {
+                        currencies = results;
+                    }
+                });
+    }
+    
+    public Observable<Advertisement> createAdvertisement(Advertisement advertisement)
+    {
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<Advertisement>>()
+                {
+                    @Override
+                    public Observable<Advertisement> call(SessionItem sessionItem)
+                    {
+                        return createAdvertisementObservable(advertisement, sessionItem.access_token())
+                                .onErrorResumeNext(refreshTokenAndRetry(createAdvertisementObservable(advertisement, sessionItem.access_token())))
+                                .map(new ResponseToAd());
+                    }
+                });
+    }
+
+    private Observable<Response> createAdvertisementObservable(final Advertisement advertisement, String access_token)
+    {
+        return localBitcoins.createAdvertisement(advertisement.ad_id, access_token, advertisement.min_amount,
+                advertisement.max_amount, advertisement.price_equation, advertisement.trade_type.name(), advertisement.online_provider,
+                String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
+                advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
+                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
+                String.valueOf(advertisement.trusted_required), advertisement.message);
+    }
+
+    public Observable<JSONObject> postMessage(String contact_id, final String message)
+    {
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
+                {
+                    @Override
+                    public Observable<JSONObject> call(SessionItem sessionItem)
+                    {
+                        return localBitcoins.contactMessagePost(contact_id, sessionItem.access_token(), message)
+                                .map(new ResponseToJSONObject());
+                    }
+                });
+                
+    }
+
     /*private class QrCodeTask extends AsyncTask<Object, Void, Object[]>
     {
         private Context context;
@@ -1155,4 +1281,18 @@ public class DbManager
             //updateWalletQrCode(wallet.id, wallet.qrImage, context);
         }
     }*/
+
+    public Observable<JSONObject> validatePinCode(final String pinCode)
+    {
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
+                {
+                    @Override
+                    public Observable<JSONObject> call(SessionItem sessionItem)
+                    {
+                        return localBitcoins.checkPinCode(pinCode, sessionItem.access_token())
+                                .map(new ResponseToJSONObject());
+                    }
+                });
+    }
 }

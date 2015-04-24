@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.widget.Toast;
 
@@ -17,19 +16,13 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ScannerEvent;
-import com.thanksmister.bitcoin.localtrader.ui.qrcode.QRCodeActivity;
-import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Errors;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
-import retrofit.RetrofitError;
 import rx.Observer;
 import rx.Subscription;
-import timber.log.Timber;
 
 /**
  * Author: Michael Ritchie

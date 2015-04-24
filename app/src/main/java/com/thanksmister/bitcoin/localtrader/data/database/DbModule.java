@@ -22,6 +22,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
+import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 
@@ -36,9 +37,9 @@ public final class DbModule
 {
     @Provides
     @Singleton
-    DbManager provideDbManager(SqlBrite sqlBrite, LocalBitcoins localBitcoins, SharedPreferences sharedPreferences, BitfinexExchange bitfinexExchange, BaseApplication application)
+    DbManager provideDbManager(SqlBrite sqlBrite, LocalBitcoins localBitcoins, SharedPreferences sharedPreferences, BitfinexExchange bitfinexExchange, BitcoinAverage bitcoinAverage,  BaseApplication application)
     {
-        return new DbManager(sqlBrite, localBitcoins, sharedPreferences, bitfinexExchange, application);
+        return new DbManager(sqlBrite, localBitcoins, sharedPreferences, bitfinexExchange, bitcoinAverage, application);
     }
 
     @Provides

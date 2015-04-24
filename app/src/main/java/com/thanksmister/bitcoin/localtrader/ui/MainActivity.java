@@ -21,8 +21,6 @@ import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.about.AboutFragment;
 import com.thanksmister.bitcoin.localtrader.ui.request.RequestFragment;
-import com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment;
-import com.thanksmister.bitcoin.localtrader.WalletFragment;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 

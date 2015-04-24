@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.ui.release;
+package com.thanksmister.bitcoin.localtrader.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.ActionBarActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -28,16 +27,21 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.ui.advertise.AdvertiserModule;
+import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 
-import java.util.Arrays;
-import java.util.List;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import rx.Observable;
+import rx.functions.Action1;
+import timber.log.Timber;
 
-public class PinCodeActivity extends BaseActivity implements PinCodeView
+import static rx.android.app.AppObservable.bindActivity;
+
+public class PinCodeActivity extends BaseActivity
 {
     public static final String EXTRA_PROGRESS = "EXTRA_PROGRESS";
     public static final String EXTRA_PIN_CODE = "EXTRA_PIN_CODE";
@@ -49,8 +53,8 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
     public static final int RESULT_VERIFIED = 7652;
 
     @Inject
-    PinCodePresenter presenter;
-
+    DbManager dbManager;
+    
     @InjectView(R.id.pinCode1)
     TextView pinCode1;
 
@@ -72,6 +76,7 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
     private String address;
     private String amount;
     private boolean sendingInProgress;
+    private Observable<JSONObject> validateObservable;
 
     public static Intent createStartIntent(Context context)
     {
@@ -229,15 +234,17 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
             {
             }
+
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
             {
             }
+
             @Override
             public void afterTextChanged(Editable editable)
             {
                 pinTxt1 = editable.toString();
-                if(!pinTxt1.trim().isEmpty() && !pinTxt1.equals("")) {
+                if (!pinTxt1.trim().isEmpty() && !pinTxt1.equals("")) {
                     pinCode1.setCursorVisible(false);
                     pinCode1.setFocusable(false);
                     pinCode1.setFocusableInTouchMode(false);
@@ -246,10 +253,10 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
                     pinCode2.setFocusableInTouchMode(true);
                     pinCode2.setFocusable(true);
                     pinCode2.requestFocus();
-                    
+
                     pinComplete = true;
                 } else {
-                    
+
                     pinCode1.setCursorVisible(true);
                     pinCode1.setFocusable(true);
                     pinCode1.setFocusableInTouchMode(true);
@@ -260,24 +267,6 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
         });
 
         pinCode1.requestFocus();
-    }
-
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-
-        presenter.onResume();
-    }
-
-    @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-
-        ButterKnife.reset(this);
-
-        presenter.onDestroy();
     }
 
     @Override
@@ -298,7 +287,7 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
     {
         sendingInProgress = true;
         
-        presenter.validatePinCode(pinCode, address, amount);
+        validatePinCode(pinCode, address, amount);
     }
 
     @Override
@@ -311,10 +300,45 @@ public class PinCodeActivity extends BaseActivity implements PinCodeView
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public Context getContext()
+    private void validatePinCode(final String pinCode, final String address, final String amount)
     {
-        return this;
+        validateObservable = bindActivity(this, dbManager.validatePinCode(pinCode));
+        validateObservable.subscribe(new Action1<JSONObject>()
+        {
+            @Override
+            public void call(JSONObject jsonObject)
+            {
+                try {
+                    JSONObject object = jsonObject.getJSONObject("data");
+                    Boolean valid = (object.getString("pincode_ok").equals("true"));
+                    if (valid) {
+
+                        toast("PIN verified!");
+
+                        Intent intent = getIntent();
+                        intent.putExtra(PinCodeActivity.EXTRA_PIN_CODE, pinCode);
+                        intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, address);
+                        intent.putExtra(PinCodeActivity.EXTRA_AMOUNT, amount);
+
+                        setResult(PinCodeActivity.RESULT_VERIFIED, intent);
+                        finish();
+
+                    } else {
+                        Timber.d(object.toString());
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                Timber.e(throwable.getLocalizedMessage());
+                handleError(new Throwable(getString(R.string.toast_pin_code_invalid)));
+                finish();
+            }
+        });
     }
-    
 }

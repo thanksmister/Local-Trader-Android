@@ -23,7 +23,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
-import com.thanksmister.bitcoin.localtrader.ui.edit.EditActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -347,7 +346,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         }*/
 
         if(!Strings.isBlank(advertisement.message())){
-            tradeTerms.setText(Html.fromHtml(advertisement.message().trim()));
+            tradeTerms.setText(advertisement.message().trim());
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
         }
 

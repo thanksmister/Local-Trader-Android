@@ -30,7 +30,6 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -39,7 +38,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MessageAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -107,6 +105,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private Observable<Contact> contactObservable;
     private Observable<SessionItem> tokensObservable;
     private Observable<JSONObject> contactActionObservable;
+    private Observable<JSONObject> messageObservable;
     
     public static Intent createStartIntent(Context context, String contactId)
     {
@@ -197,7 +196,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
         list.addHeaderView(headerView, null, false);
         list.setOnItemClickListener((adapterView, view, i, l) -> {
-            Message message = (Message) adapterView.getAdapter().getItem(i);
+            MessageItem message = (MessageItem) adapterView.getAdapter().getItem(i);
             setMessageOnClipboard(message);
         });
 
@@ -393,7 +392,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                 break;
             case ONLINE_BUY:
             case ONLINE_SELL:
-                type = (contact.is_buying())? getString(R.string.contact_list_buying_online, amount, contact.advertisement_payment_method(), date):getString(R.string.contact_list_selling_online, amount, contact.advertisement_payment_method(), date);
+                String paymentMethod = TradeUtils.getPaymentMethodName(contact.advertisement_payment_method());
+                type = (contact.is_buying())? getString(R.string.contact_list_buying_online, amount, paymentMethod, date):getString(R.string.contact_list_selling_online, amount, paymentMethod, date);
                 //smsReleaseCodeLayout.setVisibility(GONE);
                 break;
         }
@@ -454,7 +454,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             return;
         }
 
-        postMessage(contactId, message);
+        postMessage(message);
     }
 
     public void clearMessage()
@@ -463,7 +463,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         newMessageText.setText("");
     }
     
-    public void downloadAttachment(Message message)
+    public void downloadAttachment(MessageItem message)
     {
         tokensObservable.subscribe(new Action1<SessionItem>()
         {
@@ -471,11 +471,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(SessionItem sessionItem)
             {
                 String token = sessionItem.access_token();
-                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(message.attachment_url + "?access_token=" + token));
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(message.attachment_url() + "?access_token=" + token));
                 request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
                 request.setVisibleInDownloadsUi(true);
-                request.setMimeType(message.attachment_type);
-                request.setTitle(message.attachment_name);
+                request.setMimeType(message.attachment_type());
+                request.setTitle(message.attachment_name());
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
                 downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
@@ -491,27 +491,30 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         startActivity(i);
     }
     
-    public void postMessage(String contact_id, String message)
+    public void postMessage(String message)
     {
-        /*((BaseActivity) getContext()).showProgressDialog(new ProgressDialogEvent("Sending message..."));
+        showProgressDialog(new ProgressDialogEvent("Sending message..."));
 
-        Observable<Response> postMessage = service.postMessage(contact_id, message);
-        postMessage.subscribe(new Action1<Response>() {
+        messageObservable = bindActivity(this, dbManager.postMessage(contactId, message));
+        messageObservable.subscribe(new Action1<JSONObject>()
+        {
             @Override
-            public void call(Response response) {
-                getView().clearMessage();
-                ((BaseActivity) getContext()).hideProgressDialog();
-                Toast.makeText(getContext(), getString(R.string.toast_message_sent), Toast.LENGTH_SHORT).show();
-                //cancelCheck(); // stop auto checking
-                getContact(contact_id); // refresh contact
+            public void call(JSONObject jsonObject)
+            {
+                hideProgressDialog();
+                toast(R.string.toast_message_sent);
+                newMessageText.setText("");
+                updateData();
             }
-        }, new Action1<Throwable>() {
+        }, new Action1<Throwable>()
+        {
             @Override
-            public void call(Throwable throwable) {
-                ((BaseActivity) getContext()).hideProgressDialog();
-                Toast.makeText(getContext(), getString(R.string.toast_error_message), Toast.LENGTH_SHORT).show();
+            public void call(Throwable throwable)
+            {
+                hideProgressDialog();
+                toast(R.string.toast_error_message);
             }
-        });*/
+        });
     }
     
     public void disputeContact()
@@ -591,18 +594,18 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     @SuppressWarnings("deprecation")
-    public void setMessageOnClipboard(Message message)
+    public void setMessageOnClipboard(MessageItem message)
     {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText(getString(R.string.message_clipboard_title), message.msg);
+            ClipData clip = ClipData.newPlainText(getString(R.string.message_clipboard_title), message.message());
             clipboard.setPrimaryClip(clip);
         } else {
             android.text.ClipboardManager clipboardManager = (android.text.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            clipboardManager.setText(message.msg);
+            clipboardManager.setText(message.message());
         }
 
-        if(!Strings.isBlank(message.attachment_name)) {
+        if(!Strings.isBlank(message.attachment_name())) {
             downloadAttachment(message);
             toast(R.string.message_copied_attachment_toast);
         } else {

@@ -1,4 +1,4 @@
-package com.thanksmister.bitcoin.localtrader;
+package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -26,6 +26,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
+import com.thanksmister.bitcoin.localtrader.BaseFragment;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
@@ -33,7 +35,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.AutoResizeTextView;
 import com.thanksmister.bitcoin.localtrader.ui.misc.TransactionsAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;

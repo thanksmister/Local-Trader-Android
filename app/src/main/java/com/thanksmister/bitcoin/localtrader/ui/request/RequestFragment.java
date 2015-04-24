@@ -45,7 +45,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.qrcode.QRCodeActivity;
-import com.thanksmister.bitcoin.localtrader.ui.release.PinCodeActivity;
+import com.thanksmister.bitcoin.localtrader.ui.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;

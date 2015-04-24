@@ -32,10 +32,13 @@ import com.thanksmister.bitcoin.localtrader.domain.DomainModule;
 import com.thanksmister.bitcoin.localtrader.ui.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.DashboardFragment;
-import com.thanksmister.bitcoin.localtrader.ui.edit.EditActivity;
+import com.thanksmister.bitcoin.localtrader.ui.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.LoginActivity;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
+import com.thanksmister.bitcoin.localtrader.ui.PinCodeActivity;
+import com.thanksmister.bitcoin.localtrader.ui.SearchFragment;
+import com.thanksmister.bitcoin.localtrader.ui.WalletFragment;
 
 import javax.inject.Singleton;
 
@@ -44,7 +47,8 @@ import dagger.Provides;
 
 @Module(
         injects = {MainActivity.class, PromoActivity.class, LoginActivity.class, AdvertisementActivity.class, 
-                EditActivity.class, DashboardFragment.class, WalletFragment.class, ContactActivity.class},
+                EditActivity.class, DashboardFragment.class, WalletFragment.class, ContactActivity.class, SearchFragment.class,
+                PinCodeActivity.class},
         includes = {DataModule.class, DomainModule.class, DbModule.class},
         complete = false,
         library = true

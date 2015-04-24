@@ -104,13 +104,11 @@ public class DataService
     public static final String PREFS_TOKENS_EXPIRE_TIME = "pref_tokens_expire";
     public static final String PREFS_USER = "pref_user";
     public static final String PREFS_LOGGED_IN = "pref_logged_in";
-    public static final String PREFS_SELECTED_EXCHANGE = "selected_exchange";
     public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
     public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
 
     public static final int CHECK_DASHBOARD_DATA = 5 * 60 * 1000;// 5 minutes
     public static final int CHECK_EXCHANGE_DATA = 5 * 60 * 1000;// 5 minutes
-    public static final int CHECK_DATABASE_DATA = 3 * 1000;// 30 seconds
     public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 mintues
 
     public static final String USD = "USD";

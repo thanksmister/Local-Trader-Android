@@ -527,8 +527,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         
         ArrayList<Contact> updatedContacts = updatedContactList.get(DatabaseManager.UPDATES);
         Timber.d("updated contacts: " + updatedContacts.size());
+        
         ArrayList<Contact> addedContacts = updatedContactList.get(DatabaseManager.ADDITIONS);
         Timber.d("added contacts: " + addedContacts.size());
+        
         ArrayList<Contact> deletedContacts = updatedContactList.get(DatabaseManager.DELETIONS);
         Timber.d("deleted contacts: " + deletedContacts.size());
         
@@ -695,10 +697,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                             || (match.funded_at != null && !match.funded_at.equals(funded_at))
                             || (match.released_at != null && !match.released_at.equals(released_at))
                             || (match.canceled_at != null && !match.canceled_at.equals(canceled_at))
-                            || (match.buyer.last_online != null && !match.buyer.last_online.equals(buyerLastSeen))
                             || (match.actions.fund_url != null && !match.actions.fund_url.equals(fundUrl))
-                            || (match.is_funded != isFunded)
-                            || (match.seller.last_online != null && !match.seller.last_online.equals(sellerLastSeen))) {
+                            || (match.is_funded != isFunded)) {
 
                         // Update existing record
                         ContactItem.Builder builder = new ContactItem.Builder()
