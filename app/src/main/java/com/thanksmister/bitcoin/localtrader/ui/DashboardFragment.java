@@ -27,13 +27,18 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
-import com.thanksmister.bitcoin.localtrader.ui.misc.DashboardAdvertisementAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.misc.DashboardContactAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
+import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
+import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
+import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
+import com.thanksmister.bitcoin.localtrader.ui.advertisements.DashboardAdvertisementAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.contacts.DashboardContactAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.LinearListView;
-import com.thanksmister.bitcoin.localtrader.ui.misc.AdvertisementAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.misc.ContactAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 
 import java.util.List;
@@ -61,6 +66,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 {
     public static final String EXTRA_METHODS = "com.thanksmister.extras.EXTRA_METHODS";
     private static final String ARG_SECTION_NUMBER = "section_number";
+    
+    @Inject
+    DataService dataService;
     
     @Inject
     DbManager dbManager;
@@ -204,10 +212,10 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
         
         // update data
-        contactUpdateObservable = bindFragment(this, dbManager.getContacts(DashboardType.ACTIVE));
-        advertisementUpdateObservable = bindFragment(this, dbManager.getAdvertisements());
-        methodUpdateObservable = bindFragment(this, dbManager.getMethods());
-        exchangeUpdateObservable = bindFragment(this, dbManager.getExchange());
+        contactUpdateObservable = bindFragment(this, dataService.getContacts(DashboardType.ACTIVE));
+        advertisementUpdateObservable = bindFragment(this, dataService.getAdvertisements());
+        methodUpdateObservable = bindFragment(this, dataService.getMethods());
+        exchangeUpdateObservable = bindFragment(this, dataService.getExchange());
     }
 
     @Override

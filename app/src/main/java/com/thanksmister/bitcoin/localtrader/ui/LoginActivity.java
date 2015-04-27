@@ -21,6 +21,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
+import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,6 +38,9 @@ import static rx.android.app.AppObservable.bindActivity;
 
 public class LoginActivity extends BaseActivity
 {
+    @Inject
+    DataService dataService;
+    
     @Inject
     SqlBrite db;
 
@@ -159,7 +163,7 @@ public class LoginActivity extends BaseActivity
 
     public void setAuthorizationCode(final String code)
     {
-        Observable<Authorization> tokenObservable = bindActivity(this, dbManager.getAuthorization(code));
+        Observable<Authorization> tokenObservable = bindActivity(this, dataService.getAuthorization(code));
         tokenObservable.subscribe(new Action1<Authorization>()
         {
             @Override
@@ -181,7 +185,7 @@ public class LoginActivity extends BaseActivity
 
     public void getUser(String token)
     {
-        Observable<User> userObservable = bindActivity(this, dbManager.getMyself(token));
+        Observable<User> userObservable = bindActivity(this, dataService.getMyself(token));
         userObservable.subscribe(new Action1<User>()
         {
             @Override

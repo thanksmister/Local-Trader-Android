@@ -8,29 +8,19 @@ package com.thanksmister.bitcoin.localtrader;
 
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
 
-import com.thanksmister.bitcoin.localtrader.ui.BlockingProgressFragment;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 
 import butterknife.ButterKnife;
-import rx.Observable;
-import rx.Observer;
-import rx.Subscription;
-import rx.functions.Action0;
-import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindFragment;
 
 /**
  * Base fragment which performs injection using the activity object graph of its parent.
  */
 public abstract class BaseFragment extends DialogFragment
 {
-    private BlockingProgressFragment blockingProgressFragment;
     private Toolbar toolbar;
 
     @Override
@@ -55,39 +45,6 @@ public abstract class BaseFragment extends DialogFragment
         return toolbar;
     }
 
-    protected <T> Subscription blockingSubscribe(Fragment fragment, Observable<T> observable, final Observer<T> observer)
-    {
-        Subscription subscription = bindFragment(fragment, observable)
-                .doOnTerminate(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        dismissBlockingProgress();
-                    }
-                })
-                .subscribe(observer);
-        showBlockingProgress();
-        
-        return subscription;
-    }
-
-    protected void dismissBlockingProgress()
-    {
-        if (blockingProgressFragment != null) {
-            blockingProgressFragment.dismiss();
-            blockingProgressFragment = null;
-        }
-    }
-
-    protected void showBlockingProgress()
-    {
-        blockingProgressFragment = BlockingProgressFragment.newInstance();
-        blockingProgressFragment.show(getFragmentManager(), BlockingProgressFragment.TAG);
-        blockingProgressFragment.setOnCancelListener(null);
-    }
-
-    //{"error_description": "* error\n  * i\n  * n\n  * v\n  * a\n  * l\n  * i\n  * d\n  * _\n  * g\n  * r\n  * a\n  * n\n  * t", "error": "invalid_grant"}
     protected void handleError(Throwable throwable)
     {
         if(DataServiceUtils.isHttp403Error(throwable)) {

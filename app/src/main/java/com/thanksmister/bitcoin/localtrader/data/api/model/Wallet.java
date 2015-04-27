@@ -34,7 +34,6 @@ public class Wallet
     public List<Transaction> sent_transactions = Collections.emptyList();
     public List<Transaction> receiving_transactions = Collections.emptyList();
     private List<Transaction> transactions = Collections.emptyList();
-    public Exchange exchange = new Exchange();
 
     public Total total = new Total();
     public Address address = new Address();
@@ -85,14 +84,4 @@ public class Wallet
 
         return (d1.getTime() > d2.getTime() ? -1 : 1);     //descending
     };
-    
-    public String getBitcoinValue()
-    {
-        return Calculations.computedValueOfBitcoin(exchange.bid, exchange.ask, total.balance);
-    }
-
-    public String getBitstampValue()
-    {
-        return Calculations.calculateAverageBidAskFormatted(exchange.bid, exchange.ask);
-    }
 }

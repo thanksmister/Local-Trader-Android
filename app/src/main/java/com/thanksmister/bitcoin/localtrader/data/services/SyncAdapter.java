@@ -42,7 +42,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContac
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
-import com.thanksmister.bitcoin.localtrader.data.database.DatabaseManager;
 import com.thanksmister.bitcoin.localtrader.data.database.Db;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
@@ -525,13 +524,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         TreeMap<String, ArrayList<Contact>> updatedContactList = updateContacts(contacts);
         
-        ArrayList<Contact> updatedContacts = updatedContactList.get(DatabaseManager.UPDATES);
+        ArrayList<Contact> updatedContacts = updatedContactList.get(UPDATES);
         Timber.d("updated contacts: " + updatedContacts.size());
         
-        ArrayList<Contact> addedContacts = updatedContactList.get(DatabaseManager.ADDITIONS);
+        ArrayList<Contact> addedContacts = updatedContactList.get(ADDITIONS);
         Timber.d("added contacts: " + addedContacts.size());
         
-        ArrayList<Contact> deletedContacts = updatedContactList.get(DatabaseManager.DELETIONS);
+        ArrayList<Contact> deletedContacts = updatedContactList.get(DELETIONS);
         Timber.d("deleted contacts: " + deletedContacts.size());
         
         if (updatedContacts.size() > 1){

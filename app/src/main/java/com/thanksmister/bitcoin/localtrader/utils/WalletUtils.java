@@ -31,7 +31,11 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
+import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -45,9 +49,18 @@ import timber.log.Timber;
 
 public class WalletUtils
 {
-
-    private static final String CLASS_NAME = " " + WalletUtils.class.getSimpleName() + " ";
+    
     private static int BITCOIN_ADDRESS_BYTES_LENGTH = 21;
+
+    public static  String getBitcoinValue(ExchangeItem exchange, WalletItem wallet)
+    {
+        return Calculations.computedValueOfBitcoin(exchange.bid(), exchange.ask(), wallet.balance());
+    }
+
+    public static  String getExchangeValue(ExchangeItem exchange)
+    {
+        return Calculations.calculateAverageBidAskFormatted(exchange.bid(), exchange.ask());
+    }
     
     public static Bitmap encodeAsBitmap(String address, Context appContext)
     {

@@ -10,8 +10,6 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 import android.content.Context;
 
-import com.thanksmister.bitcoin.localtrader.data.services.SessionContract;
-
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";

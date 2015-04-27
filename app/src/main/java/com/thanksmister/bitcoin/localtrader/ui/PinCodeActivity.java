@@ -28,6 +28,7 @@ import android.widget.TextView;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,7 +54,7 @@ public class PinCodeActivity extends BaseActivity
     public static final int RESULT_VERIFIED = 7652;
 
     @Inject
-    DbManager dbManager;
+    DataService dataService;
     
     @InjectView(R.id.pinCode1)
     TextView pinCode1;
@@ -302,7 +303,7 @@ public class PinCodeActivity extends BaseActivity
 
     private void validatePinCode(final String pinCode, final String address, final String amount)
     {
-        validateObservable = bindActivity(this, dbManager.validatePinCode(pinCode));
+        validateObservable = bindActivity(this, dataService.validatePinCode(pinCode));
         validateObservable.subscribe(new Action1<JSONObject>()
         {
             @Override

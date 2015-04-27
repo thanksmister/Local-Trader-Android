@@ -284,10 +284,10 @@ public class TradeUtils
         return null;
     }
     
-    public static Method getMethodForAdvertisement(Advertisement advertisement, List<Method> methods)
+    public static MethodItem getMethodForAdvertisement(Advertisement advertisement, List<MethodItem> methods)
     {
-        for (Method m : methods) {
-            if(advertisement.online_provider.equals(m.code)) {
+        for (MethodItem m : methods) {
+            if(advertisement.online_provider.equals(m.code())) {
                 return m;
             }
         }
@@ -306,10 +306,20 @@ public class TradeUtils
         return null;
     }
 
-    public static Method getPaymentMethod(String code, List<Method> methods)
+    /*public static Method getPaymentMethod(String code, List<Method> methods)
     {
         for (Method method : methods) {
             if(method.code.equals(code)) {
+                return method;
+            }
+        }
+        return null;
+    }*/
+
+    public static MethodItem getPaymentMethod(String code, List<MethodItem> methods)
+    {
+        for (MethodItem method : methods) {
+            if(method.code().equals(code)) {
                 return method;
             }
         }
@@ -340,11 +350,23 @@ public class TradeUtils
         return paymentMethod;
     }
 
-    public static String getPaymentMethod(Advertisement advertisement, List<Method> methods)
+    /*public static String getPaymentMethod(Advertisement advertisement, List<Method> methods)
     {
         String paymentMethod = "";
         for (Method method : methods) {
             if(method.code.equals(advertisement.online_provider)) {
+                paymentMethod = getPaymentMethod(advertisement, method);
+                break;
+            }
+        }
+        return paymentMethod;
+    }*/
+
+    public static String getPaymentMethod(Advertisement advertisement, List<MethodItem> methods)
+    {
+        String paymentMethod = "";
+        for (MethodItem method : methods) {
+            if(method.code().equals(advertisement.online_provider)) {
                 paymentMethod = getPaymentMethod(advertisement, method);
                 break;
             }

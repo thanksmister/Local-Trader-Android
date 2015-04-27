@@ -17,23 +17,11 @@
 package com.thanksmister.bitcoin.localtrader.data;
 
 import android.content.SharedPreferences;
-import android.location.LocationManager;
 
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
-import com.thanksmister.bitcoin.localtrader.ActivityModule;
-import com.thanksmister.bitcoin.localtrader.ApplicationModule;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.BitstampExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
-//import com.thanksmister.bitcoin.localtrader.data.database.CupboardSQLiteOpenHelper;
-import com.thanksmister.bitcoin.localtrader.data.database.DatabaseManager;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -60,29 +48,7 @@ public final class DataModule
     {
         return app.getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
     }
-
-    @Provides
-    @Singleton
-    DatabaseManager provideDatabaseManager()
-    {
-        return new DatabaseManager();
-    }
-
-    @Provides
-    @Singleton
-    DataModel provideDataModel()
-    {
-        return new DataModel();
-    }
-
-   
-    /*@Provides
-    @Singleton
-    CupboardSQLiteOpenHelper provideCupboardSQLiteOpenHelper(BaseApplication app)
-    {
-        return new CupboardSQLiteOpenHelper(app);
-    }*/
-
+    
     @Provides
     @Singleton
     OkHttpClient provideOkHttpClient(BaseApplication app)

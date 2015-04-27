@@ -64,7 +64,7 @@
         <Button
                 android:id="@+id/cancelButton"
                 style="@style/BorderlessButtonStyle"
-                android:textColor="@color/blue"
+                android:textColor="@color/gray"
                 android:textSize="@dimen/text_size_medium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -84,7 +84,7 @@
                 style="@style/BorderlessButtonStyle"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_content_copy"
+                android:src="@drawable/ic_content_content_copy_dark"
                 android:layout_weight="0"/>
 
         <View
@@ -100,7 +100,7 @@
                 style="@style/BorderlessButtonStyle"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_social_share"
+                android:src="@drawable/ic_social_share_dark"
                 android:layout_weight="0"/>
         
     </LinearLayout>

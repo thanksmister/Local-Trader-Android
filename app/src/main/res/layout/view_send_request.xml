@@ -28,12 +28,6 @@
             android:visibility="visible"
             tools:visibility="visible"/>
 
-    <include
-            android:id="@android:id/empty"
-            layout="@layout/view_empty"
-            android:visibility="gone"
-            tools:visibility="visible"/>
-
     <LinearLayout
             android:id="@+id/tradeContent"
             android:scrollbars="none"

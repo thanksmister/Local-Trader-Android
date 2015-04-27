@@ -33,6 +33,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
@@ -40,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Place;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToPlace;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.rx.EndObserver;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
@@ -61,6 +63,7 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
@@ -330,9 +333,9 @@ public class GeoLocationService
         return false;
     }
 
-    public Subscription getLocalAdvertisements(final Observer<List<Advertisement>> observer, final double latitude, final double longitude, final TradeType tradeType)
+    public Observable<List<Advertisement>> getLocalAdvertisements(final double latitude, final double longitude, final TradeType tradeType)
     {
-        if(advertisements != null && !advertisements.isEmpty()) {
+        /*if(advertisements != null && !advertisements.isEmpty()) {
             //observer.onNext(advertisements);
         }
         
@@ -356,23 +359,36 @@ public class GeoLocationService
                 Timber.d("getAdvertisements: " + advertisements.size());
             }
         });
+        
+        
+        .flatMap(new Func1<Place, Observable<List<Advertisement>> >()
+                {
+                    @Override
+                    public Observable<List<Advertisement>> call(Place place)
+                    {
+                        return getAdvertisementsInPlace(place, tradeType);
+                    }
+                });
+ 
+        */
 
-        Subscription subscription = advertisementPublishSubject.subscribe(observer);
-        localBitcoins.getPlaces(latitude, longitude)
+        //Subscription subscription = advertisementPublishSubject.subscribe(observer);
+        return localBitcoins.getPlaces(latitude, longitude)
                    .map(new ResponseToPlace())
-                   .flatMap(place -> getAdvertisementsInPlace(place, tradeType))
-                   .observeOn(AndroidSchedulers.mainThread())
-                   .subscribeOn(Schedulers.io())
-                   .subscribe(advertisementPublishSubject);
-     
-        return subscription;
+                    .flatMap(new Func1<Place, Observable<List<Advertisement>>>()
+                    {
+                        @Override
+                        public Observable<List<Advertisement>> call(Place place)
+                        {
+                            return getAdvertisementsInPlace(place, tradeType);
+                        }
+                    });
     }
 
     //https://localbitcoins.com/buy-bitcoins-online/ar/argentina/
-    public Subscription getOnlineAdvertisements(final Observer<List<Advertisement>> observer, final String countryCode, final String countryName, final TradeType type, final Method paymentMethod)
-    
+    public Observable<List<Advertisement>> getOnlineAdvertisements(final String countryCode, final String countryName, final TradeType type, final MethodItem paymentMethod)
     {
-        if(advertisementPublishSubject != null) {
+        /*if(advertisementPublishSubject != null) {
             return advertisementPublishSubject.subscribe(observer);
         }
 
@@ -388,7 +404,7 @@ public class GeoLocationService
 
                 Timber.d("getAdvertisements: " + advertisements.size());
             }
-        });
+        });*/
 
         String url;
         if(type == TradeType.ONLINE_BUY) {
@@ -397,22 +413,30 @@ public class GeoLocationService
             url = "sell-bitcoins-online";
         }
 
-        Subscription subscription = advertisementPublishSubject.subscribe(observer);
-        if(paymentMethod.key.equals("all")) {
-            localBitcoins.searchOnlineAds(url, countryCode, countryName)
+        //Subscription subscription = advertisementPublishSubject.subscribe(observer);
+        if(paymentMethod.key().equals("all")) {
+            return localBitcoins.searchOnlineAds(url, countryCode, countryName)
                     .map(new ResponseToAds())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(Schedulers.newThread())
-                    .subscribe(advertisementPublishSubject);
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
+                    {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
+                        {
+                            return Observable.just(advertisements);
+                        }
+                    });
         } else {
-            localBitcoins.searchOnlineAds(url, countryCode, countryName, paymentMethod.key)
+            return localBitcoins.searchOnlineAds(url, countryCode, countryName, paymentMethod.key())
                     .map(new ResponseToAds())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(Schedulers.newThread())
-                    .subscribe(advertisementPublishSubject);
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
+                    {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
+                        {
+                            return Observable.just(advertisements);
+                        }
+                    });
         }
-        
-        return subscription;
     }
 
     public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type)

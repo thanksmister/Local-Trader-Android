@@ -134,7 +134,21 @@ public class Parser
         return false;
     }
 
-    private static RetroError parseError(String response)
+    public static RetroError parseError(JSONObject jsonObject)
+    {
+        try {
+            JSONObject errorObj = jsonObject.getJSONObject("error");
+            int error_code = errorObj.getInt("error_code");
+            String error_message = errorObj.getString("message");
+            return new RetroError(error_message, error_code);
+
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+            return parseInvalidGrantError(jsonObject.toString());
+        }
+    }
+
+    public static RetroError parseError(String response)
     {
         JSONObject jsonObject;
         try {

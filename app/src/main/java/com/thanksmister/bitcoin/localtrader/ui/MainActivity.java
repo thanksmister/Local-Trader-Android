@@ -19,8 +19,9 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
-import com.thanksmister.bitcoin.localtrader.ui.about.AboutFragment;
-import com.thanksmister.bitcoin.localtrader.ui.request.RequestFragment;
+import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
+import com.thanksmister.bitcoin.localtrader.ui.drawer.NavigationDrawerFragment;
+import com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 

@@ -21,63 +21,26 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 
 import com.squareup.sqlbrite.SqlBrite;
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseBitfinexToExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAd;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToCurrencyList;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToJSONObject;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMethod;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToUser;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet;
-import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
-import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
-import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
-import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import retrofit.client.Response;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-import rx.subjects.PublishSubject;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class DbManager 
@@ -94,20 +57,14 @@ public class DbManager
     private SqlBrite db;
     private LocalBitcoins localBitcoins;
     private SharedPreferences sharedPreferences;
-    private BitfinexExchange bitfinexExchange;
-    private BitcoinAverage bitcoinAverage;
-    private BaseApplication baseApplication;
-    private List<Currency> currencies;
+
     
     @Inject
-    public DbManager(SqlBrite db, LocalBitcoins localBitcoins, SharedPreferences sharedPreferences, BitfinexExchange bitfinexExchange, BitcoinAverage bitcoinAverage, BaseApplication application)
+    public DbManager(SqlBrite db, LocalBitcoins localBitcoins, SharedPreferences sharedPreferences)
     {
         this.db = db;
         this.localBitcoins = localBitcoins;
-        this.bitfinexExchange = bitfinexExchange;
         this.sharedPreferences = sharedPreferences;
-        this.baseApplication = baseApplication;
-        this.bitcoinAverage = bitcoinAverage;
     }
 
     /**
@@ -120,10 +77,6 @@ public class DbManager
         db.delete(ContactItem.TABLE, null, null);
         db.delete(MessageItem.TABLE, null, null);
         db.delete(AdvertisementItem.TABLE, null, null);
-
-        resetAdvertisementsExpireTime();
-        resetExchangeExpireTime();
-        resetMethodsExpireTime();
     }
 
     public boolean isLoggedIn()
@@ -142,91 +95,6 @@ public class DbManager
         }
     }
 
-    public Observable<Authorization> getAuthorization(String code)
-    {
-        return localBitcoins.getAuthorization("authorization_code", code, Constants.CLIENT_ID, Constants.CLIENT_SECRET)
-                .map(new ResponseToAuthorize());
-    }
-
-    private <T> Func1<Throwable,? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed)
-    {
-        return new Func1<Throwable, Observable<? extends T>>() {
-            @Override
-            public Observable<? extends T> call(Throwable throwable) {
-                // Here check if the error thrown really is a 401
-                if (DataServiceUtils.isHttp403Error(throwable)) {
-                    return refreshTokens().flatMap(new Func1<String, Observable<? extends T>>() {
-                        @Override
-                        public Observable<? extends T> call(String token)
-                        {
-                            return toBeResumed;
-                        }
-                    });
-                }
-                // re-throw this error because it's not recoverable from here
-                return Observable.error(throwable);
-            }
-        };
-    }
-
-    private Observable<String> refreshTokens()
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<String>>()
-                {
-                    @Override
-                    public Observable<String> call(SessionItem sessionItem)
-                    {
-                        Timber.d("Refresh Token: " + sessionItem.refresh_token());
-                        
-                        return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
-                                .map(new ResponseToAuthorize())
-                                .flatMap(new Func1<Authorization, Observable<? extends String>>()
-                                {
-                                    @Override
-                                    public Observable<? extends String> call(Authorization authorization)
-                                    {
-                                        Timber.d("New Access tokens: " + authorization.access_token);
-                                        updateTokens(authorization);
-                                        return Observable.just(authorization.access_token);
-                                    }
-                                });
-                    }
-                });
-    }
-
-    private void updateTokens(Authorization authorization)
-    {
-        SessionItem.Builder builder = new SessionItem.Builder()
-                .access_token(authorization.access_token)
-                .refresh_token(authorization.refresh_token);
-
-        Cursor cursor = db.query(SessionItem.QUERY);
-        if(cursor.getCount() > 0) {
-            try {
-                cursor.moveToFirst();
-                long id = Db.getLong(cursor, SessionItem.ID );
-                db.update(SessionItem.TABLE, builder.build(), SessionItem.ID + " = ?", String.valueOf(id));
-            } finally {
-                cursor.close();
-            }
-        } else {
-            db.insert(ContactItem.TABLE, builder.build());
-        }
-    }
-
-    public Observable<User> getMyself(String token)
-    {
-        return localBitcoins.getMyself(token)
-                .map(new ResponseToUser());
-    }
-
-    public Observable<SessionItem> getTokens()
-    {
-        return db.createQuery(SessionItem.TABLE, SessionItem.QUERY)
-                .map(SessionItem.MAP);
-    }
-
     public Observable<ContactItem> contactQuery(String contactId)
     {
         return db.createQuery(ContactItem.TABLE, ContactItem.QUERY_ITEM_WITH_MESSAGES, String.valueOf(contactId))
@@ -241,46 +109,6 @@ public class DbManager
                         }
 
                         return null;
-                    }
-                });
-    }
-
-    public Observable<Contact> getContact(String contactID)
-    {
-        if(Constants.USE_MOCK_DATA) {
-            Contact contact = Parser.parseContact(MockData.CONTACT_LOCAL_SELL);
-            assert contact != null;
-            contact.messages = Parser.parseMessages(MockData.MESSAGES);
-            return Observable.just(contact);
-        }
-
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Contact>>()
-                {
-                    @Override
-                    public Observable<Contact> call(SessionItem sessionItem)
-                    {
-                        return localBitcoins.getContact(contactID, sessionItem.access_token())
-                                .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.getContact(contactID, sessionItem.access_token())))
-                                .map(new ResponseToContact())
-                                .flatMap(new Func1<Contact, Observable<? extends Contact>>()
-                                {
-                                    @Override
-                                    public Observable<? extends Contact> call(Contact contact)
-                                    {
-                                        return localBitcoins.contactMessages(contact.contact_id, sessionItem.access_token())
-                                                .map(new ResponseToMessages())
-                                                .map(new Func1<List<Message>, Contact>()
-                                                {
-                                                    @Override
-                                                    public Contact call(List<Message> messages)
-                                                    {
-                                                        contact.messages = messages;
-                                                        return contact;
-                                                    }
-                                                });
-                                    }
-                                });
                     }
                 });
     }
@@ -378,103 +206,7 @@ public class DbManager
                 .map(ContactItem.MAP);
     }*/
 
-    public Observable<List<Contact>> getContacts(DashboardType dashboardType)
-    {
-        if(Constants.USE_MOCK_DATA) {
-            return Observable.just(Parser.parseContacts(MockData.DASHBOARD));
-        }
-
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<List<Contact>>>()
-                {
-                    @Override
-                    public Observable<List<Contact>> call(SessionItem sessionItem)
-                    {
-                        if (dashboardType == DashboardType.RELEASED) {
-                            return localBitcoins.getDashboard(sessionItem.access_token(), "released")
-                                    .map(new ResponseToContacts())
-                                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                                    {
-                                        @Override
-                                        public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                                        {
-
-                                            if (contacts.isEmpty()) {
-                                                return Observable.just(contacts);
-                                            }
-
-                                            return getContactsMessages(contacts, sessionItem.access_token());
-                                        }
-                                    });
-                        } else if (dashboardType == DashboardType.CANCELED) {
-                            return localBitcoins.getDashboard(sessionItem.access_token(), "canceled")
-                                    .map(new ResponseToContacts())
-                                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                                    {
-                                        @Override
-                                        public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                                        {
-                                            if (contacts.isEmpty()) {
-                                                return Observable.just(contacts);
-                                            }
-                                            return getContactsMessages(contacts, sessionItem.access_token());
-                                        }
-                                    });
-                        } else if (dashboardType == DashboardType.CLOSED) {
-                            return localBitcoins.getDashboard(sessionItem.access_token(), "closed")
-                                    .map(new ResponseToContacts())
-                                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                                    {
-                                        @Override
-                                        public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                                        {
-                                            if (contacts.isEmpty()) {
-                                                return Observable.just(contacts);
-                                            }
-                                            return getContactsMessages(contacts, sessionItem.access_token());
-                                        }
-                                    });
-                        } else {
-                            return localBitcoins.getDashboard(sessionItem.access_token())
-                                    .map(new ResponseToContacts())
-                                    .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                                    {
-                                        @Override
-                                        public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                                        {
-                                            if (contacts.isEmpty()) {
-                                                return Observable.just(contacts);
-                                            }
-                                            return getContactsMessages(contacts, sessionItem.access_token());
-                                        }
-                                    });
-                        }
-                    }
-                });
-    }
-
-    private Observable<List<Contact>> getContactsMessages(final List<Contact> contacts, final String access_token)
-    {
-        return Observable.just(Observable.from(contacts)
-                .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>()
-                {
-                    @Override
-                    public Observable<? extends List<Contact>> call(final Contact contact)
-                    {
-                        return localBitcoins.contactMessages(contact.contact_id, access_token)
-                                .map(new ResponseToMessages())
-                                .map(new Func1<List<Message>, List<Contact>>()
-                                {
-                                    @Override
-                                    public List<Contact> call(List<Message> messages)
-                                    {
-                                        contact.messages = messages;
-                                        return contacts;
-                                    }
-                                });
-                    }
-                }).toBlocking().last());
-    }
+    
 
     public Observable<List<MessageItem>> messagesQuery(String contactId)
     {
@@ -560,38 +292,17 @@ public class DbManager
             db.insert(MessageItem.TABLE, builder.build());
         }
     }
-
-
+    
     public Observable<List<MethodItem>> methodQuery()
     {
        return db.createQuery(MethodItem.TABLE, MethodItem.QUERY)
                 .map(MethodItem.MAP);
-    }
-    
-    public Observable<List<Method>> getMethods()
-    {
-        if(!needToRefreshMethods()) {
-            return Observable.empty();
-        }
-        
-        return localBitcoins.getOnlineProviders()
-                .map(new ResponseToMethod());
     }
 
     public Observable<ExchangeItem> exchangeQuery()
     {
         return  db.createQuery(ExchangeItem.TABLE, ExchangeItem.QUERY)
                 .map(ExchangeItem.MAP);
-    }
- 
-    public Observable<Exchange> getExchange()
-    {
-        if(!needToRefreshExchanges()){
-            return Observable.empty();
-        }
-
-        return bitfinexExchange.ticker()
-                .map(new ResponseBitfinexToExchange());
     }
     
     public Observable<List<AdvertisementItem>> advertisementQuery()
@@ -617,103 +328,8 @@ public class DbManager
                     }
                 });
     }
-
-    public Observable<List<Advertisement>> getAdvertisements()
-    {
-        if(!needToRefreshAdvertisements()) {
-            return Observable.just(new ArrayList<Advertisement>());
-        }
-        
-        return getAdvertisementsObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()));
-    }
     
-    public Observable<Boolean> updateAdvertisementVisibility(final AdvertisementItem advertisement, final boolean visible)
-    {
-        return updateAdvertisementVisibilityObservable(advertisement, visible)
-                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementVisibilityObservable(advertisement, visible)));
-    }
     
-    private Observable<Boolean> updateAdvertisementVisibilityObservable(final AdvertisementItem advertisement, boolean visible)
-    {
-        String city;
-        if(Strings.isBlank(advertisement.city())){
-            city = advertisement.location_string();
-        } else {
-            city =  advertisement.city();
-        }
-
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
-                {
-                    @Override
-                    public Observable<Boolean> call(SessionItem sessionItem)
-                    {
-                        return localBitcoins.updateAdvertisement(advertisement.ad_id(), sessionItem.access_token(), String.valueOf(visible), advertisement.min_amount(),
-                                advertisement.max_amount(), advertisement.price_equation(), advertisement.currency(), String.valueOf(advertisement.lat()), String.valueOf(advertisement.lon()),
-                                city, advertisement.location_string(), advertisement.country_code(), advertisement.account_info(), advertisement.bank_name(),
-                                String.valueOf(advertisement.sms_verification_required()), String.valueOf(advertisement.track_max_amount()), String.valueOf(advertisement.trusted_required()),
-                                advertisement.message())
-                                .map(new ResponseToJSONObject())
-                                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
-                                {
-                                    @Override
-                                    public Observable<Boolean> call(JSONObject jsonObject)
-                                    {
-                                        if (Parser.containsError(jsonObject)) {
-                                            throw new Error("Error updating advertisement visibility");
-                                        }
-
-                                        return Observable.just(true);
-                                    }
-                                });
-
-                    }
-                });
-    }
-
-    public Observable<Boolean> deleteAdvertisement(final String adId)
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
-                {
-                    @Override
-                    public Observable<Boolean> call(SessionItem sessionItem)
-                    {
-                        return localBitcoins.deleteAdvertisement(adId, sessionItem.access_token())
-                                .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.deleteAdvertisement(adId, sessionItem.access_token())))
-                                .map(new ResponseToJSONObject())
-                                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
-                                {
-                                    @Override
-                                    public Observable<Boolean> call(JSONObject jsonObject)
-                                    {
-                                        if (Parser.containsError(jsonObject)) {
-                                            throw new Error("Error deleting advertisement");
-                                        }
-
-                                        return Observable.just(true);
-                                    }
-                                });
-                    }
-                });
-    }
-    
-    private Observable<List<Advertisement>> getAdvertisementsObservable()
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<List<Advertisement>>>()
-                {
-                    @Override
-                    public Observable<List<Advertisement>> call(SessionItem sessionItem)
-                    {
-                        Timber.d("Access Token: " + sessionItem.access_token());
-                        
-                        return localBitcoins.getAds(sessionItem.access_token())
-                                .map(new ResponseToAds());
-                    }
-                });
-    }
 
     public Observable<WalletItem> walletQuery()
     {
@@ -721,58 +337,6 @@ public class DbManager
                 .map(WalletItem.MAP);
     }
 
-    public Observable<Wallet> getWallet()
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Wallet>>()
-                {
-                    @Override
-                    public Observable<Wallet> call(SessionItem sessionItem)
-                    {
-                        return localBitcoins.getWallet(sessionItem.access_token())
-                                .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.getWallet(sessionItem.access_token())))
-                                .map(new ResponseToWallet())
-                                .flatMap(new Func1<Wallet, Observable<Wallet>>()
-                                {
-                                    @Override
-                                    public Observable<Wallet> call(Wallet wallet)
-                                    {
-                                        return generateBitmap(wallet.address.address)
-                                                .map(new Func1<Bitmap, Wallet>()
-                                                {
-                                                    @Override
-                                                    public Wallet call(Bitmap bitmap)
-                                                    {
-                                                        wallet.qrImage = bitmap;
-                                                        return wallet;
-                                                    }
-                                                }).onErrorReturn(new Func1<Throwable, Wallet>()
-                                                {
-                                                    @Override
-                                                    public Wallet call(Throwable throwable)
-                                                    {
-                                                        return wallet;
-                                                    }
-                                                });
-                                    }
-                                });
-
-                    }
-                });
-    }
-
-    private Observable<Bitmap> generateBitmap(final String address)
-    {
-        return Observable.create((Subscriber<? super Bitmap> subscriber) -> {
-            try {
-                subscriber.onNext(WalletUtils.encodeAsBitmap(address, baseApplication.getApplicationContext()));
-                subscriber.onCompleted();
-            } catch (Exception e) {
-                subscriber.onError(e);
-            }
-        });
-    }
-    
     public void updateWallet(Wallet wallet)
     {
         WalletItem.Builder builder = new WalletItem.Builder()
@@ -822,8 +386,6 @@ public class DbManager
         } finally {
             cursor.close();
         }
-        
-        setExchangeExpireTime();
     }
     
     //rx.exceptions.MissingBackpressureException
@@ -878,8 +440,6 @@ public class DbManager
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
         .onBackpressureBuffer();
-        
-        setMethodsExpireTime(); // reset time to expire*/
         
         //db.createQuery(MethodItem.TABLE, MethodItem.createInsertOrReplaceQuery(method));
     }
@@ -1028,8 +588,6 @@ public class DbManager
             
             db.insert(AdvertisementItem.TABLE, builder.build());
         }
-
-        setAdvertisementsExpireTime();
     }
 
     public void updateAdvertisement(Advertisement advertisement)
@@ -1083,216 +641,5 @@ public class DbManager
         } finally {
             cursor.close();
         }
-    } 
-
-    private boolean needToRefreshExchanges()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_EXCHANGE_EXPIRE_TIME, -1);
-            return System.currentTimeMillis() >= preference.get();
-        }
-    }
-
-    private void setExchangeExpireTime()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_EXCHANGE_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA; // 1 hours
-            preference.set(expire);
-        }
-    }
-    
-    private void resetExchangeExpireTime()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_EXCHANGE_EXPIRE_TIME);
-            preference.delete();
-        }
-    }
-
-    private boolean needToRefreshMethods()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME, -1);
-            return System.currentTimeMillis() >= preference.get();
-        }
-    }
-
-    private void resetMethodsExpireTime()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME);
-            preference.delete();
-        }
-    }
-
-    private void setMethodsExpireTime()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + CHECK_METHODS_DATA; // 1 hours
-            preference.set(expire);
-        }
-    }
-
-    private boolean needToRefreshAdvertisements()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
-            return System.currentTimeMillis() >= preference.get();
-        }
-    }
-
-    private void resetAdvertisementsExpireTime()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME);
-            preference.delete();
-        }
-    }
-
-    private void setAdvertisementsExpireTime()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + CHECK_ADVERTISEMENT_DATA; // 1 hours
-            preference.set(expire);
-        }
-    }
-
-    public Observable<JSONObject> contactAction(String contactId, String pinCode, ContactAction action)
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
-                {
-                    @Override
-                    public Observable<JSONObject> call(SessionItem sessionItem)
-                    {
-                        switch (action) {
-                            case RELEASE:
-                                return localBitcoins.releaseContactPinCode(contactId, pinCode, sessionItem.access_token())
-                                        .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.releaseContactPinCode(contactId, pinCode, sessionItem.access_token())))
-                                        .map(new ResponseToJSONObject());
-                            case CANCEL:
-                                return localBitcoins.contactCancel(contactId, sessionItem.access_token())
-                                        .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.contactCancel(contactId, sessionItem.access_token())))
-                                        .map(new ResponseToJSONObject());
-                            case DISPUTE:
-                                return localBitcoins.contactDispute(contactId, sessionItem.access_token())
-                                        .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.contactDispute(contactId, sessionItem.access_token())))
-                                        .map(new ResponseToJSONObject());
-                            case PAID:
-                                return localBitcoins.markAsPaid(contactId, sessionItem.access_token())
-                                        .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.markAsPaid(contactId, sessionItem.access_token())))
-                                        .map(new ResponseToJSONObject());
-                            case FUND:
-                                return localBitcoins.contactFund(contactId, sessionItem.access_token())
-                                        .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.contactFund(contactId, sessionItem.access_token())))
-                                        .map(new ResponseToJSONObject());
-                        }
-
-                        return Observable.error(new Error("Unable to perform action on contact"));
-                    }
-                });
-    }
-
-    public Observable<List<Currency>> getCurrencies()
-    {
-        if(currencies != null){
-            return Observable.just(currencies);
-        }
-        
-        return bitcoinAverage.tickers()
-                .map(new ResponseToCurrencyList())
-                .doOnNext(new Action1<List<Currency>>()
-                {
-                    @Override
-                    public void call(List<Currency> results)
-                    {
-                        currencies = results;
-                    }
-                });
-    }
-    
-    public Observable<Advertisement> createAdvertisement(Advertisement advertisement)
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Advertisement>>()
-                {
-                    @Override
-                    public Observable<Advertisement> call(SessionItem sessionItem)
-                    {
-                        return createAdvertisementObservable(advertisement, sessionItem.access_token())
-                                .onErrorResumeNext(refreshTokenAndRetry(createAdvertisementObservable(advertisement, sessionItem.access_token())))
-                                .map(new ResponseToAd());
-                    }
-                });
-    }
-
-    private Observable<Response> createAdvertisementObservable(final Advertisement advertisement, String access_token)
-    {
-        return localBitcoins.createAdvertisement(advertisement.ad_id, access_token, advertisement.min_amount,
-                advertisement.max_amount, advertisement.price_equation, advertisement.trade_type.name(), advertisement.online_provider,
-                String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
-                advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
-                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
-                String.valueOf(advertisement.trusted_required), advertisement.message);
-    }
-
-    public Observable<JSONObject> postMessage(String contact_id, final String message)
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
-                {
-                    @Override
-                    public Observable<JSONObject> call(SessionItem sessionItem)
-                    {
-                        return localBitcoins.contactMessagePost(contact_id, sessionItem.access_token(), message)
-                                .map(new ResponseToJSONObject());
-                    }
-                });
-                
-    }
-
-    /*private class QrCodeTask extends AsyncTask<Object, Void, Object[]>
-    {
-        private Context context;
-
-        @Override
-        protected void onPreExecute()
-        {
-            super.onPreExecute();
-        }
-
-        protected Object[] doInBackground(Object... params)
-        {
-            Wallet wallet = (Wallet) params[0];
-            context = (Context) params[1];
-            Bitmap qrCode = null;
-
-            wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address.address, context.getApplicationContext());
-
-            return new Object[]{wallet};
-        }
-
-        protected void onPostExecute(Object[] result)
-        {
-            Wallet wallet = (Wallet) result[0];
-            //updateWalletQrCode(wallet.id, wallet.qrImage, context);
-        }
-    }*/
-
-    public Observable<JSONObject> validatePinCode(final String pinCode)
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
-                {
-                    @Override
-                    public Observable<JSONObject> call(SessionItem sessionItem)
-                    {
-                        return localBitcoins.checkPinCode(pinCode, sessionItem.access_token())
-                                .map(new ResponseToJSONObject());
-                    }
-                });
     }
 }

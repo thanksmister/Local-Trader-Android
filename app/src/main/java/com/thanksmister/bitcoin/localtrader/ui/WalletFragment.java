@@ -126,8 +126,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         walletData = new WalletData();
         walletObservable = bindFragment(this, dbManager.walletQuery());
-        walletUpdateObservable = bindFragment(this, dbManager.getWallet());
         exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
+        walletUpdateObservable = bindFragment(this, dataService.getWallet());
     }
 
     @Override

@@ -16,34 +16,15 @@
 
 package com.thanksmister.bitcoin.localtrader.domain;
 
-import android.content.SharedPreferences;
-import android.location.LocationManager;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.squareup.okhttp.Cache;
-import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.BitstampExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.data.database.CupboardSQLiteOpenHelper;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.ApplicationBus;
-
-import java.io.File;
-import java.io.IOException;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import timber.log.Timber;
-
-import static android.content.Context.MODE_PRIVATE;
 
 @Module(
         complete = false,
