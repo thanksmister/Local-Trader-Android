@@ -538,7 +538,7 @@ public class Parser
             return item;
 
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            Timber.e("parsing contact error: " + e.getMessage());
         }
 
         return null;

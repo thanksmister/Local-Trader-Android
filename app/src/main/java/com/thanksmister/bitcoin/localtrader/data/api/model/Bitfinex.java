@@ -16,7 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-//{"mid":"275.48","bid":"275.47","ask":"275.49","last_price":"275.47","low":"263.75","high":"280.44","volume":"34731.2148663","timestamp":"1420554772.357985527"}
 public class Bitfinex
 {
     public String mid;

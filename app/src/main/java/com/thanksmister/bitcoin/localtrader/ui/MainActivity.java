@@ -16,6 +16,7 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
@@ -278,11 +279,11 @@ public class MainActivity extends BaseActivity implements NavigationDrawerFragme
 
         int type = extras.getInt(EXTRA_TYPE, 0);
         
-        if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT) {
+        if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT || type == NotificationUtils.NOTIFICATION_TYPE_MESSAGE ) {
             
            String contactId = extras.getString(EXTRA_CONTACT);
             if(contactId != null) {
-                Intent contactIntent = ContactActivity.createStartIntent(this, contactId);
+                Intent contactIntent = ContactActivity.createStartIntent(this, contactId, DashboardType.ACTIVE);
                 startActivity(contactIntent);
             }
             
@@ -290,5 +291,4 @@ public class MainActivity extends BaseActivity implements NavigationDrawerFragme
             navigationDrawerFragment.selectItem(DRAWER_WALLET);
         }
     }
-
 }

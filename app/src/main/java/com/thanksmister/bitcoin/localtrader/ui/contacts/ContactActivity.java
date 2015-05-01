@@ -30,6 +30,7 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
+import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -57,12 +58,14 @@ import butterknife.InjectView;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
 
 public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_ID = "com.thanksmister.extras.EXTRA_ID";
+    public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_TYPE";
 
     @Inject
     DataService dataService;
@@ -101,6 +104,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private String contactId;
     private ContactItem contact;
+    private DashboardType dashboardType;
     
     private DownloadManager downloadManager;
     private MenuItem cancelItem;
@@ -113,10 +117,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private Observable<JSONObject> contactActionObservable;
     private Observable<JSONObject> messageObservable;
     
-    public static Intent createStartIntent(Context context, String contactId)
+    public static Intent createStartIntent(Context context, String contactId, DashboardType dashboardType)
     {
         Intent intent = new Intent(context, ContactActivity.class);
         intent.putExtra(EXTRA_ID, contactId);
+        intent.putExtra(EXTRA_TYPE, dashboardType);
         return intent;
     }
     
@@ -131,10 +136,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
         if (savedInstanceState == null) {
             contactId = getIntent().getStringExtra(EXTRA_ID);
+            dashboardType =  (DashboardType) getIntent().getSerializableExtra(EXTRA_TYPE);
         } else {
             contactId = savedInstanceState.getString(EXTRA_ID);
+            dashboardType = (DashboardType) savedInstanceState.getSerializable(EXTRA_TYPE);
         }
-        
+
         if(toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -214,8 +221,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         
         contactObservable = bindActivity(this, dataService.getContact(contactId));
         tokensObservable =  bindActivity(this, dataService.getTokens());
-                
-        subscribeData();
+
+        if(dashboardType == DashboardType.ACTIVE) {
+            subscribeData();
+        }
     }
 
     @Override
@@ -223,6 +232,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     {
         super.onSaveInstanceState(outState);
         outState.putString(EXTRA_ID, contactId);
+        outState.putSerializable(EXTRA_TYPE, dashboardType);
     }
 
     @Override
@@ -339,9 +349,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(ContactItem contactItem)
             {
                 if (contactItem != null) {
-  
+
                     hideProgress();
-                    
+
                     setContact(contactItem);
                 }
             }
@@ -366,18 +376,28 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
            @Override
            public void call(Contact contact)
            {
-                dbManager.updateContact(contact);
-                dbManager.updateMessages(contact.messages, contact.contact_id);
-                onRefreshStop();
-                
+               onRefreshStop();
+               
+               if(dashboardType == DashboardType.ACTIVE) {
+                   dbManager.updateContact(contact);
+                   dbManager.updateMessages(contact.messages, contact.contact_id);  
+               } else { 
+                   hideProgress();
+                   setContact(ContactItem.convertContact(contact));
+               }
            }
        }, new Action1<Throwable>()
        {
            @Override
            public void call(Throwable throwable)
            {
-               handleError(throwable);
                onRefreshStop();
+               
+               handleError(throwable);
+
+               if(dashboardType != DashboardType.ACTIVE) {
+                   hideProgress();
+               }
            }
        }); 
     }

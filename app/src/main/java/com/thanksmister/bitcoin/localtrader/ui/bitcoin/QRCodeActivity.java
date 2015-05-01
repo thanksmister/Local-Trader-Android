@@ -27,6 +27,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.AndroidRuntimeException;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -124,7 +125,7 @@ public class QRCodeActivity extends Activity
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState)
+    protected void onSaveInstanceState(@NonNull Bundle outState)
     {
         outState.putParcelable(EXTRA_QR_BITMAP, bitmap);
         outState.putString(EXTRA_QR_ADDRESS, address);

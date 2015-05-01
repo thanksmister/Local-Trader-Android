@@ -28,6 +28,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Bitfinex;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
@@ -73,6 +74,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import retrofit.client.Response;
+import rx.Notification;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -89,7 +91,7 @@ public class DataService
     public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
     public static final String PREFS_USER = "pref_user";
 
-    public static final int CHECK_EXCHANGE_DATA = 3 * 60 * 1000;// 5 minutes
+    public static final int CHECK_EXCHANGE_DATA = 3 * 60 * 1000;// 3 minutes
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
     public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 mintues
     
@@ -122,20 +124,20 @@ public class DataService
 
     public Observable<Exchange> getExchange()
     {
-        if(!needToRefreshExchanges()){
+        if (!needToRefreshExchanges()) {
             return Observable.empty();
         }
 
         return bitfinexExchange.ticker()
-                .map(new ResponseBitfinexToExchange())
-                .doOnCompleted(new Action0()
+                .doOnNext(new Action1<Bitfinex>()
                 {
                     @Override
-                    public void call()
+                    public void call(Bitfinex bitfinex)
                     {
                         setExchangeExpireTime();
                     }
-                });
+                })
+                .map(new ResponseBitfinexToExchange());
     }
     
     public Observable<ContactRequest> createContact(String adId, String amount, String message)
@@ -302,11 +304,10 @@ public class DataService
 
         return bitcoinAverage.tickers()
                 .map(new ResponseToCurrencyList())
-                .doOnNext(new Action1<List<Currency>>()
-                {
+                .doOnNext(new Action1<List<Currency>>() {
                     @Override
-                    public void call(List<Currency> results)
-                    {
+                    public void call(List<Currency> results) {
+                        Timber.d("Cash Currencies.");
                         currencies = results;
                     }
                 });
@@ -517,10 +518,10 @@ public class DataService
                 });
     }
 
-    public Observable<List<Advertisement>> getAdvertisements()
+    public Observable<List<Advertisement>> getAdvertisements(boolean force)
     {
-        if(!needToRefreshAdvertisements()) {
-            return Observable.just(new ArrayList<Advertisement>());
+        if(!needToRefreshAdvertisements() && !force) {
+            return Observable.empty();
         }
 
         return getAdvertisementsObservable()
@@ -609,15 +610,15 @@ public class DataService
                         Timber.d("Access Token: " + sessionItem.access_token());
 
                         return localBitcoins.getAds(sessionItem.access_token())
-                                .map(new ResponseToAds())
-                                .doOnCompleted(new Action0()
+                                .doOnNext(new Action1<Response>()
                                 {
                                     @Override
-                                    public void call()
+                                    public void call(Response response)
                                     {
                                         setAdvertisementsExpireTime();
                                     }
-                                });
+                                })
+                                .map(new ResponseToAds());
                     }
                 });
     }
@@ -667,17 +668,19 @@ public class DataService
         if(!needToRefreshMethods()) {
             return Observable.empty();
         }
-
+        
         return localBitcoins.getOnlineProviders()
-                .map(new ResponseToMethod())
-                .doOnCompleted(new Action0()
+                .doOnNext(new Action1<Response>()
                 {
                     @Override
-                    public void call()
+                    public void call(Response response)
                     {
-                        setMethodsExpireTime(); 
+                        Timber.d("Methods Expire");
                     }
-                });
+                })
+                .map(new ResponseToMethod());
+                
+        
     }
     
     // ----- Private

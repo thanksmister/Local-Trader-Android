@@ -16,11 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-//{"high": "590.99", "last": "579.00", 
-// "timestamp": "1407777356", "bid": "579.02", 
-// "vwap": "586.3", "volume": "2969.08554131", 
-// "low": "578.93", "ask": "580.85"}
-
 public class Bitstamp
 {
     public String high;

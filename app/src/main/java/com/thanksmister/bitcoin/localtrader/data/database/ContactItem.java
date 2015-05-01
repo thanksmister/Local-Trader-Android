@@ -184,6 +184,7 @@ public abstract class ContactItem
     public abstract boolean unseen_messages();
  
     public static final Func1<SqlBrite.Query, List<ContactItem>> MAP = new Func1<SqlBrite.Query, List<ContactItem>>() {
+        
         @Override public List<ContactItem> call(SqlBrite.Query query) {
 
             Cursor cursor = query.run();
@@ -192,6 +193,7 @@ public abstract class ContactItem
                 List<ContactItem> values = new ArrayList<>(cursor.getCount());
                 
                 while (cursor.moveToNext()) {
+                    
                     long id = Db.getLong(cursor, ID);
                     String contact_id = Db.getString(cursor, CONTACT_ID);
                     String reference_code = Db.getString(cursor, REFERENCE_CODE);
@@ -263,6 +265,17 @@ public abstract class ContactItem
                 cursor.close();
             }
         }
+    };
+
+    public static ContactItem convertContact(Contact contact) {
+        
+           return new AutoParcel_ContactItem(0, contact.contact_id, contact.reference_code, contact.currency, contact.amount, contact.amount_btc, contact.is_funded, contact.is_selling, contact.is_buying,
+                   contact.created_at, contact.closed_at, contact.disputed_at, contact.funded_at, contact.escrowed_at, contact.canceled_at, contact.released_at, contact.payment_completed_at, contact.exchange_rate_updated_at,
+                   contact.seller.username, contact.seller.feedback_score, contact.seller.trade_count, contact.seller.last_online, contact.seller.name, contact.buyer.username, contact.buyer.feedback_score,
+                   contact.buyer.trade_count, contact.buyer.last_online, contact.buyer.name, contact.actions.release_url, contact.actions.advertisement_public_view, contact.actions.messages_url, contact.actions.message_post_url, contact.actions.mark_as_paid_url,
+                   contact.actions.dispute_url, contact.actions.cancel_url, contact.actions.fund_url, contact.account_details.receiver_name, contact.account_details.iban, contact.account_details.swift_bic, contact.account_details.reference, contact.account_details.email, contact.advertisement.id,
+                    contact.advertisement.payment_method, contact.advertisement.trade_type.name(), contact.advertisement.advertiser.username, contact.advertisement.advertiser.feedback_score, contact.advertisement.advertiser.trade_count, contact.advertisement.advertiser.last_online,
+                   contact.advertisement.advertiser.name, contact.messages.size(), false);
     };
 
     public static final class Builder {

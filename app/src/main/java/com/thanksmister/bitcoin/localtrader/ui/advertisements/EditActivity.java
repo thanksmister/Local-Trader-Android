@@ -331,7 +331,7 @@ public class EditActivity extends BaseActivity
         setEditLocationAdapter(predictAdapter);
 
         methodObservable = bindActivity(this, dbManager.methodQuery().cache());
-        currencyObservable = bindActivity(this, dataService.getCurrencies());
+        currencyObservable = bindActivity(this, dataService.getCurrencies().cache());
         advertisementItemObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
         
         if(create)

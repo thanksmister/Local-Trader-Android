@@ -39,6 +39,7 @@ import javax.inject.Inject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
@@ -151,16 +152,16 @@ public class DbManager
                 .dispute_url(contact.actions.dispute_url)
                 .cancel_url(contact.actions.cancel_url)
 
-                .buyer_last_online(contact.buyer.name)
-                .buyer_last_online(contact.buyer.username)
-                .buyer_last_online(contact.buyer.trade_count)
-                .buyer_last_online(contact.buyer.feedback_score)
+                .buyer_name(contact.buyer.name)
+                .buyer_username(contact.buyer.username)
+                .buyer_trade_count(contact.buyer.trade_count)
+                .buyer_feedback_score(contact.buyer.feedback_score)
                 .buyer_last_online(contact.buyer.last_online)
-
-                .seller_last_online(contact.seller.name)
-                .seller_last_online(contact.seller.username)
-                .seller_last_online(contact.seller.trade_count)
-                .seller_last_online(contact.seller.feedback_score)
+             
+                .seller_name(contact.seller.name)
+                .seller_username(contact.seller.username)
+                .seller_trade_count(contact.seller.trade_count)
+                .seller_feedback_score(contact.seller.feedback_score)
                 .seller_last_online(contact.seller.last_online)
 
                 .account_receiver_email(contact.account_details.email)
@@ -391,12 +392,13 @@ public class DbManager
     //rx.exceptions.MissingBackpressureException
     public void updateMethods(final List<Method> methods)
     {
-        Observable<Boolean> observable = Observable.create(new Observable.OnSubscribe<Boolean>()
+        Observable.create(new Observable.OnSubscribe<Boolean>()
         {
             @Override
             public void call(Subscriber<? super Boolean> subscriber)
             {
                 HashMap<String, Method> entryMap = new HashMap<String, Method>();
+                
                 for (Method item : methods) {
                     entryMap.put(item.key, item);
                 }
@@ -435,11 +437,24 @@ public class DbManager
 
                     db.insert(MethodItem.TABLE, builder.build());
                 }
+                
+                subscriber.onNext(true);
             }
         })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer();
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .onBackpressureBuffer()
+        .subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean aBoolean) {
+                Timber.d("Updated methods successfully: " + aBoolean);
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                Timber.e(throwable.getLocalizedMessage());
+            }
+        });
         
         //db.createQuery(MethodItem.TABLE, MethodItem.createInsertOrReplaceQuery(method));
     }

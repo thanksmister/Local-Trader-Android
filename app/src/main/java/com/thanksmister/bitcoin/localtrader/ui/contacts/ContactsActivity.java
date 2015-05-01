@@ -307,7 +307,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
     public void getContact(final Contact contact)
     {
-        Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id);
+        Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id, dashboardType);
         startActivity(intent);
     }
 

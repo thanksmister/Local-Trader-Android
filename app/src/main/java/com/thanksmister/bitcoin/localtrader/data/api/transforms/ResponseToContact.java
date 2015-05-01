@@ -51,10 +51,7 @@ public class ResponseToContact implements Func1<Response, Contact>
         }
 
         String result = sb.toString();
-        Contact contact = Parser.parseContact(result);
-        
-        Timber.d("Contact: " + contact.messages);
-        
-        return contact;
+
+        return Parser.parseContact(result);
     }
 }

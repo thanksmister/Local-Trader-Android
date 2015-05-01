@@ -42,24 +42,16 @@ public class TradeUtils
 {
     public static String getContactDescription(ContactItem contact, Context context)
     {
-        Timber.d("Closed " + isClosedTrade(contact));
-
         if(isCanceledTrade(contact)) {
-
-            Timber.d("Canceled " + isCanceledTrade(contact));
             
             return isLocalTrade(contact)? context.getString(R.string.order_description_cancel_local):context.getString(R.string.order_description_cancel); 
         
         } else if (isReleased(contact)) {
 
-            Timber.d("Released " + isReleased(contact));
-            
             return context.getString(R.string.order_description_released);
             
         } else if (isDisputed(contact)) {
 
-            Timber.d("Disputed " + isDisputed(contact));
-            
             return context.getString(R.string.order_description_disputed);
             
         } else if (isLocalTrade(contact)) {
@@ -341,6 +333,7 @@ public class TradeUtils
     public static String getPaymentMethodFromItems(AdvertisementItem advertisement, List<MethodItem> methodItems)
     {
         String paymentMethod = "";
+        
         for (MethodItem method : methodItems) {
             if(method.code().equals(advertisement.online_provider())) {
                 paymentMethod = getPaymentMethod(advertisement, method);
@@ -471,38 +464,6 @@ public class TradeUtils
             }
 
             paymentMethod = method.name();
-        }
-
-        if(!Strings.isBlank(advertisement.bank_name) && advertisement.online_provider.equals("NATIONAL_BANK")) {
-            return paymentMethod + " with " + advertisement.bank_name;
-        }
-
-        return paymentMethod;
-    }
-
-    @Deprecated
-    public static String getPaymentMethod(Advertisement advertisement, Method method)
-    {
-        String paymentMethod = "Online";
-        if(method != null && method.code.equals(advertisement.online_provider)) {
-            if(method.code.equals("NATIONAL_BANK")) {
-                if(method.countryName == null)
-                    return "National Bank transfer";
-                
-                return  "Bank transfer in " + method.countryName;
-            } else if (method.code.equals("CASH_DEPOSIT")) {
-                if(method.countryName == null)
-                    return "Cash deposit";
-                
-                return "Cash deposit in " + method.countryName;
-            } else if (method.code.equals("SPECIFIC_BANK")) {
-                if(method.countryName == null)
-                    return "Bank transfer";
-
-                return "Bank transfer in " + method.countryName;
-            }
-            
-            paymentMethod = method.name;
         }
 
         if(!Strings.isBlank(advertisement.bank_name) && advertisement.online_provider.equals("NATIONAL_BANK")) {

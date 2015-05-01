@@ -215,6 +215,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         super.onResume();
 
+        onRefreshStart();
+
         updateData();
     }
 

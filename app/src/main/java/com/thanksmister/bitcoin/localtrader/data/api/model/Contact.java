@@ -103,20 +103,8 @@ public class Contact
         }
     }
     
-    public boolean hasUnseenMessages()
-    {
-        for (Message message : messages) {
-            if (!message.seen) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
     public Contact convertContentItemToContact(ContactItem contactItem)
     {
-
         Contact contact = new Contact();
         contact.id = contactItem.id();
         contact.contact_id = contactItem.contact_id();

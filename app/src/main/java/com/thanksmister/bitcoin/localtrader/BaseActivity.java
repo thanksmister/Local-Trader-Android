@@ -53,6 +53,9 @@ public abstract class BaseActivity extends ActionBarActivity
 
     @Inject
     DbManager dbManager;
+    
+    @Inject
+    DataService dataService;
 
     private MaterialDialog progressDialog;
 
@@ -151,6 +154,7 @@ public abstract class BaseActivity extends ActionBarActivity
     public void logOut()
     {
         dbManager.clearDbManager();
+        dataService.reset();
         
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);
