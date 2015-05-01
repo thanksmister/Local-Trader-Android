@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2014. ThanksMister LLC
+ * Copyright 2013, 2014 Megion Research & Development GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,10 +23,12 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+
 /**
- * represents the result of a SHA256 hashing operation
- * prefer to use the static factory methods.
+ * represents the result of a SHA256 hashing operation prefer to use the static
+ * factory methods.
  */
+
 public class Sha256Hash implements Serializable, Comparable<Sha256Hash> {
    private static final long serialVersionUID = 1L;
 

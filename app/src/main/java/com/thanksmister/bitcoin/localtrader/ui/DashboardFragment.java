@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2015 ThanksMister LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. 
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed 
+ * under the License is distributed on an "AS IS" BASIS, 
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.app.Activity;
@@ -58,14 +74,8 @@ import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
-/**
- * Author: Michael Ritchie
- * Date: 12/30/14
- * Copyright 2013, ThanksMister LLC
- */
 public class DashboardFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
-    public static final String EXTRA_METHODS = "com.thanksmister.extras.EXTRA_METHODS";
     private static final String ARG_SECTION_NUMBER = "section_number";
     
     @Inject
@@ -214,7 +224,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         
         // update data
         contactUpdateObservable = bindFragment(this, dataService.getContacts(DashboardType.ACTIVE));
-        
         methodUpdateObservable = bindFragment(this, dataService.getMethods().cache());
         exchangeUpdateObservable = bindFragment(this, dataService.getExchange());
     }
@@ -376,9 +385,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             {
                 onRefreshStop();
 
-                Timber.d("Advertisements: " + advertisementData.advertisements.size());
-                Timber.d("Methods: " + advertisementData.methods.size());
-                
                 setAdvertisementList(advertisementData.advertisements, advertisementData.methods);
             }
         }));
@@ -388,7 +394,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(List<ContactItem> items)
             {
-                Timber.d("Contacts: " + items.size());
                 setContacts(items);
             }
         }));
@@ -413,8 +418,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Exchange exchange)
             {
-                Timber.d("Exchange Updated: " + exchange.name);
-
                 dbManager.updateExchange(exchange);
             }
         }, new Action1<Throwable>()
@@ -422,7 +425,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Throwable throwable)
             {
-                Timber.e("Exchange Error: " + throwable.getLocalizedMessage());
                 handleError(new Throwable("Error loading exchange data."));
             }
         }));
@@ -433,8 +435,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call(List<Method> methods)
                     {
-                        Timber.d("Methods Updated: " + methods.size());
-
                         dbManager.updateMethods(methods);
                     }
                 }));
@@ -456,9 +456,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(dashboardData data)
             {
                 onRefreshStop();
-                
-                Timber.d("Contacts: " + data.contacts.size());
-                Timber.d("Advertisements: " + data.advertisements.size());
 
                 if (data.advertisements.size() > 0) {
                     dbManager.updateAdvertisements(data.advertisements);
@@ -474,8 +471,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(Throwable throwable)
             {
                 onRefreshStop();
-                Timber.e("Desktop Errors: " + throwable.getLocalizedMessage());
-                //handleError(throwable);
+                handleError(throwable);
             }
         }));
     }
