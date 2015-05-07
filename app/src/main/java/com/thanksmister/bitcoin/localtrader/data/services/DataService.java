@@ -129,15 +129,15 @@ public class DataService
         }
 
         return bitfinexExchange.ticker()
-                .doOnNext(new Action1<Bitfinex>()
+                .map(new ResponseBitfinexToExchange())
+                .doOnNext(new Action1<Exchange>()
                 {
                     @Override
-                    public void call(Bitfinex bitfinex)
+                    public void call(Exchange exchange)
                     {
                         setExchangeExpireTime();
                     }
-                })
-                .map(new ResponseBitfinexToExchange());
+                });
     }
     
     public Observable<ContactRequest> createContact(String adId, String amount, String message)
@@ -304,11 +304,65 @@ public class DataService
 
         return bitcoinAverage.tickers()
                 .map(new ResponseToCurrencyList())
-                .doOnNext(new Action1<List<Currency>>() {
+                .doOnNext(new Action1<List<Currency>>()
+                {
                     @Override
-                    public void call(List<Currency> results) {
+                    public void call(List<Currency> results)
+                    {
                         Timber.d("Cash Currencies.");
                         currencies = results;
+                    }
+                });
+    }
+    
+    public Observable<Boolean> updateAdvertisement(Advertisement advertisement)
+    {
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
+                {
+                    @Override
+                    public Observable<Boolean> call(SessionItem sessionItem)
+                    {
+                        return updateAdvertisementObservable(advertisement, sessionItem.access_token())
+                                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement, sessionItem.access_token())));
+                                
+                    }
+                });
+    }
+
+    private Observable<Boolean> updateAdvertisementObservable(final Advertisement advertisement, String token)
+    {
+        String city;
+        if(Strings.isBlank(advertisement.city)){
+            city = advertisement.location;
+        } else {
+            city =  advertisement.city;
+        }
+
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
+                {
+                    @Override
+                    public Observable<Boolean> call(SessionItem sessionItem)
+                    {
+                        return localBitcoins.updateAdvertisement(advertisement.ad_id, sessionItem.access_token(), String.valueOf(advertisement.visible), advertisement.min_amount,
+                                advertisement.max_amount, advertisement.price_equation, advertisement.currency, String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
+                                city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
+                                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.trusted_required),
+                                advertisement.message)
+                                .map(new ResponseToJSONObject())
+                                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
+                                {
+                                    @Override
+                                    public Observable<Boolean> call(JSONObject jsonObject)
+                                    {
+                                        if (Parser.containsError(jsonObject)) {
+                                            throw new Error("Error updating advertisement visibility");
+                                        }
+
+                                        return Observable.just(true);
+                                    }
+                                });
                     }
                 });
     }
@@ -328,12 +382,27 @@ public class DataService
                 });
     }
 
+    /*
+    price_equation, lat, lon, city, location_string, countrycode, 
+    currency, account_info, bank_name, msg, 
+    sms_verification_required, 
+    track_max_amount, require_trusted_by_advertiser, require_identification
+    Optional arguments: min_amount, max_amount, opening_hours
+    trade_type and online_provider
+     */
     private Observable<Response> createAdvertisementObservable(final Advertisement advertisement, String access_token)
     {
-        return localBitcoins.createAdvertisement(advertisement.ad_id, access_token, advertisement.min_amount,
+        String city;
+        if(Strings.isBlank(advertisement.city)){
+            city = advertisement.location;
+        } else {
+            city =  advertisement.city;
+        }
+        
+        return localBitcoins.createAdvertisement(access_token, advertisement.min_amount,
                 advertisement.max_amount, advertisement.price_equation, advertisement.trade_type.name(), advertisement.online_provider,
                 String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
-                advertisement.city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
+                city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
                 String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
                 String.valueOf(advertisement.trusted_required), advertisement.message);
     }
@@ -358,8 +427,6 @@ public class DataService
         return localBitcoins.getMyself(token)
                 .map(new ResponseToUser());
     }
-
-   
 
     public Observable<Contact> getContact(String contactID)
     {
@@ -527,14 +594,14 @@ public class DataService
         return getAdvertisementsObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()));
     }
-
+    
     public Observable<Boolean> updateAdvertisementVisibility(final AdvertisementItem advertisement, final boolean visible)
     {
-        return updateAdvertisementVisibilityObservable(advertisement, visible)
-                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementVisibilityObservable(advertisement, visible)));
+        return updateAdvertisementObservable(advertisement, visible)
+                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement, visible)));
     }
 
-    private Observable<Boolean> updateAdvertisementVisibilityObservable(final AdvertisementItem advertisement, boolean visible)
+    private Observable<Boolean> updateAdvertisementObservable(final AdvertisementItem advertisement, boolean visible)
     {
         String city;
         if(Strings.isBlank(advertisement.city())){
@@ -555,8 +622,7 @@ public class DataService
                                 String.valueOf(advertisement.sms_verification_required()), String.valueOf(advertisement.track_max_amount()), String.valueOf(advertisement.trusted_required()),
                                 advertisement.message())
                                 .map(new ResponseToJSONObject())
-                                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
-                                {
+                                .flatMap(new Func1<JSONObject, Observable<Boolean>>() {
                                     @Override
                                     public Observable<Boolean> call(JSONObject jsonObject)
                                     {

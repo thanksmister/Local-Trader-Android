@@ -37,9 +37,9 @@ public final class DbModule
 {
     @Provides
     @Singleton
-    DbManager provideDbManager(SqlBrite sqlBrite, LocalBitcoins localBitcoins, SharedPreferences sharedPreferences)
+    DbManager provideDbManager(SqlBrite sqlBrite)
     {
-        return new DbManager(sqlBrite, localBitcoins, sharedPreferences);
+        return new DbManager(sqlBrite);
     }
 
     @Provides

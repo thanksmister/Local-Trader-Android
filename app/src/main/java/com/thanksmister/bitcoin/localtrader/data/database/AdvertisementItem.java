@@ -98,7 +98,7 @@ public abstract class AdvertisementItem
     public abstract boolean visible();
     public abstract String email();
     public abstract String location_string();
-    @Nullable public abstract String country_code();
+    public abstract String country_code();
     @Nullable public abstract String city();
     public abstract String trade_type();
     public abstract String online_provider();
@@ -185,7 +185,6 @@ public abstract class AdvertisementItem
         }
     };
     
-
     public static final class Builder {
         private final ContentValues values = new ContentValues();
 

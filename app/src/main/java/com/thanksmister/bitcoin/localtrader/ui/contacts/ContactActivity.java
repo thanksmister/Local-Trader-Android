@@ -42,6 +42,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
@@ -371,6 +372,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     setContact(contactItem);
                 }
             }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                Crashlytics.logException(throwable);
+            }
         });
 
         messagesItemObservable.subscribe(new Action1<List<MessageItem>>()
@@ -379,6 +387,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(List<MessageItem> messageItems)
             {
                 getAdapter().replaceWith(messageItems);
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                Crashlytics.logException(throwable);
             }
         });
     }

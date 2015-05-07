@@ -58,25 +58,28 @@ public abstract class BaseFragment extends DialogFragment
 
     protected void handleError(Throwable throwable)
     {
-        if(DataServiceUtils.isHttp403Error(throwable)) {
-            toast(getString(R.string.error_authentication) + " Code 403");
+        if(DataServiceUtils.isNetworkError(throwable)) {
+            toast(getString(R.string.error_no_internet) + ", Code 503");
+        } else if(DataServiceUtils.isHttp403Error(throwable)) {
+            toast(getString(R.string.error_authentication) + ", Code 403");
             ((BaseActivity)getActivity()).logOut();
         } else if(DataServiceUtils.isHttp401Error(throwable)) {
-            toast(getString(R.string.error_no_internet) + " Code 401");
+            toast(getString(R.string.error_no_internet) + ", Code 401");
         } else if(DataServiceUtils.isHttp500Error(throwable)) {
-            toast(getString(R.string.error_service_error) + " Code 500");
+            toast(getString(R.string.error_service_error) + ", Code 500");
         } else if(DataServiceUtils.isHttp404Error(throwable)) {
-            toast(getString(R.string.error_service_error) + " Code 404");
+            toast(getString(R.string.error_service_error) + ", Code 404");
         } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
-            toast(getString(R.string.error_authentication) + " Code 400 Grant Invalid");
+            toast(getString(R.string.error_authentication) + ", Code 400 Grant Invalid");
             ((BaseActivity)getActivity()).logOut();
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
-            toast(getString(R.string.error_service_error) + " Code 400");
+            toast(getString(R.string.error_service_error) + ", Code 400");
         } else {
             toast(R.string.error_generic_error);
         }
 
-        Timber.e(throwable.getLocalizedMessage());
+        if(throwable != null)
+            Timber.e("Data Error: " + throwable.getLocalizedMessage());
     }
 
     protected void toast(int messageId)

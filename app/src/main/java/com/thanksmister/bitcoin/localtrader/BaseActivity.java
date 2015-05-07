@@ -208,20 +208,28 @@ public abstract class BaseActivity extends ActionBarActivity
 
     protected void handleError(Throwable throwable)
     {
-        Timber.e(throwable.getLocalizedMessage());
-
-        if(DataServiceUtils.isHttp403Error(throwable)) {
-            toast(R.string.error_authentication);
+        if(DataServiceUtils.isNetworkError(throwable)) {
+            toast(getString(R.string.error_no_internet) + ", Code 503");
+        } else if(DataServiceUtils.isHttp403Error(throwable)) {
+            toast(getString(R.string.error_authentication) + ", Code 403");
             logOut();
         } else if(DataServiceUtils.isHttp401Error(throwable)) {
-            toast(R.string.error_no_internet);
-        } else if(DataServiceUtils.isHttp400Error(throwable)) {
-            toast(R.string.error_service_error);
+            toast(getString(R.string.error_no_internet) + ", Code 401");
         } else if(DataServiceUtils.isHttp500Error(throwable)) {
-            toast(R.string.error_service_error);
+            toast(getString(R.string.error_service_error) + ", Code 500");
+        } else if(DataServiceUtils.isHttp404Error(throwable)) {
+            toast(getString(R.string.error_service_error) + ", Code 404");
+        } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
+            toast(getString(R.string.error_authentication) + ", Code 400 Grant Invalid");
+            logOut();
+        } else if(DataServiceUtils.isHttp400Error(throwable)) {
+            toast(getString(R.string.error_service_error) + ", Code 400");
         } else {
             toast(R.string.error_generic_error);
         }
+
+        if(throwable != null)
+            Timber.e("Data Error: " + throwable.getLocalizedMessage());
     }
 
     protected void toast(int messageId)

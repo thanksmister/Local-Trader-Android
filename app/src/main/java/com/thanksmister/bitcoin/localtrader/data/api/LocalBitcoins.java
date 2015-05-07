@@ -98,8 +98,8 @@ public interface LocalBitcoins
     Observable<Response> deleteAdvertisement(@Path("ad_id") String ad_id, @Query("access_token") String token);
 
     @FormUrlEncoded
-    @POST("/api/ad-create/{ad_id}/")
-    Observable<Response> createAdvertisement(@Path("ad_id") String ad_id, @Query("access_token") String token,
+    @POST("/api/ad-create/")
+    Observable<Response> createAdvertisement(@Query("access_token") String token,
                                              @Field("min_amount") String min_amount, @Field("max_amount") String max_amount, @Field("price_equation") String price_equation,
                                              @Field("trade_type") String trade_type, @Field("online_provider") String online_provider,
                                              @Field("lat") String lat, @Field("lon") String lon, @Field("city") String city,

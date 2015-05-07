@@ -323,9 +323,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         ButterKnife.reset(this);
 
-        subscriptions.unsubscribe();
+        if(subscriptions != null) 
+            subscriptions.clear();
         
-        updateSubscriptions.unsubscribe();
+        if(updateSubscriptions != null)
+            updateSubscriptions.clear();
         
         super.onDetach();
     }
@@ -368,6 +370,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     protected void subscribeData()
     {
+        /*if(subscriptions.hasSubscriptions()) {
+            subscriptions.clear();
+            subscriptions = new CompositeSubscription(); 
+        }
+*/
         subscriptions.add(Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, List<AdvertisementItem>, AdvertisementData>()
         {
             @Override
@@ -425,7 +432,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Throwable throwable)
             {
-                handleError(new Throwable("Error loading exchange data."));
+                //toast("Error loading exchange data.");
             }
         }));
         
@@ -440,7 +447,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 }));
 
         advertisementUpdateObservable = bindFragment(this, dataService.getAdvertisements(force));
-        subscriptions.add(Observable.combineLatest(contactUpdateObservable, advertisementUpdateObservable, new Func2<List<Contact>, List<Advertisement>, dashboardData>()
+        
+        updateSubscriptions.add(Observable.combineLatest(contactUpdateObservable, advertisementUpdateObservable, new Func2<List<Contact>, List<Advertisement>, dashboardData>()
         {
             @Override
             public dashboardData call(List<Contact> contacts, List<Advertisement> advertisements)
@@ -471,6 +479,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(Throwable throwable)
             {
                 onRefreshStop();
+                
                 handleError(throwable);
             }
         }));

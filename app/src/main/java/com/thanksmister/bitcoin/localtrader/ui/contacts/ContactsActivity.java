@@ -48,6 +48,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.functions.Action1;
+import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
 
@@ -195,8 +196,10 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             swipeLayout.setRefreshing(false);
     }
     
-    public void onError(String message)
+    public void showError(String message)
     {
+        Timber.e("Show Error: " + message);
+        
         progress.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
 
@@ -268,7 +271,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                     }
                     
                     if(contacts.isEmpty()) {
-                        onError(getString(R.string.error_no_trade_data));
+                        showError(getString(R.string.error_no_trade_data));
                     } else {
                         setContacts(contacts); 
                     }
@@ -280,8 +283,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
     public void updateData(DashboardType dashboardType)
     {
-        onRefreshStart();
-                
         this.dashboardType = dashboardType;
 
         contactsObservable = bindActivity(this, dataService.getContacts(dashboardType));
@@ -293,30 +294,28 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             @Override
             public void call(List<Contact> contacts)
             {
+                onRefreshStop();
+                
                 if(dashboardType == DashboardType.ACTIVE) {
                     dbManager.updateContacts(contacts); //update contacts and messages if active 
                 }
                 
                 if(contacts.isEmpty()) {
-                   onError(getString(R.string.error_no_trade_data));
+                    showError(getString(R.string.error_no_trade_data));
                 } else {
                     setContacts(contacts); 
                 }
-                
-                onRefreshStop();
             }
         }, new Action1<Throwable>()
         {
             @Override
             public void call(Throwable throwable)
             {
+                onRefreshStop();
+                
                 handleError(throwable);
 
-                if(dashboardType != DashboardType.ACTIVE) {
-                    onError(getString(R.string.error_no_trade_data));
-                }
-                
-                onRefreshStop();
+                showError(getString(R.string.error_no_trade_data));
             }
         });
     }

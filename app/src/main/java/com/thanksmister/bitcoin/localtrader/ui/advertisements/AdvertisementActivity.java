@@ -56,6 +56,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.subscriptions.Subscriptions;
+import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
 

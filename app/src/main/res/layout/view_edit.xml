@@ -32,13 +32,26 @@
             app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
     <View style="@style/DividerHorizontal"/>
+    
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+    <include
+            android:id="@android:id/progress"
+            layout="@layout/view_progress"
+            android:visibility="visible"
+            tools:visibility="gone"/>
 
     <ScrollView
+            android:id="@+id/editContent"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scrollbars="none"
             android:fillViewport="true"
-            android:background="@color/white">
+            android:background="@color/white"
+            android:visibility="gone"
+            tools:visibility="visible">
 
         <LinearLayout
                 android:layout_width="match_parent"
@@ -811,5 +824,7 @@
         </LinearLayout>
 
     </ScrollView>
+
+    </FrameLayout>
 
 </LinearLayout>

@@ -28,13 +28,22 @@ import timber.log.Timber;
 
 public class DataServiceUtils
 {
+    public static boolean isNetworkError(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetrofitError retroError = (RetrofitError) throwable;
+            return (getStatusCode(retroError) == 503);
+        }
+
+        return false;
+    }
+    
     // authorization error
     public static boolean isHttp403Error(Throwable throwable)
     {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
-            Response response = retroError.getResponse();
-            return (response.getStatus() == 403);
+            return (getStatusCode(retroError) == 403);
         } 
 
         return false;
@@ -45,8 +54,7 @@ public class DataServiceUtils
     {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
-            Response response = retroError.getResponse();
-            return (response.getStatus() == 400);
+            return (getStatusCode(retroError) == 400);
         }
 
         return false;
@@ -57,8 +65,7 @@ public class DataServiceUtils
     {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
-            Response response = retroError.getResponse();
-            return (response.getStatus() == 401);
+            return (getStatusCode(retroError) == 401);
         }
 
         return false;
@@ -69,8 +76,7 @@ public class DataServiceUtils
     {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
-            Response response = retroError.getResponse();
-            return (response.getStatus() == 500);
+            return (getStatusCode(retroError) == 500);
         }
 
         return false;
@@ -80,8 +86,7 @@ public class DataServiceUtils
     {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
-            Response response = retroError.getResponse();
-            return (response.getStatus() == 404);
+            return (getStatusCode(retroError) == 404);
         }
 
         return false;
@@ -90,59 +95,46 @@ public class DataServiceUtils
     public static boolean isHttp400GrantError(Throwable throwable)
     {
         if (throwable instanceof RetrofitError) {
-
+            RetrofitError retroError = (RetrofitError) throwable;
+            if(getStatusCode(retroError) == 503)
+                return false;
+                    
             try {
-                String response =  new String(((TypedByteArray) ((RetrofitError) throwable).getResponse().getBody()).getBytes());
-                return (response.contains("invalid_grant"));
+                if(retroError.getResponse() != null) {
+                    String response =  new String(((TypedByteArray) retroError.getResponse().getBody()).getBytes());
+                    return (response.contains("invalid_grant"));
+                }
+                    
             } catch (ClassCastException error) {
+                Timber.e(error.getLocalizedMessage());
                 return (throwable.getLocalizedMessage().contains("invalid_grant"));
+             } catch (NullPointerException error) {
+                Timber.e(error.getLocalizedMessage());
+                return false;
             }
         }
 
         return false;
     }
 
-    public static RetroError convertRetroError(Throwable throwable, Context context)
+    public static int getStatusCode(RetrofitError error) 
     {
-        RetroError retroError;
-        if (throwable instanceof RetrofitError) {
-            
-            if (((RetrofitError) throwable).isNetworkError()) {
-                retroError = new RetroError(context.getString(R.string.error_no_internet), 404);
-            
-            } else {
-                RetrofitError error = (RetrofitError) throwable;
-                retroError = Parser.parseRetrofitError(error);
-                if(retroError.getCode() == 4) {
-                    retroError = new RetroError(context.getString(R.string.error_generic_permission), 4);
-                }
-            }
-        } else if(isHttp403Error(throwable)) {
-            
-            retroError = new RetroError(context.getString(R.string.error_authentication), 403);
-
-        } else if(isHttp401Error(throwable)) {
-
-            retroError = new RetroError(context.getString(R.string.error_no_internet), 401);
-
-        } else if(isHttp400Error(throwable)) {
-
-            try {
-                String response =  new String(((TypedByteArray) ((RetrofitError) throwable).getResponse().getBody()).getBytes());
-                retroError = new RetroError(response, 400);
-            } catch (ClassCastException error) {
-                retroError = new RetroError(context.getString(R.string.error_service_error), 400);
-            }
-
-        } else if(isHttp500Error(throwable)) {
-
-            retroError = new RetroError(context.getString(R.string.error_service_error), 500);
-
-        } else {
-            
-            retroError = new RetroError(context.getString(R.string.error_generic_error), 0);
+         //if (error.getKind() == RetrofitError.Kind.NETWORK) 
+        try {
+            if (error.isNetworkError()) {
+                return 503; // Use another code if you'd prefer
+            } 
+        } catch (Exception e){
+            Timber.e(e.getLocalizedMessage());
+            return 503; // Use another code if you'd prefer
         }
         
-        return retroError;
+        try {
+            return error.getResponse().getStatus();
+        } catch(Throwable e){
+            Timber.e("Error Status: " + e.getMessage());
+        }
+        
+        return 0;
     }
 }

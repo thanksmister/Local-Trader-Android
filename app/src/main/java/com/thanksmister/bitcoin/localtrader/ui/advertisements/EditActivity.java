@@ -187,6 +187,12 @@ public class EditActivity extends BaseActivity
     @InjectView(R.id.typeSpinner)
     Spinner typeSpinner;
 
+    @InjectView(android.R.id.progress)
+    View progress;
+    
+    @InjectView(R.id.editContent)
+    View content;
+
     @OnClick(R.id.clearButton)
     public void clearButtonClicked()
     {
@@ -207,12 +213,14 @@ public class EditActivity extends BaseActivity
     private PredictAdapter predictAdapter;
     private Address address;
     private String adId;
+    AdvertisementData advertisementData;
 
     private Observable<List<MethodItem>> methodObservable;
     private Observable<List<Address>> geoDecodeObservable;
     private Observable<List<Address>> geoLocationObservable;
     private Observable<AdvertisementItem> advertisementItemObservable;
-    private Observable<Advertisement> advertisementObservable;
+    private Observable<Advertisement> createAdvertisementObservable;
+    private Observable<Boolean> updateAdvertisementObservable;
     private Observable<List<Currency>> currencyObservable;
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription subscription;
@@ -227,6 +235,7 @@ public class EditActivity extends BaseActivity
         Intent intent = new Intent(context, EditActivity.class);
         intent.putExtra(EXTRA_CREATE, create);
         intent.putExtra(EXTRA_AD_ID, adId);
+        
         return intent;
     }
     
@@ -280,7 +289,6 @@ public class EditActivity extends BaseActivity
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
-                Timber.d("Currency Selected: " + i);
                 Currency exchange = (Currency) currencySpinner.getAdapter().getItem(i);
                 editMinimumAmountCurrency.setText(exchange.ticker);
                 editMaximumAmountCurrency.setText(exchange.ticker);
@@ -450,6 +458,7 @@ public class EditActivity extends BaseActivity
                 {
                     setCurrencies(currencies, null);
                     createAdvertisement();
+                    hideProgress();
                 }
             });
         } else {
@@ -466,15 +475,29 @@ public class EditActivity extends BaseActivity
             }).subscribe(new Action1<AdvertisementData>()
             {
                 @Override
-                public void call(AdvertisementData advertisementData)
+                public void call(AdvertisementData data)
                 {
+                    advertisementData = data;
                     setAdvertisement(advertisementData.advertisement);
                     setCurrencies(advertisementData.currencies, advertisementData.advertisement);
+                    hideProgress();
                 }
             })); 
         }
     }
-    
+
+    public void showProgress()
+    {
+        progress.setVisibility(View.VISIBLE);
+        content.setVisibility(View.GONE);
+    }
+
+    public void hideProgress()
+    {
+        content.setVisibility(View.VISIBLE);
+        progress.setVisibility(View.GONE);
+    }
+
     public void setTradeType(TradeType tradeType)
     {
         typeSpinner.setSelection(tradeType.ordinal());
@@ -520,6 +543,8 @@ public class EditActivity extends BaseActivity
 
     private void setAdvertisement(AdvertisementItem advertisement)
     {
+        Timber.d("Country Code: " + advertisement.country_code());
+        
         currentLocation.setText(advertisement.location_string());
   
         liquidityCheckBox.setChecked(advertisement.track_max_amount());
@@ -623,6 +648,7 @@ public class EditActivity extends BaseActivity
             advertisement.trade_type = TradeType.values()[typeSpinner.getSelectedItemPosition()];
             advertisement.online_provider = ((Method) paymentMethodSpinner.getSelectedItem()).code; // TODO code or name?
         } else {
+            advertisement.ad_id = adId;
             advertisement.visible = activeCheckBox.isChecked();
         }
 
@@ -636,11 +662,21 @@ public class EditActivity extends BaseActivity
         advertisement.track_max_amount = liquidityCheckBox.isChecked();
         advertisement.trusted_required = trustedCheckBox.isChecked();
 
-        String location = (address != null)? TradeUtils.getAddressShort(address):advertisement.location;
-        String city = (address != null)? address.getLocality():advertisement.city;
-        String code = (address != null)? address.getCountryCode():advertisement.country_code;
-        double lon = (address != null)? address.getLongitude():advertisement.lon;
-        double lat = (address != null)? address.getLatitude():advertisement.lat;
+        if(address == null && advertisementData == null) {
+            toast("Unable to save changes, please try again");
+            return;
+        }
+  
+        String location = (address != null)? TradeUtils.getAddressShort(address):advertisementData.advertisement.location_string();
+        String city = (address != null)? address.getLocality():advertisementData.advertisement.city();
+        String code = (address != null)? address.getCountryCode():advertisementData.advertisement.country_code();
+        
+        double lon = (address != null)? address.getLongitude():advertisementData.advertisement.lon();
+        double lat = (address != null)? address.getLatitude():advertisementData.advertisement.lat();
+
+        Timber.d("Address: " + address);
+        Timber.d("Country Code: " + code);
+        Timber.d("Location: " + location);
 
         advertisement.location = location;
         advertisement.city = city;
@@ -648,7 +684,7 @@ public class EditActivity extends BaseActivity
         advertisement.lat = lat;
         advertisement.country_code = code;
         advertisement.account_info = accountInfo;
-
+        
         updateAdvertisement(advertisement, create);
     }
     
@@ -807,8 +843,8 @@ public class EditActivity extends BaseActivity
 
             showProgressDialog(new ProgressDialogEvent("Posting trade..."));
             
-            advertisementObservable = bindActivity(this, dataService.createAdvertisement(advertisement));
-            advertisementObservable.subscribe(new Observer<Advertisement>()
+            createAdvertisementObservable = bindActivity(this, dataService.createAdvertisement(advertisement));
+            createAdvertisementObservable.subscribe(new Observer<Advertisement>()
             {
                 @Override
                 public void onCompleted()
@@ -819,6 +855,7 @@ public class EditActivity extends BaseActivity
                 @Override
                 public void onError(Throwable e)
                 {
+                    hideProgressDialog();
                     handleError(e);
                 }
 
@@ -826,7 +863,7 @@ public class EditActivity extends BaseActivity
                 public void onNext(Advertisement advertisement)
                 {
                     toast("New trade posted!");
-                    // TODO save to database
+                    dbManager.updateAdvertisement(advertisement);
                     finish();
                 }
             });
@@ -835,8 +872,8 @@ public class EditActivity extends BaseActivity
 
             showProgressDialog(new ProgressDialogEvent("Saving changes..."));
 
-            advertisementObservable = bindActivity(this, dataService.createAdvertisement(advertisement));
-            advertisementObservable.subscribe(new Observer<Advertisement>()
+            updateAdvertisementObservable = bindActivity(this, dataService.updateAdvertisement(advertisement));
+            updateAdvertisementObservable.subscribe(new Observer<Boolean>()
             {
                 @Override
                 public void onCompleted()
@@ -847,14 +884,14 @@ public class EditActivity extends BaseActivity
                 @Override
                 public void onError(Throwable e)
                 {
+                    hideProgressDialog();
                     handleError(e);
                 }
 
                 @Override
-                public void onNext(Advertisement advertisement)
+                public void onNext(Boolean value)
                 {
-                    dbManager.updateAdvertisement(advertisement);
-                    toast("Trade updated");
+                    toast("Ad changed successfully!");
                     finish();
                 }
             });

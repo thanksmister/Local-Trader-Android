@@ -436,9 +436,13 @@ public class SearchFragment extends BaseFragment
 
                 @Override
                 public void onError(Throwable e) {
+                    
                     Timber.e(e.getMessage());
+                    
                     if (e.getMessage().equals("1")) {
                         showEnableLocationDialog();
+                    } else {
+                        showError(e.getMessage());
                     }
                 }
 
@@ -540,7 +544,7 @@ public class SearchFragment extends BaseFragment
             @Override
             public void call(Throwable throwable)
             {
-                handleError(new Throwable(getString(R.string.error_unable_load_address)));
+                showError(getString(R.string.error_unable_load_address));
             }
         }));
     }

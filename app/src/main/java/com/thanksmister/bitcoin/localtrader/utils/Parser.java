@@ -895,7 +895,12 @@ public class Parser
             
             item.email = (data.getString("email"));
             item.location = (data.getString("location_string"));
+            
+           
+            
             item.country_code = (data.getString("countrycode"));
+            Timber.d("Country Code: " + item.country_code);
+            
             item.city = (data.getString("city"));
 
             String trade_type = data.getString("trade_type");

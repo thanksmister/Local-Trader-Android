@@ -44,15 +44,11 @@ public class BitcoinHandler extends BaseActivity
  
         if (data != null  ) {
             
-            Timber.d("BitcoinUriHandler: URL: " + data.toString());
-            
             String url = data.toString();
             String scheme = data.getScheme(); // "http"
-
-            Timber.d("BitcoinUriHandler: scheme: " + scheme);
             
             if(!dbManager.isLoggedIn()) {
-                showToast("You need to be logged in to perform that action.");
+                toast("You need to be logged in to perform that action.");
                 launchMainApplication();
             } else {
                 Intent intent = MainActivity.createStartIntent(getApplicationContext(), url);
@@ -71,9 +67,4 @@ public class BitcoinHandler extends BaseActivity
         startActivity(new Intent(BitcoinHandler.this, MainActivity.class));
         finish();
 	}
-    
-    public void showToast(String message)
-    {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-    }
 }
