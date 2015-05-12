@@ -24,6 +24,7 @@ import com.thanksmister.bitcoin.localtrader.data.DataModule;
 import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
+import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbModule;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
@@ -64,9 +65,9 @@ public final class ActivityModule
 {
     @Provides
     @Singleton
-    DataService provideDataService(SqlBrite db, BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
+    DataService provideDataService(DbManager db, BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
     {
-        return new DataService(db ,app, preferences, localBitcoins, bitcoinAverage, bitfinexExchange);
+        return new DataService(db, app, preferences, localBitcoins, bitcoinAverage, bitfinexExchange);
     }
 
     @Provides

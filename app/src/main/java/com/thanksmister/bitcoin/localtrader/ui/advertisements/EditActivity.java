@@ -460,6 +460,14 @@ public class EditActivity extends BaseActivity
                     createAdvertisement();
                     hideProgress();
                 }
+            }, new Action1<Throwable>()
+            {
+                @Override
+                public void call(Throwable throwable)
+                {
+                    hideProgress();
+                    handleError(throwable);
+                }
             });
         } else {
             subscriptions.add(Observable.combineLatest(currencyObservable, advertisementItemObservable, new Func2<List<Currency>, AdvertisementItem, AdvertisementData>()
@@ -481,6 +489,14 @@ public class EditActivity extends BaseActivity
                     setAdvertisement(advertisementData.advertisement);
                     setCurrencies(advertisementData.currencies, advertisementData.advertisement);
                     hideProgress();
+                }
+            }, new Action1<Throwable>()
+            {
+                @Override
+                public void call(Throwable throwable)
+                {
+                    hideProgress();
+                    handleError(throwable);
                 }
             })); 
         }

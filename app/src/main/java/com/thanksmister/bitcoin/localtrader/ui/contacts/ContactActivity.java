@@ -130,6 +130,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private Observable<ContactItem> contactItemObservable;
     private Observable<List<MessageItem>> messagesItemObservable;
     private Observable<Contact> contactObservable;
+    private Observable<Boolean> deleteContactObservable;
     private Observable<SessionItem> tokensObservable;
     private Observable<JSONObject> contactActionObservable;
     private Observable<JSONObject> messageObservable;
@@ -307,6 +308,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     public void onRefreshStop()
     {
+        hideProgress();
+        
         if(swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
@@ -348,12 +351,18 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     public void showProgress()
     {
+        if(progress == null || list == null)
+            return;
+        
         progress.setVisibility(View.VISIBLE);
         list.setVisibility(View.GONE);
     }
     
     public void hideProgress()
     {
+        if(progress == null || list == null) 
+            return;
+        
         progress.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
     }
@@ -365,9 +374,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(ContactItem contactItem)
             {
-                if (contactItem != null) {
+                hideProgress();
 
-                    hideProgress();
+                if (contactItem != null) {
 
                     setContact(contactItem);
                 }
@@ -377,6 +386,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(Throwable throwable)
             {
+                Crashlytics.setString("contactItemObservable", throwable.getLocalizedMessage());
                 Crashlytics.logException(throwable);
             }
         });
@@ -386,6 +396,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(List<MessageItem> messageItems)
             {
+                hideProgress();
+
                 getAdapter().replaceWith(messageItems);
             }
         }, new Action1<Throwable>()
@@ -393,6 +405,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(Throwable throwable)
             {
+                Crashlytics.setString("messagesItemObservable", throwable.getLocalizedMessage());
                 Crashlytics.logException(throwable);
             }
         });
@@ -400,35 +413,23 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void updateData()
     {
-        onRefreshStart();
-        
-       contactObservable.subscribe(new Action1<Contact>()
-       {
+       contactObservable.subscribe(new Action1<Contact>() {
            @Override
-           public void call(Contact contact)
-           {
+           public void call(Contact contact) {
                onRefreshStop();
-               
-               if(dashboardType == DashboardType.ACTIVE) {
+
+               if (dashboardType == DashboardType.ACTIVE) {
                    dbManager.updateContact(contact);
-                   dbManager.updateMessages(contact.messages, contact.contact_id);  
-               } else { 
-                   hideProgress();
+                   dbManager.updateMessages(contact);
+               } else {
                    setContact(ContactItem.convertContact(contact));
+                   getAdapter().replaceWith(MessageItem.convertMessages(contact.messages, contact.contact_id));
                }
            }
-       }, new Action1<Throwable>()
-       {
+       }, new Action1<Throwable>()  {
            @Override
-           public void call(Throwable throwable)
-           {
+           public void call(Throwable throwable) {
                onRefreshStop();
-               
-               handleError(throwable);
-
-               if(dashboardType != DashboardType.ACTIVE) {
-                   hideProgress();
-               }
            }
        }); 
     }
@@ -625,27 +626,41 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private void contactAction(final String contactId, final String pinCode, final ContactAction action)
     {
         contactActionObservable = bindActivity(this, dataService.contactAction(contactId, pinCode, action));
-        contactActionObservable.subscribe(new Action1<JSONObject>()
-        {
+        contactActionObservable.subscribe(new Action1<JSONObject>() {
             @Override
-            public void call(JSONObject jsonObject)
-            {
-                hideProgressDialog();
+            public void call(JSONObject jsonObject) {
 
                 if (action == ContactAction.RELEASE) {
                     toast(R.string.trade_released_toast_text);
+                    deleteContact(contactId);
+                } else {
+                    updateData();
                 }
-
-                updateData();
             }
-        }, new Action1<Throwable>()
-        {
+        }, new Action1<Throwable>() {
             @Override
-            public void call(Throwable throwable)
-            {
+            public void call(Throwable throwable) {
+                
                 hideProgressDialog();
 
                 handleError(throwable);
+            }
+        });
+    }
+    
+    private void deleteContact(String contactId)
+    {
+        deleteContactObservable = bindActivity(this, dbManager.deleteContact(contactId));
+        deleteContactObservable.subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean aBoolean) {
+                finish();
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                Timber.e(throwable.getMessage());
+                finish();
             }
         });
     }

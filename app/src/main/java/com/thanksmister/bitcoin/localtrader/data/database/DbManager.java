@@ -24,6 +24,7 @@ import com.crashlytics.android.Crashlytics;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
@@ -32,13 +33,18 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 import javax.inject.Inject;
 
 import rx.Observable;
+import rx.Observer;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -48,6 +54,10 @@ import timber.log.Timber;
 public class DbManager 
 {
     public static final String PREFS_USER = "pref_user";
+
+    public static String UPDATES = "updates";
+    public static String ADDITIONS = "additions";
+    public static String DELETIONS = "deletions";
     
     private SqlBrite db;
     
@@ -62,11 +72,11 @@ public class DbManager
      */
     public void clearDbManager()
     {
-        db.delete(WalletItem.TABLE, null, null);
-        db.delete(SessionItem.TABLE, null, null);
-        db.delete(ContactItem.TABLE, null, null);
-        db.delete(MessageItem.TABLE, null, null);
-        db.delete(AdvertisementItem.TABLE, null, null);
+        db.delete(WalletItem.TABLE, null);
+        db.delete(SessionItem.TABLE, null);
+        db.delete(ContactItem.TABLE, null);
+        db.delete(MessageItem.TABLE, null);
+        db.delete(AdvertisementItem.TABLE, null);
     }
 
     public boolean isLoggedIn()
@@ -83,7 +93,33 @@ public class DbManager
             cursor.close();
         }
     }
+    
+    public Observable<SessionItem> getTokens()
+    {
+        return db.createQuery(SessionItem.TABLE, SessionItem.QUERY)
+                .map(SessionItem.MAP);
+    }
 
+    public void updateTokens(Authorization authorization)
+    {
+        SessionItem.Builder builder = new SessionItem.Builder()
+                .access_token(authorization.access_token)
+                .refresh_token(authorization.refresh_token);
+
+        Cursor cursor = db.query(SessionItem.QUERY);
+        if(cursor.getCount() > 0) {
+            try {
+                cursor.moveToFirst();
+                long id = Db.getLong(cursor, SessionItem.ID);
+                db.update(SessionItem.TABLE, builder.build(), SessionItem.ID + " = ?", String.valueOf(id));
+            } finally {
+                cursor.close();
+            }
+        } else {
+            db.insert(ContactItem.TABLE, builder.build());
+        }
+    }
+    
     public Observable<ContactItem> contactQuery(String contactId)
     {
         return db.createQuery(ContactItem.TABLE, ContactItem.QUERY_ITEM_WITH_MESSAGES, String.valueOf(contactId))
@@ -102,14 +138,194 @@ public class DbManager
                 });
     }
     
-    public void updateContacts(List<Contact> contacts)
+    /*
+    return Observable.create(new Observable.OnSubscribe<List<Message>>()
+        {
+            @Override
+            public void call(Subscriber<? super List<Message>> subscriber)
+            {
+               
+                subscriber.onNext(newMessages);
+            }
+        })
+     */
+    
+    public Observable<TreeMap<String, ArrayList<Contact>>> updateContacts(List<Contact> contacts)
     {
-        for (Contact contact : contacts) {
-            updateContact(contact);
-            updateMessages(contact.messages, contact.contact_id);
-        }
-    }
+        TreeMap<String, ArrayList<Contact>> updateMap = new TreeMap<String, ArrayList<Contact>>();
 
+        ArrayList<Contact> newContacts = new ArrayList<Contact>();
+        ArrayList<Contact> deletedContacts = new ArrayList<Contact>();
+        ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
+        
+        return Observable.create(new Observable.OnSubscribe<TreeMap<String, ArrayList<Contact>>>()
+        {
+            @Override
+            public void call(Subscriber<? super TreeMap<String, ArrayList<Contact>>> subscriber)
+            {
+                HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
+                for (Contact item : contacts) {
+                    entryMap.put(item.contact_id, item);
+                }
+
+                Cursor cursor = db.query(ContactItem.QUERY);
+
+                try {
+                    while (cursor.moveToNext()) {
+
+                        long id = Db.getLong(cursor, ContactItem.ID);
+                        String contact_id = Db.getString(cursor, ContactItem.CONTACT_ID);
+                        String payment_complete_at = Db.getString(cursor, ContactItem.PAYMENT_COMPLETED_AT);
+                        String closed_at = Db.getString(cursor, ContactItem.CLOSED_AT);
+                        String disputed_at = Db.getString(cursor, ContactItem.DISPUTED_AT);
+                        String escrowed_at = Db.getString(cursor, ContactItem.ESCROWED_AT);
+                        String funded_at = Db.getString(cursor, ContactItem.FUNDED_AT);
+                        String released_at = Db.getString(cursor, ContactItem.RELEASED_AT);
+                        String canceled_at = Db.getString(cursor, ContactItem.CANCELED_AT);
+                        String buyerLastSeen = Db.getString(cursor, ContactItem.BUYER_LAST_SEEN);
+                        String fundUrl = Db.getString(cursor, ContactItem.FUND_URL);
+                        boolean isFunded = Db.getBoolean(cursor, ContactItem.IS_FUNDED);
+                        String sellerLastSeen = Db.getString(cursor, ContactItem.SELLER_LAST_SEEN);
+
+                        Contact match = entryMap.get(contact_id);
+
+                        if (match != null) {
+
+                            entryMap.remove(contact_id);
+
+                            // Update existing record
+                            ContactItem.Builder builder = new ContactItem.Builder()
+                                    .created_at(match.created_at)
+                                    .payment_completed_at(match.payment_completed_at)
+                                    .contact_id(match.contact_id)
+                                    .disputed_at(match.disputed_at)
+                                    .funded_at(match.funded_at)
+                                    .escrowed_at(match.escrowed_at)
+                                    .released_at(match.released_at)
+                                    .canceled_at(match.canceled_at)
+                                    .closed_at(match.closed_at)
+                                    .disputed_at(match.disputed_at)
+                                    .buyer_last_online(match.buyer.last_online)
+                                    .seller_last_online(match.seller.last_online)
+                                    .is_funded(match.is_funded)
+                                    .fund_url(match.actions.fund_url);
+
+
+                            if ((match.payment_completed_at != null && !match.payment_completed_at.equals(payment_complete_at))
+                                    || (match.closed_at != null && !match.closed_at.equals(closed_at))
+                                    || (match.disputed_at != null && !match.disputed_at.equals(disputed_at))
+                                    || (match.escrowed_at != null && !match.escrowed_at.equals(escrowed_at))
+                                    || (match.funded_at != null && !match.funded_at.equals(funded_at))
+                                    || (match.released_at != null && !match.released_at.equals(released_at))
+                                    || (match.canceled_at != null && !match.canceled_at.equals(canceled_at))
+                                    || (match.actions.fund_url != null && !match.actions.fund_url.equals(fundUrl))
+                                    || (match.is_funded != isFunded)) {
+
+                                int updateInt = db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
+
+                                if (updateInt > 0) {
+                                    updatedContacts.add(match);
+                                }
+                            } else if ((match.seller.last_online != null && !match.seller.last_online.equals(sellerLastSeen)) // update without notification
+                                    || (match.buyer.last_online != null && !match.buyer.last_online.equals(buyerLastSeen))) {
+
+                                int updateInt = db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
+
+                                Timber.d("Update contact in database: " + contact_id);
+
+                            }
+                        } else {
+                            Timber.d("Delete contact from database: " + contact_id);
+                            // Entry doesn't exist. Remove it from the database.
+                            db.delete(ContactItem.TABLE, String.valueOf(id));
+                            deletedContacts.add(match);
+                        }
+                    }
+                } finally {
+                    cursor.close();
+                }
+
+                // Add new items
+                for (Contact item : entryMap.values()) {
+
+                    newContacts.add(item);
+
+                    ContactItem.Builder builder = new ContactItem.Builder()
+                            .contact_id(item.contact_id)
+                            .created_at(item.created_at)
+                            .amount(item.amount)
+                            .amount_btc(item.amount_btc)
+                            .currency(item.currency)
+                            .reference_code(item.reference_code)
+
+                            .is_buying(item.is_buying)
+                            .is_selling(item.is_selling)
+
+                            .payment_completed_at(item.payment_completed_at)
+                            .contact_id(item.contact_id)
+                            .disputed_at(item.disputed_at)
+                            .funded_at(item.funded_at)
+                            .escrowed_at(item.escrowed_at)
+                            .released_at(item.released_at)
+                            .canceled_at(item.canceled_at)
+                            .closed_at(item.closed_at)
+                            .disputed_at(item.disputed_at)
+                            .is_funded(item.is_funded)
+
+                            .fund_url(item.actions.fund_url)
+                            .release_url(item.actions.release_url)
+                            .advertisement_public_view(item.actions.advertisement_public_view)
+
+                            .message_url(item.actions.messages_url)
+                            .message_post_url(item.actions.message_post_url)
+
+                            .mark_as_paid_url(item.actions.mark_as_paid_url)
+                            .dispute_url(item.actions.dispute_url)
+                            .cancel_url(item.actions.cancel_url)
+
+                            .buyer_name(item.buyer.name)
+                            .buyer_username(item.buyer.username)
+                            .buyer_trade_count(item.buyer.trade_count)
+                            .buyer_feedback_score(item.buyer.feedback_score)
+                            .buyer_last_online(item.buyer.last_online)
+
+                            .seller_name(item.seller.name)
+                            .seller_username(item.seller.username)
+                            .seller_trade_count(item.seller.trade_count)
+                            .seller_feedback_score(item.seller.feedback_score)
+                            .seller_last_online(item.seller.last_online)
+
+                            .account_receiver_email(item.account_details.email)
+                            .account_receiver_name(item.account_details.receiver_name)
+                            .account_iban(item.account_details.iban)
+                            .account_swift_bic(item.account_details.swift_bic)
+                            .account_reference(item.account_details.reference)
+
+                            .advertisement_id(item.advertisement.id)
+                            .advertisement_trade_type(item.advertisement.trade_type.name())
+                            .advertisement_payment_method(item.advertisement.payment_method)
+
+                            .advertiser_name(item.advertisement.advertiser.name)
+                            .advertiser_username(item.advertisement.advertiser.username)
+                            .advertiser_trade_count(item.advertisement.advertiser.trade_count)
+                            .advertiser_feedback_score(item.advertisement.advertiser.feedback_score)
+                            .advertiser_last_online(item.advertisement.advertiser.last_online);
+
+                    Timber.d("Insert contact from database: " + item.contact_id);
+
+                    db.insert(ContactItem.TABLE, builder.build());
+                }
+
+                updateMap.put(UPDATES, updatedContacts);
+                updateMap.put(ADDITIONS, newContacts);
+                updateMap.put(DELETIONS, deletedContacts);
+                
+                subscriber.onNext(updateMap);
+                subscriber.onCompleted();
+            }
+        });
+    }
+    
     public void updateContact(Contact contact)
     {
         Observable.create(new Observable.OnSubscribe<Boolean>()
@@ -188,6 +404,7 @@ public class DbManager
                 }
                 
                 subscriber.onNext(true);
+                subscriber.onCompleted();
             }
         })
         .subscribeOn(Schedulers.newThread())
@@ -207,6 +424,20 @@ public class DbManager
             {
                 Crashlytics.setString("UpdateContact", throwable.getLocalizedMessage());
                 Crashlytics.logException(throwable);
+            }
+        });
+    }
+
+    public Observable<Boolean> deleteContact(String contactId)
+    {
+        return Observable.create(new Observable.OnSubscribe<Boolean>()
+        {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber)
+            {
+                db.delete(ContactItem.QUERY_ITEM, contactId);
+                db.delete(MessageItem.QUERY, contactId);
+                subscriber.onNext(true);
             }
         });
     }
@@ -244,37 +475,76 @@ public class DbManager
                 });
     }
 
-    public void updateMessages(final List<Message> messages, String contactId)
+    // update messages from a single contact
+    public Observable<List<Message>> updateMessages(Contact contact)
     {
-        Observable.create(new Observable.OnSubscribe<Boolean>()
+        return updateMessagesObservable(contact.messages, contact.contact_id)
+                .flatMap(new Func1<List<Message>, Observable<List<Message>>>() {
+                    @Override
+                    public Observable<List<Message>> call(List<Message> messages) {
+                        return Observable.just(messages);
+                    }
+                });
+    }
+
+    // updates messages from list of contacts
+    public Observable<List<Message>> updateMessagesFromContacts(List<Contact> contacts)
+    {
+        List<Message> newMessages = Collections.emptyList();
+
+        return Observable.just(Observable.from(contacts)
+                .flatMap(new Func1<Contact, Observable<? extends List<Message>>>()
+                {
+                    @Override
+                    public Observable<? extends List<Message>> call(final Contact contact)
+                    {
+                        return updateMessagesObservable(contact.messages, contact.contact_id)
+                                .flatMap(new Func1<List<Message>, Observable<List<Message>>>()
+                                {
+                                    @Override
+                                    public Observable<List<Message>> call(List<Message> messages)
+                                    {
+                                        newMessages.addAll(messages);
+                                        return Observable.just(newMessages);
+                                    }
+                                });
+                    }
+                }).toBlocking().lastOrDefault(newMessages));
+    }
+
+    public Observable<List<Message>> updateMessagesObservable(List<Message> messages, String contactId)
+    {
+        ArrayList<Message> newMessages = new ArrayList<Message>();
+
+        return Observable.create(new Observable.OnSubscribe<List<Message>>()
         {
             @Override
-            public void call(Subscriber<? super Boolean> subscriber)
+            public void call(Subscriber<? super List<Message>> subscriber)
             {
                 HashMap<String, Message> entryMap = new HashMap<String, Message>();
                 for (Message message : messages) {
                     message.contact_id = contactId;
                     entryMap.put(message.created_at, message);
                 }
-
+    
                 Cursor cursor = db.query(MessageItem.QUERY, String.valueOf(contactId));
-
+    
                 try {
                     while (cursor.moveToNext()) {
-
+    
                         long id = Db.getLong(cursor, MessageItem.ID);
                         String createdAt = Db.getString(cursor, MessageItem.CREATED_AT);
                         Message match = entryMap.get(createdAt);
-
+    
                         if (match != null) {
                             // Entry exists. Do not update message
                             entryMap.remove(createdAt);
-
+    
                             MessageItem.Builder builder = new MessageItem.Builder()
                                     .seen(true);
-
+    
                             db.update(MessageItem.TABLE, builder.build(), MessageItem.ID + " = ?", String.valueOf(id));
-
+    
                         } else {
                             // Entry doesn't exist. Remove it from the database.
                             db.delete(MessageItem.TABLE, String.valueOf(id));
@@ -283,12 +553,12 @@ public class DbManager
                 } finally {
                     cursor.close();
                 }
-
+    
                 // Add new items
                 for (Message item : entryMap.values()) {
-
+    
                     MessageItem.Builder builder = new MessageItem.Builder()
-
+    
                             .contact_list_id(Long.parseLong(item.contact_id))
                             .message(item.msg)
                             .seen(true)
@@ -302,30 +572,13 @@ public class DbManager
                             .attachment_name(item.attachment_name)
                             .attachment_type(item.attachment_type)
                             .attachment_url(item.attachment_url);
-
+    
                     db.insert(MessageItem.TABLE, builder.build());
+    
+                    newMessages.add(item);
                 }
-
-                subscriber.onNext(true);
-            }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer()
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated methods successfully: " + aBoolean);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Crashlytics.setString("UpdateMessage", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
+    
+                subscriber.onNext(newMessages);
             }
         });
     }
@@ -374,9 +627,9 @@ public class DbManager
                 .map(WalletItem.MAP);
     }
 
-    public void updateWallet(Wallet wallet)
+    public Observable<Boolean> updateWallet(Wallet wallet)
     {
-        Observable.create(new Observable.OnSubscribe<Boolean>()
+        return Observable.create(new Observable.OnSubscribe<Boolean>()
         {
             @Override
             public void call(Subscriber<? super Boolean> subscriber)
@@ -388,7 +641,7 @@ public class DbManager
                         .address(wallet.address.address)
                         .receivable(wallet.address.received);
 
-                if(wallet.qrImage != null) {
+                if (wallet.qrImage != null) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
                     builder.qrcode(baos.toByteArray());
@@ -408,25 +661,6 @@ public class DbManager
                 }
 
                 subscriber.onNext(true);
-            }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer()
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated wallet successfully: " + aBoolean);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Crashlytics.setString("UpdateWallet", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
             }
         });
         
@@ -559,9 +793,9 @@ public class DbManager
         //db.createQuery(MethodItem.TABLE, MethodItem.createInsertOrReplaceQuery(method));
     }
 
-    public void updateAdvertisements(final List<Advertisement> advertisements)
+    public Observable<Boolean> updateAdvertisements(final List<Advertisement> advertisements)
     {
-        Observable.create(new Observable.OnSubscribe<Boolean>()
+        return Observable.create(new Observable.OnSubscribe<Boolean>()
         {
             @Override
             public void call(Subscriber<? super Boolean> subscriber)
@@ -710,32 +944,13 @@ public class DbManager
                 }
 
                 subscriber.onNext(true);
-            }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer()
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated advertisement successfully: " + aBoolean);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Crashlytics.setString("UpdateAdvertisement", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
+                subscriber.onCompleted();
             }
         });
     }
 
     public void updateAdvertisement(Advertisement advertisement)
     {
-        
         AdvertisementItem.Builder builder = new AdvertisementItem.Builder()
                 .created_at(advertisement.created_at)
                 .ad_id(advertisement.ad_id)
@@ -792,6 +1007,7 @@ public class DbManager
                 }
 
                 subscriber.onNext(true);
+                subscriber.onCompleted();
             }
         })
         .subscribeOn(Schedulers.newThread())
@@ -813,7 +1029,5 @@ public class DbManager
                 Crashlytics.logException(throwable);
             }
         });
-
-        
     }
 }

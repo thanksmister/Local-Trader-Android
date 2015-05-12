@@ -57,6 +57,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.Db;
+import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
 import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
@@ -100,19 +101,19 @@ public class DataService
     private final BitcoinAverage bitcoinAverage;
     private final BitfinexExchange bitfinexExchange;
     private final BaseApplication baseApplication;
+    private final DbManager dbManager;
 
     private List<Currency> currencies;
-    private SqlBrite db;
     
     @Inject
-    public DataService(SqlBrite db, BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
+    public DataService(DbManager dbManager, BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
     {
         this.baseApplication = baseApplication;
         this.localBitcoins = localBitcoins;
         this.sharedPreferences = sharedPreferences;
         this.bitcoinAverage = bitcoinAverage;
         this.bitfinexExchange = bitfinexExchange;
-        this.db = db;
+        this.dbManager = dbManager;
     }
     
     public void reset()
@@ -325,7 +326,7 @@ public class DataService
                     {
                         return updateAdvertisementObservable(advertisement, sessionItem.access_token())
                                 .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement, sessionItem.access_token())));
-                                
+
                     }
                 });
     }
@@ -622,7 +623,8 @@ public class DataService
                                 String.valueOf(advertisement.sms_verification_required()), String.valueOf(advertisement.track_max_amount()), String.valueOf(advertisement.trusted_required()),
                                 advertisement.message())
                                 .map(new ResponseToJSONObject())
-                                .flatMap(new Func1<JSONObject, Observable<Boolean>>() {
+                                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
+                                {
                                     @Override
                                     public Observable<Boolean> call(JSONObject jsonObject)
                                     {
@@ -749,8 +751,7 @@ public class DataService
 
     public Observable<SessionItem> getTokens()
     {
-        return db.createQuery(SessionItem.TABLE, SessionItem.QUERY)
-                .map(SessionItem.MAP);
+        return dbManager.getTokens();
     }
 
     public Observable<Authorization> getAuthorization(String code)
@@ -798,7 +799,7 @@ public class DataService
                                     public Observable<? extends String> call(Authorization authorization)
                                     {
                                         Timber.d("New Access tokens: " + authorization.access_token);
-                                        updateTokens(authorization);
+                                        dbManager.updateTokens(authorization);
                                         return Observable.just(authorization.access_token);
                                     }
                                 });
@@ -806,26 +807,7 @@ public class DataService
                 });
     }
 
-    private void updateTokens(Authorization authorization)
-    {
-        SessionItem.Builder builder = new SessionItem.Builder()
-                .access_token(authorization.access_token)
-                .refresh_token(authorization.refresh_token);
-
-        Cursor cursor = db.query(SessionItem.QUERY);
-        if(cursor.getCount() > 0) {
-            try {
-                cursor.moveToFirst();
-                long id = Db.getLong(cursor, SessionItem.ID);
-                db.update(SessionItem.TABLE, builder.build(), SessionItem.ID + " = ?", String.valueOf(id));
-            } finally {
-                cursor.close();
-            }
-        } else {
-            db.insert(ContactItem.TABLE, builder.build());
-        }
-    }
-
+   
     private boolean needToRefreshAdvertisements()
     {
         synchronized (this) {

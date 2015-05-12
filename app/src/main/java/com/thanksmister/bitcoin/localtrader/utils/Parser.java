@@ -579,17 +579,14 @@ public class Parser
     {
         Message message = new Message();
         
-        Timber.d("Message JSON: " + messageObj);
-
         try {
-            if (messageObj.has("sender")) {
-                JSONObject sender = messageObj.getJSONObject("sender");
-                if (sender.has("username")) message.sender.username = (sender.getString("username"));
-                if (sender.has("name")) message.sender.name = (sender.getString("name"));
-                if (sender.has("trade_count")) message.sender.trade_count = (sender.getString("trade_count"));
-                if (sender.has("last_online")) message.sender.last_seen_on = (sender.getString("last_online"));
-            }
-
+            
+            JSONObject sender = messageObj.getJSONObject("sender");
+            if (sender.has("username")) message.sender.username = (sender.getString("username"));
+            if (sender.has("name")) message.sender.name = (sender.getString("name"));
+            if (sender.has("trade_count")) message.sender.trade_count = (sender.getString("trade_count"));
+            if (sender.has("last_online")) message.sender.last_seen_on = (sender.getString("last_online"));
+            
             if (messageObj.has("created_at")) message.created_at = (messageObj.getString("created_at"));
             if (messageObj.has("msg")) message.msg = (Uri.decode(messageObj.getString("msg")));
             if (messageObj.has("is_admin")) message.is_admin = (Boolean.valueOf(messageObj.getString("is_admin")));

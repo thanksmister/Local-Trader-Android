@@ -23,7 +23,7 @@ buildscript {
 def versionMajor = 2
 def versionMinor = 0
 def versionPatch = 0
-def versionBuild = 14 // bump for dog food builds, public betas, etc.
+def versionBuild = 18 // bump for dog food builds, public betas, etc.
 
 android {
     compileSdkVersion 21
@@ -51,7 +51,7 @@ android {
 
 dependencies {
     //compile fileTree(dir: 'libs', include: ['*.jar'])
-    
+
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.squareup:otto:1.3.5'

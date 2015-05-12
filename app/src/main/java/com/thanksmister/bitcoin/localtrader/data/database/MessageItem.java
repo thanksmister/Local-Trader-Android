@@ -19,11 +19,14 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 
+import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import auto.parcel.AutoParcel;
 import rx.functions.Func1;
+import timber.log.Timber;
 
 import static com.squareup.sqlbrite.SqlBrite.Query;
 
@@ -109,6 +112,20 @@ public abstract class MessageItem
             }
         }
     };
+    
+    public static List<MessageItem> convertMessages(List<Message> messages, final String contactID)
+    {
+        List<MessageItem> values = new ArrayList<MessageItem>();
+        for (Message message : messages) {
+            try{
+                values.add(new AutoParcel_MessageItem(0, message.created_at, Long.valueOf(contactID), message.msg, message.seen, message.sender.id, message.sender.name, message.sender.username,
+                        message.sender.last_seen_on, message.sender.trade_count, message.is_admin, message.attachment_name, message.attachment_type, message.attachment_url));
+            } catch (Exception e){
+                Timber.e("Exception: " + e.getMessage());
+            }
+        }
+        return values;
+    }
 
     public static final class Builder {
         private final ContentValues values = new ContentValues();

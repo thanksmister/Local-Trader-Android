@@ -225,11 +225,12 @@ public abstract class BaseActivity extends ActionBarActivity
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
             toast(getString(R.string.error_service_error) + ", Code 400");
         } else {
-            toast(R.string.error_generic_error);
+            toast(R.string.error_unknown_error);
         }
 
-        if(throwable != null)
+        if(throwable != null && throwable.getLocalizedMessage() != null)
             Timber.e("Data Error: " + throwable.getLocalizedMessage());
+        
     }
 
     protected void toast(int messageId)

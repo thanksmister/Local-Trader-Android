@@ -25,8 +25,6 @@ import timber.log.Timber;
 
 public class BaseApplication extends Application
 {
-    //private ObjectGraph applicationGraph;
-    
     @Override
     public void onCreate() 
     {
@@ -35,30 +33,13 @@ public class BaseApplication extends Application
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
             //ButterKnife.setDebug(BuildConfig.DEBUG);
+            //LeakCanary.install(this);
         } else {
             Crashlytics.start(this);
             Timber.plant(new CrashlyticsTree());
         }
 
         Injector.init(this);
+        
     }
-
-    /*public ObjectGraph getApplicationGraph()
-    {
-        return applicationGraph;
-    }
-
-    protected List<Object> getModules()
-    {
-        return Arrays.<Object>asList(new ApplicationModule(this));
-    }
-    
-    public void inject(Object o) {
-        applicationGraph.inject(o);
-    }
-
-    public static BaseApplication get(Context context) 
-    {
-        return (BaseApplication) context.getApplicationContext();
-    }*/
 }
