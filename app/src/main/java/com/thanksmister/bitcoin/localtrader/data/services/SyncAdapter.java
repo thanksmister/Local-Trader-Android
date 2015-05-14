@@ -26,7 +26,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 
-import com.crashlytics.android.Crashlytics;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -45,6 +44,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
+import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -72,20 +72,21 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
-    public static String UPDATES = "updates";
-    public static String ADDITIONS = "additions";
-    public static String DELETIONS = "deletions";
-
     private CompositeSubscription subscriptions = new CompositeSubscription();
 
     SQLiteOpenHelper dbOpenHelper;
     private LocalBitcoins localBitcoins;
     private DbManager dbManager;
+    private SharedPreferences sharedPreferences;
+    private StringPreference stringPreference;
   
     public SyncAdapter(Context context, boolean autoInitialize)
     {
         super(context, autoInitialize);
-        
+
+        sharedPreferences = getContext().getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
+        stringPreference = new StringPreference(sharedPreferences, DataService.PREFS_USER);
+
         localBitcoins = initLocalBitcoins();
         dbOpenHelper = new DbOpenHelper(context.getApplicationContext());
         SqlBrite db = SqlBrite.create(dbOpenHelper);
@@ -171,20 +172,25 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         walletObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<WalletItem>()
-                {
+                .subscribe(new Action1<WalletItem>() {
                     @Override
                     public void call(WalletItem walletItem)
                     {
+                        if(walletItem == null) {
+                            updateWallet(wallet);
+                            NotificationUtils.createMessageNotification(getContext(), "Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.total.balance + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
+                            return;
+                        }
+                        
                         double oldBalance = Doubles.convertToDouble(walletItem.balance());
                         double newBalance = Doubles.convertToDouble(wallet.total.balance);
                         String address = walletItem.address();
                         String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
 
-                        if (oldBalance < newBalance) {
+                        if (newBalance > oldBalance) {
                             NotificationUtils.createMessageNotification(getContext(), "Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
                             updateWallet(wallet);
-                        } else if (!address.equals(wallet.address.address)) {
+                        } else if (!address.equals(wallet.address.address) || (oldBalance != newBalance)) {
                             updateWallet(wallet);
                         }
                     }
@@ -193,8 +199,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
-                        Crashlytics.setString("UpdateWallet", throwable.getLocalizedMessage());
-                        Crashlytics.logException(throwable);
+                        Timber.e(throwable.getMessage());
                     }
                 });
     }
@@ -217,8 +222,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
-                        Crashlytics.setString("UpdateWallet", throwable.getLocalizedMessage());
-                        Crashlytics.logException(throwable);
+                        Timber.e(throwable.getMessage());
                     }
                 });
     }
@@ -497,13 +501,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(TreeMap<String, ArrayList<Contact>> stringArrayListTreeMap)
                     {
-                        ArrayList<Contact> updatedContacts = stringArrayListTreeMap.get(UPDATES);
+                        ArrayList<Contact> updatedContacts = stringArrayListTreeMap.get(DbManager.UPDATES);
                         Timber.d("updated contacts: " + updatedContacts.size());
 
-                        ArrayList<Contact> addedContacts = stringArrayListTreeMap.get(ADDITIONS);
+                        ArrayList<Contact> addedContacts = stringArrayListTreeMap.get(DbManager.ADDITIONS);
                         Timber.d("added contacts: " + addedContacts.size());
 
-                        ArrayList<Contact> deletedContacts = stringArrayListTreeMap.get(DELETIONS);
+                        ArrayList<Contact> deletedContacts = stringArrayListTreeMap.get(DbManager.DELETIONS);
                         Timber.d("deleted contacts: " + deletedContacts.size());
 
                         if (updatedContacts.size() > 1) {
@@ -551,11 +555,19 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             @Override
             public void call(List<Message> messages)
             {
-                if (messages.size() > 1) { // if just single arrived
-                    NotificationUtils.createMessageNotification(getContext(), "New Messages", "You have new messages!", "You have " + messages.size() + " new trade messages.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
+                List<Message> newMessages = new ArrayList<Message>();
+                for (Message message : messages) {
+                    boolean isAccountUser = message.sender.username.toLowerCase().equals(stringPreference.get());
+                    if(!isAccountUser) {
+                        newMessages.add(message);
+                    }
+                }
+                
+                if (newMessages.size() > 1) { // if just single arrived
+                    NotificationUtils.createMessageNotification(getContext(), "New Messages", "You have new messages!", "You have " + newMessages.size() + " new trade messages.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
                 } else {
-                    if (messages.size() > 0) {
-                        Message message = messages.get(0);
+                    if (newMessages.size() > 0) {
+                        Message message = newMessages.get(0);
                         String username = message.sender.username;
                         NotificationUtils.createMessageNotification(getContext(), "New message from " + username, "New message from " + username, message.msg, NotificationUtils.NOTIFICATION_TYPE_MESSAGE, message.contact_id);
                     }

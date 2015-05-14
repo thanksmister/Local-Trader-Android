@@ -450,5 +450,8 @@
     <string name="error_no_trade_data">There are no trades.</string>
     <string name="dialog_logout_title">Log Out</string>
     <string name="dialog_logout_message">Do you wish to logout?</string>
+    <string name="wallet_recent_activity_header">Recent Activity</string>
+    <string name="wallet_my_address_share">My Bitcoin Address</string>
+    <string name="share_using">Share using:</string>
 
 </resources>

@@ -326,9 +326,9 @@ public class DbManager
         });
     }
     
-    public void updateContact(Contact contact)
+    public Observable<Boolean> updateContact(Contact contact)
     {
-        Observable.create(new Observable.OnSubscribe<Boolean>()
+        return Observable.create(new Observable.OnSubscribe<Boolean>()
         {
             @Override
             public void call(Subscriber<? super Boolean> subscriber)
@@ -402,28 +402,9 @@ public class DbManager
                 } finally {
                     cursor.close();
                 }
-                
+
                 subscriber.onNext(true);
                 subscriber.onCompleted();
-            }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer()
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated contacts successfully: " + aBoolean);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Crashlytics.setString("UpdateContact", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
             }
         });
     }
@@ -490,7 +471,7 @@ public class DbManager
     // updates messages from list of contacts
     public Observable<List<Message>> updateMessagesFromContacts(List<Contact> contacts)
     {
-        List<Message> newMessages = Collections.emptyList();
+        final List<Message> newMessages = new ArrayList<Message>();
 
         return Observable.just(Observable.from(contacts)
                 .flatMap(new Func1<Contact, Observable<? extends List<Message>>>()
@@ -512,15 +493,10 @@ public class DbManager
                 }).toBlocking().lastOrDefault(newMessages));
     }
 
-    public Observable<List<Message>> updateMessagesObservable(List<Message> messages, String contactId)
+    private Observable<List<Message>> updateMessagesObservable(List<Message> messages, String contactId)
     {
-        ArrayList<Message> newMessages = new ArrayList<Message>();
+                ArrayList<Message> newMessages = new ArrayList<Message>();
 
-        return Observable.create(new Observable.OnSubscribe<List<Message>>()
-        {
-            @Override
-            public void call(Subscriber<? super List<Message>> subscriber)
-            {
                 HashMap<String, Message> entryMap = new HashMap<String, Message>();
                 for (Message message : messages) {
                     message.contact_id = contactId;
@@ -578,9 +554,7 @@ public class DbManager
                     newMessages.add(item);
                 }
     
-                subscriber.onNext(newMessages);
-            }
-        });
+        return Observable.just(newMessages);
     }
     
     public Observable<List<MethodItem>> methodQuery()
@@ -618,8 +592,6 @@ public class DbManager
                     }
                 });
     }
-    
-    
 
     public Observable<WalletItem> walletQuery()
     {
@@ -641,11 +613,11 @@ public class DbManager
                         .address(wallet.address.address)
                         .receivable(wallet.address.received);
 
-                if (wallet.qrImage != null) {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-                    builder.qrcode(baos.toByteArray());
-                }
+                assert wallet.qrImage != null;
+                
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                builder.qrcode(baos.toByteArray());
 
                 Cursor cursor = db.query(WalletItem.QUERY);
                 try {
@@ -661,24 +633,24 @@ public class DbManager
                 }
 
                 subscriber.onNext(true);
+                subscriber.onCompleted();
             }
         });
-        
     }
     
-    public void updateExchange(final Exchange exchange)
+    public Observable<Boolean> updateExchange(final Exchange exchange)
     {
-        ExchangeItem.Builder builder = new ExchangeItem.Builder()
-                .ask(exchange.ask)
-                .bid(exchange.bid)
-                .last(exchange.last)
-                .exchange(exchange.name);
-
-        Observable.create(new Observable.OnSubscribe<Boolean>()
+        return Observable.create(new Observable.OnSubscribe<Boolean>()
         {
             @Override
             public void call(Subscriber<? super Boolean> subscriber)
             {
+                ExchangeItem.Builder builder = new ExchangeItem.Builder()
+                        .ask(exchange.ask)
+                        .bid(exchange.bid)
+                        .last(exchange.last)
+                        .exchange(exchange.name);
+                
                 Cursor cursor = db.query(ExchangeItem.QUERY);
                 try {
                     if (cursor.getCount() > 0) {
@@ -694,35 +666,14 @@ public class DbManager
 
                 subscriber.onNext(true);
             }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer()
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated exchang successfully: " + aBoolean);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Crashlytics.setString("UpdateExchange", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
-            }
         });
-
-        
     }
     
     // Experimental code for updating database without causing back pressure exception
     // rx.exceptions.MissingBackpressureException
-    public void updateMethods(final List<Method> methods)
+    public Observable<Boolean> updateMethods(final List<Method> methods)
     {
-        Observable.create(new Observable.OnSubscribe<Boolean>()
+        return Observable.create(new Observable.OnSubscribe<Boolean>()
         {
             @Override
             public void call(Subscriber<? super Boolean> subscriber)
@@ -770,26 +721,7 @@ public class DbManager
                 
                 subscriber.onNext(true);
             }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer()
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated methods successfully: " + aBoolean);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Timber.e(throwable.getLocalizedMessage());
-            }
         });
-        
         //db.createQuery(MethodItem.TABLE, MethodItem.createInsertOrReplaceQuery(method));
     }
 
@@ -949,7 +881,7 @@ public class DbManager
         });
     }
 
-    public void updateAdvertisement(Advertisement advertisement)
+    public Observable<Boolean> updateAdvertisement(Advertisement advertisement)
     {
         AdvertisementItem.Builder builder = new AdvertisementItem.Builder()
                 .created_at(advertisement.created_at)
@@ -987,7 +919,7 @@ public class DbManager
                 .track_max_amount(advertisement.track_max_amount)
                 .trusted_required(advertisement.trusted_required);
 
-        Observable.create(new Observable.OnSubscribe<Boolean>()
+        return Observable.create(new Observable.OnSubscribe<Boolean>()
         {
             @Override
             public void call(Subscriber<? super Boolean> subscriber)
@@ -1008,25 +940,6 @@ public class DbManager
 
                 subscriber.onNext(true);
                 subscriber.onCompleted();
-            }
-        })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread())
-        .onBackpressureBuffer()
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated advertisement successfully: " + aBoolean);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Crashlytics.setString("UpdateAdvertisement", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
             }
         });
     }

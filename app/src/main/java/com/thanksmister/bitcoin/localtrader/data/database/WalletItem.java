@@ -52,7 +52,7 @@ public abstract class WalletItem
     public abstract String sendable();
     public abstract String address();
     public abstract String receivable();
-    @Nullable public abstract byte[] qrcode();
+    public abstract byte[] qrcode();
 
     public static final Func1<Query, WalletItem> MAP = new Func1<Query, WalletItem>() {
         @Override

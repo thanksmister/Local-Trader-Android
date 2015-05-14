@@ -70,26 +70,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-            <include
-                    android:id="@android:id/progress"
-                    layout="@layout/view_progress"
-                    android:visibility="visible"
-                    tools:visibility="gone"/>
-
-            <include
-                    android:id="@android:id/empty"
-                    layout="@layout/view_empty"
-                    android:visibility="gone"
-                    tools:visibility="visible"/>
-
-            <include
-                    android:id="@+id/retry"
-                    layout="@layout/view_retry"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:visibility="visible"
-                    android:visibility="gone"
-                    android:layout_gravity="bottom"/>
+            
 
             <android.support.v4.widget.SwipeRefreshLayout
                     android:id="@+id/swipeLayout"
@@ -103,7 +84,7 @@
                         android:orientation="vertical"
                         android:divider="@null"
                         android:drawSelectorOnTop="true"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         tools:visibility="visible"
                         android:scrollbars="none"/>
             

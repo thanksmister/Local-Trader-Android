@@ -48,6 +48,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -78,6 +79,7 @@ import rx.functions.Action1;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
+import static rx.android.app.AppObservable.bindFragment;
 
 public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -419,8 +421,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                onRefreshStop();
 
                if (dashboardType == DashboardType.ACTIVE) {
-                   dbManager.updateContact(contact);
-                   dbManager.updateMessages(contact);
+                   updateContact(contact);
+                   updateMessages(contact);
                } else {
                    setContact(ContactItem.convertContact(contact));
                    getAdapter().replaceWith(MessageItem.convertMessages(contact.messages, contact.contact_id));
@@ -432,6 +434,32 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                onRefreshStop();
            }
        }); 
+    }
+    
+    private void updateContact(Contact contact)
+    {
+        Observable<Boolean> observable;
+        observable = bindActivity(this, dbManager.updateContact(contact));
+        observable.subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean aBoolean)
+            { 
+                // nothing
+            }
+        });
+    }
+
+    private void updateMessages(Contact contact)
+    {
+        Observable<List<Message>> observable;
+        observable = bindActivity(this, dbManager.updateMessages(contact));
+        observable.subscribe(new Action1<List<Message>>() {
+            @Override
+            public void call(List<Message> messages)
+            {
+                // TODO some type of notification for new messages while viewing
+            }
+        });
     }
     
     public void setContact(ContactItem contact)

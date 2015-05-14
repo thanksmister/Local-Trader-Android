@@ -453,8 +453,8 @@ public class RequestFragment extends BaseFragment
             @Override
             public void call(WalletUpdateData walletData)
             {
-                dbManager.updateWallet(walletData.wallet);
-                dbManager.updateExchange(walletData.exchange);
+                updateWallet(walletData.wallet);
+                updateExchange(walletData.exchange);
             }
         }, new Action1<Throwable>()
         {
@@ -465,14 +465,45 @@ public class RequestFragment extends BaseFragment
             }
         }));
     }
+    
+    private void updateExchange(Exchange exchange)
+    {
+        Observable<Boolean> observable;
+        observable = bindFragment(this, dbManager.updateExchange(exchange));
+        observable.subscribe(new Action1<Boolean>()
+        {
+            @Override
+            public void call(Boolean aBoolean)
+            {
+                // great!
+            }
+        });
+    }
 
-    public void promptForPin(String bitcoinAddress, String bitcoinAmount)
+    private void updateWallet(Wallet wallet)
+    {
+        Observable<Boolean> observable;
+        observable = bindFragment(this, dbManager.updateWallet(wallet));
+        observable.subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean aBoolean) {
+                // great!
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                Timber.e(throwable.getMessage());
+            }
+        });
+    }
+
+    private void promptForPin(String bitcoinAddress, String bitcoinAmount)
     {
         Intent intent = PinCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
         startActivityForResult(intent, PinCodeActivity.REQUEST_CODE); // be sure to do this from fragment context
     }
 
-    public void showGeneratedQrCodeActivity(String bitcoinAddress, String bitcoinAmount)
+    private void showGeneratedQrCodeActivity(String bitcoinAddress, String bitcoinAmount)
     {
         assert bitcoinAddress != null;
         Intent intent = QRCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);

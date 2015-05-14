@@ -18,6 +18,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="@color/white">
@@ -96,10 +97,42 @@
 
         <TextView
                 style="@style/TextSmall"
+                android:id="@+id/recentTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:text="Recent Activity"/>
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:text="@string/wallet_recent_activity_header"/>
+
+        <include
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/walletProgress"
+                layout="@layout/view_progress"
+                android:visibility="visible"
+                tools:visibility="visible"/>
+
+        <LinearLayout
+                android:id="@+id/noActivityTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/activity_padding"
+                android:paddingRight="@dimen/activity_padding"
+                android:gravity="start|center_vertical"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="No transactions"/>
+            
+        </LinearLayout>
+        
 
     </FrameLayout>
 
