@@ -74,8 +74,11 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
+import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
@@ -132,11 +135,15 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private Observable<ContactItem> contactItemObservable;
     private Observable<List<MessageItem>> messagesItemObservable;
     private Observable<Contact> contactObservable;
-    private Observable<Boolean> deleteContactObservable;
-    private Observable<SessionItem> tokensObservable;
-    private Observable<JSONObject> contactActionObservable;
-    private Observable<JSONObject> messageObservable;
+     private Observable<SessionItem> tokensObservable;
     
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+    private Subscription subscription = Subscriptions.empty();
+    private Subscription tokensSubscription = Subscriptions.empty();
+    private Subscription updateSubscription = Subscriptions.empty();
+    private Subscription postSubscription = Subscriptions.empty();
+    private Subscription actionSubscription = Subscriptions.empty();
+
     public static Intent createStartIntent(Context context, String contactId, DashboardType dashboardType)
     {
         Intent intent = new Intent(context, ContactActivity.class);
@@ -241,12 +248,43 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         
         contactObservable = bindActivity(this, dataService.getContact(contactId));
         tokensObservable =  bindActivity(this, dataService.getTokens());
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        
+        registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         if(dashboardType == DashboardType.ACTIVE) {
             subscribeData();
         }
+
+        updateData();
     }
 
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        subscriptions.unsubscribe();
+        subscription.unsubscribe();
+        updateSubscription.unsubscribe();
+        tokensSubscription.unsubscribe();
+        postSubscription.unsubscribe();
+        actionSubscription.unsubscribe();
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+
+        unregisterReceiver(receiver);
+    }
+    
     @Override
     public void onSaveInstanceState(Bundle outState)
     {
@@ -277,35 +315,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
         return true;
     }
-
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-
-        registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
-        updateData();
-    }
-
-    @Override
-    public void onDestroy()
-    {
-        super.onDestroy();
-        
-        unregisterReceiver(receiver);
-    }
-
+    
     @Override
     public void onRefresh()
     {
         updateData();
-    }
-
-    public void onRefreshStart()
-    {
-        if(swipeLayout != null)
-            swipeLayout.setRefreshing(true);
     }
     
     public void onRefreshStop()
@@ -370,8 +384,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     }
 
     public void subscribeData()
-    {   
-        contactItemObservable.subscribe(new Action1<ContactItem>()
+    {
+        subscriptions = new CompositeSubscription();
+
+        subscriptions.add(contactItemObservable.subscribe(new Action1<ContactItem>()
         {
             @Override
             public void call(ContactItem contactItem)
@@ -388,12 +404,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(Throwable throwable)
             {
-                Crashlytics.setString("contactItemObservable", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
+                reportError(throwable);
             }
-        });
+        }));
 
-        messagesItemObservable.subscribe(new Action1<List<MessageItem>>()
+        subscriptions.add(messagesItemObservable.subscribe(new Action1<List<MessageItem>>()
         {
             @Override
             public void call(List<MessageItem> messageItems)
@@ -407,17 +422,19 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(Throwable throwable)
             {
-                Crashlytics.setString("messagesItemObservable", throwable.getLocalizedMessage());
-                Crashlytics.logException(throwable);
+                reportError(throwable);
             }
-        });
+        }));
     }
     
     private void updateData()
     {
-       contactObservable.subscribe(new Action1<Contact>() {
+       updateSubscription = contactObservable.subscribe(new Action1<Contact>() {
            @Override
            public void call(Contact contact) {
+
+               hideProgressDialog();
+
                onRefreshStop();
 
                if (dashboardType == DashboardType.ACTIVE) {
@@ -431,6 +448,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
        }, new Action1<Throwable>()  {
            @Override
            public void call(Throwable throwable) {
+               
+               handleError(throwable);
+               
+               hideProgressDialog();
+               
                onRefreshStop();
            }
        }); 
@@ -438,28 +460,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void updateContact(Contact contact)
     {
-        Observable<Boolean> observable;
-        observable = bindActivity(this, dbManager.updateContact(contact));
-        observable.subscribe(new Action1<Boolean>() {
-            @Override
-            public void call(Boolean aBoolean)
-            { 
-                // nothing
-            }
-        });
+        dbManager.updateContact(contact);
     }
 
     private void updateMessages(Contact contact)
     {
-        Observable<List<Message>> observable;
-        observable = bindActivity(this, dbManager.updateMessages(contact));
-        observable.subscribe(new Action1<List<Message>>() {
-            @Override
-            public void call(List<Message> messages)
-            {
-                // TODO some type of notification for new messages while viewing
-            }
-        });
+        dbManager.updateMessages(contact.messages, contact.contact_id);
     }
     
     public void setContact(ContactItem contact)
@@ -552,7 +558,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     public void downloadAttachment(MessageItem message)
     {
-        tokensObservable.subscribe(new Action1<SessionItem>()
+        tokensSubscription = tokensObservable.subscribe(new Action1<SessionItem>()
         {
             @Override
             public void call(SessionItem sessionItem)
@@ -582,8 +588,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     {
         showProgressDialog(new ProgressDialogEvent("Sending message..."));
 
-        messageObservable = bindActivity(this, dataService.postMessage(contactId, message));
-        messageObservable.subscribe(new Action1<JSONObject>()
+        Observable<JSONObject> messageObservable = bindActivity(this, dataService.postMessage(contactId, message));
+        postSubscription = messageObservable.subscribe(new Action1<JSONObject>()
         {
             @Override
             public void call(JSONObject jsonObject)
@@ -653,11 +659,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private void contactAction(final String contactId, final String pinCode, final ContactAction action)
     {
-        contactActionObservable = bindActivity(this, dataService.contactAction(contactId, pinCode, action));
-        contactActionObservable.subscribe(new Action1<JSONObject>() {
+        Observable<JSONObject> contactActionObservable = bindActivity(this, dataService.contactAction(contactId, pinCode, action));
+        actionSubscription = contactActionObservable.subscribe(new Action1<JSONObject>()
+        {
             @Override
-            public void call(JSONObject jsonObject) {
-
+            public void call(JSONObject jsonObject)
+            {
                 if (action == ContactAction.RELEASE) {
                     toast(R.string.trade_released_toast_text);
                     deleteContact(contactId);
@@ -665,10 +672,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     updateData();
                 }
             }
-        }, new Action1<Throwable>() {
+        }, new Action1<Throwable>()
+        {
             @Override
-            public void call(Throwable throwable) {
-                
+            public void call(Throwable throwable)
+            {
                 hideProgressDialog();
 
                 handleError(throwable);
@@ -678,19 +686,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void deleteContact(String contactId)
     {
-        deleteContactObservable = bindActivity(this, dbManager.deleteContact(contactId));
-        deleteContactObservable.subscribe(new Action1<Boolean>() {
-            @Override
-            public void call(Boolean aBoolean) {
-                finish();
-            }
-        }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-                Timber.e(throwable.getMessage());
-                finish();
-            }
-        });
+        dbManager.deleteContact(contactId);
+        updateData();
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

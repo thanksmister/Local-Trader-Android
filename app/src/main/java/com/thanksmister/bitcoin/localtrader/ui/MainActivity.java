@@ -45,6 +45,7 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
+import timber.log.Timber;
 
 @BaseActivity.RequiresAuthentication
 public class MainActivity extends BaseActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks
@@ -108,15 +109,15 @@ public class MainActivity extends BaseActivity implements NavigationDrawerFragme
         if (toolbar != null) {
             setSupportActionBar(toolbar);
         }
-        
+
+        Timber.d("isLoggedIn " + dbManager.isLoggedIn());
+       
         if(dbManager.isLoggedIn()) {
             navigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
             navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
             SyncUtils.CreateSyncAccount(getApplicationContext());
             SyncUtils.TriggerRefresh(getApplicationContext()); 
-        } else {
-            SyncUtils.ClearSyncAccount(getApplicationContext());
-        }
+        } 
     }
     
     @Override
@@ -146,10 +147,6 @@ public class MainActivity extends BaseActivity implements NavigationDrawerFragme
         clearActionBar();
 
         if(dbManager.isLoggedIn()) {
-
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, DashboardFragment.newInstance(position), DASHBOARD_FRAGMENT)
-                    .commit();
 
             if (position == DRAWER_WALLET) {
                 getSupportFragmentManager().beginTransaction()

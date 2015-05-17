@@ -83,6 +83,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
@@ -222,8 +223,11 @@ public class EditActivity extends BaseActivity
     private Observable<Advertisement> createAdvertisementObservable;
     private Observable<Boolean> updateAdvertisementObservable;
     private Observable<List<Currency>> currencyObservable;
+    
     private CompositeSubscription subscriptions = new CompositeSubscription();
-    private Subscription subscription;
+    private Subscription geoLocalSubscription = Subscriptions.empty();
+    private Subscription geoDecodeSubscription = Subscriptions.empty();
+    private Subscription advertisementSubscription = Subscriptions.empty();
 
     private class AdvertisementData {
         public AdvertisementItem advertisement;
@@ -360,8 +364,6 @@ public class EditActivity extends BaseActivity
         
         if(create)
             startLocationCheck();
-
-        subScribeData();
     }
 
     @Override
@@ -426,32 +428,36 @@ public class EditActivity extends BaseActivity
     public void onResume()
     {
         super.onResume();
+
+        subScribeData();
     }
 
-    public void onDestroy()
+    @Override
+    public void onPause()
     {
-        if(subscriptions != null)
-            subscriptions.unsubscribe();
+        super.onPause();
         
-        if(subscription != null)
-            subscription.unsubscribe();
-        
-        super.onDestroy();
+        subscriptions.unsubscribe();
+        geoLocalSubscription.unsubscribe();
+        geoDecodeSubscription.unsubscribe();
+        advertisementSubscription.unsubscribe();
     }
     
     public void subScribeData()
     {
-        methodObservable.subscribe(new Action1<List<MethodItem>>()
+        subscriptions = new CompositeSubscription();
+        
+        subscriptions.add(methodObservable.subscribe(new Action1<List<MethodItem>>()
         {
             @Override
             public void call(List<MethodItem> methodItems)
             {
                 setMethods(methodItems);
             }
-        });
+        }));
         
         if(create) {
-            currencyObservable.subscribe(new Action1<List<Currency>>()
+            subscriptions.add(currencyObservable.subscribe(new Action1<List<Currency>>()
             {
                 @Override
                 public void call(List<Currency> currencies)
@@ -468,7 +474,7 @@ public class EditActivity extends BaseActivity
                     hideProgress();
                     handleError(throwable);
                 }
-            });
+            }));
         } else {
             subscriptions.add(Observable.combineLatest(currencyObservable, advertisementItemObservable, new Func2<List<Currency>, AdvertisementItem, AdvertisementData>()
             {
@@ -758,7 +764,7 @@ public class EditActivity extends BaseActivity
             
             geoLocationService.start();
             
-            subscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
+            geoLocalSubscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
                 @Override
                 public void onCompleted(){
                 }
@@ -841,7 +847,7 @@ public class EditActivity extends BaseActivity
     public void getAddressFromLocation(Location location)
     {
         geoDecodeObservable = bindActivity(this, geoLocationService.geoDecodeLocation(location));
-        geoDecodeObservable.subscribe(new Action1<List<Address>>()
+        geoDecodeSubscription = geoDecodeObservable.subscribe(new Action1<List<Address>>()
         {
             @Override
             public void call(List<Address> addresses)
@@ -860,7 +866,7 @@ public class EditActivity extends BaseActivity
             showProgressDialog(new ProgressDialogEvent("Posting trade..."));
             
             createAdvertisementObservable = bindActivity(this, dataService.createAdvertisement(advertisement));
-            createAdvertisementObservable.subscribe(new Observer<Advertisement>()
+            advertisementSubscription = createAdvertisementObservable.subscribe(new Observer<Advertisement>()
             {
                 @Override
                 public void onCompleted()
@@ -889,7 +895,7 @@ public class EditActivity extends BaseActivity
             showProgressDialog(new ProgressDialogEvent("Saving changes..."));
 
             updateAdvertisementObservable = bindActivity(this, dataService.updateAdvertisement(advertisement));
-            updateAdvertisementObservable.subscribe(new Observer<Boolean>()
+            advertisementSubscription = updateAdvertisementObservable.subscribe(new Observer<Boolean>()
             {
                 @Override
                 public void onCompleted()
@@ -908,6 +914,7 @@ public class EditActivity extends BaseActivity
                 public void onNext(Boolean value)
                 {
                     toast("Ad changed successfully!");
+                    dbManager.updateAdvertisement(advertisement);
                     finish();
                 }
             });
@@ -917,7 +924,7 @@ public class EditActivity extends BaseActivity
     public void doAddressLookup(String locationName)
     {
         geoLocationObservable = bindActivity(this, geoLocationService.geoGetLocationFromName(locationName));
-        geoLocationObservable.subscribe(new Action1<List<Address>>() {
+        geoLocalSubscription = geoLocationObservable.subscribe(new Action1<List<Address>>() {
             @Override
             public void call(List<Address> addresses)
             {

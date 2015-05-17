@@ -55,6 +55,12 @@ public abstract class BaseFragment extends DialogFragment
         }
         return toolbar;
     }
+    
+    protected void reportError(Throwable throwable)
+    {
+        if(throwable != null)
+            Timber.e("Data Error: " + throwable.getLocalizedMessage());
+    }
 
     protected void handleError(Throwable throwable)
     {
@@ -62,7 +68,7 @@ public abstract class BaseFragment extends DialogFragment
             toast(getString(R.string.error_no_internet) + ", Code 503");
         } else if(DataServiceUtils.isHttp403Error(throwable)) {
             toast(getString(R.string.error_authentication) + ", Code 403");
-            ((BaseActivity)getActivity()).logOut();
+            //((BaseActivity)getActivity()).logOut();
         } else if(DataServiceUtils.isHttp401Error(throwable)) {
             toast(getString(R.string.error_no_internet) + ", Code 401");
         } else if(DataServiceUtils.isHttp500Error(throwable)) {
@@ -71,7 +77,7 @@ public abstract class BaseFragment extends DialogFragment
             toast(getString(R.string.error_service_error) + ", Code 404");
         } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
             toast(getString(R.string.error_authentication) + ", Code 400 Grant Invalid");
-            ((BaseActivity)getActivity()).logOut();
+            //((BaseActivity)getActivity()).logOut();
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
             toast(getString(R.string.error_service_error) + ", Code 400");
         } else {

@@ -37,9 +37,9 @@ public class Constants
     public static final String OAUTH_URL = "https://localbitcoins.com/oauth2/authorize/?ch=2hbo&client_id=" + Constants.CLIENT_ID + "&response_type=code&scope=read+write+money_pin";
     public static final String GOOGLE_PLUS_COMMUNITY = "https://plus.google.com/u/0/communities/114531451627808630329";
     public static final String GOOGLE_PLAY_RATING = "com.thanksmister.bitcoin.localtrader";
-    public static final String BITCOIN_ADDRESS = "18M4NaYiCrtWhrifTuZY4uPMudcHLXCdNX";
+    public static final String BITCOIN_ADDRESS = "1gDB2Pov3MFGv6ctmKaeJvQHUm6ncTwnr";
     public static final String CHANGE_TIP_ADDRESS = "http://thanksmister.tip.me";
-    public static final String BITCOIN_URL = "https://blockchain.info/payment_request?address=18M4NaYiCrtWhrifTuZY4uPMudcHLXCdNX&amount=0.01#";
+    public static final String BITCOIN_URL = "https://blockchain.info/payment_request?address=1gDB2Pov3MFGv6ctmKaeJvQHUm6ncTwnr&amount=0.01#";
     public static final String EMAIL_ADDRESS = "mister@thanksmister.com";
     
     public static final String CLIENT_ID = "c37c50b0b7f4e7ad40c2"; 

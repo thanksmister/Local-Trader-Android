@@ -206,6 +206,12 @@ public abstract class BaseActivity extends ActionBarActivity
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+    protected void reportError(Throwable throwable)
+    {
+        if(throwable != null && throwable.getLocalizedMessage() != null)
+            Timber.e("Data Error: " + throwable.getLocalizedMessage());
+    }
+    
     protected void handleError(Throwable throwable)
     {
         if(DataServiceUtils.isNetworkError(throwable)) {

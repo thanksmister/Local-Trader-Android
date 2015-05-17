@@ -47,7 +47,9 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
+import rx.Subscription;
 import rx.functions.Action1;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
@@ -77,6 +79,8 @@ public class LoginActivity extends BaseActivity
 
     @InjectView(R.id.webview)
     WebView webview;
+    
+    private Subscription subscription = Subscriptions.empty();
 
     public static Intent createStartIntent(Context context)
     {
@@ -93,6 +97,14 @@ public class LoginActivity extends BaseActivity
         ButterKnife.inject(this);
 
         initWebView();
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        subscription.unsubscribe();
     }
 
     public void showProgress()
@@ -202,7 +214,7 @@ public class LoginActivity extends BaseActivity
     public void getUser(String token)
     {
         Observable<User> userObservable = bindActivity(this, dataService.getMyself(token));
-        userObservable.subscribe(new Action1<User>()
+        subscription = userObservable.subscribe(new Action1<User>()
         {
             @Override
             public void call(User user)

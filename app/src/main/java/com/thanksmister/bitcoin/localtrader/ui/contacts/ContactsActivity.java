@@ -47,7 +47,9 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.Subscription;
 import rx.functions.Action1;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
@@ -88,8 +90,11 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
     private DashboardType dashboardType;
     private AdvertisementAdapter.ContactAdapter adapter;
+    
     private Observable<List<ContactItem>> contactItemObservable;
-    private Observable<List<Contact>> contactsObservable;
+  
+    private Subscription updateSubscription = Subscriptions.empty();
+    private Subscription subscription = Subscriptions.empty();
     
     public static Intent createStartIntent(Context context, DashboardType dashboardType)
     {
@@ -131,8 +136,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         setAdapter(getAdapter());
         
         contactItemObservable = bindActivity(this, dbManager.contactsQuery());
- 
-        subscribeData();
     }
 
     @Override
@@ -167,7 +170,19 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     {
         super.onResume();
 
+        subscribeData();
+
         updateData(dashboardType);
+    }
+    
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        subscription.unsubscribe();
+        
+        updateSubscription.unsubscribe();
     }
 
     @Override
@@ -180,12 +195,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     public void onRefresh()
     {
         updateData(dashboardType);
-    }
-
-    public void onRefreshStart()
-    {
-        if(swipeLayout != null)
-            swipeLayout.setRefreshing(true);
     }
     
     public void onRefreshStop()
@@ -257,7 +266,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     
     public void subscribeData()
     {
-        contactItemObservable.subscribe(new Action1<List<ContactItem>>()
+        subscription = contactItemObservable.subscribe(new Action1<List<ContactItem>>()
         {
             @Override
             public void call(List<ContactItem> contactItems)
@@ -285,11 +294,10 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     {
         this.dashboardType = dashboardType;
 
-        contactsObservable = bindActivity(this, dataService.getContacts(dashboardType));
-        
         setTitle(dashboardType);
 
-        contactsObservable.subscribe(new Action1<List<Contact>>()
+        Observable<List<Contact>> contactsObservable = bindActivity(this, dataService.getContacts(dashboardType, true));
+        updateSubscription = contactsObservable.subscribe(new Action1<List<Contact>>()
         {
             @Override
             public void call(List<Contact> contacts)

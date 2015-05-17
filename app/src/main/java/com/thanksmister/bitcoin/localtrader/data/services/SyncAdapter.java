@@ -97,78 +97,80 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult)
     {
         if(dbManager.isLoggedIn()) {
-
-            Observable<Wallet> walletBalanceObservable = getWalletBalance()
-                    .onErrorResumeNext(refreshTokenAndRetry(getWalletBalance()))
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread());
-
-            Observable<List<Contact>> contactsObservable = getContactsObservable()
-                    .onErrorResumeNext(refreshTokenAndRetry(getContactsObservable()))
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread());
-
-            subscriptions.add(contactsObservable.subscribe(new Action1<List<Contact>>()
-            {
-                @Override
-                public void call(List<Contact> items)
-                {
-                    saveContactsAndNotify(items);
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    handleError(throwable);
-                }
-            }));
-
-            subscriptions.add(walletBalanceObservable.subscribe(new Action1<Wallet>()
-            {
-                @Override
-                public void call(Wallet wallet)
-                {
-                    updateWalletBalance(wallet);
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    handleError(throwable);
-                }
-            }));
+            
+            updateData();
+            
+        } else {
+            
+            subscriptions.unsubscribe();
         }
+    }
+
+    @Override
+    public void onSyncCanceled()
+    {
+        super.onSyncCanceled();
+        
+        subscriptions.unsubscribe();
+    }
+
+    private void updateData()
+    {
+        subscriptions = new CompositeSubscription();
+
+        Observable<Wallet> walletBalanceObservable = getWalletBalance()
+                .onErrorResumeNext(refreshTokenAndRetry(getWalletBalance()))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        Observable<List<Contact>> contactsObservable = getContactsObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getContactsObservable()))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        subscriptions.add(contactsObservable.subscribe(new Action1<List<Contact>>()
+        {
+            @Override
+            public void call(List<Contact> items)
+            {
+                saveContactsAndNotify(items);
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                handleError(throwable);
+            }
+        }));
+
+        subscriptions.add(walletBalanceObservable.subscribe(new Action1<Wallet>()
+        {
+            @Override
+            public void call(Wallet wallet)
+            {
+                updateWalletBalance(wallet);
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                handleError(throwable);
+            }
+        }));
     }
 
     protected void handleError(Throwable throwable)
     {
-        if(DataServiceUtils.isNetworkError(throwable)) {
-            Timber.e(getContext().getString(R.string.error_no_internet) + ", Code 503");
-        } else if(DataServiceUtils.isHttp403Error(throwable)) {
-            Timber.e(getContext().getString(R.string.error_authentication) + ", Code 403");
-        } else if(DataServiceUtils.isHttp401Error(throwable)) {
-            Timber.e(getContext().getString(R.string.error_no_internet) + ", Code 401");
-        } else if(DataServiceUtils.isHttp500Error(throwable)) {
-            Timber.e(getContext().getString(R.string.error_service_error) + ", Code 500");
-        } else if(DataServiceUtils.isHttp404Error(throwable)) {
-            Timber.e(getContext().getString(R.string.error_service_error) + ", Code 404");
-        } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
-            Timber.e(getContext().getString(R.string.error_authentication) + ", Code 400 Grant Invalid");
-        } else if(DataServiceUtils.isHttp400Error(throwable)) {
-            Timber.e(getContext().getString(R.string.error_service_error) + ", Code 400");
-        } else {
-            Timber.e(getContext().getString(R.string.error_unknown_error));
-        }
-
         if(throwable != null && throwable.getLocalizedMessage() != null)
-            Timber.e("Data Error: " + throwable.getLocalizedMessage());
+            Timber.e("Sync Data Error: " + throwable.getLocalizedMessage());
     }
 
     private void updateWalletBalance(Wallet wallet)
     {
         Observable<WalletItem> walletObservable = dbManager.walletQuery();
+        
         walletObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -181,16 +183,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                             NotificationUtils.createMessageNotification(getContext(), "Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.total.balance + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
                             return;
                         }
-                        
-                        double oldBalance = Doubles.convertToDouble(walletItem.balance());
+
                         double newBalance = Doubles.convertToDouble(wallet.total.balance);
+                        double oldBalance = Doubles.convertToDouble(walletItem.balance());
+                        
                         String address = walletItem.address();
                         String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
 
                         if (newBalance > oldBalance) {
                             NotificationUtils.createMessageNotification(getContext(), "Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
                             updateWallet(wallet);
-                        } else if (!address.equals(wallet.address.address) || (oldBalance != newBalance)) {
+                        } else if (!address.equals(wallet.address.address)) {
                             updateWallet(wallet);
                         }
                     }
@@ -206,25 +209,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void updateWallet(Wallet wallet)
     {
-        Observable<Boolean> observable = dbManager.updateWallet(wallet);
-        observable
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>()
-                {
-                    @Override
-                    public void call(Boolean aBoolean)
-                    {
-                        Timber.d("Updated wallet successfully: " + aBoolean);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        Timber.e(throwable.getMessage());
-                    }
-                });
+        dbManager.updateWallet(wallet);
     }
     
     private void getDeletedContactsInfo(List<Contact> contacts)
@@ -285,6 +270,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<Wallet> call(SessionItem sessionItem)
                     {
+                        if(sessionItem == null) return null;
+                        
                         Timber.d("Access Token: " + sessionItem.access_token());
 
                         return localBitcoins.getWalletBalance(sessionItem.access_token())
@@ -338,6 +325,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<List<Contact>> call(SessionItem sessionItem)
                     {
+                        if(sessionItem == null) return null;
+
+                        Timber.d("Access Token: " + sessionItem.access_token());
+                        
                         return Observable.just(Observable.from(contacts)
                                 .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>()
                                 {
@@ -372,6 +363,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<List<Contact>> call(SessionItem sessionItem)
                     {
+                        if(sessionItem == null) return null;
+                        
                         Timber.d("Access Token: " + sessionItem.access_token());
 
                         return localBitcoins.getDashboard(sessionItem.access_token())
@@ -427,6 +420,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     public void updateTokens(Authorization authorization)
     {
+        Timber.d("Access Token: " + authorization.access_token);
+        Timber.d("Refresh Token : " + authorization.refresh_token);
+        
         dbManager.updateTokens(authorization);
     }
     
@@ -449,6 +445,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             public Observable<? extends T> call(Throwable throwable) {
                 // Here check if the error thrown really is a 401
                 if (DataServiceUtils.isHttp403Error(throwable)) {
+                    
+                    Timber.e("isHttp403Error");
+                    
                     return refreshTokens().flatMap(new Func1<String, Observable<? extends T>>() {
                         @Override
                         public Observable<? extends T> call(String token)
@@ -473,6 +472,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<String> call(SessionItem sessionItem)
                     {
+                        if(sessionItem == null) 
+                            return null;
+                        
                         Timber.d("Refresh Token: " + sessionItem.refresh_token());
                         
                         return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
@@ -492,59 +494,42 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private void saveContactsAndNotify(final List<Contact> contacts)
     {
-        Observable<TreeMap<String, ArrayList<Contact>>> updatedContactList = dbManager.updateContacts(contacts);
-        updatedContactList
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<TreeMap<String, ArrayList<Contact>>>()
-                {
-                    @Override
-                    public void call(TreeMap<String, ArrayList<Contact>> stringArrayListTreeMap)
-                    {
-                        ArrayList<Contact> updatedContacts = stringArrayListTreeMap.get(DbManager.UPDATES);
-                        Timber.d("updated contacts: " + updatedContacts.size());
+        TreeMap<String, ArrayList<Contact>> updatedContactList = dbManager.updateContacts(contacts);
+        ArrayList<Contact> updatedContacts = updatedContactList.get(DbManager.UPDATES);
+        Timber.d("updated contacts: " + updatedContacts.size());
 
-                        ArrayList<Contact> addedContacts = stringArrayListTreeMap.get(DbManager.ADDITIONS);
-                        Timber.d("added contacts: " + addedContacts.size());
+        ArrayList<Contact> addedContacts = updatedContactList.get(DbManager.ADDITIONS);
+        Timber.d("added contacts: " + addedContacts.size());
 
-                        ArrayList<Contact> deletedContacts = stringArrayListTreeMap.get(DbManager.DELETIONS);
-                        Timber.d("deleted contacts: " + deletedContacts.size());
+        ArrayList<Contact> deletedContacts = updatedContactList.get(DbManager.DELETIONS);
+        Timber.d("deleted contacts: " + deletedContacts.size());
 
-                        if (updatedContacts.size() > 1) {
-                            NotificationUtils.createNotification(getContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
-                        } else if (updatedContacts.size() == 1) {
-                            Contact contact = updatedContacts.get(0);
-                            String contactName = TradeUtils.getContactName(contact);
-                            String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
-                            NotificationUtils.createNotification(getContext(), "Trade Updated", ("The trade with" + contactName + " updated."), ("Trade #" + contact.contact_id + saleType + contactName + " has been updated."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-                        }
+        if (updatedContacts.size() > 1) {
+            NotificationUtils.createNotification(getContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
+        } else if (updatedContacts.size() == 1) {
+            Contact contact = updatedContacts.get(0);
+            String contactName = TradeUtils.getContactName(contact);
+            String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
+            NotificationUtils.createNotification(getContext(), "Trade Updated", ("The trade with" + contactName + " updated."), ("Trade #" + contact.contact_id + saleType + contactName + " has been updated."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
+        }
 
-                        // notify user of any new trades
-                        if (addedContacts.size() > 1) {
-                            NotificationUtils.createNotification(getContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + addedContacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-                        } else if (addedContacts.size() == 1) {
-                            Contact contact = addedContacts.get(0);
-                            String username = TradeUtils.getContactName(contact);
-                            String type = (contact.is_buying) ? "sell" : "buy";
-                            String location = (TradeUtils.isLocalTrade(contact)) ? "local" : "online";
-                            NotificationUtils.createNotification(getContext(), "New trade with " + username, "New " + location + " trade with " + username, "Trade to " + type + " " + contact.amount + " " + contact.currency + " (" + getContext().getString(R.string.btc_symbol) + contact.amount_btc + ")", NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-                        }
+        // notify user of any new trades
+        if (addedContacts.size() > 1) {
+            NotificationUtils.createNotification(getContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + addedContacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
+        } else if (addedContacts.size() == 1) {
+            Contact contact = addedContacts.get(0);
+            String username = TradeUtils.getContactName(contact);
+            String type = (contact.is_buying) ? "sell" : "buy";
+            String location = (TradeUtils.isLocalTrade(contact)) ? "local" : "online";
+            NotificationUtils.createNotification(getContext(), "New trade with " + username, "New " + location + " trade with " + username, "Trade to " + type + " " + contact.amount + " " + contact.currency + " (" + getContext().getString(R.string.btc_symbol) + contact.amount_btc + ")", NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
+        }
 
-                        // look up deleted trades and find the reason
-                        if (deletedContacts.size() > 0) {
-                            getDeletedContactsInfo(deletedContacts);
-                        }
+        // look up deleted trades and find the reason
+        if (deletedContacts.size() > 0) {
+            getDeletedContactsInfo(deletedContacts);
+        }
 
-                        updateMessages(contacts);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        Timber.e(throwable.getMessage());
-                    }
-                });
+        updateMessages(contacts);
     }
 
     public void updateMessages(List<Contact> contacts)

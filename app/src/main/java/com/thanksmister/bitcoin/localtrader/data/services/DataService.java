@@ -90,11 +90,13 @@ public class DataService
     private static final String PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire";
     public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
     public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
+    public static final String PREFS_CONTACTS_EXPIRE_TIME = "pref_ads_expire";
     public static final String PREFS_USER = "pref_user";
 
     public static final int CHECK_EXCHANGE_DATA = 3 * 60 * 1000;// 3 minutes
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
     public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 mintues
+    public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 15 mintues
     
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
@@ -125,6 +127,8 @@ public class DataService
 
     public Observable<Exchange> getExchange()
     {
+        Timber.d("Get Exchange");
+        
         if (!needToRefreshExchanges()) {
             return Observable.empty();
         }
@@ -469,8 +473,14 @@ public class DataService
                 });
     }
 
-    public Observable<List<Contact>> getContacts(DashboardType dashboardType)
+    public Observable<List<Contact>> getContacts(DashboardType dashboardType, boolean force)
     {
+        if(!needToRefreshContacts() && !force) {
+            return Observable.empty();
+        }
+
+        Timber.d("Get Contacts");
+        
         if(Constants.USE_MOCK_DATA) {
             return Observable.just(Parser.parseContacts(MockData.DASHBOARD));
         }
@@ -489,11 +499,12 @@ public class DataService
                                         @Override
                                         public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                                         {
-
                                             if (contacts.isEmpty()) {
                                                 return Observable.just(contacts);
                                             }
 
+                                            setContactsExpireTime();
+                                            
                                             return getContactsMessages(contacts, sessionItem.access_token());
                                         }
                                     });
@@ -508,6 +519,9 @@ public class DataService
                                             if (contacts.isEmpty()) {
                                                 return Observable.just(contacts);
                                             }
+
+                                            setContactsExpireTime();
+                                            
                                             return getContactsMessages(contacts, sessionItem.access_token());
                                         }
                                     });
@@ -522,6 +536,9 @@ public class DataService
                                             if (contacts.isEmpty()) {
                                                 return Observable.just(contacts);
                                             }
+
+                                            setContactsExpireTime();
+                                            
                                             return getContactsMessages(contacts, sessionItem.access_token());
                                         }
                                     });
@@ -536,6 +553,9 @@ public class DataService
                                             if (contacts.isEmpty()) {
                                                 return Observable.just(contacts);
                                             }
+                                            
+                                            setContactsExpireTime();
+                                            
                                             return getContactsMessages(contacts, sessionItem.access_token());
                                         }
                                     });
@@ -642,6 +662,7 @@ public class DataService
 
     public Observable<Boolean> deleteAdvertisement(final String adId)
     {
+        Timber.d("Delete Ad");
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Boolean>>()
                 {
@@ -691,6 +712,9 @@ public class DataService
 
     public Observable<Wallet> getWallet()
     {
+        Timber.d("Get Wallet");
+                
+                
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Wallet>>()
                 {
@@ -734,7 +758,11 @@ public class DataService
         if(!needToRefreshMethods()) {
             return Observable.empty();
         }
-        
+
+
+        Timber.d("Get Methods");
+
+
         return localBitcoins.getOnlineProviders()
                 .doOnNext(new Action1<Response>()
                 {
@@ -751,6 +779,8 @@ public class DataService
 
     public Observable<SessionItem> getTokens()
     {
+        Timber.d("Get Tokens");
+        
         return dbManager.getTokens();
     }
 
@@ -767,6 +797,9 @@ public class DataService
             public Observable<? extends T> call(Throwable throwable) {
                 // Here check if the error thrown really is a 401
                 if (DataServiceUtils.isHttp403Error(throwable)) {
+
+                    Timber.d("isHttp403Error");
+                    
                     return refreshTokens().flatMap(new Func1<String, Observable<? extends T>>() {
                         @Override
                         public Observable<? extends T> call(String token)
@@ -783,13 +816,14 @@ public class DataService
 
     private Observable<String> refreshTokens()
     {
+        Timber.d("Refresh Tokens");
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<String>>()
                 {
                     @Override
                     public Observable<String> call(SessionItem sessionItem)
                     {
-                        Timber.d("Refresh Token: " + sessionItem.refresh_token());
+                        Timber.d("Refreshing Token Using: " + sessionItem.refresh_token());
 
                         return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
                                 .map(new ResponseToAuthorize())
@@ -807,6 +841,30 @@ public class DataService
                 });
     }
 
+    private boolean needToRefreshContacts()
+    {
+        synchronized (this) {
+            LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME, -1);
+            return System.currentTimeMillis() >= preference.get();
+        }
+    }
+
+    private void resetContactsExpireTime()
+    {
+        synchronized (this) {
+            LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME);
+            preference.delete();
+        }
+    }
+
+    private void setContactsExpireTime()
+    {
+        synchronized (this) {
+            LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME, -1);
+            long expire = System.currentTimeMillis() + CHECK_CONTACTS_DATA; // 1 hours
+            preference.set(expire);
+        }
+    }
    
     private boolean needToRefreshAdvertisements()
     {

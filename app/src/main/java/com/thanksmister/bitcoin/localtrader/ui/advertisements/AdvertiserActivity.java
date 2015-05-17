@@ -129,6 +129,7 @@ public class AdvertiserActivity extends BaseActivity
     }
     
     private String adId;
+    
     private Observable<List<MethodItem>> methodObservable;
     private Observable<Advertisement> advertisementObservable;
     private Subscription subscription = Subscriptions.empty();
@@ -209,9 +210,9 @@ public class AdvertiserActivity extends BaseActivity
     }
 
     @Override
-    public void onDestroy()
+    public void onPause()
     {
-        super.onDestroy();
+        super.onPause();
 
         subscription.unsubscribe();
     }

@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.advertisements;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -122,6 +123,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     }
 
     private Subscription subscription = Subscriptions.empty();
+    private Subscription updateSubscription = Subscriptions.empty();
+    
     private Observable<AdvertisementItem> advertisementObservable;
     private Observable<Advertisement> updateAdvertisementObservable;
     private Observable<List<MethodItem>> methodObservable;
@@ -163,7 +166,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         updateAdvertisementObservable = bindActivity(this, dataService.getAdvertisement(adId));
         deleteObservable = bindActivity(this, dataService.deleteAdvertisement(adId));
 
-        subscribeData();
+        
     }
     
     @Override
@@ -214,15 +217,18 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     public void onResume()
     {
         super.onResume();
+
+        subscribeData();
         
         updateData();
     }
 
     @Override
-    public void onDestroy()
+    public void onPause()
     {
-        super.onDestroy();
-        
+        super.onPause();
+
+        updateSubscription.unsubscribe();
         subscription.unsubscribe();
     }
     
@@ -309,7 +315,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     
     protected void updateData()
     {
-        updateAdvertisementObservable.subscribe(new Action1<Advertisement>()
+        updateSubscription = updateAdvertisementObservable.subscribe(new Action1<Advertisement>()
         {
             @Override
             public void call(Advertisement advertisementItem)
@@ -490,8 +496,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         } else {
             geoUri = "geo:0,0?q=" + advertisement.location_string();
         }
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
-        startActivity(intent);
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
+            startActivity(intent);
+        } catch (ActivityNotFoundException exception) {
+            toast("There is no activity to handle this action (no maps).");
+        }
     }
 
     private void shareAdvertisement()

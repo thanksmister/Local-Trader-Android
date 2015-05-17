@@ -129,7 +129,7 @@
                     android:layout_height="wrap_content"
                     android:paddingLeft="8dp"
                     android:gravity="left|center_vertical"
-                    android:text="Change tip me!"/>
+                    android:text="Tip me!"/>
 
         </LinearLayout>
 

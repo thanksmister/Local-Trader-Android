@@ -145,6 +145,8 @@ public class RequestFragment extends BaseFragment
     private Menu menu;
 
     CompositeSubscription subscriptions = new CompositeSubscription();
+    CompositeSubscription updateSubscriptions = new CompositeSubscription();
+    
     private Observable<WalletItem> walletBalanceObservable;
     private Observable<ExchangeItem> exchangeObservable;
     private Observable<Wallet> updateWalletBalanceObservable;
@@ -283,8 +285,6 @@ public class RequestFragment extends BaseFragment
         updateExchangeObservable = bindFragment(this, dataService.getExchange());
                 
         showProgress();
-
-        subscribeData();
     }
 
     @Override
@@ -296,12 +296,28 @@ public class RequestFragment extends BaseFragment
     }
 
     @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        subscribeData();
+
+        updateData();
+    }
+    
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        subscriptions.unsubscribe();
+        updateSubscriptions.unsubscribe();
+    }
+
+    @Override
     public void onDetach()
     {
         ButterKnife.reset(this);
-
-        if(subscriptions != null)
-            subscriptions.unsubscribe();
         
         super.onDetach();
     }
@@ -383,14 +399,6 @@ public class RequestFragment extends BaseFragment
     }
 
     @Override
-    public void onResume()
-    {
-        super.onResume();
-
-        updateData();
-    }
-
-    @Override
     public void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);
@@ -405,6 +413,8 @@ public class RequestFragment extends BaseFragment
 
     protected void subscribeData()
     {
+        subscriptions = new CompositeSubscription(); 
+        
         subscriptions.add(Observable.combineLatest(exchangeObservable, walletBalanceObservable, new Func2<ExchangeItem, WalletItem, WalletData>()
         {
             @Override
@@ -430,14 +440,16 @@ public class RequestFragment extends BaseFragment
             public void call(Throwable throwable)
             {
                 hideProgress();
-                handleError(throwable);
+                reportError(throwable);
             }
         }));
     }
     
     private void updateData()
     {
-        subscriptions.add(Observable.combineLatest(updateExchangeObservable, updateWalletBalanceObservable, new Func2<Exchange, Wallet, WalletUpdateData>()
+        updateSubscriptions = new CompositeSubscription();
+        
+        updateSubscriptions.add(Observable.combineLatest(updateExchangeObservable, updateWalletBalanceObservable, new Func2<Exchange, Wallet, WalletUpdateData>()
         {
             @Override
             public WalletUpdateData call(Exchange exchange, Wallet wallet)
@@ -468,33 +480,12 @@ public class RequestFragment extends BaseFragment
     
     private void updateExchange(Exchange exchange)
     {
-        Observable<Boolean> observable;
-        observable = bindFragment(this, dbManager.updateExchange(exchange));
-        observable.subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                // great!
-            }
-        });
+        dbManager.updateExchange(exchange);
     }
 
     private void updateWallet(Wallet wallet)
     {
-        Observable<Boolean> observable;
-        observable = bindFragment(this, dbManager.updateWallet(wallet));
-        observable.subscribe(new Action1<Boolean>() {
-            @Override
-            public void call(Boolean aBoolean) {
-                // great!
-            }
-        }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-                Timber.e(throwable.getMessage());
-            }
-        });
+        dbManager.updateWallet(wallet);
     }
 
     private void promptForPin(String bitcoinAddress, String bitcoinAmount)

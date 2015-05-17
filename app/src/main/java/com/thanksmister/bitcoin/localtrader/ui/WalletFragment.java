@@ -70,10 +70,13 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
@@ -115,10 +118,13 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     TextView recentTextView;
     View noActivityTextView;
 
+    private CompositeSubscription subscriptions;
+    private Subscription subscription = Subscriptions.empty();
+    private Subscription updateSubscription = Subscriptions.empty();
+    
     private TransactionsAdapter transactionsAdapter;
     private Observable<WalletItem> walletObservable;
     private Observable<Wallet> walletUpdateObservable;
-    private Observable<Boolean> walletDbUpdateObservable;
     private Observable<ExchangeItem> exchangeObservable;
     
     private class WalletData {
@@ -164,8 +170,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     public void onViewCreated(final View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-        
-        subscribeData();
     }
 
     @Override
@@ -225,7 +229,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         return false;
     }
-    
 
     @Override
     public void onAttach(Activity activity)
@@ -242,8 +245,20 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         super.onResume();
         
         showProgress();
+
+        subscribeData();
         
         updateData();
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        subscriptions.unsubscribe();
+        subscription.unsubscribe();
+        updateSubscription.unsubscribe();
     }
 
     @Override
@@ -286,7 +301,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     protected void subscribeData()
     {
-        Observable.combineLatest(walletObservable, exchangeObservable, new Func2<WalletItem, ExchangeItem, WalletData>()
+        subscriptions = new CompositeSubscription();
+        
+        subscriptions.add(Observable.combineLatest(walletObservable, exchangeObservable, new Func2<WalletItem, ExchangeItem, WalletData>()
         {
             @Override
             public WalletData call(WalletItem wallet, ExchangeItem exchange)
@@ -309,12 +326,12 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             {
                 handleError(throwable);
             }
-        });
+        }));
     }
 
     protected void updateData()
     {
-        walletUpdateObservable.subscribe(new Action1<Wallet>()
+        subscription = walletUpdateObservable.subscribe(new Action1<Wallet>()
         {
             @Override
             public void call(Wallet wallet)
@@ -342,7 +359,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     
     private void updateWalletBalance(Wallet wallet)
     {
-        walletObservable.subscribe(new Action1<WalletItem>() {
+        updateSubscription = walletObservable.subscribe(new Action1<WalletItem>() {
             @Override
             public void call(WalletItem walletItem)
             {
@@ -367,35 +384,32 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 @Override
                 public void call(Throwable throwable)
                 {
-                    Crashlytics.setString("UpdateWallet", throwable.getLocalizedMessage());
-                    Crashlytics.logException(throwable);
+                    reportError(throwable);
                 }
         });
     }
 
     private void updateWallet(Wallet wallet)
     {
-        walletDbUpdateObservable = bindFragment(this, dbManager.updateWallet(wallet));
-        walletDbUpdateObservable.subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                Timber.d("Updated wallet successfully: " + aBoolean);
-            }
-        });
+        dbManager.updateWallet(wallet);
     }
     
     public void setWallet(WalletItem wallet, ExchangeItem exchange)
     {
         try {
+            
             Bitmap qrCode = (BitmapFactory.decodeByteArray(wallet.qrcode(), 0, wallet.qrcode().length));
             qrImage.setImageBitmap(qrCode);
+            
         } catch (NullPointerException e){
+            
             Timber.e("Null Wallet QRCode");
         }
         
         if(exchange != null) {
+
+            Timber.e("Exchange: " + exchange.exchange());
+            
             String btcValue = Calculations.computedValueOfBitcoin(exchange.bid(), exchange.ask(), wallet.balance());
             String btcAmount = Conversions.formatBitcoinAmount(wallet.balance()) + " " + getString(R.string.btc);
 
