@@ -31,7 +31,7 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
  */
 public class SyncUtils
 {
-    private static final long SYNC_FREQUENCY = 3 * 60;  // 5 minutes in seconds
+    private static final long SYNC_FREQUENCY = 5 * 60;  // 5 minutes in seconds
   
     private static final String PREF_SETUP_COMPLETE = "setup_complete";
   

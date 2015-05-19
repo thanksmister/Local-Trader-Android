@@ -82,7 +82,6 @@ import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
-import static rx.android.app.AppObservable.bindFragment;
 
 public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -686,8 +685,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void deleteContact(String contactId)
     {
+        Timber.d("Delete Contact: " + contactId);
         dbManager.deleteContact(contactId);
-        updateData();
+        finish();
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

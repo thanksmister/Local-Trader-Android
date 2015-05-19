@@ -21,6 +21,8 @@ import android.content.Context;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 
+import java.net.UnknownHostException;
+
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
@@ -30,7 +32,9 @@ public class DataServiceUtils
 {
     public static boolean isNetworkError(Throwable throwable)
     {
-        if (throwable instanceof RetrofitError) {
+        if(throwable instanceof UnknownHostException) {
+            return true;
+        } else if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 503);
         }

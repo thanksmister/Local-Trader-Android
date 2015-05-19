@@ -797,16 +797,14 @@ public class DataService
             public Observable<? extends T> call(Throwable throwable) {
                 // Here check if the error thrown really is a 401
                 if (DataServiceUtils.isHttp403Error(throwable)) {
-
-                    Timber.d("isHttp403Error");
-                    
-                    return refreshTokens().flatMap(new Func1<String, Observable<? extends T>>() {
-                        @Override
-                        public Observable<? extends T> call(String token)
-                        {
-                            return toBeResumed;
-                        }
-                    });
+                    return refreshTokens()
+                            .flatMap(new Func1<String, Observable<? extends T>>() {
+                                @Override
+                                public Observable<? extends T> call(String token)
+                                {
+                                    return toBeResumed;
+                                }
+                            });
                 }
                 // re-throw this error because it's not recoverable from here
                 return Observable.error(throwable);
@@ -817,6 +815,7 @@ public class DataService
     private Observable<String> refreshTokens()
     {
         Timber.d("Refresh Tokens");
+        
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<String>>()
                 {

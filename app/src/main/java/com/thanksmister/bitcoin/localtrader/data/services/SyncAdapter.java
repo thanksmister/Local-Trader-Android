@@ -61,11 +61,13 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import rx.Observable;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -73,6 +75,9 @@ import static android.content.Context.MODE_PRIVATE;
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
     private CompositeSubscription subscriptions = new CompositeSubscription();
+    private Subscription walletSubscription = Subscriptions.empty();
+    private Subscription contactsSubscription = Subscriptions.empty();
+    private Subscription tokensSubscription = Subscriptions.empty();
 
     SQLiteOpenHelper dbOpenHelper;
     private LocalBitcoins localBitcoins;
@@ -97,12 +102,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult)
     {
         if(dbManager.isLoggedIn()) {
-            
-            updateData();
-            
+            updateContacts();
         } else {
-            
-            subscriptions.unsubscribe();
+            walletSubscription.unsubscribe();
+            contactsSubscription.unsubscribe();
+            tokensSubscription.unsubscribe();
         }
     }
 
@@ -110,75 +114,133 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     public void onSyncCanceled()
     {
         super.onSyncCanceled();
-        
-        subscriptions.unsubscribe();
+
+        walletSubscription.unsubscribe();
+        contactsSubscription.unsubscribe();
+        tokensSubscription.unsubscribe();
     }
 
-    private void updateData()
+    private void updateContacts()
     {
-        subscriptions = new CompositeSubscription();
-
-        Observable<Wallet> walletBalanceObservable = getWalletBalance()
-                .onErrorResumeNext(refreshTokenAndRetry(getWalletBalance()))
+        if(!contactsSubscription.isUnsubscribed())
+            return;
+        
+        Timber.d("UpdateContacts");
+        
+        contactsSubscription = getContactsObservable()
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread());
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<List<Contact>>()
+                {
+                    @Override
+                    public void call(List<Contact> items)
+                    {
+                        contactsSubscription.unsubscribe();
+                        
+                        saveContactsAndNotify(items);
 
-        Observable<List<Contact>> contactsObservable = getContactsObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getContactsObservable()))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread());
-
-        subscriptions.add(contactsObservable.subscribe(new Action1<List<Contact>>()
-        {
-            @Override
-            public void call(List<Contact> items)
-            {
-                saveContactsAndNotify(items);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                handleError(throwable);
-            }
-        }));
-
-        subscriptions.add(walletBalanceObservable.subscribe(new Action1<Wallet>()
-        {
-            @Override
-            public void call(Wallet wallet)
-            {
-                updateWalletBalance(wallet);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                handleError(throwable);
-            }
-        }));
+                        updateWalletBalance();
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        contactsSubscription.unsubscribe();
+                                
+                        handleError(throwable);
+                    }
+                });
     }
+    
+    private void updateWalletBalance()
+    {
+        if(!walletSubscription.isUnsubscribed())
+            return;
+        
+        Timber.d("UpdateWalletBalance");
+        
+        walletSubscription = getWalletBalance()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Wallet>()
+                {
+                    @Override
+                    public void call(Wallet wallet)
+                    {
+                        walletSubscription.unsubscribe();
+                        
+                        updateWalletBalance(wallet);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        walletSubscription.unsubscribe();
+                        
+                        handleError(throwable);
+                    }
+                });
+    }
+    
+    private void refreshAccessTokens()
+    {
+        if(!tokensSubscription.isUnsubscribed())
+            return;
 
-    protected void handleError(Throwable throwable)
+        Timber.d("RefreshAccessTokens");
+        
+        tokensSubscription = refreshTokens()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Authorization>()
+                {
+                    @Override
+                    public void call(Authorization authorization)
+                    {
+                        tokensSubscription.unsubscribe();
+                        
+                        updateTokens(authorization);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        tokensSubscription.unsubscribe();
+                        
+                        reportError(throwable);
+                    }
+                });
+    }
+    
+    protected void reportError(Throwable throwable)
     {
         if(throwable != null && throwable.getLocalizedMessage() != null)
             Timber.e("Sync Data Error: " + throwable.getLocalizedMessage());
     }
 
+    protected void handleError(Throwable throwable)
+    {
+        reportError(throwable);
+        
+        if(DataServiceUtils.isHttp403Error(throwable) || DataServiceUtils.isHttp400GrantError(throwable)) {
+            refreshAccessTokens();
+        }
+    }
+
     private void updateWalletBalance(Wallet wallet)
     {
         Observable<WalletItem> walletObservable = dbManager.walletQuery();
-        
         walletObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<WalletItem>() {
+                .subscribe(new Action1<WalletItem>()
+                {
                     @Override
                     public void call(WalletItem walletItem)
                     {
-                        if(walletItem == null) {
+                        if (walletItem == null) {
                             updateWallet(wallet);
                             NotificationUtils.createMessageNotification(getContext(), "Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.total.balance + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
                             return;
@@ -186,7 +248,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                         double newBalance = Doubles.convertToDouble(wallet.total.balance);
                         double oldBalance = Doubles.convertToDouble(walletItem.balance());
-                        
+
                         String address = walletItem.address();
                         String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
 
@@ -270,8 +332,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<Wallet> call(SessionItem sessionItem)
                     {
-                        if(sessionItem == null) return null;
-                        
+                        if (sessionItem == null) return null;
+
                         Timber.d("Access Token: " + sessionItem.access_token());
 
                         return localBitcoins.getWalletBalance(sessionItem.access_token())
@@ -337,14 +399,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                     {
                                         return localBitcoins.getContact(contact.contact_id, sessionItem.access_token())
                                                 .map(new ResponseToContact())
-                                                .map(new Func1<Contact, List<Contact>>() {
+                                                .map(new Func1<Contact, List<Contact>>()
+                                                {
                                                     @Override
                                                     public List<Contact> call(Contact contactResult)
                                                     {
-                                                        if(TradeUtils.isCanceledTrade(contactResult) || TradeUtils.isReleased(contactResult)) {
+                                                        if (TradeUtils.isCanceledTrade(contactResult) || TradeUtils.isReleased(contactResult)) {
                                                             contactList.add(contactResult);
-                                                        } 
-                                                        
+                                                        }
+
                                                         return contactList;
                                                     }
                                                 });
@@ -363,8 +426,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<List<Contact>> call(SessionItem sessionItem)
                     {
-                        if(sessionItem == null) return null;
-                        
+                        if (sessionItem == null) return null;
+
                         Timber.d("Access Token: " + sessionItem.access_token());
 
                         return localBitcoins.getDashboard(sessionItem.access_token())
@@ -374,7 +437,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                     @Override
                                     public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                                     {
-                                        Timber.d("Contacts: " + contacts);
                                         if (contacts.isEmpty()) {
                                             return Observable.just(contacts);
                                         }
@@ -438,7 +500,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         return restAdapter.create(LocalBitcoins.class);
     }
 
-    private <T> Func1<Throwable,? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed)
+    /*private <T> Func1<Throwable,? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed)
     {
         return new Func1<Throwable, Observable<? extends T>>() {
             @Override
@@ -461,33 +523,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 return Observable.error(throwable);
             }
         };
-    }
+    }*/
 
-    private Observable<String> refreshTokens()
+    private Observable<Authorization> refreshTokens()
     {
         Timber.d("refreshTokens");
 
         return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<String>>() {
+                .flatMap(new Func1<SessionItem, Observable<Authorization>>() {
                     @Override
-                    public Observable<String> call(SessionItem sessionItem)
+                    public Observable<Authorization> call(SessionItem sessionItem)
                     {
                         if(sessionItem == null) 
                             return null;
                         
                         Timber.d("Refresh Token: " + sessionItem.refresh_token());
-                        
                         return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
-                                .map(new ResponseToAuthorize())
-                                .flatMap(new Func1<Authorization, Observable<? extends String>>() {
-                                    @Override
-                                    public Observable<? extends String> call(Authorization authorization)
-                                    {
-                                        Timber.d("New Access tokens: " + authorization.access_token);
-                                        updateTokens(authorization);
-                                        return Observable.just(authorization.access_token);
-                                    }
-                                });
+                                .map(new ResponseToAuthorize());
                     }
                 });
     }
