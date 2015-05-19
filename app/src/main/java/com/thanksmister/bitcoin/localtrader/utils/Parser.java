@@ -214,72 +214,11 @@ public class Parser
 
         return null;
     }
-
-    /*
-    {
-   "data":{
-      "contact_list":[
-         {
-            "data":{
-               "exchange_rate_updated_at":"2015-03-06T13:41:37+00:00",
-               "advertisement":{
-                  "advertiser":{
-                     "username":"thanksmister",
-                     "feedback_score":100,
-                     "trade_count":"100+",
-                     "last_online":"2015-03-06T13:46:45+00:00",
-                     "name":"thanksmister (100+; 100%)"
-                  },
-                  "trade_type":"LOCAL_SELL",
-                  "id":21981
-               },
-               "is_buying":false,
-               "payment_completed_at":null,
-               "released_at":null,
-               "created_at":"2015-03-06T13:41:37+00:00",
-               "contact_id":1849151,
-               "seller":{
-                  "username":"thanksmister",
-                  "feedback_score":100,
-                  "trade_count":"100+",
-                  "last_online":"2015-03-06T13:46:45+00:00",
-                  "name":"thanksmister (100+; 100%)"
-               },
-               "currency":"ARS",
-               "amount":"6000.00",
-               "is_selling":true,
-               "escrowed_at":null,
-               "amount_btc":"1.72630000",
-               "reference_code":"BITCOIN L1849151B13MTB",
-               "buyer":{
-                  "username":"quorthonafull",
-                  "feedback_score":100,
-                  "trade_count":"5",
-                  "last_online":"2015-03-06T13:41:45+00:00",
-                  "name":"quorthonafull (5; 100%)"
-               },
-               "closed_at":null,
-               "disputed_at":null,
-               "funded_at":null,
-               "canceled_at":null
-            },
-            "actions":{
-               "message_post_url":"https://localbitcoins.com/api/contact_message_post/1849151/",
-               "advertisement_url":"https://localbitcoins.com/api/ad-get/21981/",
-               "messages_url":"https://localbitcoins.com/api/contact_messages/1849151/",
-               "cancel_url":"https://localbitcoins.com/api/contact_cancel/1849151/",
-               "advertisement_public_view":"https://localbitcoins.com/ad/21981"
-            }
-         }
-      ],
-      "contact_count":1
-   }
-}
-     */
-    public static ArrayList<Contact> parseContacts(String response)
+    
+    public static List<Contact> parseContacts(String response)
     {
         JSONObject jsonObject;
-        ArrayList<Contact> items = new ArrayList<Contact>();
+        List<Contact> items = new ArrayList<Contact>();
         
         try {
             jsonObject = new JSONObject(response);
@@ -291,40 +230,12 @@ public class Parser
         try {
             JSONObject dataObject = jsonObject.getJSONObject("data");
             JSONArray contactListObject = dataObject.getJSONArray("contact_list");
+            
+            Timber.d("contactListObject: " + contactListObject.toString());
 
             for (int i = 0; i < contactListObject.length(); i++) {
                 JSONObject item = contactListObject.getJSONObject(i);
                 Contact contact = createContact(item); // you are selling, they are buying
-                if (contact != null)
-                    items.add(contact);
-            }
-
-        } catch (JSONException e) {
-            Timber.e(e.getMessage());
-        }
-
-        return items;
-    }
-
-    public static ArrayList<ContactSync> parseContactSyncs(String response)
-    {
-        JSONObject jsonObject;
-        ArrayList<ContactSync> items = new ArrayList<ContactSync>();
-
-        try {
-            jsonObject = new JSONObject(response);
-        } catch (JSONException e) {
-            Timber.e(e.getMessage());
-            return items;
-        }
-
-        try {
-            JSONObject dataObject = jsonObject.getJSONObject("data");
-            JSONArray contactListObject = dataObject.getJSONArray("contact_list");
-
-            for (int i = 0; i < contactListObject.length(); i++) {
-                JSONObject item = contactListObject.getJSONObject(i);
-                ContactSync contact = createContactSync(item); // you are selling, they are buying
                 if (contact != null)
                     items.add(contact);
             }
@@ -349,70 +260,7 @@ public class Parser
         
         return createContact(jsonObject);
     }
-
-    public static ContactSync parseContactSync(String response)
-    {
-        JSONObject jsonObject;
-
-        try {
-            jsonObject = new JSONObject(response);
-        } catch (JSONException e) {
-            Timber.e(e.getMessage());
-            return null;
-        }
-
-        return createContactSync(jsonObject);
-    }
-
-    private static ContactSync createContactSync(JSONObject object)
-    {
-        ContactSync item = new ContactSync();
-
-        try {
-            JSONObject data = object.getJSONObject("data");
-
-            JSONObject buyer = data.getJSONObject("buyer");
-            item.buyer_name = (buyer.getString("username"));
-
-            JSONObject seller = data.getJSONObject("seller");
-            item.seller_name = (seller.getString("username"));
-
-            item.is_buying = (data.getString("is_buying").equals("true"));
-            item.is_selling = (data.getString("is_selling").equals("true"));
-
-            item.amount = (data.getString("amount"));
-            item.contact_id = (data.getString("contact_id"));
-            item.amount_btc = (data.getString("amount_btc"));
-            item.created_at = (data.getString("created_at"));
-
-            if (data.has("currency")) 
-                item.currency = (data.getString("currency"));
- 
-            JSONObject advertisement = data.getJSONObject("advertisement");
-            if (advertisement.has("id")) item.advertisement_id = (advertisement.getString("id"));
-            if (advertisement.has("payment_method"))
-                item.advertisement_payment_method = (advertisement.getString("payment_method"));
-            if (advertisement.has("trade_type")) {
-                String trade_type = advertisement.getString("trade_type");
-                item.advertisement_trade_type = (TradeType.valueOf(trade_type).name());
-            }
-
-            JSONObject advertiser = advertisement.getJSONObject("advertiser");
-            item.advertiser_name = (advertiser.getString("username"));
-
-            if (data.has("is_funded")) { //Boolean signaling if the escrow is enabled and not funded.
-                item.is_funded = (data.getBoolean("is_funded"));
-            }
-
-            return item;
-
-        } catch (JSONException e) {
-            Timber.e(e.getMessage());
-        }
-
-        return null;
-    }
-
+    
     private static Contact createContact(JSONObject object)
     {
         Contact item = new Contact();
@@ -502,7 +350,7 @@ public class Parser
             }
 
             JSONObject actions = object.getJSONObject("actions");
-            
+
             if (actions.has("release_url")) {
                 item.actions.release_url = (actions.getString("release_url"));
             }
@@ -534,14 +382,15 @@ public class Parser
             if (actions.has("message_post_url")) {
                 item.actions.message_post_url = actions.getString("message_post_url");
             }
-            
+
             return item;
 
+        
         } catch (JSONException e) {
-            Timber.e("parsing contact error: " + e.getMessage());
+            Timber.e("Parsing Contact Error: " + e.getMessage());
         }
-
-        return null;
+        
+    return null;
     }
 
     

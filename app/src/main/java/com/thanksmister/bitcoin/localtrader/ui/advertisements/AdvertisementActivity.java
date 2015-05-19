@@ -466,7 +466,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     {
         if(advertisementData == null) return;;
         AdvertisementItem advertisement = advertisementData.advertisement;
-        boolean visible = !advertisement.visible();
+        final boolean visible = !advertisement.visible();
         updateObservable = bindActivity(this, dataService.updateAdvertisementVisibility(advertisement, visible));
         updateObservable.subscribe(new Action1<Boolean>()
         {

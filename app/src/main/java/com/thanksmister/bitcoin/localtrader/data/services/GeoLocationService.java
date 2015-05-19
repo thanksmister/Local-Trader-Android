@@ -304,20 +304,30 @@ public class GeoLocationService
         }
 
         behaviorSubject = BehaviorSubject.create(new Location("initProvider"));
-        behaviorSubject.subscribe(new EndObserver<Location>() {
+        behaviorSubject.subscribe(new EndObserver<Location>()
+        {
             @Override
-            public void onEnd() {
+            public void onEnd()
+            {
                 behaviorSubject = null;
             }
 
             @Override
-            public void onNext(Location location) {
+            public void onNext(Location location)
+            {
                 // TODO save last location so we can retrieve it sooner
             }
         });
 
         return behaviorSubject
-            .filter(location -> (location != null && !location.getProvider().equals("initProvider")))
+                .filter(new Func1<Location, Boolean>()
+                {
+                    @Override
+                    public Boolean call(Location location)
+                    {
+                        return (location != null && !location.getProvider().equals("initProvider"));
+                    }
+                })
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe(observer);
@@ -456,12 +466,18 @@ public class GeoLocationService
     public Observable<List<Address>> geoDecodeLocation(final Location location)
     {
         final Geocoder geocoder = new Geocoder(application);
-        return Observable.create((Subscriber<? super List<Address>> subscriber) -> {
-            try {
-                subscriber.onNext(geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1));
-                subscriber.onCompleted();
-            } catch (Exception e) {
-                subscriber.onError(e);
+        
+        return Observable.create(new Observable.OnSubscribe<List<Address>>()
+        {
+            @Override
+            public void call(Subscriber<? super List<Address>> subscriber)
+            {
+                try {
+                    subscriber.onNext(geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                } 
             }
         }).observeOn(AndroidSchedulers.mainThread())
           .subscribeOn(Schedulers.newThread());
@@ -474,14 +490,20 @@ public class GeoLocationService
         }
         
         final Geocoder geocoder = new Geocoder(application, Locale.getDefault());
-        return Observable.create((Subscriber<? super List<Address>> subscriber) -> {
-            try {
-                subscriber.onNext(geocoder.getFromLocationName(locationName, 5));
-                subscriber.onCompleted();
-            } catch (Exception e) {
-                subscriber.onError(e);
+        
+        return Observable.create(new Observable.OnSubscribe<List<Address>>()
+        {
+            @Override
+            public void call(Subscriber<? super List<Address>> subscriber)
+            {
+                try {
+                    subscriber.onNext(geocoder.getFromLocationName(locationName, 5));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }  
             }
         }).observeOn(AndroidSchedulers.mainThread())
-          .subscribeOn(Schedulers.newThread());
+                .subscribeOn(Schedulers.newThread());
     }
 }

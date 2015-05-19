@@ -188,13 +188,24 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         noActivityTextView = headerView.findViewById(R.id.noActivityTextView);
         
         qrImage = (ImageView) headerView.findViewById(R.id.codeImage);
-        qrImage.setOnClickListener(view -> {
-            setAddressOnClipboard();
+        
+        qrImage.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                setAddressOnClipboard();
+            }
         });
-
+     
         addressButton = (AutoResizeTextView) headerView.findViewById(R.id.walletAddressButton);
-        addressButton.setOnClickListener(view -> {
-            setAddressOnClipboard();
+        addressButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                setAddressOnClipboard();
+            }
         });
 
         transactionsAdapter = new TransactionsAdapter(getActivity());
@@ -357,7 +368,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         });
     }
     
-    private void updateWalletBalance(Wallet wallet)
+    private void updateWalletBalance(final Wallet wallet)
     {
         updateSubscription = walletObservable.subscribe(new Action1<WalletItem>() {
             @Override

@@ -301,13 +301,18 @@ public class SearchFragment extends BaseFragment
         SpinnerAdapter typeAdapter = new SpinnerAdapter(getActivity(), R.layout.spinner_layout, typeList);
         typeSpinner.setAdapter(typeAdapter);
 
-        editLocation.setOnItemClickListener((parent, view, position, id) -> {
-            Address address = predictAdapter.getItem(position);
-            showMapLayout();
-            editLocation.setText("");
+        editLocation.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                Address address = predictAdapter.getItem(i);
+                showMapLayout();
+                editLocation.setText("");
 
-            stopLocationCheck();
-            setAddress(address);
+                stopLocationCheck();
+                setAddress(address);
+            }
         });
 
         editLocation.addTextChangedListener(new TextWatcher()
@@ -331,7 +336,7 @@ public class SearchFragment extends BaseFragment
             }
         });
 
-        predictAdapter = new PredictAdapter(getActivity(), Collections.emptyList());
+        predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
         methodObservable = bindFragment(this, dbManager.methodQuery().cache());
@@ -549,7 +554,7 @@ public class SearchFragment extends BaseFragment
         }));
     }
 
-    public void showConfirmationDialog(ConfirmationDialogEvent event)
+    public void showConfirmationDialog(final ConfirmationDialogEvent event)
     {
         new MaterialDialog.Builder(getActivity())
                 .callback(new MaterialDialog.SimpleCallback() {

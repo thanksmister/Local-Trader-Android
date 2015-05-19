@@ -36,12 +36,17 @@
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+        
+        <include
+                android:id="@+id/editProgress"
+                layout="@layout/view_progress"
+                tools:visibility="visible"/>
 
-    <include
-            android:id="@android:id/progress"
-            layout="@layout/view_progress"
-            android:visibility="visible"
-            tools:visibility="gone"/>
+        <include
+                android:id="@+id/editEmpty"
+                layout="@layout/view_empty"
+                tools:visibility="visible"
+                android:visibility="gone"/>
 
     <ScrollView
             android:id="@+id/editContent"

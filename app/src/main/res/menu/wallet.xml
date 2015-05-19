@@ -23,12 +23,12 @@
     <item android:id="@+id/action_copy"
           android:title="@string/menu_action_copy"
           android:icon="@drawable/ic_action_content_copy"
-          thanksmister:showAsAction="always"/>
+          thanksmister:showAsAction="ifRoom"/>
 
     <item android:id="@+id/action_share"
           android:title="@string/menu_action_share"
           android:icon="@drawable/ic_action_social_share"
-          thanksmister:showAsAction="always"/>
+          thanksmister:showAsAction="ifRoom"/>
     
     <item android:id="@+id/action_blockchain"
           android:title="@string/menu_action_blockchain"

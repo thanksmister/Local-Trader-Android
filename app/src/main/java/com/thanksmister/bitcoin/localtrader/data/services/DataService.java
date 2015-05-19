@@ -145,7 +145,7 @@ public class DataService
                 });
     }
     
-    public Observable<ContactRequest> createContact(String adId, String amount, String message)
+    public Observable<ContactRequest> createContact(final String adId, final String amount, final String message)
     {
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<ContactRequest>>()
@@ -246,26 +246,36 @@ public class DataService
     private Observable<Wallet> getWalletBitmap(final Wallet wallet)
     {
         return generateBitmap(wallet.address.address)
-                .map(bitmap -> {
-                    wallet.qrImage = bitmap;
-                    return wallet;
+                .map(new Func1<Bitmap, Wallet>()
+                {
+                    @Override
+                    public Wallet call(Bitmap bitmap)
+                    {
+                        wallet.qrImage = bitmap;
+                        return wallet;
+                    }
                 });
     }
 
     private Observable<Bitmap> generateBitmap(final String address)
     {
-        return Observable.create((Subscriber<? super Bitmap> subscriber) -> {
-            try {
-                subscriber.onNext(WalletUtils.encodeAsBitmap(address, baseApplication.getApplicationContext()));
-                subscriber.onCompleted();
-            } catch (Exception e) {
-                subscriber.onError(e);
+        return Observable.create(new Observable.OnSubscribe<Bitmap>()
+        {
+            @Override
+            public void call(Subscriber<? super Bitmap> subscriber)
+            {
+                try {
+                    subscriber.onNext(WalletUtils.encodeAsBitmap(address, baseApplication.getApplicationContext()));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
             }
         });
     }
 
 
-    public Observable<JSONObject> contactAction(String contactId, String pinCode, ContactAction action)
+    public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action)
     {
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
@@ -320,7 +330,7 @@ public class DataService
                 });
     }
     
-    public Observable<Boolean> updateAdvertisement(Advertisement advertisement)
+    public Observable<Boolean> updateAdvertisement(final Advertisement advertisement)
     {
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Boolean>>()
@@ -337,7 +347,7 @@ public class DataService
 
     private Observable<Boolean> updateAdvertisementObservable(final Advertisement advertisement, String token)
     {
-        String city;
+        final String city;
         if(Strings.isBlank(advertisement.city)){
             city = advertisement.location;
         } else {
@@ -372,7 +382,7 @@ public class DataService
                 });
     }
 
-    public Observable<Advertisement> createAdvertisement(Advertisement advertisement)
+    public Observable<Advertisement> createAdvertisement(final Advertisement advertisement)
     {
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Advertisement>>()
@@ -412,7 +422,7 @@ public class DataService
                 String.valueOf(advertisement.trusted_required), advertisement.message);
     }
 
-    public Observable<JSONObject> postMessage(String contact_id, final String message)
+    public Observable<JSONObject> postMessage(final String contact_id, final String message)
     {
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
@@ -433,7 +443,7 @@ public class DataService
                 .map(new ResponseToUser());
     }
 
-    public Observable<Contact> getContact(String contactID)
+    public Observable<Contact> getContact(final String contactID)
     {
         if(Constants.USE_MOCK_DATA) {
             Contact contact = Parser.parseContact(MockData.CONTACT_LOCAL_SELL);
@@ -446,7 +456,7 @@ public class DataService
                 .flatMap(new Func1<SessionItem, Observable<Contact>>()
                 {
                     @Override
-                    public Observable<Contact> call(SessionItem sessionItem)
+                    public Observable<Contact> call(final SessionItem sessionItem)
                     {
                         return localBitcoins.getContact(contactID, sessionItem.access_token())
                                 .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.getContact(contactID, sessionItem.access_token())))
@@ -454,7 +464,7 @@ public class DataService
                                 .flatMap(new Func1<Contact, Observable<? extends Contact>>()
                                 {
                                     @Override
-                                    public Observable<? extends Contact> call(Contact contact)
+                                    public Observable<? extends Contact> call(final Contact contact)
                                     {
                                         return localBitcoins.contactMessages(contact.contact_id, sessionItem.access_token())
                                                 .map(new ResponseToMessages())
@@ -473,7 +483,7 @@ public class DataService
                 });
     }
 
-    public Observable<List<Contact>> getContacts(DashboardType dashboardType, boolean force)
+    public Observable<List<Contact>> getContacts(final DashboardType dashboardType, boolean force)
     {
         if(!needToRefreshContacts() && !force) {
             return Observable.empty();
@@ -489,7 +499,7 @@ public class DataService
                 .flatMap(new Func1<SessionItem, Observable<List<Contact>>>()
                 {
                     @Override
-                    public Observable<List<Contact>> call(SessionItem sessionItem)
+                    public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (dashboardType == DashboardType.RELEASED) {
                             return localBitcoins.getDashboard(sessionItem.access_token(), "released")
@@ -504,7 +514,6 @@ public class DataService
                                             }
 
                                             setContactsExpireTime();
-                                            
                                             return getContactsMessages(contacts, sessionItem.access_token());
                                         }
                                     });
@@ -622,13 +631,13 @@ public class DataService
                 .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement, visible)));
     }
 
-    private Observable<Boolean> updateAdvertisementObservable(final AdvertisementItem advertisement, boolean visible)
+    private Observable<Boolean> updateAdvertisementObservable(final AdvertisementItem advertisement, final boolean visible)
     {
-        String city;
+        final String city;
         if(Strings.isBlank(advertisement.city())){
             city = advertisement.location_string();
         } else {
-            city =  advertisement.city();
+            city = advertisement.city();
         }
 
         return getTokens()
@@ -713,13 +722,12 @@ public class DataService
     public Observable<Wallet> getWallet()
     {
         Timber.d("Get Wallet");
-                
-                
+
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Wallet>>()
                 {
                     @Override
-                    public Observable<Wallet> call(SessionItem sessionItem)
+                    public Observable<Wallet> call(final SessionItem sessionItem)
                     {
                         return localBitcoins.getWallet(sessionItem.access_token())
                                 .onErrorResumeNext(refreshTokenAndRetry(localBitcoins.getWallet(sessionItem.access_token())))
@@ -727,7 +735,7 @@ public class DataService
                                 .flatMap(new Func1<Wallet, Observable<Wallet>>()
                                 {
                                     @Override
-                                    public Observable<Wallet> call(Wallet wallet)
+                                    public Observable<Wallet> call(final Wallet wallet)
                                     {
                                         return generateBitmap(wallet.address.address)
                                                 .map(new Func1<Bitmap, Wallet>()

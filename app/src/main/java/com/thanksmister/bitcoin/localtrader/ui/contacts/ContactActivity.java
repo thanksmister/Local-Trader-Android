@@ -36,6 +36,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -201,18 +202,23 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         });
 
         contactButton = (Button) headerView.findViewById(R.id.contactButton);
-        contactButton.setOnClickListener(view -> {
-            if(view.getTag().equals(R.string.button_cancel)) {
-                cancelContact();
-            } else if (view.getTag().equals(R.string.button_release)) {
-                releaseTrade();
-            } else if (view.getTag().equals(R.string.button_fund)) {
-                fundContact();
-            } else if (view.getTag().equals(R.string.button_mark_paid)) {
-                markContactPaid();
+        contactButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if(view.getTag().equals(R.string.button_cancel)) {
+                    cancelContact();
+                } else if (view.getTag().equals(R.string.button_release)) {
+                    releaseTrade();
+                } else if (view.getTag().equals(R.string.button_fund)) {
+                    fundContact();
+                } else if (view.getTag().equals(R.string.button_mark_paid)) {
+                    markContactPaid();
+                } 
             }
         });
-
+ 
         newMessageText = (EditText) headerView.findViewById(R.id.newMessageText);
         newMessageText.addTextChangedListener(new TextWatcher()
         {
@@ -234,9 +240,14 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         });
 
         list.addHeaderView(headerView, null, false);
-        list.setOnItemClickListener((adapterView, view, i, l) -> {
-            MessageItem message = (MessageItem) adapterView.getAdapter().getItem(i);
-            setMessageOnClipboard(message);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                MessageItem message = (MessageItem) adapterView.getAdapter().getItem(i);
+                setMessageOnClipboard(message); 
+            }
         });
 
         adapter = new MessageAdapter(this);
@@ -555,7 +566,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         newMessageText.setText("");
     }
     
-    public void downloadAttachment(MessageItem message)
+    public void downloadAttachment(final MessageItem message)
     {
         tokensSubscription = tokensObservable.subscribe(new Action1<SessionItem>()
         {

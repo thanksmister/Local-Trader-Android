@@ -199,12 +199,17 @@ public class QRCodeActivity extends Activity
 
     private Observable<Bitmap> generateBitmap(final String address, final String amount)
     {
-        return Observable.create((Subscriber<? super Bitmap> subscriber) -> {
-            try {
-                subscriber.onNext(WalletUtils.encodeAsBitmap(address, amount, getApplicationContext()));
-                subscriber.onCompleted();
-            } catch (Exception e) {
-                subscriber.onError(e);
+        return Observable.create(new Observable.OnSubscribe<Bitmap>()
+        {
+            @Override
+            public void call(Subscriber<? super Bitmap> subscriber)
+            {
+                try {
+                    subscriber.onNext(WalletUtils.encodeAsBitmap(address, amount, getApplicationContext()));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
             }
         });
     }

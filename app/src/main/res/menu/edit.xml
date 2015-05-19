@@ -22,11 +22,11 @@
     <item android:id="@+id/action_cancel"
           android:title="@string/menu_action_cancel"
           android:icon="@drawable/ic_action_clear_white"
-          thanksmister:showAsAction="always"/>
+          thanksmister:showAsAction="ifRoom"/>
 
     <item android:id="@+id/action_save"
           android:title="@string/menu_action_save"
           android:icon="@drawable/ic_action_done_white"
-          thanksmister:showAsAction="always"/>
+          thanksmister:showAsAction="ifRoom"/>
 
 </menu>

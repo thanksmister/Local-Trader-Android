@@ -24,7 +24,8 @@
         <!-- Use the Toolbar instead of the ActionBar
       (new in API 21 and AppCompat). -->
         <item name="windowActionBar">false</item>
-
+        <item name="windowNoTitle">true</item>
+       
         <!-- colorPrimary is used, for instance, for the default ActionBar
              (but not Toolbar) background.
               We specify the same color for the toolbar background in 
@@ -37,7 +38,7 @@
 
         <!-- colorAccent is used as the default value for
              colorControlActivated which is used to tint widgets. -->
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/colorAccentDark</item>
 
         <!-- textColorLink is used as the default value for all links -->
         <item name="android:textColorLink">@color/blue</item>

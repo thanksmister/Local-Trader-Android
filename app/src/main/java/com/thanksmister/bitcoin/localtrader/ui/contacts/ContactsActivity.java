@@ -24,6 +24,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -127,11 +128,16 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
-        list.setOnItemClickListener((adapterView, view, i, l) -> {
-            Contact contact = (Contact) adapterView.getAdapter().getItem(i);
-            getContact(contact);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                Contact contact = (Contact) adapterView.getAdapter().getItem(i);
+                getContact(contact);
+            }
         });
-
+     
         adapter = new AdvertisementAdapter.ContactAdapter(this);
         setAdapter(getAdapter());
         
@@ -226,22 +232,22 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                 switch (menuItem.getItemId()) {
                     case R.id.action_active:
                         showProgress();
-                        setContacts(new ArrayList<>());
+                        setContacts(new ArrayList<Contact>());
                         updateData(DashboardType.ACTIVE);
                         return true;
                     case R.id.action_canceled:
                         showProgress();
-                        setContacts(new ArrayList<>());
+                        setContacts(new ArrayList<Contact>());
                         updateData(DashboardType.CANCELED);
                         return true;
                     case R.id.action_closed:
                         showProgress();
-                        setContacts(new ArrayList<>());
+                        setContacts(new ArrayList<Contact>());
                         updateData(DashboardType.CLOSED);
                         return true;
                     case R.id.action_released:
                         showProgress();
-                        setContacts(new ArrayList<>());
+                        setContacts(new ArrayList<Contact>());
                         updateData(DashboardType.RELEASED);
                         return true;
                 }
@@ -273,8 +279,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             {
                 if(dashboardType == DashboardType.ACTIVE) {
                     ArrayList<Contact> contacts = new ArrayList<Contact>();
-                    for (ContactItem item : contactItems)
-                    {
+                    for (ContactItem item : contactItems) {
                         Contact contact = new Contact();
                         contacts.add(contact.convertContentItemToContact(item));
                     }
@@ -290,8 +295,10 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         });
     }
 
-    public void updateData(DashboardType dashboardType)
+    public void updateData(final DashboardType dashboardType)
     {
+        Timber.d("Update Data: " + dashboardType.name());
+        
         this.dashboardType = dashboardType;
 
         setTitle(dashboardType);
@@ -302,16 +309,18 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             @Override
             public void call(List<Contact> contacts)
             {
+                Timber.d("Update Data Contacts: " + contacts.size());
+                
                 onRefreshStop();
-                
-                if(dashboardType == DashboardType.ACTIVE) {
-                    dbManager.updateContacts(contacts); //update contacts and messages if active 
-                }
-                
+         
                 if(contacts.isEmpty()) {
                     showError(getString(R.string.error_no_trade_data));
                 } else {
-                    setContacts(contacts); 
+                    if(dashboardType == DashboardType.ACTIVE) {
+                        updateContacts(contacts);
+                    } else {
+                        setContacts(contacts);
+                    }
                 }
             }
         }, new Action1<Throwable>()
@@ -319,22 +328,30 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             @Override
             public void call(Throwable throwable)
             {
-                onRefreshStop();
+                Timber.d("Update Data Error: " + throwable.getLocalizedMessage());
                 
-                handleError(throwable);
+                onRefreshStop();
 
                 showError(getString(R.string.error_no_trade_data));
+                
+                handleError(throwable);
             }
         });
     }
+    
+    private void updateContacts(List<Contact> contacts)
+    {
+        dbManager.updateContacts(contacts); //update contacts and messages if active 
+        setContacts(contacts);
+    }
 
-    public void getContact(final Contact contact)
+    private void getContact(final Contact contact)
     {
         Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id, dashboardType);
         startActivity(intent);
     }
 
-    public void setContacts(List<Contact> contacts)
+    private void setContacts(List<Contact> contacts)
     {
         getAdapter().replaceWith(contacts);
     }

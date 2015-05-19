@@ -22,7 +22,7 @@
     <item android:id="@+id/action_filter_trades"
           android:title="@string/menu_action_filter"
           android:icon="@drawable/ic_action_content_filter_list"
-          thanksmister:showAsAction="always">
+          thanksmister:showAsAction="ifRoom">
         
         <menu>
             <item android:id="@+id/action_active"

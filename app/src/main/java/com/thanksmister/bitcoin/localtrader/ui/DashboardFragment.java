@@ -17,7 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -27,6 +26,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
@@ -208,7 +208,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     public DashboardFragment()
     {
-        //setRetainInstance(true);
+        setRetainInstance(true);
         setHasOptionsMenu(true);
     }
 
@@ -257,14 +257,23 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         setAdvertisementAdapter(advertisementAdapter);
         setContactAdapter(contactAdapter);
 
-        contactsList.setOnItemClickListener((adapterView, view, position, l) -> {
-            ContactItem contact = (ContactItem) contactsList.getItemAtPosition(position);
-            showContact(contact);
+        contactsList.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                ContactItem contact = (ContactItem) contactsList.getItemAtPosition(i);
+                showContact(contact);
+            }
         });
-
-        advertisementList.setOnItemClickListener((adapterView, view, position, l) -> {
-            AdvertisementItem advertisement = (AdvertisementItem) advertisementList.getItemAtPosition(position);
-            showAdvertisement(advertisement);
+        advertisementList.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                AdvertisementItem advertisement = (AdvertisementItem) advertisementList.getItemAtPosition(i);
+                showAdvertisement(advertisement); 
+            }
         });
     }
 

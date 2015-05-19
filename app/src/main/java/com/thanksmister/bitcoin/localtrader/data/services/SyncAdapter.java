@@ -229,7 +229,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
     }
 
-    private void updateWalletBalance(Wallet wallet)
+    private void updateWalletBalance(final Wallet wallet)
     {
         Observable<WalletItem> walletObservable = dbManager.walletQuery();
         walletObservable
@@ -330,7 +330,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .flatMap(new Func1<SessionItem, Observable<Wallet>>()
                 {
                     @Override
-                    public Observable<Wallet> call(SessionItem sessionItem)
+                    public Observable<Wallet> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
 
@@ -341,7 +341,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                 .flatMap(new Func1<Wallet, Observable<Wallet>>()
                                 {
                                     @Override
-                                    public Observable<Wallet> call(Wallet wallet)
+                                    public Observable<Wallet> call(final Wallet wallet)
                                     {
                                         return generateBitmap(wallet.address.address)
                                                 .map(new Func1<Bitmap, Wallet>()
@@ -366,26 +366,32 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
+    // TODO move this to util as its used in other locations
     private Observable<Bitmap> generateBitmap(final String address)
     {
-        return Observable.create((Subscriber<? super Bitmap> subscriber) -> {
-            try {
-                subscriber.onNext(WalletUtils.encodeAsBitmap(address, getContext()));
-                subscriber.onCompleted();
-            } catch (Exception e) {
-                subscriber.onError(e);
+        return Observable.create(new Observable.OnSubscribe<Bitmap>()
+        {
+            @Override
+            public void call(Subscriber<? super Bitmap> subscriber)
+            {
+                try {
+                    subscriber.onNext(WalletUtils.encodeAsBitmap(address, getContext()));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
             }
         });
     }
     
-    private Observable<List<Contact>> getContactInfo(List<Contact> contacts)
+    private Observable<List<Contact>> getContactInfo(final List<Contact> contacts)
     {
-        List<Contact> contactList = Collections.emptyList();
+        final List<Contact> contactList = Collections.emptyList();
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<List<Contact>>>()
                 {
                     @Override
-                    public Observable<List<Contact>> call(SessionItem sessionItem)
+                    public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if(sessionItem == null) return null;
 
@@ -424,7 +430,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .flatMap(new Func1<SessionItem, Observable<List<Contact>>>()
                 {
                     @Override
-                    public Observable<List<Contact>> call(SessionItem sessionItem)
+                    public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
 

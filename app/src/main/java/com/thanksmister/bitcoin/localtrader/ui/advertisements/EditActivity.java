@@ -188,11 +188,17 @@ public class EditActivity extends BaseActivity
     @InjectView(R.id.typeSpinner)
     Spinner typeSpinner;
 
-    @InjectView(android.R.id.progress)
+    @InjectView(R.id.editProgress)
     View progress;
     
     @InjectView(R.id.editContent)
     View content;
+
+    @InjectView(R.id.editEmpty)
+    View empty;
+
+    @InjectView(R.id.emptyTextView)
+    TextView emptyTextView;
 
     @OnClick(R.id.clearButton)
     public void clearButtonClicked()
@@ -305,15 +311,19 @@ public class EditActivity extends BaseActivity
             {
             }
         });
-
-        editLocation.setOnItemClickListener((parent, view, position, id) -> {
-            //presenter.stopLocationCheck();
-            Address address1 = predictAdapter.getItem(position);
-            showMapLayout();
-            setAddress(address1);
-            editLocation.setText("");
+        
+        editLocation.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                Address address1 = predictAdapter.getItem(i);
+                showMapLayout();
+                setAddress(address1);
+                editLocation.setText("");
+            }
         });
-
+        
         editLocation.addTextChangedListener(new TextWatcher()
         {
             @Override
@@ -355,15 +365,12 @@ public class EditActivity extends BaseActivity
             }
         });
 
-        predictAdapter = new PredictAdapter(this, Collections.emptyList());
+        predictAdapter = new PredictAdapter(EditActivity.this, new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
         methodObservable = bindActivity(this, dbManager.methodQuery().cache());
         currencyObservable = bindActivity(this, dataService.getCurrencies().cache());
         advertisementItemObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
-        
-        if(create)
-            startLocationCheck();
     }
 
     @Override
@@ -386,13 +393,13 @@ public class EditActivity extends BaseActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public void addToolbarView(Toolbar toolbar)
+    /*public void addToolbarView(Toolbar toolbar)
     {
         View container = LayoutInflater.from(this).inflate(R.layout.actionbar_custom_view_done_discard, toolbar, false);
         Toolbar.LayoutParams layoutParams = new Toolbar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.BOTTOM;
         toolbar.addView(container, layoutParams);
-    }
+    }*/
 
     public void setToolBarMenu(Toolbar toolbar)
     {
@@ -429,7 +436,18 @@ public class EditActivity extends BaseActivity
     {
         super.onResume();
 
-        subScribeData();
+        if(create) {
+
+            if (geoLocationService.isGooglePlayServicesAvailable()) {
+                subScribeData();
+            } 
+
+            startLocationCheck();
+            
+        }  else {
+            subScribeData();
+        }
+
     }
 
     @Override
@@ -462,9 +480,9 @@ public class EditActivity extends BaseActivity
                 @Override
                 public void call(List<Currency> currencies)
                 {
+                    hideProgress();
                     setCurrencies(currencies, null);
                     createAdvertisement();
-                    hideProgress();
                 }
             }, new Action1<Throwable>()
             {
@@ -508,30 +526,43 @@ public class EditActivity extends BaseActivity
         }
     }
 
-    public void showProgress()
+    private void showError(String message)
     {
+        Timber.e("Show Error: " + message);
+
+        progress.setVisibility(View.GONE);
+        content.setVisibility(View.GONE);
+
+        empty.setVisibility(View.VISIBLE);
+        emptyTextView.setText(message);
+    }
+
+    private void showProgress()
+    {
+        empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         content.setVisibility(View.GONE);
     }
 
-    public void hideProgress()
+    private void hideProgress()
     {
+        empty.setVisibility(View.GONE);
         content.setVisibility(View.VISIBLE);
         progress.setVisibility(View.GONE);
     }
 
-    public void setTradeType(TradeType tradeType)
+    private void setTradeType(TradeType tradeType)
     {
         typeSpinner.setSelection(tradeType.ordinal());
     }
-    
-    public void setMethods(List<MethodItem> methods)
+
+    private void setMethods(List<MethodItem> methods)
     {
         MethodAdapter typeAdapter = new MethodAdapter(this, R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
     }
-    
-    public void setCurrencies(List<Currency> currencies, AdvertisementItem advertisement)
+
+    private void setCurrencies(List<Currency> currencies, AdvertisementItem advertisement)
     {
         CurrencyAdapter typeAdapter = new CurrencyAdapter(this, R.layout.spinner_layout, currencies);
         currencySpinner.setAdapter(typeAdapter);
@@ -565,8 +596,6 @@ public class EditActivity extends BaseActivity
 
     private void setAdvertisement(AdvertisementItem advertisement)
     {
-        Timber.d("Country Code: " + advertisement.country_code());
-        
         currentLocation.setText(advertisement.location_string());
   
         liquidityCheckBox.setChecked(advertisement.track_max_amount());
@@ -645,6 +674,10 @@ public class EditActivity extends BaseActivity
     
     public void validateChangesAndSend()
     {
+        if (create && !geoLocationService.isGooglePlayServicesAvailable()) {
+            return;
+        }
+        
         Advertisement advertisement = new Advertisement(); // used to store values 
         
         String min = editMinimumAmount.getText().toString();
@@ -761,7 +794,7 @@ public class EditActivity extends BaseActivity
         }
 
         if(hasLocationServices()) {
-            
+
             geoLocationService.start();
             
             geoLocalSubscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
@@ -800,13 +833,15 @@ public class EditActivity extends BaseActivity
 
     private void missingGooglePlayServices()
     {
+        if(create){
+            showError(getString(R.string.error_no_play_services));
+        }
+        
         createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
     }
 
     public void createAlert(String title, String message, final boolean googlePlay)
     {
-        //showError(getString(R.string.error_no_play_services)); TODO remind me that we may need this
-        
         int positiveButton = (googlePlay)? R.string.button_install:R.string.button_enable;
         ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(positiveButton), getString(R.string.button_cancel), new Action0() {
             @Override
@@ -859,7 +894,7 @@ public class EditActivity extends BaseActivity
         });
     }
 
-    public void updateAdvertisement(Advertisement advertisement, Boolean create)
+    public void updateAdvertisement(final Advertisement advertisement, final Boolean create)
     {
         if(create) {
 

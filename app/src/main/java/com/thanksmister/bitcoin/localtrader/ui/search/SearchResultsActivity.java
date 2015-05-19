@@ -25,6 +25,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -134,11 +135,16 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             getSupportActionBar().setTitle(getHeader(tradeType));
         }
 
-        list.setOnItemClickListener((adapterView, view, i, l) -> {
-            Advertisement advertisement = (Advertisement) adapterView.getAdapter().getItem(i);
-            showAdvertiser(advertisement);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                Advertisement advertisement = (Advertisement) adapterView.getAdapter().getItem(i);
+                showAdvertiser(advertisement); 
+            }
         });
-
+  
         adapter = new AdvertiseAdapter(this);
         setAdapter(adapter);
 
@@ -255,7 +261,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             methodObservable.subscribe(new Action1<List<MethodItem>>()
             {
                 @Override
-                public void call(List<MethodItem> methodItems)
+                public void call(final List<MethodItem> methodItems)
                 {
                     MethodItem method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
                     advertisementsObservable = bindActivity(SearchResultsActivity.this, geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method));

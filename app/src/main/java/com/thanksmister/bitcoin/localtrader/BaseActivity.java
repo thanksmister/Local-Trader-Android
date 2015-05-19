@@ -171,7 +171,7 @@ public abstract class BaseActivity extends ActionBarActivity
         finish();
     }
 
-    public void showConfirmationDialog(ConfirmationDialogEvent event)
+    public void showConfirmationDialog(final ConfirmationDialogEvent event)
     {
         new MaterialDialog.Builder(this)
                 .callback(new MaterialDialog.SimpleCallback() {

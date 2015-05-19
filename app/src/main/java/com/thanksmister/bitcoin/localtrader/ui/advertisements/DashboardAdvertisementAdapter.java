@@ -34,7 +34,7 @@ public class DashboardAdvertisementAdapter extends AdvertisementAdapter
     }
 
     @Override
-    public View getView(final int position, View view, ViewGroup parent)
+    public View getView(final int position, View view, final ViewGroup parent)
     {
         ViewHolder holder;
         if (view != null) {

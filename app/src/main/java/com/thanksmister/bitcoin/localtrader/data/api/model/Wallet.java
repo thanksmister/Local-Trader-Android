@@ -58,24 +58,27 @@ public class Wallet
             transactions.addAll(receiving_transactions);
         }
         
-        Collections.sort(transactions, sortByDate);
+        Collections.sort(transactions, new Comparator<Transaction>()
+        {
+            @Override
+            public int compare(Transaction t1, Transaction t2)
+            {
+                Date d1 = null;
+                Date d2 = null;
+                try {
+                    d1 = (ISO8601.toCalendar(t1.created_at).getTime());
+                    d2 = (ISO8601.toCalendar(t2.created_at).getTime());
+                } catch (java.text.ParseException e) {
+                    e.printStackTrace();
+                }
+
+                if(d1 == null || d2 == null)
+                    return -1;
+
+                return (d1.getTime() > d2.getTime() ? -1 : 1);     //descending
+            }
+        });
         
         return  transactions;
     }
-
-    static final Comparator<Transaction> sortByDate = (ord1, ord2) -> {
-        Date d1 = null;
-        Date d2 = null;
-        try {
-            d1 = (ISO8601.toCalendar(ord1.created_at).getTime());
-            d2 = (ISO8601.toCalendar(ord2.created_at).getTime());
-        } catch (java.text.ParseException e) {
-            e.printStackTrace();
-        }
-
-        if(d1 == null || d2 == null)
-            return -1;
-
-        return (d1.getTime() > d2.getTime() ? -1 : 1);     //descending
-    };
 }
