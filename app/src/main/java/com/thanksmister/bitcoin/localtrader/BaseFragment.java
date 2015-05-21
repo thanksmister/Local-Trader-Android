@@ -22,6 +22,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.zxing.android.IntentIntegrator;
+import com.squareup.leakcanary.RefWatcher;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 
 import butterknife.ButterKnife;
@@ -48,12 +50,25 @@ public abstract class BaseFragment extends DialogFragment
         ButterKnife.inject(this, view);
     }
 
+    @Override public void onDestroy() 
+    {
+        super.onDestroy();
+        RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
+        refWatcher.watch(this);
+    }
+
     public Toolbar getToolbar()
     {
         if (toolbar == null) {
             throw new RuntimeException("Toolbar has not been set.  Make sure not to call getToolbar() until onViewCreated() at the earliest.");
         }
         return toolbar;
+    }
+
+    public void launchScanner()
+    {
+        IntentIntegrator scanIntegrator = new IntentIntegrator(getActivity());
+        scanIntegrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
     }
     
     protected void reportError(Throwable throwable)

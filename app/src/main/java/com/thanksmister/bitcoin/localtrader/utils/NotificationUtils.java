@@ -94,7 +94,7 @@ public class NotificationUtils
         notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
         
         notificationIntent.putExtra(MainActivity.EXTRA_TYPE, type);
-        if(type == NOTIFICATION_TYPE_CONTACT && contact_id != null) {
+        if(type == NOTIFICATION_TYPE_MESSAGE && contact_id != null) {
             notificationIntent.putExtra(MainActivity.EXTRA_CONTACT, contact_id);
         }
 

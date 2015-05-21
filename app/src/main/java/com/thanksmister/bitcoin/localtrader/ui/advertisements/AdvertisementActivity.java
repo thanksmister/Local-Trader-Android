@@ -124,9 +124,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     private Subscription subscription = Subscriptions.empty();
     private Subscription updateSubscription = Subscriptions.empty();
-    
-    private Observable<AdvertisementItem> advertisementObservable;
-    private Observable<Advertisement> updateAdvertisementObservable;
+
     private Observable<List<MethodItem>> methodObservable;
     private Observable<Boolean> deleteObservable;
     private Observable<Boolean> updateObservable;
@@ -147,9 +145,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         ButterKnife.inject(this);
 
-        if (savedInstanceState == null) {
+        if (savedInstanceState == null && getIntent().hasExtra(EXTRA_AD_ID)) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
-        } else {
+        } else if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_AD_ID)) {
             adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
         
@@ -160,13 +158,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             setToolBarMenu(toolbar);
         }
 
+        Timber.d("Activity Created adID: " + adId);
+        
         methodObservable = bindActivity(this, dbManager.methodQuery().cache());
-        advertisementObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
-        
-        updateAdvertisementObservable = bindActivity(this, dataService.getAdvertisement(adId));
-        deleteObservable = bindActivity(this, dataService.deleteAdvertisement(adId));
-
-        
     }
     
     @Override
@@ -176,14 +170,18 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         outState.putString(EXTRA_AD_ID, adId);
     }
 
-    /*public void onActivityResult(int requestCode, int resultCode, Intent intent)
+    public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
+        Timber.d("Request Code: " + requestCode);
+        Timber.d("Result Code: " + resultCode);
+        
         if(requestCode == EditActivity.REQUEST_CODE) {
             if (resultCode == EditActivity.RESULT_UPDATED) {
-                //presenter.getAdvertisement(adId); // refresh advertisement
+                this.adId = intent.getStringExtra(EXTRA_AD_ID);
+                Timber.d("Result adID: " + adId);
             }
         }
-    }*/
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -284,6 +282,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     protected void subscribeData()
     {
+        Observable<AdvertisementItem> advertisementObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
         subscription = Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, AdvertisementItem, AdvertisementData>()
         {
             @Override
@@ -307,6 +306,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             @Override
             public void call(Throwable throwable)
             {
+                reportError(throwable);
                 showError();
                 toast("Unable to retrieve advertisement data.");
             }
@@ -315,6 +315,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     
     protected void updateData()
     {
+        Observable<Advertisement> updateAdvertisementObservable = bindActivity(this, dataService.getAdvertisement(adId));
         updateSubscription = updateAdvertisementObservable.subscribe(new Action1<Advertisement>()
         {
             @Override
@@ -532,6 +533,6 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     private void editAdvertisement()
     {
         Intent intent = EditActivity.createStartIntent(this, false, adId);
-        startActivity(intent);
+        startActivityForResult(intent, EditActivity.REQUEST_CODE);
     }
 }

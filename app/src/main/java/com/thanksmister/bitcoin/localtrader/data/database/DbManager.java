@@ -16,9 +16,11 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 
 import com.crashlytics.android.Crashlytics;
 import com.squareup.sqlbrite.SqlBrite;
@@ -31,6 +33,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
+import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -203,7 +206,7 @@ public class DbManager
                 String fundUrl = Db.getString(cursor, ContactItem.FUND_URL);
                 boolean isFunded = Db.getBoolean(cursor, ContactItem.IS_FUNDED);
                 String sellerLastSeen = Db.getString(cursor, ContactItem.SELLER_LAST_SEEN);
-
+              
                 Contact match = entryMap.get(contact_id);
 
                 if (match != null) {
@@ -227,7 +230,6 @@ public class DbManager
                             .is_funded(match.is_funded)
                             .fund_url(match.actions.fund_url);
 
-
                     if ((match.payment_completed_at != null && !match.payment_completed_at.equals(payment_complete_at))
                             || (match.closed_at != null && !match.closed_at.equals(closed_at))
                             || (match.disputed_at != null && !match.disputed_at.equals(disputed_at))
@@ -247,14 +249,18 @@ public class DbManager
                             || (match.buyer.last_online != null && !match.buyer.last_online.equals(buyerLastSeen))) {
 
                         int updateInt = db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
-
-                        Timber.d("Update contact in database: " + contact_id);
+                        
+                        Timber.d("Update contact in database: " + updateInt);
 
                     }
                 } else {
                     Timber.d("Delete contact from database: " + contact_id);
-                    // Entry doesn't exist. Remove it from the database.
-                    db.delete(ContactItem.TABLE, String.valueOf(id));
+                    
+                    // Entry doesn't exist. Remove it from the database and its messages
+                    db.delete(ContactItem.TABLE, ContactItem.ID + " = ?", String.valueOf(id));
+                    
+                    db.delete(MessageItem.TABLE, MessageItem.CONTACT_LIST_ID + " = ?", String.valueOf(id));
+                    
                     deletedContacts.add(match);
                 }
             }
@@ -324,10 +330,10 @@ public class DbManager
                         .advertiser_trade_count(item.advertisement.advertiser.trade_count)
                         .advertiser_feedback_score(item.advertisement.advertiser.feedback_score)
                         .advertiser_last_online(item.advertisement.advertiser.last_online);
-
-                Timber.d("Insert contact from database: " + item.contact_id);
-
+                
                 db.insert(ContactItem.TABLE, builder.build());
+                
+                Timber.d("Insert contact from database: " + item.contact_id);
             }
 
             db.setTransactionSuccessful();
@@ -427,8 +433,8 @@ public class DbManager
     {
         try {
             db.beginTransaction();
-            db.delete(ContactItem.QUERY_ITEM, contactId);
-            db.delete(MessageItem.QUERY, contactId);
+            db.delete(ContactItem.TABLE, ContactItem.ID + " = ?", contactId);
+            db.delete(MessageItem.TABLE, MessageItem.CONTACT_LIST_ID + " = ?", contactId);
         } finally {
             db.endTransaction();
         }
@@ -477,7 +483,12 @@ public class DbManager
                     @Override
                     public Observable<? extends List<Message>> call(final Contact contact)
                     {
-                        return Observable.just(updateMessages(contact.messages, contact.contact_id));
+                        if(contact.messages.isEmpty()) {
+                            return Observable.just(new ArrayList<Message>());
+                        } else {
+                            return Observable.just(updateMessages(contact.messages, contact.contact_id));
+                        }
+                        
                     }
                 }).toBlocking().lastOrDefault(newMessages));
     }
@@ -513,7 +524,7 @@ public class DbManager
 
                 } else {
                     // Entry doesn't exist. Remove it from the database.
-                    db.delete(MessageItem.TABLE, String.valueOf(id));
+                    db.delete(MessageItem.TABLE, MessageItem.ID + " = ?", String.valueOf(id));
                 }
             }
 
@@ -595,20 +606,23 @@ public class DbManager
 
     public void updateWallet(Wallet wallet)
     {
+        assert wallet.qrImage != null;
+        
+        Timber.d("Wallet Image: " + wallet.qrImage);
+
+        // TODO This has to be in some type of async
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        
         WalletItem.Builder builder = new WalletItem.Builder()
                 .message(wallet.message)
                 .balance(wallet.total.balance)
                 .sendable(wallet.total.sendable)
                 .address(wallet.address.address)
-                .receivable(wallet.address.received);
-
-        assert wallet.qrImage != null;
-
-        db.beginTransaction();
+                .receivable(wallet.address.received)
+                .qrcode(baos.toByteArray());
         
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        builder.qrcode(baos.toByteArray());
+        db.beginTransaction();
         
         Cursor cursor = db.query(WalletItem.QUERY);
         
@@ -682,7 +696,7 @@ public class DbManager
                     entryMap.remove(key);
                 } else {
                     // Entry doesn't exist. Remove it from the database.
-                    db.delete(MethodItem.TABLE, String.valueOf(id));
+                    db.delete(MethodItem.TABLE, MethodItem.ID + " = ?", String.valueOf(id));
                 }
             }
 
@@ -804,7 +818,7 @@ public class DbManager
                     }
                 } else {
                     // Entry doesn't exist. Remove it from the database.
-                    db.delete(AdvertisementItem.TABLE, String.valueOf(id));
+                    db.delete(AdvertisementItem.TABLE, AdvertisementItem.ID + " = ?", String.valueOf(id));
                 }
             }
 
@@ -857,7 +871,7 @@ public class DbManager
         }
     }
 
-    public void updateAdvertisement(Advertisement advertisement)
+    public Boolean updateAdvertisement(Advertisement advertisement)
     {
         AdvertisementItem.Builder builder = new AdvertisementItem.Builder()
                 .created_at(advertisement.created_at)
@@ -909,6 +923,36 @@ public class DbManager
         } finally {
             db.endTransaction();
             cursor.close();
+        }
+
+        return true;
+    }
+
+    private class QrCodeTask extends AsyncTask<Object, Void, Object[]>
+    {
+        private Context context;
+
+        @Override
+        protected void onPreExecute()
+        {
+            super.onPreExecute();
+        }
+
+        protected Object[] doInBackground(Object... params)
+        {
+            Wallet wallet = (Wallet) params[0];
+            context = (Context) params[1];
+            Bitmap qrCode = null;
+
+            wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address.address, context.getApplicationContext());
+
+            return new Object[]{wallet};
+        }
+
+        protected void onPostExecute(Object[] result)
+        {
+            Wallet wallet = (Wallet) result[0];
+            //updateWalletQrCode(wallet.id, wallet.qrImage, context);
         }
     }
 }

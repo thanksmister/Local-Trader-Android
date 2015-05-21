@@ -65,7 +65,7 @@ public final class DataModule
             File cacheDir = new File(app.getCacheDir(), "http");
             Cache cache = new Cache(cacheDir, DISK_CACHE_SIZE);
             client.setCache(cache);
-        } catch (IOException e) {
+        } catch (Exception e) {
             Timber.e(e, "Unable to install disk cache.");
         }
 

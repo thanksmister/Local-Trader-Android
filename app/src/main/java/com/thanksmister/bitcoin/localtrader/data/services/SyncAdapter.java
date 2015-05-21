@@ -44,6 +44,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
+import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
@@ -74,24 +75,22 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
-    private CompositeSubscription subscriptions = new CompositeSubscription();
-    private Subscription walletSubscription = Subscriptions.empty();
-    private Subscription contactsSubscription = Subscriptions.empty();
-    private Subscription tokensSubscription = Subscriptions.empty();
+    private Subscription walletSubscription;
+    private Subscription contactsSubscription;
+    private Subscription tokensSubscription;
 
     SQLiteOpenHelper dbOpenHelper;
     private LocalBitcoins localBitcoins;
     private DbManager dbManager;
+    private NotificationService notificationService;
     private SharedPreferences sharedPreferences;
-    private StringPreference stringPreference;
-  
+   
     public SyncAdapter(Context context, boolean autoInitialize)
     {
         super(context, autoInitialize);
 
         sharedPreferences = getContext().getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
-        stringPreference = new StringPreference(sharedPreferences, DataService.PREFS_USER);
-
+        notificationService = new NotificationService(context, sharedPreferences);
         localBitcoins = initLocalBitcoins();
         dbOpenHelper = new DbOpenHelper(context.getApplicationContext());
         SqlBrite db = SqlBrite.create(dbOpenHelper);
@@ -101,12 +100,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult)
     {
+        Timber.d("onPerformSync");
+        
         if(dbManager.isLoggedIn()) {
+            
             updateContacts();
-        } else {
-            walletSubscription.unsubscribe();
-            contactsSubscription.unsubscribe();
-            tokensSubscription.unsubscribe();
         }
     }
 
@@ -115,38 +113,45 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         super.onSyncCanceled();
 
-        walletSubscription.unsubscribe();
-        contactsSubscription.unsubscribe();
-        tokensSubscription.unsubscribe();
+        if(walletSubscription != null)
+            walletSubscription.unsubscribe();
+        
+        if(contactsSubscription != null)
+            contactsSubscription.unsubscribe();
+
+        if(tokensSubscription != null)
+            tokensSubscription.unsubscribe();
     }
 
     private void updateContacts()
     {
-        if(!contactsSubscription.isUnsubscribed())
+        if(contactsSubscription != null)
             return;
         
         Timber.d("UpdateContacts");
         
         contactsSubscription = getContactsObservable()
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<List<Contact>>()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<Contact>>()
                 {
                     @Override
                     public void call(List<Contact> items)
                     {
-                        contactsSubscription.unsubscribe();
-                        
-                        saveContactsAndNotify(items);
+                        contactsSubscription = null;
 
-                        updateWalletBalance();
+                        setContactsExpireTime(); // tell system we synced contacts
+
+                        saveContactsAndNotify(items); // notify of any new contacts or messages
+
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(Throwable throwable)
                     {
-                        contactsSubscription.unsubscribe();
-                                
+                        contactsSubscription = null;
+
                         handleError(throwable);
                     }
                 });
@@ -154,7 +159,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void updateWalletBalance()
     {
-        if(!walletSubscription.isUnsubscribed())
+        if(walletSubscription != null)
             return;
         
         Timber.d("UpdateWalletBalance");
@@ -167,7 +172,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Wallet wallet)
                     {
-                        walletSubscription.unsubscribe();
+                        walletSubscription = null;
                         
                         updateWalletBalance(wallet);
                     }
@@ -176,7 +181,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
-                        walletSubscription.unsubscribe();
+                        walletSubscription = null;
                         
                         handleError(throwable);
                     }
@@ -185,7 +190,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void refreshAccessTokens()
     {
-        if(!tokensSubscription.isUnsubscribed())
+        if(tokensSubscription != null)
             return;
 
         Timber.d("RefreshAccessTokens");
@@ -198,8 +203,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Authorization authorization)
                     {
-                        tokensSubscription.unsubscribe();
-                        
+                        tokensSubscription = null;
                         updateTokens(authorization);
                     }
                 }, new Action1<Throwable>()
@@ -207,7 +211,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
-                        tokensSubscription.unsubscribe();
+                        tokensSubscription = null;
                         
                         reportError(throwable);
                     }
@@ -276,6 +280,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void getDeletedContactsInfo(List<Contact> contacts)
     {
+        Timber.e("deleted contacts: " + contacts.size());
+        
         getContactInfo(contacts)
                 .onErrorResumeNext(getContactInfo(contacts))
                 .subscribeOn(Schedulers.newThread())
@@ -284,35 +290,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(List<Contact> contacts) 
                     {
-                        if (contacts.size() > 1) {
-                            
-                            List<Contact> canceled = new ArrayList<Contact>();
-                            List<Contact> released = new ArrayList<Contact>();
-                            for (Contact contact : contacts) {
-                                if(TradeUtils.isCanceledTrade(contact)) {
-                                    canceled.add(contact);
-                                } else if (TradeUtils.isReleased(contact)){
-                                    released.add(contact);
-                                }
-                            }
-                            
-                            if(canceled.size() > 1 && released.size() > 1) {
-                                NotificationUtils.createNotification(getContext(), "Trades canceled or released", "Trades canceled or released...", "Two or more of your trades have been canceled or released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-                            } else if (canceled.size() > 1) {
-                                NotificationUtils.createNotification(getContext(), "Trades canceled", "Trades canceled...", "Two or more of your trades have been canceled.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-                            } else if (canceled.size() > 1) {
-                                NotificationUtils.createNotification(getContext(), "Trades released", "Trades released...", "Two or more of your trades have been released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-                            }
-                        } else {
-                            Contact contact = contacts.get(0);
-                            String contactName = TradeUtils.getContactName(contact);
-                            String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
-                            if (TradeUtils.isCanceledTrade(contact)) {
-                                NotificationUtils.createNotification(getContext(), "Trade Canceled", ("Trade with" + contactName + " canceled."), ("Trade #" + contact.contact_id + saleType + contactName + " has been canceled."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-                            } else if (TradeUtils.isReleased(contact)) {
-                                NotificationUtils.createNotification(getContext(), "Trade Released", ("Trade with" + contactName + " released."), ("Trade #" + contact.contact_id + saleType + contactName + " has been released."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-                            }
-                        }
+                        Timber.e("deleted contacts info: " + contacts.size());
+                        notificationService.contactDeleteNotification(contacts);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -552,69 +531,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private void saveContactsAndNotify(final List<Contact> contacts)
     {
-        TreeMap<String, ArrayList<Contact>> updatedContactList = dbManager.updateContacts(contacts);
-        ArrayList<Contact> updatedContacts = updatedContactList.get(DbManager.UPDATES);
-        Timber.d("updated contacts: " + updatedContacts.size());
-
-        ArrayList<Contact> addedContacts = updatedContactList.get(DbManager.ADDITIONS);
-        Timber.d("added contacts: " + addedContacts.size());
-
-        ArrayList<Contact> deletedContacts = updatedContactList.get(DbManager.DELETIONS);
-        Timber.d("deleted contacts: " + deletedContacts.size());
-
-        if (updatedContacts.size() > 1) {
-            NotificationUtils.createNotification(getContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
-        } else if (updatedContacts.size() == 1) {
-            Contact contact = updatedContacts.get(0);
-            String contactName = TradeUtils.getContactName(contact);
-            String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
-            NotificationUtils.createNotification(getContext(), "Trade Updated", ("The trade with" + contactName + " updated."), ("Trade #" + contact.contact_id + saleType + contactName + " has been updated."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-        }
-
-        // notify user of any new trades
-        if (addedContacts.size() > 1) {
-            NotificationUtils.createNotification(getContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + addedContacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-        } else if (addedContacts.size() == 1) {
-            Contact contact = addedContacts.get(0);
-            String username = TradeUtils.getContactName(contact);
-            String type = (contact.is_buying) ? "sell" : "buy";
-            String location = (TradeUtils.isLocalTrade(contact)) ? "local" : "online";
-            NotificationUtils.createNotification(getContext(), "New trade with " + username, "New " + location + " trade with " + username, "Trade to " + type + " " + contact.amount + " " + contact.currency + " (" + getContext().getString(R.string.btc_symbol) + contact.amount_btc + ")", NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-        }
-
-        // look up deleted trades and find the reason
-        if (deletedContacts.size() > 0) {
-            getDeletedContactsInfo(deletedContacts);
-        }
-
-        updateMessages(contacts);
-    }
-
-    public void updateMessages(List<Contact> contacts)
-    {
-        Observable<List<Message>> observable = dbManager.updateMessagesFromContacts(contacts);
-        observable.subscribe(new Action1<List<Message>>()
+        updateMessages(contacts)
+        .subscribe(new Action1<List<Message>>()
         {
             @Override
             public void call(List<Message> messages)
             {
-                List<Message> newMessages = new ArrayList<Message>();
-                for (Message message : messages) {
-                    boolean isAccountUser = message.sender.username.toLowerCase().equals(stringPreference.get());
-                    if(!isAccountUser) {
-                        newMessages.add(message);
-                    }
-                }
-                
-                if (newMessages.size() > 1) { // if just single arrived
-                    NotificationUtils.createMessageNotification(getContext(), "New Messages", "You have new messages!", "You have " + newMessages.size() + " new trade messages.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-                } else {
-                    if (newMessages.size() > 0) {
-                        Message message = newMessages.get(0);
-                        String username = message.sender.username;
-                        NotificationUtils.createMessageNotification(getContext(), "New message from " + username, "New message from " + username, message.msg, NotificationUtils.NOTIFICATION_TYPE_MESSAGE, message.contact_id);
-                    }
-                }
+                notificationService.messageNotifications(messages);
+
+                updateContacts(contacts);
             }
         }, new Action1<Throwable>()
         {
@@ -624,5 +549,41 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 Timber.e(throwable.getMessage());
             }
         });
+    }
+    
+    private void updateContacts(List<Contact> contacts)
+    {
+        TreeMap<String, ArrayList<Contact>> updatedContactList = dbManager.updateContacts(contacts);
+        ArrayList<Contact> updatedContacts = updatedContactList.get(DbManager.UPDATES);
+        Timber.d("updated contacts: " + updatedContacts.size());
+
+        ArrayList<Contact> addedContacts = updatedContactList.get(DbManager.ADDITIONS);
+        Timber.d("added contacts: " + addedContacts.size());
+
+        ArrayList<Contact> deletedContacts = updatedContactList.get(DbManager.DELETIONS);
+
+        notificationService.contactNewNotification(addedContacts);
+        notificationService.contactUpdateNotification(updatedContacts);
+
+        // look up deleted trades and find the reason
+        if (deletedContacts.size() > 0) {
+            getDeletedContactsInfo(deletedContacts);
+        }
+
+        updateWalletBalance(); // get wallet balance
+    }
+
+    private void setContactsExpireTime()
+    {
+        synchronized (this) {
+            LongPreference preference = new LongPreference(sharedPreferences, DataService.PREFS_CONTACTS_EXPIRE_TIME, -1);
+            long expire = System.currentTimeMillis() + DataService.CHECK_CONTACTS_DATA; // 1 hours
+            preference.set(expire);
+        }
+    }
+
+    public Observable<List<Message>> updateMessages(List<Contact> contacts)
+    {
+        return dbManager.updateMessagesFromContacts(contacts);
     }
 }

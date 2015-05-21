@@ -127,6 +127,7 @@
                                 android:paddingLeft="@dimen/activity_padding"
                                 android:paddingRight="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/activity_padding"
+                                android:textIsSelectable="true"
                                 tools:text="7000 ARS/BTC"
                                 android:singleLine="true"
                                 android:ellipsize="end"/>
@@ -159,6 +160,7 @@
                                 android:paddingLeft="@dimen/activity_padding"
                                 android:paddingRight="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/activity_padding"
+                                android:textIsSelectable="true"
                                 android:gravity="left"
                                 tools:text="1000 - 10000 ARS"
                                 android:singleLine="true"
@@ -198,6 +200,7 @@
                             android:layout_gravity="center_vertical"
                             android:maxLines="2"
                             android:ellipsize="end"
+                            android:textIsSelectable="true"
                             tools:text="bitstampusd*USD_in_XAR*1.015-100"/>
 
                 </LinearLayout>
@@ -273,6 +276,7 @@
                                 android:layout_gravity="center_vertical"
                                 android:maxLines="2"
                                 android:ellipsize="end"
+                                android:textIsSelectable="true"
                                 android:text="National Bank"/>
 
                     </LinearLayout>

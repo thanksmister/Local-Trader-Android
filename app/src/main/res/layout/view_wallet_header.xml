@@ -105,14 +105,6 @@
                 tools:visibility="visible"
                 android:text="@string/wallet_recent_activity_header"/>
 
-        <include
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/walletProgress"
-                layout="@layout/view_progress"
-                android:visibility="visible"
-                tools:visibility="visible"/>
-
         <LinearLayout
                 android:id="@+id/noActivityTextView"
                 android:layout_width="match_parent"

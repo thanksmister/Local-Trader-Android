@@ -273,8 +273,7 @@ public class DataService
             }
         });
     }
-
-
+    
     public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action)
     {
         return getTokens()

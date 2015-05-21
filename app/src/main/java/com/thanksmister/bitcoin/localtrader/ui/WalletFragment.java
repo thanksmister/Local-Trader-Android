@@ -28,6 +28,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.AndroidRuntimeException;
@@ -41,7 +42,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -57,10 +57,7 @@ import com.thanksmister.bitcoin.localtrader.ui.misc.TransactionsAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
-
-import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -71,10 +68,9 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
@@ -109,10 +105,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @OnClick(R.id.walletFloatingButton)
     public void scanButtonClicked()
     {
-        scanQrCode();
+        launchScanner();
     }
-
-    View progress;
+    
     ImageView qrImage;
     AutoResizeTextView addressButton;
     TextView recentTextView;
@@ -133,6 +128,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     }
 
     private WalletData walletData;
+    private Handler handler;
 
     public static WalletFragment newInstance(int sectionNumber)
     {
@@ -154,6 +150,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         super.onCreate(savedInstanceState);
 
+        handler = new Handler();
         walletData = new WalletData();
         walletObservable = bindFragment(this, dbManager.walletQuery());
         exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
@@ -183,7 +180,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         View headerView = getLayoutInflater(savedInstanceState).inflate(R.layout.view_wallet_header, null, false);
         list.addHeaderView(headerView, null, false);
 
-        progress = headerView.findViewById(R.id.walletProgress);
         recentTextView = (TextView) headerView.findViewById(R.id.recentTextView);
         noActivityTextView = headerView.findViewById(R.id.noActivityTextView);
         
@@ -254,8 +250,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     public void onResume() 
     {
         super.onResume();
-        
-        showProgress();
+
+        onRefreshStart();
 
         subscribeData();
         
@@ -270,6 +266,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         subscriptions.unsubscribe();
         subscription.unsubscribe();
         updateSubscription.unsubscribe();
+        handler.removeCallbacks(refreshRunnable);
     }
 
     @Override
@@ -286,9 +283,22 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         updateData();
     }
 
+    public void onRefreshStart()
+    {
+        handler.postDelayed(refreshRunnable, 1000);
+    }
+
+    private Runnable refreshRunnable = new Runnable()
+    {
+        @Override
+        public void run() {
+            swipeLayout.setRefreshing(true);
+        }
+    };
+    
     public void onRefreshStop()
     {
-        hideProgress();
+        handler.removeCallbacks(refreshRunnable);
         swipeLayout.setRefreshing(false);
     }
     
@@ -296,18 +306,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         noActivityTextView.setVisibility(show?View.GONE:View.VISIBLE);
         recentTextView.setVisibility(show?View.VISIBLE:View.GONE);
-    }
-    
-    public void showProgress()
-    {
-        noActivityTextView.setVisibility(View.GONE);
-        recentTextView.setVisibility(View.GONE);
-        progress.setVisibility(View.VISIBLE);
-    }
-
-    public void hideProgress()
-    {
-        progress.setVisibility(View.GONE);
     }
 
     protected void subscribeData()
@@ -347,23 +345,30 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             @Override
             public void call(Wallet wallet)
             {
-                updateWalletBalance(wallet);
-                
-                setTransactions(wallet.getTransactions());
-                
                 onRefreshStop();
                 
+                updateWalletBalance(wallet);
+
+                setTransactions(wallet.getTransactions());
+
             }
         }, new Action1<Throwable>()
         {
             @Override
             public void call(Throwable throwable)
             {
+                onRefreshStop();
+                
                 handleError(throwable);
                 
-                onRefreshStop();
-
                 showActivity(false);
+            }
+        }, new Action0()
+        {
+            @Override
+            public void call()
+            {
+                onRefreshStop();
             }
         });
     }
@@ -375,6 +380,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             public void call(WalletItem walletItem)
             {
                 if(walletItem != null) {
+                    
                     double oldBalance = Doubles.convertToDouble(walletItem.balance());
                     double newBalance = Doubles.convertToDouble(wallet.total.balance);
                     String address = walletItem.address();
@@ -408,18 +414,13 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     public void setWallet(WalletItem wallet, ExchangeItem exchange)
     {
         try {
-            
             Bitmap qrCode = (BitmapFactory.decodeByteArray(wallet.qrcode(), 0, wallet.qrcode().length));
             qrImage.setImageBitmap(qrCode);
-            
-        } catch (NullPointerException e){
-            
-            Timber.e("Null Wallet QRCode");
+        } catch (NullPointerException e){ // as a backup we can generate image on the fly
+            qrImage.setImageBitmap(WalletUtils.encodeAsBitmap(wallet.address(), getActivity()));
         }
-        
-        if(exchange != null) {
 
-            Timber.e("Exchange: " + exchange.exchange());
+        if(exchange != null) {
             
             String btcValue = Calculations.computedValueOfBitcoin(exchange.bid(), exchange.ask(), wallet.balance());
             String btcAmount = Conversions.formatBitcoinAmount(wallet.balance()) + " " + getString(R.string.btc);
@@ -445,11 +446,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     private TransactionsAdapter getAdapter()
     {
         return transactionsAdapter;
-    }
-    
-    public void scanQrCode()
-    {
-       //launchScanner();
     }
     
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

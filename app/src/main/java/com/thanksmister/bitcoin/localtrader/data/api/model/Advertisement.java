@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+
 public class Advertisement
 {
     public String ad_id;
@@ -69,5 +71,50 @@ public class Advertisement
 
     public class Actions {
         public String public_view;
+    }
+
+    public Advertisement convertAdvertisementItemToAdvertisement(AdvertisementItem item)
+    {
+        Advertisement advertisement = new Advertisement();
+        advertisement.ad_id = item.ad_id();
+        advertisement.created_at = item.created_at();
+        advertisement.visible = item.visible();
+        advertisement.email = item.email();
+        advertisement.location = item.location_string();
+        advertisement.country_code = item.country_code();
+        advertisement.city = item.city();
+        advertisement.trade_type = TradeType.valueOf(item.trade_type());
+        advertisement.min_amount = item.min_amount();
+        advertisement.max_amount = item.max_amount();
+        advertisement.max_amount_available = item.max_amount_available();
+        advertisement.price_equation = item.price_equation();
+        advertisement.currency = item.currency();
+        advertisement.account_info = item.account_info();
+        advertisement.message = item.message();
+        advertisement.lat = item.lat();
+        advertisement.lon = item.lon();
+        advertisement.temp_price = item.temp_price();
+        advertisement.temp_price_usd = item.temp_price_usd();
+        advertisement.bank_name = item.bank_name();
+        advertisement.atm_model = item.atm_model();
+        advertisement.track_max_amount = item.track_max_amount();
+        advertisement.sms_verification_required = item.sms_verification_required();
+        advertisement.trusted_required = item.trusted_required();
+        advertisement.online_provider = item.online_provider();
+        advertisement.require_trade_volume = item.require_trade_volume();
+        advertisement.require_feedback_score = item.require_feedback_score();
+        advertisement.reference_type = item.reference_type();
+        
+        // profile
+        advertisement.profile.name = item.profile_name();
+        advertisement.profile.username = item.profile_username();
+        advertisement.profile.last_online = item.profile_last_online();
+        advertisement.profile.trade_count = item.profile_trade_count();
+        advertisement.profile.feedback_score = item.profile_feedback_score();
+        
+        // actions
+        advertisement.actions.public_view = item.action_public_view();
+                
+        return advertisement;
     }
 }

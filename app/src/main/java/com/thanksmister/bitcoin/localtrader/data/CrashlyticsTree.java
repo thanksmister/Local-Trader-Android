@@ -21,6 +21,8 @@
 
 package com.thanksmister.bitcoin.localtrader.data;
 
+import android.util.Log;
+
 import com.crashlytics.android.Crashlytics;
 
 import timber.log.Timber;
@@ -28,7 +30,7 @@ import timber.log.Timber;
 /**
  * A logging implementation which reports 'info', 'warning', and 'error' logs to Crashlytics.
  */
-public class CrashlyticsTree extends Timber.HollowTree
+public class CrashlyticsTree extends Timber.Tree
 {
     @Override
     public void i(String message, Object... args)
@@ -67,6 +69,14 @@ public class CrashlyticsTree extends Timber.HollowTree
     {
         logMessage("ERROR: " + message, args);
         Crashlytics.logException(t);
+    }
+
+    @Override
+    protected void log(int priority, String tag, String message, Throwable t)
+    {
+        if(priority == Log.ERROR) {
+            Crashlytics.log(String.format(message, tag)); 
+        }
     }
 
     private void logMessage(String message, Object... args)

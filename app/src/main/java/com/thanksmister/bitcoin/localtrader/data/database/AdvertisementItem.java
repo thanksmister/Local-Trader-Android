@@ -71,7 +71,7 @@ public abstract class AdvertisementItem
     public static final String TRUSTED_REQUIRED = "trusted_required";
     public static final String TRACK_MAX_AMOUNT = "track_max_amount";
     public static final String SMS_VERIFICATION_REQUIRED = "sms_verification_required";
-//33
+//34
     
     public static final String QUERY = "SELECT * FROM " 
             + AdvertisementItem.TABLE;

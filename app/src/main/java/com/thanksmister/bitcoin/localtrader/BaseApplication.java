@@ -17,10 +17,14 @@
 package com.thanksmister.bitcoin.localtrader;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.crashlytics.android.Crashlytics;
+import com.squareup.leakcanary.LeakCanary;
+import com.squareup.leakcanary.RefWatcher;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
 
+import dagger.ObjectGraph;
 import timber.log.Timber;
 
 public class BaseApplication extends Application
@@ -33,13 +37,20 @@ public class BaseApplication extends Application
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
             //ButterKnife.setDebug(BuildConfig.DEBUG);
-            //LeakCanary.install(this);
+            LeakCanary.install(this);
+            refWatcher = LeakCanary.install(this);
         } else {
             Crashlytics.start(this);
             Timber.plant(new CrashlyticsTree());
         }
 
         Injector.init(this);
-        
     }
+
+    public static RefWatcher getRefWatcher(Context context) {
+        BaseApplication application = (BaseApplication) context.getApplicationContext();
+        return application.refWatcher;
+    }
+
+    private RefWatcher refWatcher;
 }

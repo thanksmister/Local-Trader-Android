@@ -28,6 +28,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbModule;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.domain.DomainModule;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiserActivity;
@@ -68,6 +69,13 @@ public final class ActivityModule
     DataService provideDataService(DbManager db, BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
     {
         return new DataService(db, app, preferences, localBitcoins, bitcoinAverage, bitfinexExchange);
+    }
+
+    @Provides
+    @Singleton
+    NotificationService provideNotificationService(BaseApplication app, SharedPreferences preferences)
+    {
+        return new NotificationService(app, preferences);
     }
 
     @Provides

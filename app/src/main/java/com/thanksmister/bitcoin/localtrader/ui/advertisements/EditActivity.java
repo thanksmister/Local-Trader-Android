@@ -94,6 +94,10 @@ public class EditActivity extends BaseActivity
     public static final String EXTRA_CREATE = "com.thanksmister.extras.EXTRA_CREATE";
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
 
+    public static final int REQUEST_CODE = 10937;
+    public static final int RESULT_UPDATED = 72322;
+    public static final int RESULT_CANCELED = 72321;
+
     @Inject
     DataService dataService;
     
@@ -679,6 +683,7 @@ public class EditActivity extends BaseActivity
         }
         
         Advertisement advertisement = new Advertisement(); // used to store values 
+        advertisement = advertisement.convertAdvertisementItemToAdvertisement(advertisementData.advertisement);
         
         String min = editMinimumAmount.getText().toString();
         String bankName = editBankNameText.getText().toString();
@@ -712,6 +717,7 @@ public class EditActivity extends BaseActivity
         advertisement.max_amount = max;
         advertisement.bank_name = bankName;
         advertisement.message = msg;
+        advertisement.account_info = accountInfo;
 
         advertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
         advertisement.track_max_amount = liquidityCheckBox.isChecked();
@@ -722,24 +728,14 @@ public class EditActivity extends BaseActivity
             return;
         }
   
-        String location = (address != null)? TradeUtils.getAddressShort(address):advertisementData.advertisement.location_string();
-        String city = (address != null)? address.getLocality():advertisementData.advertisement.city();
-        String code = (address != null)? address.getCountryCode():advertisementData.advertisement.country_code();
-        
-        double lon = (address != null)? address.getLongitude():advertisementData.advertisement.lon();
-        double lat = (address != null)? address.getLatitude():advertisementData.advertisement.lat();
+        if(address != null) {
+            advertisement.location = TradeUtils.getAddressShort(address);
+            advertisement.city = address.getLocality();
+            advertisement.country_code = address.getCountryCode();
+            advertisement.lon = address.getLongitude();
+            advertisement.lat = address.getLatitude(); 
+        }
 
-        Timber.d("Address: " + address);
-        Timber.d("Country Code: " + code);
-        Timber.d("Location: " + location);
-
-        advertisement.location = location;
-        advertisement.city = city;
-        advertisement.lon = lon;
-        advertisement.lat = lat;
-        advertisement.country_code = code;
-        advertisement.account_info = accountInfo;
-        
         updateAdvertisement(advertisement, create);
     }
     
@@ -948,11 +944,23 @@ public class EditActivity extends BaseActivity
                 @Override
                 public void onNext(Boolean value)
                 {
-                    toast("Ad changed successfully!");
-                    dbManager.updateAdvertisement(advertisement);
-                    finish();
+                    updateAdvertisement(advertisement);
                 }
             });
+        }
+    }
+    
+    private void updateAdvertisement(Advertisement advertisement)
+    {
+        boolean updated = dbManager.updateAdvertisement(advertisement);
+        
+        if(updated) {
+            hideProgressDialog();
+            toast("Ad changed successfully!");
+            Intent returnIntent = new Intent();
+            returnIntent.putExtra(AdvertisementActivity.EXTRA_AD_ID, adId);
+            setResult(RESULT_UPDATED, returnIntent);
+            finish();
         }
     }
 
