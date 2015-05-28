@@ -53,6 +53,7 @@ public abstract class MessageItem
     public static final String ATTACHMENT_URL  = "attachment_url";
     public static final String ATTACHMENT_TYPE  = "attachment_type";
     
+    
     public static final String QUERY = "SELECT * FROM "
             + MessageItem.TABLE
             + " WHERE "
@@ -60,6 +61,12 @@ public abstract class MessageItem
             + " = ? ORDER BY "
             + MessageItem.CREATED_AT
             + " DESC";
+
+    public static final String SELECT_QUERY = "SELECT * FROM "
+            + MessageItem.TABLE
+            + " WHERE "
+            + MessageItem.CONTACT_LIST_ID
+            + " = ?";
     
     public static final String COUNT_QUERY = "SELECT COUNT(*) FROM "
             + MessageItem.TABLE

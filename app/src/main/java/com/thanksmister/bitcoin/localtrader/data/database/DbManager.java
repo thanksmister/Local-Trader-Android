@@ -162,17 +162,6 @@ public class DbManager
                 });
     }
     
-    /*
-    return Observable.create(new Observable.OnSubscribe<List<Message>>()
-        {
-            @Override
-            public void call(Subscriber<? super List<Message>> subscriber)
-            {
-               
-                subscriber.onNext(newMessages);
-            }
-        })
-     */
 
     public TreeMap<String, ArrayList<Contact>> updateContacts(List<Contact> contacts)
     {
@@ -192,7 +181,7 @@ public class DbManager
 
         try {
             while (cursor.moveToNext()) {
-
+                
                 long id = Db.getLong(cursor, ContactItem.ID);
                 String contact_id = Db.getString(cursor, ContactItem.CONTACT_ID);
                 String payment_complete_at = Db.getString(cursor, ContactItem.PAYMENT_COMPLETED_AT);
@@ -208,7 +197,7 @@ public class DbManager
                 String sellerLastSeen = Db.getString(cursor, ContactItem.SELLER_LAST_SEEN);
               
                 Contact match = entryMap.get(contact_id);
-
+                
                 if (match != null) {
 
                     entryMap.remove(contact_id);
@@ -243,23 +232,31 @@ public class DbManager
                         int updateInt = db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
 
                         if (updateInt > 0) {
+                            
+                            Timber.d("Update contact in database: " + updateInt);
                             updatedContacts.add(match);
                         }
+                        
                     } else if ((match.seller.last_online != null && !match.seller.last_online.equals(sellerLastSeen)) // update without notification
                             || (match.buyer.last_online != null && !match.buyer.last_online.equals(buyerLastSeen))) {
 
                         int updateInt = db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
                         
-                        Timber.d("Update contact in database: " + updateInt);
+                        Timber.d("Update contact in database but not signal update status: " + updateInt);
 
                     }
                 } else {
-                    Timber.d("Delete contact from database: " + contact_id);
+                    
+                    Timber.d("Delete the fucking contact from database: " + contact_id);
                     
                     // Entry doesn't exist. Remove it from the database and its messages
-                    db.delete(ContactItem.TABLE, ContactItem.ID + " = ?", String.valueOf(id));
-                    
-                    db.delete(MessageItem.TABLE, MessageItem.CONTACT_LIST_ID + " = ?", String.valueOf(id));
+                    int deleteInt = db.delete(ContactItem.TABLE, ContactItem.ID + " = ?", String.valueOf(id));
+
+                    Timber.d("Deleted contact: " + deleteInt);
+
+                    int messagesInt = db.delete(MessageItem.TABLE, MessageItem.CONTACT_LIST_ID + " = ?", String.valueOf(id));
+
+                    Timber.d("Deleted messages: " + messagesInt);
                     
                     deletedContacts.add(match);
                 }
@@ -352,7 +349,6 @@ public class DbManager
 
     public void updateContact(Contact contact)
     {
-
         ContactItem.Builder builder = new ContactItem.Builder()
                 .contact_id(contact.contact_id)
                 .created_at(contact.created_at)
@@ -417,7 +413,7 @@ public class DbManager
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 long id = Db.getLong(cursor, ContactItem.ID);
-                db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", Long.toString(id));
+                db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
             } else {
                 db.insert(ContactItem.TABLE, builder.build());
             }
@@ -486,7 +482,9 @@ public class DbManager
                         if(contact.messages.isEmpty()) {
                             return Observable.just(new ArrayList<Message>());
                         } else {
-                            return Observable.just(updateMessages(contact.messages, contact.contact_id));
+                            List<Message> messages = updateMessages(contact.messages, contact.contact_id);
+                            newMessages.addAll(messages);
+                            return Observable.just(newMessages);
                         }
                         
                     }
@@ -497,6 +495,7 @@ public class DbManager
     {
         ArrayList<Message> newMessages = new ArrayList<Message>();
         HashMap<String, Message> entryMap = new HashMap<String, Message>();
+        
         for (Message message : messages) {
             message.contact_id = contactId;
             entryMap.put(message.created_at, message);
@@ -504,24 +503,29 @@ public class DbManager
 
         db.beginTransaction();
         
-        Cursor cursor = db.query(MessageItem.QUERY, String.valueOf(contactId));
-
+        Cursor cursor = db.query(MessageItem.SELECT_QUERY, String.valueOf(contactId));
+  
         try {
+            
             while (cursor.moveToNext()) {
 
                 long id = Db.getLong(cursor, MessageItem.ID);
                 String createdAt = Db.getString(cursor, MessageItem.CREATED_AT);
+                boolean seen = Db.getBoolean(cursor, MessageItem.SEEN);
                 Message match = entryMap.get(createdAt);
 
                 if (match != null) {
                     // Entry exists. Do not update message
                     entryMap.remove(createdAt);
 
-                    MessageItem.Builder builder = new MessageItem.Builder()
-                            .seen(true);
+                    if(seen != match.seen) {
+                        
+                        MessageItem.Builder builder = new MessageItem.Builder()
+                                .seen(true);
 
-                    db.update(MessageItem.TABLE, builder.build(), MessageItem.ID + " = ?", String.valueOf(id));
-
+                        db.update(MessageItem.TABLE, builder.build(), MessageItem.ID + " = ?", String.valueOf(id));
+                    }
+  
                 } else {
                     // Entry doesn't exist. Remove it from the database.
                     db.delete(MessageItem.TABLE, MessageItem.ID + " = ?", String.valueOf(id));
@@ -532,7 +536,6 @@ public class DbManager
             for (Message item : entryMap.values()) {
 
                 MessageItem.Builder builder = new MessageItem.Builder()
-
                         .contact_list_id(Long.parseLong(item.contact_id))
                         .message(item.msg)
                         .seen(true)
@@ -551,15 +554,15 @@ public class DbManager
 
                 newMessages.add(item);
             }
-            
-            db.setTransactionSuccessful();
 
+            db.setTransactionSuccessful();
+            
         } finally {
+            
             db.endTransaction();
             cursor.close();
         }
         
-
         return newMessages;
     }
     
@@ -628,9 +631,22 @@ public class DbManager
         
         try {
             if (cursor.getCount() > 0) {
+                
                 cursor.moveToFirst();
+
                 long id = Db.getLong(cursor, WalletItem.ID);
-                db.update(WalletItem.TABLE, builder.build(), WalletItem.ID + " = ?", String.valueOf(id));
+                String address = Db.getString(cursor, WalletItem.ADDRESS);
+                String balance = Db.getString(cursor, WalletItem.BALANCE);
+                String received = Db.getString(cursor, WalletItem.RECEIVABLE);
+                
+                if(!address.equals(wallet.address.address) 
+                        || !balance.equals(wallet.total.balance)
+                        || !received.equals(wallet.address.received)
+                        || !balance.equals(wallet.total.sendable )) {
+                    
+                    db.update(WalletItem.TABLE, builder.build(), WalletItem.ID + " = ?", String.valueOf(id)); 
+                }
+ 
             } else {
                 db.insert(WalletItem.TABLE, builder.build());
             }
@@ -915,7 +931,7 @@ public class DbManager
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
                 long id = Db.getLong(cursor, AdvertisementItem.ID);
-                db.update(AdvertisementItem.TABLE, builder.build(), AdvertisementItem.ID + " = ?", Long.toString(id));
+                db.update(AdvertisementItem.TABLE, builder.build(), AdvertisementItem.ID + " = ?", String.valueOf(id));
             } else {
                 db.insert(AdvertisementItem.TABLE, builder.build());
             }

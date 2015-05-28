@@ -50,11 +50,15 @@ public abstract class BaseFragment extends DialogFragment
         ButterKnife.inject(this, view);
     }
 
-    @Override public void onDestroy() 
+    @Override 
+    public void onDestroy() 
     {
         super.onDestroy();
-        RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
-        refWatcher.watch(this);
+        
+        if (BuildConfig.DEBUG) {
+            RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
+            refWatcher.watch(this);
+        }
     }
 
     public Toolbar getToolbar()

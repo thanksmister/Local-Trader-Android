@@ -554,6 +554,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     private void updateContacts(List<Contact> contacts)
     {
         TreeMap<String, ArrayList<Contact>> updatedContactList = dbManager.updateContacts(contacts);
+        
         ArrayList<Contact> updatedContacts = updatedContactList.get(DbManager.UPDATES);
         Timber.d("updated contacts: " + updatedContacts.size());
 

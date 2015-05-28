@@ -456,6 +456,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(Throwable throwable)
             {
                 Timber.e("Methods Error");
+
+                onRefreshStop();
+                
                 reportError(throwable);
             }
         }));
@@ -472,6 +475,10 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Throwable throwable)
             {
+                Timber.e("Exchange Error");
+                
+                onRefreshStop();
+                
                 handleError(throwable);
             }
         }));
@@ -507,6 +514,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Throwable throwable)
             {
+                Timber.e("Advertisement Error");
+                
                 onRefreshStop();
                 
                 handleError(throwable);
@@ -539,8 +548,14 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     // update messages from contacts
     private void updateMessages(final List<Contact> contacts)
     {
-        if(contacts.size() > 0) {
-            messageSubscriptions = dbManager.updateMessagesFromContacts(contacts).subscribe(new Action1<List<Message>>()
+        ArrayList<Contact> messageContacts = new ArrayList<>();
+        for (Contact contact : contacts) {
+            if(!contact.messages.isEmpty()) {
+                messageContacts.add(contact);
+            }
+        }
+        if(!messageContacts.isEmpty()) {
+            messageSubscriptions = dbManager.updateMessagesFromContacts(messageContacts).subscribe(new Action1<List<Message>>()
             {
                 @Override
                 public void call(List<Message> messages)
@@ -555,7 +570,10 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 public void call(Throwable throwable)
                 {
                     Timber.e("Messages Error");
+
                     reportError(throwable);
+
+                    updateContacts(contacts);
                 }
             });
         }
@@ -563,22 +581,27 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     private void updateContacts(List<Contact> contacts)
     {
-        TreeMap<String, ArrayList<Contact>> updatedContactList = dbManager.updateContacts(contacts);
-        
-        ArrayList<Contact> updatedContacts = updatedContactList.get(DbManager.UPDATES);
-        Timber.d("updated contacts: " + updatedContacts.size());
-
-        notificationService.contactUpdateNotification(updatedContacts);
-
-        ArrayList<Contact> addedContacts = updatedContactList.get(DbManager.ADDITIONS);
-        Timber.d("added contacts: " + addedContacts.size());
-
-        notificationService.contactNewNotification(addedContacts);
-
-        ArrayList<Contact> deletedContacts = updatedContactList.get(DbManager.DELETIONS);
-        Timber.d("deleted contacts: " + deletedContacts.size());
-
-        notificationService.contactDeleteNotification(deletedContacts);
+        if (!contacts.isEmpty()) {
+            
+            TreeMap<String, ArrayList<Contact>> updatedContactList = dbManager.updateContacts(contacts);
+            
+            ArrayList<Contact> updatedContacts = updatedContactList.get(DbManager.UPDATES);
+            if(!updatedContacts.isEmpty()) {
+                Timber.d("updated contacts: " + updatedContacts.size());
+                notificationService.contactUpdateNotification(updatedContacts);
+            }
+            
+            ArrayList<Contact> addedContacts = updatedContactList.get(DbManager.ADDITIONS);
+            if(!addedContacts.isEmpty()) {
+                Timber.d("added contacts: " + addedContacts.size());
+                notificationService.contactNewNotification(addedContacts);
+            }
+            ArrayList<Contact> deletedContacts = updatedContactList.get(DbManager.DELETIONS);
+            if (!deletedContacts.isEmpty()) {
+                Timber.d("deleted contacts: " + deletedContacts.size());
+                notificationService.contactDeleteNotification(deletedContacts);
+            }
+        }
     }
 
     protected void setMarketValue(String exchange, String value)

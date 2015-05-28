@@ -414,10 +414,12 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     public void setWallet(WalletItem wallet, ExchangeItem exchange)
     {
         try {
+            //Timber.e("qrcode data length: " + wallet.qrcode().length);
             Bitmap qrCode = (BitmapFactory.decodeByteArray(wallet.qrcode(), 0, wallet.qrcode().length));
             qrImage.setImageBitmap(qrCode);
-        } catch (NullPointerException e){ // as a backup we can generate image on the fly
-            qrImage.setImageBitmap(WalletUtils.encodeAsBitmap(wallet.address(), getActivity()));
+        } catch (NullPointerException e){
+            Timber.e("Error reading wallet qrcode data: " + e.getLocalizedMessage());
+            //qrImage.setImageBitmap(WalletUtils.encodeAsBitmap(wallet.address(), getActivity()));
         }
 
         if(exchange != null) {

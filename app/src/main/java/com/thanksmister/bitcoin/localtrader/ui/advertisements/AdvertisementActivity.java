@@ -41,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -107,12 +108,15 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     @InjectView(R.id.advertisementProgress)
     View progress;
 
-    @InjectView(R.id.advertisementMainView)
+    @InjectView(R.id.advertisementContent)
     View content;
 
     @InjectView(R.id.advertisementToolBar)
     Toolbar toolbar;
-    
+
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
+
     private String adId;
     private Menu menu;
     private AdvertisementData advertisementData;
@@ -126,9 +130,10 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     private Subscription updateSubscription = Subscriptions.empty();
 
     private Observable<List<MethodItem>> methodObservable;
+    private Observable<AdvertisementItem> advertisementObservable;
+    private Observable<Advertisement> updateAdvertisementObservable;
     private Observable<Boolean> deleteObservable;
-    private Observable<Boolean> updateObservable;
-
+   
     public static Intent createStartIntent(Context context, String adId)
     {
         Intent intent = new Intent(context, AdvertisementActivity.class);
@@ -161,6 +166,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         Timber.d("Activity Created adID: " + adId);
         
         methodObservable = bindActivity(this, dbManager.methodQuery().cache());
+        advertisementObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
+        updateAdvertisementObservable = bindActivity(this, dataService.getAdvertisement(adId));
     }
     
     @Override
@@ -172,13 +179,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
-        Timber.d("Request Code: " + requestCode);
-        Timber.d("Result Code: " + resultCode);
-        
         if(requestCode == EditActivity.REQUEST_CODE) {
             if (resultCode == EditActivity.RESULT_UPDATED) {
                 this.adId = intent.getStringExtra(EXTRA_AD_ID);
-                Timber.d("Result adID: " + adId);
             }
         }
     }
@@ -209,6 +212,22 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     public void onRefresh()
     {
         updateData();
+    }
+
+    public void onRefreshStart()
+    {
+        hideProgress();
+
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
+
+    public void onRefreshStop()
+    {
+        hideProgress();
+
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
     }
 
     @Override
@@ -282,7 +301,6 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     protected void subscribeData()
     {
-        Observable<AdvertisementItem> advertisementObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
         subscription = Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, AdvertisementItem, AdvertisementData>()
         {
             @Override
@@ -298,7 +316,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             @Override
             public void call(AdvertisementData advertisementData)
             {
-                hideProgress();
+                Timber.d("Update Advertisement Data");
                 setAdvertisement(advertisementData.advertisement, advertisementData.method);
             }
         }, new Action1<Throwable>()
@@ -315,19 +333,24 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     
     protected void updateData()
     {
-        Observable<Advertisement> updateAdvertisementObservable = bindActivity(this, dataService.getAdvertisement(adId));
+        onRefreshStart();
+                
         updateSubscription = updateAdvertisementObservable.subscribe(new Action1<Advertisement>()
         {
             @Override
-            public void call(Advertisement advertisementItem)
+            public void call(Advertisement advertisement)
             {
-                dbManager.updateAdvertisement(advertisementItem);
+                onRefreshStop();
+                
+                dbManager.updateAdvertisement(advertisement);
             }
         }, new Action1<Throwable>()
         {
             @Override
             public void call(Throwable throwable)
             {
+                onRefreshStop();
+                
                 handleError(throwable);
             }
         });
@@ -335,10 +358,11 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     
     public void setAdvertisement(AdvertisementItem advertisement, @Nullable MethodItem method)
     {
+        Timber.d("Set Advertisement Data");
         tradePrice.setText(getString(R.string.trade_price, advertisement.temp_price(), advertisement.currency()));
 
         String price = advertisement.currency();
-        String date = Dates.parseLocalDateStringAbbreviatedDate(advertisement.created_at());
+        //String date = Dates.parseLocalDateStringAbbreviatedDate(advertisement.created_at());
 
         TradeType tradeType = TradeType.valueOf(advertisement.trade_type());
         String title = "";
@@ -400,8 +424,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     
     public void updateAdvertisement(AdvertisementItem advertisement)
     {
-        noteLayout.setVisibility(advertisement.visible()?View.GONE:View.VISIBLE);
+        Timber.d("updateAdvertisement Data");
+        
+        noteLayout.setVisibility(advertisement.visible() ? View.GONE : View.VISIBLE);
+        
         noteText.setText(getString(R.string.advertisement_invisible_warning));
+        
         setMenuVisibilityIcon(advertisement.visible());
     }
 
@@ -416,6 +444,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         if(menu != null)
             menu.getItem(0).setIcon(icon);
+        
+        onRefreshStop();
     }
 
     private void viewOnlineAdvertisement()
@@ -449,7 +479,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             @Override
             public void call(Boolean aBoolean)
             {
-                db.delete(AdvertisementItem.TABLE, AdvertisementItem.QUERY_DELETE_ITEM, adId);
+                db.delete(AdvertisementItem.TABLE, AdvertisementItem.ID, adId);
                 toast("Advertisement deleted!");
                 finish();
             }
@@ -465,23 +495,33 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     private void updateAdvertisementVisibility()
     {
-        if(advertisementData == null) return;;
-        AdvertisementItem advertisement = advertisementData.advertisement;
-        final boolean visible = !advertisement.visible();
-        updateObservable = bindActivity(this, dataService.updateAdvertisementVisibility(advertisement, visible));
+        showProgressDialog(new ProgressDialogEvent("Updating visibility..."));
+        
+        if(advertisementData == null) return;
+        
+        Advertisement advertisement = new Advertisement();
+        advertisement = advertisement.convertAdvertisementItemToAdvertisement(advertisementData.advertisement);
+        advertisement.visible = !advertisement.visible;
+        
+        Observable<Boolean> updateObservable = bindActivity(this, dataService.updateAdvertisementVisibility(advertisement, advertisement.visible));
         updateObservable.subscribe(new Action1<Boolean>()
         {
             @Override
             public void call(Boolean aBoolean)
             {
-                db.update(AdvertisementItem.TABLE, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
+                hideProgressDialog();
+
                 toast("Visibility updated!");
+
+                updateData();
+                
             }
         }, new Action1<Throwable>()
         {
             @Override
             public void call(Throwable throwable)
             {
+                reportError(throwable);
                 toast("Error updating visibility!");
             }
         });

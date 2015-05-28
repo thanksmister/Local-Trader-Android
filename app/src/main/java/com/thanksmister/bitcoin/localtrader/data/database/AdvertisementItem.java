@@ -83,12 +83,6 @@ public abstract class AdvertisementItem
             + " = ? ORDER BY "
             + AdvertisementItem.CREATED_AT
             + " ASC";
-
-    public static final String QUERY_DELETE_ITEM = "DELETE * FROM "
-            + AdvertisementItem.TABLE
-            + " WHERE "
-            + AdvertisementItem.AD_ID
-            + " = ? ";
     
 
     public abstract long id();

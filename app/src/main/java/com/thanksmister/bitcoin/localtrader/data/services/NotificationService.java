@@ -109,12 +109,10 @@ public class NotificationService
 
         if (newMessages.size() > 1) { // if just single arrived
             NotificationUtils.createMessageNotification(context.getApplicationContext(), "New Messages", "You have new messages!", "You have " + newMessages.size() + " new trade messages.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-        } else {
-            if (newMessages.size() > 0) {
-                Message message = newMessages.get(0);
-                String username = message.sender.username;
-                NotificationUtils.createMessageNotification(context.getApplicationContext(), "New message from " + username, "New message from " + username, message.msg, NotificationUtils.NOTIFICATION_TYPE_MESSAGE, message.contact_id);
-            }
+        } else if (newMessages.size() == 1) {
+            Message message = newMessages.get(0);
+            String username = message.sender.username;
+            NotificationUtils.createMessageNotification(context.getApplicationContext(), "New message from " + username, "New message from " + username, message.msg, NotificationUtils.NOTIFICATION_TYPE_MESSAGE, message.contact_id);
         }
     }
 
@@ -136,6 +134,7 @@ public class NotificationService
     public void contactUpdateNotification(List<Contact> contacts)
     {
         Timber.e("updated contacts size: " + contacts.size());
+        
         if (contacts.size() > 1) {
             NotificationUtils.createNotification(context.getApplicationContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
         } else if (contacts.size() == 1) {
@@ -169,7 +168,7 @@ public class NotificationService
             } else if (canceled.size() > 1) {
                 NotificationUtils.createNotification(context, "Trades released", "Trades released...", "Two or more of your trades have been released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
             }
-        } else {
+        } else if (contacts.size() == 1) {
             Contact contact = contacts.get(0);
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
