@@ -134,6 +134,24 @@ public abstract class MessageItem
         return values;
     }
 
+    public static Builder createBuilder(Message item)
+    {
+        return new Builder()
+                .contact_list_id(Long.parseLong(item.contact_id))
+                .message(item.msg)
+                .seen(true)
+                .created_at(item.created_at)
+                .sender_id(item.sender.id)
+                .sender_name(item.sender.name)
+                .sender_username(item.sender.username)
+                .sender_trade_count(item.sender.trade_count)
+                .sender_last_online(item.sender.last_seen_on)
+                .is_admin(item.is_admin)
+                .attachment_name(item.attachment_name)
+                .attachment_type(item.attachment_type)
+                .attachment_url(item.attachment_url);
+    }
+
     public static final class Builder {
         private final ContentValues values = new ContentValues();
 

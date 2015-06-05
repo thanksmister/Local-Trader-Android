@@ -28,6 +28,10 @@ import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import javax.inject.Inject;
 
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class BitcoinHandler extends BaseActivity
@@ -44,18 +48,27 @@ public class BitcoinHandler extends BaseActivity
  
         if (data != null  ) {
             
-            String url = data.toString();
+            final String url = data.toString();
             String scheme = data.getScheme(); // "http"
-            
-            if(!dbManager.isLoggedIn()) {
-                toast("You need to be logged in to perform that action.");
-                launchMainApplication();
-            } else {
-                Intent intent = MainActivity.createStartIntent(getApplicationContext(), url);
-                startActivity(intent);
-                finish(); 
-            }
-            
+
+            dbManager.isLoggedIn()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Action1<Boolean>()
+            {
+                @Override
+                public void call(Boolean isLoggedIn)
+                {
+                    if (!isLoggedIn) {
+                        toast("You need to be logged in to perform that action.");
+                        launchMainApplication();
+                    } else {
+                        Intent intent = MainActivity.createStartIntent(getApplicationContext(), url);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            });
         } else {
             //showToast(getString(R.string.toast_invalid_address));
             launchMainApplication();

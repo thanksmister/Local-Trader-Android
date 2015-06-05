@@ -24,7 +24,8 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 25;
+    private static final int DATABASE_VERSION = 26;
+    private static final int DATABASE_VERSION_MESSAGES = 25;
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_TEXT_NOT_NULL = " TEXT NOT NULL";
     private static final String TYPE_INTEGER = " INTEGER";
@@ -108,6 +109,8 @@ public class DbOpenHelper extends SQLiteOpenHelper
             + ContactItem.ADVERTISEMENT_PAYMENT_METHOD + TYPE_TEXT + COMMA_SEP
             + ContactItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP
             + ContactItem.RECEIVER_EMAIL + TYPE_TEXT
+            + ContactItem.MESSAGE_COUNT + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
+            + ContactItem.UNSEEN_MESSAGES + " INTEGER NOT NULL DEFAULT 0"
             + ")";
 
     private static final String CREATE_MESSAGES =
@@ -225,7 +228,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
         // check versions for upgrade
-        if(oldVersion < newVersion) {
+        if(oldVersion < DATABASE_VERSION_MESSAGES) {
 
             //db.execSQL(CREATE_CONTACTS);
             //db.execSQL(CREATE_MESSAGES);
@@ -247,6 +250,22 @@ public class DbOpenHelper extends SQLiteOpenHelper
                             " ADD COLUMN " + MessageItem.ATTACHMENT_URL + TYPE_TEXT;
 
             db.execSQL(ALTER_TBL2);
+            
+        }
+
+        if (oldVersion < newVersion) {
+            
+            final String ALTER_TBL =
+                    "ALTER TABLE " + ContactItem.TABLE +
+                            " ADD COLUMN " + ContactItem.MESSAGE_COUNT + TYPE_INTEGER;
+
+            db.execSQL(ALTER_TBL);
+
+            final String ALTER_TBL1 =
+                    "ALTER TABLE " + ContactItem.TABLE +
+                            " ADD COLUMN " + ContactItem.UNSEEN_MESSAGES + TYPE_INTEGER;
+
+            db.execSQL(ALTER_TBL1);
         }
     }
 }

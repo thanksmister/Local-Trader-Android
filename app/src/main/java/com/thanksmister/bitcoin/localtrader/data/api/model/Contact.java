@@ -44,6 +44,9 @@ public class Contact
     public String released_at;
     public String payment_completed_at;
     public String exchange_rate_updated_at;
+    
+    public boolean hasUnseenMessages = false;
+    public int messageCount = 0;
 
     public Seller seller = new Seller();
     public Buyer buyer = new Buyer();

@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
+import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -25,6 +26,7 @@ import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
+import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
 
 import javax.inject.Singleton;
 
@@ -37,9 +39,22 @@ public final class DbModule
 {
     @Provides
     @Singleton
-    DbManager provideDbManager(SqlBrite sqlBrite)
+    ContentResolver provideContentResolver(BaseApplication application) {
+        return application.getContentResolver();
+    }
+
+    @Provides
+    @Singleton
+    SqlBriteContentProvider provideSqlBriteContentProvider(ContentResolver contentResolver)
     {
-        return new DbManager(sqlBrite);
+        return SqlBriteContentProvider.create(contentResolver);
+    }
+    
+    @Provides
+    @Singleton
+    DbManager provideDbManager(SqlBrite sqlBrite, SqlBriteContentProvider sqlBriteContentProvider, ContentResolver contentResolver)
+    {
+        return new DbManager(sqlBrite, sqlBriteContentProvider, contentResolver);
     }
 
     @Provides

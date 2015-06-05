@@ -35,6 +35,7 @@ import timber.log.Timber;
 public class NotificationUtils
 {
     public static int NOTIFICATION_ID = 1138;
+    public static int BALANCE_NOTIFICATION_ID = 1975;
     public static int MESSAGE_NOTIFICATION_ID = 1976;
     public static int NOTIFICATION_ERROR_ID = 1925;
     
@@ -83,6 +84,49 @@ public class NotificationUtils
 
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(NOTIFICATION_ID, notification);
+    }
+
+    public static void createBalanceNotification(Context context, String ticker, String title, String message, int type, String contact_id)
+    {
+        Intent notificationIntent = new Intent(context, MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        notificationIntent.setAction(Intent.ACTION_MAIN);
+        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        notificationIntent.putExtra(MainActivity.EXTRA_TYPE, type);
+        if(type == NOTIFICATION_TYPE_CONTACT && contact_id != null) {
+            notificationIntent.putExtra(MainActivity.EXTRA_CONTACT, contact_id);
+        }
+
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+        builder.setTicker(title);
+        builder.setContentTitle(title);
+        builder.setContentText(message);
+        builder.setTicker(ticker);
+        builder.setSmallIcon(R.drawable.ic_stat_notification);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            int resource =  R.drawable.ic_launcher;
+            Bitmap bm = BitmapFactory.decodeResource(context.getResources(), resource);
+            Resources res = context.getResources();
+            int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
+            int width = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
+            bm = Bitmap.createScaledBitmap(bm, width, height, false);
+            //builder.setLargeIcon(bm);
+        }
+
+        builder.setStyle(new NotificationCompat.BigTextStyle().bigText(message));
+        builder.setWhen(System.currentTimeMillis());
+        builder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_LIGHTS); // requires VIBRATE permission
+        builder.setContentIntent(contentIntent);
+
+        Notification notification = builder.build();
+        notification.flags = Notification.FLAG_AUTO_CANCEL| Notification.FLAG_SHOW_LIGHTS;
+
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(BALANCE_NOTIFICATION_ID, notification);
     }
 
     public static void createMessageNotification(Context context, String ticker, String title, String message, int type, String contact_id)

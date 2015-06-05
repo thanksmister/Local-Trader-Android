@@ -99,9 +99,9 @@ public abstract class ContactItem
     public static final String IS_FUNDED = "is_funded";
     public static final String IS_SELLING = "is_selling";
     public static final String IS_BUYING = "is_buying";
-    
-    private static String MESSAGE_COUNT = "message_count";
-    private static String UNSEEN_MESSAGES = "unseen_messages";
+
+    public static final String MESSAGE_COUNT = "message_count";
+    public static final String UNSEEN_MESSAGES = "unseen_messages";
 
     public static final String QUERY = "SELECT *, " 
             + "(SELECT IFNULL(COUNT(*), 0)" + " FROM " + MessageItem.TABLE + " WHERE " + MessageItem.CONTACT_LIST_ID + " = " + ContactItem.CONTACT_ID + ") AS " + MESSAGE_COUNT
@@ -180,9 +180,9 @@ public abstract class ContactItem
     public abstract String advertiser_last_online();
     public abstract String advertiser_name();
     
-    public abstract int message_count();
-    public abstract boolean unseen_messages();
- 
+    public abstract Boolean hasUnseenMessages();
+    public abstract int messageCount();
+    
     public static final Func1<SqlBrite.Query, List<ContactItem>> MAP = new Func1<SqlBrite.Query, List<ContactItem>>() {
         
         @Override public List<ContactItem> call(SqlBrite.Query query) {
@@ -193,6 +193,8 @@ public abstract class ContactItem
                 List<ContactItem> values = new ArrayList<>(cursor.getCount());
                 
                 while (cursor.moveToNext()) {
+                    
+                    Timber.d("SyncAdapter Cursor Count: " + cursor.getCount());
                     
                     long id = Db.getLong(cursor, ID);
                     String contact_id = Db.getString(cursor, CONTACT_ID);
@@ -249,8 +251,9 @@ public abstract class ContactItem
                     String advertiser_trade_count = Db.getString(cursor, ADVERTISER_TRADES);
                     String advertiser_last_online = Db.getString(cursor, ADVERTISER_LAST_SEEN);
                     String advertiser_name = Db.getString(cursor, ADVERTISER_NAME);
+                    
+                    boolean hasUnseenMessages = Db.getBoolean(cursor, UNSEEN_MESSAGES);
                     int messageCount = Db.getInt(cursor, MESSAGE_COUNT);
-                    boolean unseenMessages = (Db.getInt(cursor, UNSEEN_MESSAGES) > 0);
                 
                     values.add(new AutoParcel_ContactItem(id, contact_id, reference_code, currency, amount, amount_btc, is_funded, is_selling, is_buying,
                             created_at, closed_at, disputed_at, funded_at, escrowed_at, canceled_at, released_at, payment_completed_at, exchange_rate_updated_at,
@@ -258,7 +261,7 @@ public abstract class ContactItem
                             buyer_trade_count, buyer_last_online, buyer_name, release_url, advertisement_public_view, message_url, message_post_url, mark_as_paid_url,
                             dispute_url, cancel_url, fund_url, account_receiver_name, account_iban, account_swift_bic, account_reference, account_receiver_email, advertisement_id,
                             advertisement_payment_method, advertisement_trade_type, advertiser_username, advertiser_feedback_score, advertiser_trade_count, advertiser_last_online,
-                            advertiser_name, messageCount, unseenMessages));
+                            advertiser_name, hasUnseenMessages, messageCount));
                 }
                 return values;
             } finally {
@@ -275,8 +278,64 @@ public abstract class ContactItem
                    contact.buyer.trade_count, contact.buyer.last_online, contact.buyer.name, contact.actions.release_url, contact.actions.advertisement_public_view, contact.actions.messages_url, contact.actions.message_post_url, contact.actions.mark_as_paid_url,
                    contact.actions.dispute_url, contact.actions.cancel_url, contact.actions.fund_url, contact.account_details.receiver_name, contact.account_details.iban, contact.account_details.swift_bic, contact.account_details.reference, contact.account_details.email, contact.advertisement.id,
                     contact.advertisement.payment_method, contact.advertisement.trade_type.name(), contact.advertisement.advertiser.username, contact.advertisement.advertiser.feedback_score, contact.advertisement.advertiser.trade_count, contact.advertisement.advertiser.last_online,
-                   contact.advertisement.advertiser.name, contact.messages.size(), false);
+                   contact.advertisement.advertiser.name, contact.hasUnseenMessages, contact.messageCount);
     };
+    
+    public static Builder createBuilder(Contact item)
+    {
+        return new Builder()
+                .contact_id(item.contact_id)
+                .created_at(item.created_at)
+                .amount(item.amount)
+                .amount_btc(item.amount_btc)
+                .currency(item.currency)
+                .reference_code(item.reference_code)
+                .is_buying(item.is_buying)
+                .is_selling(item.is_selling)
+                .payment_completed_at(item.payment_completed_at)
+                .contact_id(item.contact_id)
+                .disputed_at(item.disputed_at)
+                .funded_at(item.funded_at)
+                .escrowed_at(item.escrowed_at)
+                .released_at(item.released_at)
+                .canceled_at(item.canceled_at)
+                .closed_at(item.closed_at)
+                .disputed_at(item.disputed_at)
+                .is_funded(item.is_funded)
+                .fund_url(item.actions.fund_url)
+                .release_url(item.actions.release_url)
+                .advertisement_public_view(item.actions.advertisement_public_view)
+                .message_url(item.actions.messages_url)
+                .message_post_url(item.actions.message_post_url)
+                .mark_as_paid_url(item.actions.mark_as_paid_url)
+                .dispute_url(item.actions.dispute_url)
+                .cancel_url(item.actions.cancel_url)
+                .buyer_name(item.buyer.name)
+                .buyer_username(item.buyer.username)
+                .buyer_trade_count(item.buyer.trade_count)
+                .buyer_feedback_score(item.buyer.feedback_score)
+                .buyer_last_online(item.buyer.last_online)
+                .seller_name(item.seller.name)
+                .seller_username(item.seller.username)
+                .seller_trade_count(item.seller.trade_count)
+                .seller_feedback_score(item.seller.feedback_score)
+                .seller_last_online(item.seller.last_online)
+                .account_receiver_email(item.account_details.email)
+                .account_receiver_name(item.account_details.receiver_name)
+                .account_iban(item.account_details.iban)
+                .account_swift_bic(item.account_details.swift_bic)
+                .account_reference(item.account_details.reference)
+                .advertisement_id(item.advertisement.id)
+                .advertisement_trade_type(item.advertisement.trade_type.name())
+                .advertisement_payment_method(item.advertisement.payment_method)
+                .advertiser_name(item.advertisement.advertiser.name)
+                .advertiser_username(item.advertisement.advertiser.username)
+                .advertiser_trade_count(item.advertisement.advertiser.trade_count)
+                .advertiser_feedback_score(item.advertisement.advertiser.feedback_score)
+                .advertiser_last_online(item.advertisement.advertiser.last_online)
+                .unseen_messages(item.hasUnseenMessages)
+                .message_count(item.messageCount);
+    }
 
     public static final class Builder {
         
@@ -531,10 +590,10 @@ public abstract class ContactItem
             return this;
         }
 
-        /*public Builder unseen_messages(boolean value) {
+        public Builder unseen_messages(boolean value) {
             values.put(UNSEEN_MESSAGES, value);
             return this;
-        }*/
+        }
         
         public ContentValues build() {
             return values;

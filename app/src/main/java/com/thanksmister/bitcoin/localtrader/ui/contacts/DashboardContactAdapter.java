@@ -67,13 +67,13 @@ public class DashboardContactAdapter extends ContactAdapter
         holder.tradeType.setText(type + " - " + amount);
         holder.tradeDetails.setText("With " + person + " (" + date + ")");
  
-        if(contact.unseen_messages()) {
+        if(contact.hasUnseenMessages()) {
             holder.icon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_communication_messenger_active));
         } else {
             holder.icon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_communication_messenger));
         }
 
-        holder.contactMessageCount.setText(String.valueOf(contact.message_count()));
+        holder.contactMessageCount.setText(String.valueOf(contact.messageCount()));
         
         holder.contactButton.setOnClickListener(new View.OnClickListener(){
             @Override

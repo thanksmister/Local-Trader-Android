@@ -70,6 +70,7 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -330,13 +331,13 @@ public class DataService
                 });
     }
     
-    public Observable<Boolean> updateAdvertisement(final Advertisement advertisement)
+    public Observable<JSONObject> updateAdvertisement(final Advertisement advertisement)
     {
         return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
+                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
                 {
                     @Override
-                    public Observable<Boolean> call(SessionItem sessionItem)
+                    public Observable<JSONObject> call(SessionItem sessionItem)
                     {
                         return updateAdvertisementObservable(advertisement, sessionItem.access_token())
                                 .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement, sessionItem.access_token())));
@@ -345,7 +346,32 @@ public class DataService
                 });
     }
 
-    private Observable<Boolean> updateAdvertisementObservable(final Advertisement advertisement, String token)
+    private Observable<JSONObject> updateAdvertisementVisibilityObservable(final Advertisement advertisement, boolean visible, String token)
+    {
+        final String city;
+        if(Strings.isBlank(advertisement.city)){
+            city = advertisement.location;
+        } else {
+            city =  advertisement.city;
+        }
+
+        return localBitcoins.updateAdvertisement(advertisement.ad_id, token, String.valueOf(visible), advertisement.min_amount,
+                advertisement.max_amount, advertisement.price_equation, advertisement.currency, String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
+                city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
+                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.trusted_required),
+                advertisement.message)
+                .map(new ResponseToJSONObject())
+                .flatMap(new Func1<JSONObject, Observable<JSONObject>>()
+                {
+                    @Override
+                    public Observable<JSONObject> call(JSONObject jsonObject)
+                    {
+                        return Observable.just(jsonObject);
+                    }
+                });
+    }
+
+    private Observable<JSONObject> updateAdvertisementObservable(final Advertisement advertisement, String token)
     {
         final String city;
         if(Strings.isBlank(advertisement.city)){
@@ -360,18 +386,12 @@ public class DataService
                 String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.trusted_required),
                 advertisement.message)
                 .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
+                .flatMap(new Func1<JSONObject, Observable<JSONObject>>()
                 {
                     @Override
-                    public Observable<Boolean> call(JSONObject jsonObject)
+                    public Observable<JSONObject> call(JSONObject jsonObject)
                     {
-                        Timber.d("Updated JSON: " + jsonObject.toString());
-                        
-                        if (Parser.containsError(jsonObject)) {
-                            throw new Error("Error updating advertisement visibility");
-                        }
-
-                        return Observable.just(true);
+                        return Observable.just(jsonObject);
                     }
                 });
     }
@@ -611,6 +631,11 @@ public class DataService
 
     public Observable<List<Advertisement>> getAdvertisements(boolean force)
     {
+        if(Constants.USE_MOCK_DATA) {
+            List<Advertisement> list = Collections.emptyList();
+            return Observable.just(Parser.parseAdvertisements(MockData.ADVERTISEMENT_LIST_SUCCESS));
+        }
+        
         if(!needToRefreshAdvertisements() && !force) {
             return Observable.empty();
         }
@@ -619,16 +644,16 @@ public class DataService
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()));
     }
     
-    public Observable<Boolean> updateAdvertisementVisibility(final Advertisement advertisement, final boolean visible)
+    public Observable<JSONObject>updateAdvertisementVisibility(final Advertisement advertisement, final boolean visible)
     {
         return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
+                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
                 {
                     @Override
-                    public Observable<Boolean> call(final SessionItem sessionItem)
+                    public Observable<JSONObject> call(final SessionItem sessionItem)
                     {
-                        return updateAdvertisementObservable(advertisement, sessionItem.access_token())
-                                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement, sessionItem.access_token())));
+                        return updateAdvertisementVisibilityObservable(advertisement, visible, sessionItem.access_token())
+                                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementVisibilityObservable(advertisement, visible, sessionItem.access_token())));
                     }
                 });
     }

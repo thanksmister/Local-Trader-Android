@@ -131,7 +131,7 @@ public class MockData
             "        \"contact_count\": 2\n" +
             "    }\n" +
             "}";
-            
+        
     public static final String ADVERTISEMENT_LIST_SUCCESS = "{\n" +
             "   \"data\":{\n" +
             "      \"ad_list\":[\n" +

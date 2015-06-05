@@ -48,18 +48,18 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <!--<provider
-                android:name=".data.services.SyncProvider"
-                android:label="Trades"
-                android:syncable="true"
-                android:authorities="com.thanksmister.bitcoin.localtrader.provider"
-                android:exported="false"/>-->
-
         <provider
+                android:name="com.thanksmister.bitcoin.localtrader.data.services.SyncProvider"
+                android:label="Local Bitcoins"
+                android:authorities="com.thanksmister.bitcoin.localtrader.provider"
+                android:exported="false"
+                android:syncable="true"/>
+
+        <!--<provider
                 android:name=".data.services.StubProvider"
                 android:exported="false"
                 android:syncable="true"
-                android:authorities="com.thanksmister.bitcoin.localtrader.provider"/>
+                android:authorities="com.thanksmister.bitcoin.localtrader.provider"/>-->
 
         <!-- Services -->
         <service android:name=".data.services.AuthenticatorService" >

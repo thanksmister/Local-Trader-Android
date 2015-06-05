@@ -19,44 +19,51 @@ package com.thanksmister.bitcoin.localtrader.data.services;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.SqlBrite;
-import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
+import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.TreeMap;
 
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -67,8 +74,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -77,35 +82,74 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
     private Subscription walletSubscription;
     private Subscription contactsSubscription;
+    private Subscription advertisementsSubscription;
     private Subscription tokensSubscription;
 
+    ContentResolver contentResolver;
     SQLiteOpenHelper dbOpenHelper;
     private LocalBitcoins localBitcoins;
     private DbManager dbManager;
     private NotificationService notificationService;
     private SharedPreferences sharedPreferences;
-   
+    private SqlBriteContentProvider sqlBriteContentProvider;
+
+    private Handler handler;
+    
     public SyncAdapter(Context context, boolean autoInitialize)
     {
         super(context, autoInitialize);
 
         sharedPreferences = getContext().getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
+        
         notificationService = new NotificationService(context, sharedPreferences);
+        
         localBitcoins = initLocalBitcoins();
+        
         dbOpenHelper = new DbOpenHelper(context.getApplicationContext());
+        
         SqlBrite db = SqlBrite.create(dbOpenHelper);
-        dbManager = new DbManager(db);
+        db.setLoggingEnabled(true);
+
+        contentResolver = context.getContentResolver();
+        sqlBriteContentProvider = SqlBriteContentProvider.create(contentResolver);
+        sqlBriteContentProvider.setLoggingEnabled(true);
+        
+        dbManager = new DbManager(db, sqlBriteContentProvider, contentResolver);
+
+        handler = new Handler();
     }
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult)
     {
         Timber.d("onPerformSync");
-        
-        if(dbManager.isLoggedIn()) {
-            
-            updateContacts();
-        }
+
+        dbManager.isLoggedIn()
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Boolean>()
+        {
+            @Override
+            public void call(Boolean isLoggedIn)
+            {
+                if (isLoggedIn) {
+
+                    // refresh handler to give a little room on initial install
+                    handler.postDelayed(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            updateContacts();
+
+                            updateWalletBalance();
+
+                            //updateAdvertisements();
+                        }
+                    }, 10000);
+                }
+            }
+        });
     }
 
     @Override
@@ -121,6 +165,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
         if(tokensSubscription != null)
             tokensSubscription.unsubscribe();
+        
+        if(advertisementsSubscription != null)
+            advertisementsSubscription.unsubscribe();
     }
 
     private void updateContacts()
@@ -136,14 +183,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .subscribe(new Action1<List<Contact>>()
                 {
                     @Override
-                    public void call(List<Contact> items)
+                    public void call(List<Contact> contacts)
                     {
                         contactsSubscription = null;
 
-                        setContactsExpireTime(); // tell system we synced contacts
-
-                        saveContactsAndNotify(items); // notify of any new contacts or messages
-
+                        updateMessages(contacts);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -151,6 +195,37 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public void call(Throwable throwable)
                     {
                         contactsSubscription = null;
+
+                        handleError(throwable);
+                    }
+                });
+    }
+
+    private void updateAdvertisements()
+    {
+        if(advertisementsSubscription != null)
+            return;
+
+        Timber.d("UpdateAdvertisements");
+
+        advertisementsSubscription = getAdvertisementObservable()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<Advertisement>>()
+                {
+                    @Override
+                    public void call(List<Advertisement> advertisements)
+                    {
+                        advertisementsSubscription = null;
+
+                        updateAdvertisements(advertisements);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        advertisementsSubscription = null;
 
                         handleError(throwable);
                     }
@@ -198,19 +273,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         tokensSubscription = refreshTokens()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Authorization>()
-                {
+                .subscribe(new Action1<Authorization>() {
                     @Override
                     public void call(Authorization authorization)
                     {
                         tokensSubscription = null;
+                        
                         updateTokens(authorization);
                     }
-                }, new Action1<Throwable>()
-                {
+                }, new Action1<Throwable>() {
                     @Override
-                    public void call(Throwable throwable)
-                    {
+                    public void call(Throwable throwable) {
+                        
                         tokensSubscription = null;
                         
                         reportError(throwable);
@@ -232,35 +306,66 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             refreshAccessTokens();
         }
     }
-
-    private void updateWalletBalance(final Wallet wallet)
+    
+    private void updateAdvertisements(final List<Advertisement> advertisements)
     {
-        Observable<WalletItem> walletObservable = dbManager.walletQuery();
-        walletObservable
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<WalletItem>()
+        final ArrayList<Advertisement> newAdvertisements = new ArrayList<Advertisement>();
+        final ArrayList<String> deletedAdvertisements = new ArrayList<String>();
+        final ArrayList<Advertisement> updateAdvertisements = new ArrayList<Advertisement>();
+
+        final HashMap<String, Advertisement> entryMap = new HashMap<String, Advertisement>();
+        for (Advertisement item : advertisements) {
+            entryMap.put(item.ad_id, item);
+        }
+
+        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.ADVERTISEMENT_TABLE_URI,
+                null, null, null, null, false)
+                .map(AdvertisementItem.MAP)
+                .subscribe(new Action1<List<AdvertisementItem>>()
                 {
                     @Override
-                    public void call(WalletItem walletItem)
+                    public void call(List<AdvertisementItem> advertisementItems)
                     {
-                        if (walletItem == null) {
-                            updateWallet(wallet);
-                            NotificationUtils.createMessageNotification(getContext(), "Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.total.balance + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
-                            return;
+                        Timber.d("Advertisements Items in Database: " + advertisementItems.size());
+
+                        for (AdvertisementItem advertisementItem : advertisementItems) {
+
+                            Advertisement match = entryMap.get(advertisementItem.ad_id());
+
+                            if (match != null) {
+
+                                entryMap.remove(advertisementItem.ad_id());
+
+                                if ((match.price_equation != null && !match.price_equation.equals(advertisementItem.price_equation())) ||
+                                        (match.temp_price != null && !match.temp_price.equals(advertisementItem.temp_price())) ||
+                                        (match.city != null && !match.city.equals(advertisementItem.city())) ||
+                                        (match.country_code != null && !match.country_code.equals(advertisementItem.country_code())) ||
+                                        (match.bank_name != null && !match.bank_name.equals(advertisementItem.bank_name())) ||
+                                        (match.currency != null && !match.currency.equals(advertisementItem.currency())) ||
+                                        (match.lat != advertisementItem.lat()) || (match.lon != advertisementItem.lon()) ||
+                                        (match.location != null && !match.location.equals(advertisementItem.location_string())) ||
+                                        (match.max_amount != null && !match.max_amount.equals(advertisementItem.max_amount())) ||
+                                        (match.min_amount != null && !match.min_amount.equals(advertisementItem.min_amount())) ||
+                                        (match.max_amount_available != null && !match.max_amount_available.equals(advertisementItem.max_amount_available())) ||
+                                        (match.online_provider != null && !match.online_provider.equals(advertisementItem.online_provider())) ||
+                                        (match.account_info != null && !match.account_info.equals(advertisementItem.account_info())) ||
+                                        (match.sms_verification_required != advertisementItem.sms_verification_required()) ||
+                                        (match.visible != advertisementItem.visible() ||
+                                                (match.trusted_required != advertisementItem.trusted_required()) ||
+                                                (match.track_max_amount != advertisementItem.track_max_amount()) ||
+                                                (match.message != null && !match.message.equals(advertisementItem.message())))) {
+
+                                    updateAdvertisements.add(match);
+                                }
+
+                            } else {
+
+                                deletedAdvertisements.add(advertisementItem.ad_id());
+                            }
                         }
 
-                        double newBalance = Doubles.convertToDouble(wallet.total.balance);
-                        double oldBalance = Doubles.convertToDouble(walletItem.balance());
-
-                        String address = walletItem.address();
-                        String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
-
-                        if (newBalance > oldBalance) {
-                            NotificationUtils.createMessageNotification(getContext(), "Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC", NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
-                            updateWallet(wallet);
-                        } else if (!address.equals(wallet.address.address)) {
-                            updateWallet(wallet);
+                        for (Advertisement advertisement : entryMap.values()) {
+                            newAdvertisements.add(advertisement);
                         }
                     }
                 }, new Action1<Throwable>()
@@ -268,17 +373,88 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
-                        Timber.e(throwable.getMessage());
+                        reportError(throwable);
                     }
                 });
+
+        subscription.unsubscribe();
+
+        for (Advertisement item : newAdvertisements) {
+            AdvertisementItem.Builder builder = AdvertisementItem.createBuilder(item);
+            contentResolver.insert(SyncProvider.ADVERTISEMENT_TABLE_URI, builder.build());
+        }
+
+        for (Advertisement item : updateAdvertisements) {
+            AdvertisementItem.Builder builder = AdvertisementItem.createBuilder(item);
+            contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, builder.build(), AdvertisementItem.AD_ID + " = ?", new String[]{item.ad_id});
+        }
+
+        for (String id : deletedAdvertisements) {
+            contentResolver.delete(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.AD_ID + " = ?", new String[]{id});
+        }
     }
-    
-    private void updateWallet(Wallet wallet)
+
+    private void updateWalletBalance(final Wallet wallet)
     {
-        dbManager.updateWallet(wallet);
+        Timber.d("Update Wallet");
+        
+        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+                .map(WalletItem.MAP)
+                .subscribe(new Action1<WalletItem>()
+                {
+                    @Override
+                    public void call(WalletItem walletItem)
+                    {
+                        // TODO This has to be in some type of async
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+
+                        if (walletItem != null) {
+
+                            if (!walletItem.address().equals(wallet.address.address)
+                                    || !walletItem.balance().equals(wallet.total.balance)
+                                    || !walletItem.receivable().equals(wallet.address.received)
+                                    || !walletItem.sendable().equals(wallet.total.sendable)) {
+
+                                WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+                                contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
+                            }
+
+                        } else {
+
+                            WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+                            contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
+                        }
+
+                        if (walletItem == null) {
+
+                            notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.total.balance + " BTC");
+
+                        } else {
+
+                            double newBalance = Doubles.convertToDouble(wallet.total.balance);
+                            double oldBalance = Doubles.convertToDouble(walletItem.balance());
+                            String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
+
+                            if (newBalance > oldBalance) {
+                                notificationService.balanceUpdateNotification("Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC");
+                            }
+                        }
+
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
+
+        subscription.unsubscribe();
     }
     
-    private void getDeletedContactsInfo(List<Contact> contacts)
+    private void getDeletedContactsInfo(List<String> contacts)
     {
         Timber.e("deleted contacts: " + contacts.size());
         
@@ -286,9 +462,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .onErrorResumeNext(getContactInfo(contacts))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<Contact>>() {
+                .subscribe(new Action1<List<Contact>>()
+                {
                     @Override
-                    public void call(List<Contact> contacts) 
+                    public void call(List<Contact> contacts)
                     {
                         Timber.e("deleted contacts info: " + contacts.size());
                         notificationService.contactDeleteNotification(contacts);
@@ -298,7 +475,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
-                        handleError(throwable);
+                        reportError(throwable);
                     }
                 });
     }
@@ -362,8 +539,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             }
         });
     }
-    
-    private Observable<List<Contact>> getContactInfo(final List<Contact> contacts)
+
+    private Observable<List<Contact>> getContactInfo(final List<String> contactIds)
     {
         final List<Contact> contactList = Collections.emptyList();
         return getTokens()
@@ -372,17 +549,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
-                        if(sessionItem == null) return null;
+                        if (sessionItem == null) return null;
 
                         Timber.d("Access Token: " + sessionItem.access_token());
-                        
-                        return Observable.just(Observable.from(contacts)
-                                .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>()
+
+                        return Observable.just(Observable.from(contactIds)
+                                .flatMap(new Func1<String, Observable<? extends List<Contact>>>()
                                 {
                                     @Override
-                                    public Observable<? extends List<Contact>> call(final Contact contact)
+                                    public Observable<? extends List<Contact>> call(final String contactId)
                                     {
-                                        return localBitcoins.getContact(contact.contact_id, sessionItem.access_token())
+                                        return localBitcoins.getContact(contactId, sessionItem.access_token())
                                                 .map(new ResponseToContact())
                                                 .map(new Func1<Contact, List<Contact>>()
                                                 {
@@ -402,9 +579,35 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
+    private Observable<List<Advertisement>> getAdvertisementObservable()
+    {
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<List<Advertisement>>>()
+                {
+                    @Override
+                    public Observable<List<Advertisement>> call(final SessionItem sessionItem)
+                    {
+                        if (sessionItem == null) return null;
+
+                        Timber.d("Access Token: " + sessionItem.access_token());
+
+                        return localBitcoins.getAds(sessionItem.access_token())
+                                .map(new ResponseToAds());
+
+                    }
+                });
+    }
+
     private Observable<List<Contact>> getContactsObservable()
     {
-        // TODO handle bad token
+        /*List<Message> messages = Parser.parseMessages(MockData.MESSAGES);
+        List<Contact> contacts = Parser.parseContacts(MockData.DASHBOARD);
+        
+        Contact contact = contacts.get(0);
+        contact.messages = messages;
+        
+        return Observable.just(contacts);*/
+        
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<List<Contact>>>()
                 {
@@ -459,7 +662,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 }).toBlocking().last());
     }
 
-    
+
     public Observable<SessionItem> getTokens()
     {
         return dbManager.getTokens();
@@ -469,8 +672,34 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         Timber.d("Access Token: " + authorization.access_token);
         Timber.d("Refresh Token : " + authorization.refresh_token);
-        
-        dbManager.updateTokens(authorization);
+
+        final SessionItem.Builder builder = new SessionItem.Builder()
+                .access_token(authorization.access_token)
+                .refresh_token(authorization.refresh_token);
+
+        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
+                .map(SessionItem.MAP)
+                .subscribe(new Action1<SessionItem>()
+                {
+                    @Override
+                    public void call(SessionItem sessionItem)
+                    {
+                        if (sessionItem != null) {
+                            contentResolver.update(SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
+                        } else {
+                            contentResolver.insert(SyncProvider.SESSION_TABLE_URI, builder.build());
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
+
+        subscription.unsubscribe();
     }
     
     LocalBitcoins initLocalBitcoins()
@@ -484,31 +713,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .build();
         return restAdapter.create(LocalBitcoins.class);
     }
-
-    /*private <T> Func1<Throwable,? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed)
-    {
-        return new Func1<Throwable, Observable<? extends T>>() {
-            @Override
-            public Observable<? extends T> call(Throwable throwable) {
-                // Here check if the error thrown really is a 401
-                if (DataServiceUtils.isHttp403Error(throwable)) {
-                    
-                    Timber.e("isHttp403Error");
-                    
-                    return refreshTokens().flatMap(new Func1<String, Observable<? extends T>>() {
-                        @Override
-                        public Observable<? extends T> call(String token)
-                        {
-                            Timber.e("Sync Error refreshTokenAndRetry");
-                            return toBeResumed;
-                        }
-                    });
-                }
-                // re-throw this error because it's not recoverable from here
-                return Observable.error(throwable);
-            }
-        };
-    }*/
 
     private Observable<Authorization> refreshTokens()
     {
@@ -528,63 +732,193 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     }
                 });
     }
-
-    private void saveContactsAndNotify(final List<Contact> contacts)
-    {
-        updateMessages(contacts)
-        .subscribe(new Action1<List<Message>>()
-        {
-            @Override
-            public void call(List<Message> messages)
-            {
-                notificationService.messageNotifications(messages);
-
-                updateContacts(contacts);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Timber.e(throwable.getMessage());
-            }
-        });
-    }
     
     private void updateContacts(List<Contact> contacts)
     {
-        TreeMap<String, ArrayList<Contact>> updatedContactList = dbManager.updateContacts(contacts);
+        final ArrayList<Contact> newContacts = new ArrayList<Contact>();
+        final ArrayList<String> deletedContacts = new ArrayList<String>();
+        final ArrayList<Contact> updatedNotifyContacts = new ArrayList<Contact>();
+        final ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
+
+        final HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
+        for (Contact item : contacts) {
+            
+            //contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{item.contact_id});
+            //contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{item.contact_id});
+           
+            entryMap.put(item.contact_id, item);
+        }
         
-        ArrayList<Contact> updatedContacts = updatedContactList.get(DbManager.UPDATES);
-        Timber.d("updated contacts: " + updatedContacts.size());
+        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
+                .map(ContactItem.MAP)
+                
+                .subscribe(new Action1<List<ContactItem>>()
+                {
+                    @Override
+                    public void call(List<ContactItem> contactItems)
+                    {
+                        Timber.d("Contact Items in Database: " + contactItems.size());
 
-        ArrayList<Contact> addedContacts = updatedContactList.get(DbManager.ADDITIONS);
-        Timber.d("added contacts: " + addedContacts.size());
+                        for (ContactItem contactItem : contactItems) {
 
-        ArrayList<Contact> deletedContacts = updatedContactList.get(DbManager.DELETIONS);
+                            Contact match = entryMap.get(contactItem.contact_id());
 
-        notificationService.contactNewNotification(addedContacts);
-        notificationService.contactUpdateNotification(updatedContacts);
+                            if (match != null) {
+
+                                entryMap.remove(contactItem.contact_id());
+
+                                if ((match.payment_completed_at != null && !match.payment_completed_at.equals(contactItem.payment_completed_at()))
+                                        || (match.closed_at != null && !match.closed_at.equals(contactItem.closed_at()))
+                                        || (match.disputed_at != null && !match.disputed_at.equals(contactItem.disputed_at()))
+                                        || (match.escrowed_at != null && !match.escrowed_at.equals(contactItem.escrowed_at()))
+                                        || (match.funded_at != null && !match.funded_at.equals(contactItem.funded_at()))
+                                        || (match.released_at != null && !match.released_at.equals(contactItem.released_at()))
+                                        || (match.canceled_at != null && !match.canceled_at.equals(contactItem.canceled_at()))
+                                        || (match.actions.fund_url != null && !match.actions.fund_url.equals(contactItem.funded_at()))
+                                        || (match.is_funded != contactItem.is_funded())) {
+
+                                    updatedNotifyContacts.add(match);
+                                    updatedContacts.add(match);
+
+                                } else if ((match.seller.last_online != null && !match.seller.last_online.equals(contactItem.seller_last_online()))
+                                        || (match.hasUnseenMessages != contactItem.hasUnseenMessages())
+                                        || (match.messageCount != contactItem.messageCount())
+                                        || (match.buyer.last_online != null && !match.buyer.last_online.equals(contactItem.buyer_last_online()))) {
+                                    updatedContacts.add(match);
+                                }
+                            } else {
+
+                                deletedContacts.add(contactItem.contact_id());
+                            }
+                        }
+
+                        for (Contact contact : entryMap.values()) {
+                            newContacts.add(contact);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
+
+        subscription.unsubscribe();
+
+        Timber.d("New Contact Items: " + newContacts.size());
+
+        for (Contact item : newContacts) {
+            ContactItem.Builder builder = ContactItem.createBuilder(item);
+            contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, builder.build());
+        }
+        
+        for (Contact item : updatedContacts) {
+            ContactItem.Builder builder = ContactItem.createBuilder(item);
+            contentResolver.update(SyncProvider.CONTACT_TABLE_URI, builder.build(), ContactItem.CONTACT_ID + " = ?", new String[]{item.contact_id});
+        }
+
+        Timber.d("Delete Contacts: " + deletedContacts.size());
+        
+        for (String id : deletedContacts) {
+            Timber.d("Delete Contact: " + id);
+            contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{id});
+            contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
+        }
+        
+        notificationService.contactNewNotification(newContacts);
+        notificationService.contactUpdateNotification(updatedNotifyContacts);
 
         // look up deleted trades and find the reason
-        if (deletedContacts.size() > 0) {
+        if (!deletedContacts.isEmpty()) {
             getDeletedContactsInfo(deletedContacts);
         }
-
-        updateWalletBalance(); // get wallet balance
     }
-
-    private void setContactsExpireTime()
+    
+    public void updateMessages(final List<Contact> contacts)
     {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, DataService.PREFS_CONTACTS_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + DataService.CHECK_CONTACTS_DATA; // 1 hours
-            preference.set(expire);
+        final ArrayList<String> deletedMessages = new ArrayList<String>();
+        final ArrayList<Message> newMessages = new ArrayList<Message>();
+        final HashMap<String, Message> entryMap = new HashMap<String, Message>();
+        
+        for (Contact contact : contacts) {
+            
+            Timber.d("Message Contact Id: " + contact.contact_id);
+            
+            for (Message message : contact.messages) {
+                
+                message.id = contact.contact_id + "_" + contact.created_at;
+                
+                message.contact_id = contact.contact_id;
+                
+                entryMap.put(message.id, message);
+            }
         }
-    }
 
-    public Observable<List<Message>> updateMessages(List<Contact> contacts)
-    {
-        return dbManager.updateMessagesFromContacts(contacts);
+        // get all the current messages
+        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.MESSAGE_TABLE_URI,
+                null, null, null, null, false)
+                .map(MessageItem.MAP)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<MessageItem>>()
+                {
+                    @Override
+                    public void call(List<MessageItem> messageItems)
+                    {
+                        for (MessageItem messageItem : messageItems) {
+
+                            Timber.d("Message Contact Id: " + messageItem.contact_id());
+
+                            String id = messageItem.contact_id() + "_" + messageItem.create_at();
+
+                            Message match = entryMap.get(id);
+
+                            if (match != null) {
+                                entryMap.remove(id);
+                            } else {
+                                deletedMessages.add(String.valueOf(messageItem.contact_id()));
+                            }
+                        }
+
+                        for (Message message : entryMap.values()) {
+                            newMessages.add(message);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
+
+        subscription.unsubscribe();
+
+        for (Message item : newMessages) {
+            
+            MessageItem.Builder builder = MessageItem.createBuilder(item);
+            contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, builder.build());
+
+            for (Contact contact : contacts) {
+                if(contact.contact_id.equals(item.contact_id)) {
+                    contact.messageCount += 1;
+                    contact.hasUnseenMessages = true;
+                    
+                    Timber.d("Contact Message Count: " + contact.messageCount);
+                    Timber.d("Contact Messages Unseen: " + contact.hasUnseenMessages);
+                }
+            }
+        }
+
+        for (String id : deletedMessages) {
+            contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
+        }
+
+        notificationService.messageNotifications(newMessages);
+        
+        updateContacts(contacts); // let's update contacts now
     }
 }

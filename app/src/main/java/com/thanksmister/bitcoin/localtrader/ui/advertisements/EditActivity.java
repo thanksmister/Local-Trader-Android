@@ -43,6 +43,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -62,8 +63,11 @@ import com.thanksmister.bitcoin.localtrader.ui.misc.CurrencyAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,9 +83,11 @@ import butterknife.Optional;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
@@ -103,6 +109,9 @@ public class EditActivity extends BaseActivity
     
     @Inject
     DbManager dbManager;
+
+    @Inject
+    SqlBrite db;
 
     @Inject
     GeoLocationService geoLocationService;
@@ -231,14 +240,14 @@ public class EditActivity extends BaseActivity
     private Observable<List<Address>> geoLocationObservable;
     private Observable<AdvertisementItem> advertisementItemObservable;
     private Observable<Advertisement> createAdvertisementObservable;
-    private Observable<Boolean> updateAdvertisementObservable;
+    private Observable<JSONObject> updateAdvertisementObservable;
     private Observable<List<Currency>> currencyObservable;
     
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription geoLocalSubscription = Subscriptions.empty();
     private Subscription geoDecodeSubscription = Subscriptions.empty();
     private Subscription advertisementSubscription = Subscriptions.empty();
-
+    
     private class AdvertisementData {
         public AdvertisementItem advertisement;
         public List<Currency> currencies;
@@ -274,7 +283,7 @@ public class EditActivity extends BaseActivity
         if(toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle((create)? "Post new trade": "Edit trade");
+            getSupportActionBar().setTitle((create)? "Post new advertisement": "Edit advertisement");
             setToolBarMenu(toolbar);
         }
 
@@ -372,9 +381,9 @@ public class EditActivity extends BaseActivity
         predictAdapter = new PredictAdapter(EditActivity.this, new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
-        methodObservable = bindActivity(this, dbManager.methodQuery().cache());
         currencyObservable = bindActivity(this, dataService.getCurrencies().cache());
-        advertisementItemObservable = bindActivity(this, dbManager.advertisementItemQuery(adId));
+        methodObservable = bindActivity(this, db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache());
+        advertisementItemObservable = bindActivity(this, db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId).map(AdvertisementItem.MAP_SINGLE));
     }
 
     @Override
@@ -479,25 +488,29 @@ public class EditActivity extends BaseActivity
         }));
         
         if(create) {
-            subscriptions.add(currencyObservable.subscribe(new Action1<List<Currency>>()
-            {
-                @Override
-                public void call(List<Currency> currencies)
-                {
-                    hideProgress();
-                    setCurrencies(currencies, null);
-                    createAdvertisement();
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    hideProgress();
-                    handleError(throwable);
-                }
-            }));
+            subscriptions.add(currencyObservable
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<List<Currency>>()
+                    {
+                        @Override
+                        public void call(List<Currency> currencies)
+                        {
+                            hideProgress();
+                            setCurrencies(currencies, null);
+                            createAdvertisement();
+                        }
+                    }, new Action1<Throwable>()
+                    {
+                        @Override
+                        public void call(Throwable throwable)
+                        {
+                            hideProgress();
+                            handleError(throwable);
+                        }
+                    }));
         } else {
+
             subscriptions.add(Observable.combineLatest(currencyObservable, advertisementItemObservable, new Func2<List<Currency>, AdvertisementItem, AdvertisementData>()
             {
                 @Override
@@ -508,7 +521,10 @@ public class EditActivity extends BaseActivity
                     advertisementData.advertisement = advertisementItem;
                     return advertisementData;
                 }
-            }).subscribe(new Action1<AdvertisementData>()
+            })
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Action1<AdvertisementData>()
             {
                 @Override
                 public void call(AdvertisementData data)
@@ -526,7 +542,7 @@ public class EditActivity extends BaseActivity
                     hideProgress();
                     handleError(throwable);
                 }
-            })); 
+            }));
         }
     }
 
@@ -541,13 +557,13 @@ public class EditActivity extends BaseActivity
         emptyTextView.setText(message);
     }
 
-    private void showProgress()
+    /*private void showProgress()
     {
         empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         content.setVisibility(View.GONE);
-    }
-
+    }*/
+    
     private void hideProgress()
     {
         empty.setVisibility(View.GONE);
@@ -777,7 +793,7 @@ public class EditActivity extends BaseActivity
 
     public void cancelChanges(Boolean create)
     {
-        String message = (create)? "New trade canceled":"Trade update canceled";
+        String message = (create)? "New advertisement canceled":"Advertisement update canceled";
         toast(message);
         finish();
     }
@@ -894,7 +910,7 @@ public class EditActivity extends BaseActivity
     {
         if(create) {
 
-            showProgressDialog(new ProgressDialogEvent("Posting trade..."));
+            showProgressDialog(new ProgressDialogEvent("Posting advertisement..."));
             
             createAdvertisementObservable = bindActivity(this, dataService.createAdvertisement(advertisement));
             advertisementSubscription = createAdvertisementObservable.subscribe(new Observer<Advertisement>()
@@ -915,8 +931,10 @@ public class EditActivity extends BaseActivity
                 @Override
                 public void onNext(Advertisement advertisement)
                 {
-                    toast("New trade posted!");
-                    dbManager.updateAdvertisement(advertisement);
+                    toast("New advertisement posted!");
+           
+                    db.insert(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build());
+                            
                     finish();
                 }
             });
@@ -926,7 +944,7 @@ public class EditActivity extends BaseActivity
             showProgressDialog(new ProgressDialogEvent("Saving changes..."));
 
             updateAdvertisementObservable = bindActivity(this, dataService.updateAdvertisement(advertisement));
-            advertisementSubscription = updateAdvertisementObservable.subscribe(new Observer<Boolean>()
+            advertisementSubscription = updateAdvertisementObservable.subscribe(new Observer<JSONObject>()
             {
                 @Override
                 public void onCompleted()
@@ -942,9 +960,18 @@ public class EditActivity extends BaseActivity
                 }
 
                 @Override
-                public void onNext(Boolean value)
+                public void onNext(JSONObject jsonObject)
                 {
-                    updateAdvertisement(advertisement);
+                    Timber.d("Updated JSON: " + jsonObject.toString());
+
+                    if (Parser.containsError(jsonObject)) {
+
+                        toast("Error updating advertisement visibility");
+
+                    } else {
+                        
+                        updateAdvertisement(advertisement);
+                    }
                 }
             });
         }
@@ -952,14 +979,19 @@ public class EditActivity extends BaseActivity
     
     private void updateAdvertisement(Advertisement advertisement)
     {
-        boolean updated = dbManager.updateAdvertisement(advertisement);
-        
-        if(updated) {
+        //int updated = db.update(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build(), AdvertisementItem.AD_ID + " = ?", adId);
+        int updated = dbManager.updateAdvertisement(advertisement);
+       
+        if(updated > 0) {
+            
             hideProgressDialog();
-            toast("Ad changed successfully!");
+            
+            toast("Advertisement changed successfully!");
+            
             Intent returnIntent = new Intent();
             returnIntent.putExtra(AdvertisementActivity.EXTRA_AD_ID, adId);
             setResult(RESULT_UPDATED, returnIntent);
+            
             finish();
         }
     }

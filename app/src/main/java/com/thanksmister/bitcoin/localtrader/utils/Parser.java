@@ -606,7 +606,7 @@ public class Parser
         return null;
     }
 
-    public static ArrayList<Advertisement> parseAdvertisements(String response)
+    public static List<Advertisement> parseAdvertisements(String response)
     {
         JSONObject jsonObject;
         try {

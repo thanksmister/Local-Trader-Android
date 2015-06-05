@@ -83,7 +83,9 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     @OnClick(R.id.emptyRetryButton)
     public void emptyButtonClicked()
     {
-        updateData(dashboardType);
+        if(dashboardType != DashboardType.ACTIVE) {
+            updateData(dashboardType);
+        }
     }
 
     @InjectView(R.id.swipeLayout)
@@ -176,9 +178,11 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     {
         super.onResume();
 
-        subscribeData();
-
-        updateData(dashboardType);
+        if(dashboardType == DashboardType.ACTIVE) {
+            subscribeData();
+        } else {
+            updateData(dashboardType);  
+        }
     }
     
     @Override
@@ -200,7 +204,11 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     @Override
     public void onRefresh()
     {
-        updateData(dashboardType);
+        if(dashboardType == DashboardType.ACTIVE) {
+            subscribeData();
+        } else {
+            onRefreshStop();
+        }
     }
     
     public void onRefreshStop()
@@ -233,7 +241,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                     case R.id.action_active:
                         showProgress();
                         setContacts(new ArrayList<Contact>());
-                        updateData(DashboardType.ACTIVE);
+                        subscribeData();
+                        //updateData(DashboardType.ACTIVE);
                         return true;
                     case R.id.action_canceled:
                         showProgress();
@@ -298,11 +307,13 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     public void updateData(final DashboardType dashboardType)
     {
         Timber.d("Update Data: " + dashboardType.name());
+
+        subscription.unsubscribe(); // stop subscribed database data
         
         this.dashboardType = dashboardType;
 
         setTitle(dashboardType);
-
+        
         Observable<List<Contact>> contactsObservable = bindActivity(this, dataService.getContacts(dashboardType, true));
         updateSubscription = contactsObservable.subscribe(new Action1<List<Contact>>()
         {
@@ -316,11 +327,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                 if(contacts.isEmpty()) {
                     showError(getString(R.string.error_no_trade_data));
                 } else {
-                    if(dashboardType == DashboardType.ACTIVE) {
-                        updateContacts(contacts);
-                    } else {
-                        setContacts(contacts);
-                    }
+                    setContacts(contacts);
                 }
             }
         }, new Action1<Throwable>()
@@ -338,13 +345,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             }
         });
     }
-    
-    private void updateContacts(List<Contact> contacts)
-    {
-        dbManager.updateContacts(contacts); //update contacts and messages if active 
-        setContacts(contacts);
-    }
-
+  
     private void getContact(final Contact contact)
     {
         Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id, dashboardType);

@@ -45,6 +45,10 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 @BaseActivity.RequiresAuthentication
@@ -110,14 +114,24 @@ public class MainActivity extends BaseActivity implements NavigationDrawerFragme
             setSupportActionBar(toolbar);
         }
 
-        Timber.d("isLoggedIn " + dbManager.isLoggedIn());
-       
-        if(dbManager.isLoggedIn()) {
-            navigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-            navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
-            SyncUtils.CreateSyncAccount(getApplicationContext());
-            SyncUtils.TriggerRefresh(getApplicationContext()); 
-        } 
+        dbManager.isLoggedIn()
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Boolean>()
+        {
+            @Override
+            public void call(Boolean isLoggedIn)
+            {
+                Timber.d("isLoggedIn " + isLoggedIn);
+
+                if (isLoggedIn) {
+                    navigationDrawerFragment = (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+                    navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
+                    SyncUtils.CreateSyncAccount(getApplicationContext());
+                    SyncUtils.TriggerRefresh(getApplicationContext());
+                }
+            }
+        });
     }
     
     @Override
@@ -132,46 +146,68 @@ public class MainActivity extends BaseActivity implements NavigationDrawerFragme
         super.onResume();
 
         if(((Object) this).getClass().isAnnotationPresent(RequiresAuthentication.class)) {
-            if(!dbManager.isLoggedIn()) {
-                Intent intent = new Intent(this, PromoActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            }
+            dbManager.isLoggedIn()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Action1<Boolean>()
+            {
+                @Override
+                public void call(Boolean isLoggedIn)
+                {
+                    if (!isLoggedIn) {
+                        Intent intent = new Intent(MainActivity.this, PromoActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            });
         }
     }
 
     @Override
-    public void onNavigationDrawerItemSelected(int position)
+    public void onNavigationDrawerItemSelected(final int position)
     {
         clearActionBar();
 
-        if(dbManager.isLoggedIn()) {
+        Observable<Boolean> observable = dbManager.isLoggedIn();
+        observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>()
+                {
+                    @Override
+                    public void call(Boolean isLoggedIn)
+                    {
+                        Timber.d("isLoggedIn " + isLoggedIn);
 
-            if (position == DRAWER_WALLET) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_frame, WalletFragment.newInstance(position), WALLET_FRAGMENT)
-                        .commit();
-            } else if (position == DRAWER_SEARCH) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_frame, SearchFragment.newInstance(position), SEARCH_FRAGMENT)
-                        .commit();
-            } else if (position == DRAWER_SEND) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_frame, RequestFragment.newInstance(position, RequestFragment.WalletTransactionType.SEND), SEND_RECEIVE_FRAGMENT)
-                        .commit();
-            } else if (position == DRAWER_DASHBOARD) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_frame, DashboardFragment.newInstance(position), DASHBOARD_FRAGMENT)
-                        .commit();
-            } else if (position == DRAWER_ABOUT) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_frame, AboutFragment.newInstance(position), ABOUT_FRAGMENT)
-                        .commit();
-            }
+                        if (isLoggedIn) {
+                            if (position == DRAWER_WALLET) {
+                                getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.content_frame, WalletFragment.newInstance(position), WALLET_FRAGMENT)
+                                        .commit();
+                            } else if (position == DRAWER_SEARCH) {
+                                getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.content_frame, SearchFragment.newInstance(position), SEARCH_FRAGMENT)
+                                        .commit();
+                            } else if (position == DRAWER_SEND) {
+                                getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.content_frame, RequestFragment.newInstance(position, RequestFragment.WalletTransactionType.SEND), SEND_RECEIVE_FRAGMENT)
+                                        .commit();
+                            } else if (position == DRAWER_DASHBOARD) {
+                                getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.content_frame, DashboardFragment.newInstance(position), DASHBOARD_FRAGMENT)
+                                        .commit();
+                            } else if (position == DRAWER_ABOUT) {
+                                getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.content_frame, AboutFragment.newInstance(position), ABOUT_FRAGMENT)
+                                        .commit();
+                            }
 
-            onSectionAttached(position);
-        }
+                            onSectionAttached(position);
+                        }
+                    }
+                });
     }
 
     private void startSendRequestFragment(String bitcoinAddress, String bitcoinAmount)

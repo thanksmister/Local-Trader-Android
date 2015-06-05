@@ -19,6 +19,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 
+import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -178,8 +180,106 @@ public abstract class AdvertisementItem
             }
         }
     };
+
+    public static final Func1<Query, AdvertisementItem> MAP_SINGLE = new Func1<Query, AdvertisementItem>() {
+        @Override
+        public AdvertisementItem call(Query query) {
+            Cursor cursor = query.run();
+            try {
+                if(cursor.getCount() > 0) {
+                    cursor.moveToFirst();
+                    long id = Db.getLong(cursor, ID);
+                    String ad_id = Db.getString(cursor, AD_ID);
+                    String created_at = Db.getString(cursor, CREATED_AT);
+                    boolean visible = Db.getBoolean(cursor, VISIBLE);
+                    String email = Db.getString(cursor, EMAIL);
+                    String location_string = Db.getString(cursor, LOCATION_STRING);
+                    String country_code = Db.getString(cursor, COUNTRY_CODE);
+                    String city = Db.getString(cursor, CITY);
+                    String trade_type = Db.getString(cursor, TRADE_TYPE);
+                    String online_provider = Db.getString(cursor, ONLINE_PROVIDER);
+                    String temp_price = Db.getString(cursor, TEMP_PRICE);
+                    String temp_price_usd = Db.getString(cursor, TEMP_PRICE_USD);
+                    String price_equation = Db.getString(cursor, PRICE_EQUATION);
+                    String reference_type = Db.getString(cursor, REFERENCE_TYPE);
+                    String atm_model = Db.getString(cursor, ATM_MODEL);
+                    String currency = Db.getString(cursor, CURRENCY);
+                    String account_info = Db.getString(cursor, ACCOUNT_INFO);
+                    double lat = Db.getDouble(cursor, LAT);
+                    double lon = Db.getDouble(cursor, LON);
+                    String min_amount = Db.getString(cursor, MIN_AMOUNT);
+                    String max_amount = Db.getString(cursor, MAX_AMOUNT);
+                    String max_amount_available = Db.getString(cursor, MAX_AMOUNT_AVAILABLE);
+                    String require_trade_volume = Db.getString(cursor, REQUIRE_TRADE_VOLUME);
+                    String require_feedback_score = Db.getString(cursor, REQUIRE_FEEDBACK_SCORE);
+                    String action_public_view = Db.getString(cursor, ACTION_PUBLIC_VIEW);
+                    String profile_name = Db.getString(cursor, PROFILE_NAME);
+                    String profile_username = Db.getString(cursor, PROFILE_USERNAME);
+                    String profile_trade_count = Db.getString(cursor, PROFILE_TRADE_COUNT);
+                    String profile_last_online = Db.getString(cursor, PROFILE_LAST_ONLINE);
+                    String profile_feedback_score = Db.getString(cursor, PROFILE_FEEDBACK_SCORE);
+                    String bank_name = Db.getString(cursor, BANK_NAME);
+                    String message = Db.getString(cursor, MESSAGE);
+                    boolean sms_verification_required = Db.getBoolean(cursor, SMS_VERIFICATION_REQUIRED);
+                    boolean track_max_amount = Db.getBoolean(cursor, TRACK_MAX_AMOUNT);
+                    boolean trusted_required = Db.getBoolean(cursor, TRUSTED_REQUIRED);
+
+                    return new AutoParcel_AdvertisementItem(id, ad_id, created_at, visible, email, location_string, country_code, city,
+                            trade_type, online_provider, temp_price, temp_price_usd, price_equation, reference_type, atm_model,
+                            currency, account_info, lat, lon, min_amount, max_amount, max_amount_available, require_trade_volume,
+                            require_feedback_score, action_public_view, profile_name, profile_username, profile_trade_count, profile_last_online,
+                            profile_feedback_score, bank_name, message, sms_verification_required, track_max_amount, trusted_required);
+                }
+
+                return null;
+             
+            } finally {
+                cursor.close();
+            }
+        }
+    };
+
+    public static Builder createBuilder(Advertisement item)
+    {
+        return new Builder()
+                .created_at(item.created_at)
+                .ad_id(item.ad_id)
+                .city(item.city)
+                .country_code(item.country_code)
+                .currency(item.currency)
+                .email(item.email)
+                .lat(item.lat)
+                .lon(item.lon)
+                .location_string(item.location)
+                .max_amount(item.max_amount)
+                .min_amount(item.min_amount)
+                .max_amount_available(item.max_amount_available)
+                .online_provider(item.online_provider)
+                .require_trade_volume(item.require_trade_volume)
+                .require_feedback_score(item.require_feedback_score)
+                .atm_model(item.atm_model)
+                .temp_price(item.temp_price)
+                .temp_price_usd(item.temp_price_usd)
+                .price_equation(item.price_equation)
+                .reference_type(item.reference_type)
+                .action_public_view(item.actions.public_view)
+                .sms_verification_required(item.sms_verification_required)
+                .trade_type(item.trade_type.name())
+                .visible(item.visible)
+                .account_info(item.account_info)
+                .profile_last_online(item.profile.last_online)
+                .profile_name(item.profile.name)
+                .profile_username(item.profile.username)
+                .profile_feedback_score(item.profile.feedback_score)
+                .profile_trade_count(item.profile.trade_count)
+                .bank_name(item.bank_name)
+                .message(item.message)
+                .track_max_amount(item.track_max_amount)
+                .trusted_required(item.trusted_required);
+    }
     
     public static final class Builder {
+        
         private final ContentValues values = new ContentValues();
 
         public Builder id(long id) {

@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -28,10 +29,16 @@ import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.utils.Conversions;
+import com.thanksmister.bitcoin.localtrader.utils.Doubles;
+import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
@@ -63,11 +70,15 @@ public class DbManager
     public static String DELETIONS = "deletions";
     
     private SqlBrite db;
+    private SqlBriteContentProvider contentProvider;
+    private ContentResolver contentResolver;
     
     @Inject
-    public DbManager(SqlBrite db)
+    public DbManager(SqlBrite db, SqlBriteContentProvider contentProvider, ContentResolver contentResolver)
     {
         this.db = db;
+        this.contentProvider = contentProvider;
+        this.contentResolver = contentResolver;
     }
 
     /**
@@ -82,66 +93,55 @@ public class DbManager
         db.delete(AdvertisementItem.TABLE, null);
     }
 
-    public Boolean isLoggedIn()
+    public Observable<Boolean> isLoggedIn()
     {
-        Cursor cursor = db.query(SessionItem.QUERY);
-        try {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                String access_token = Db.getString(cursor, SessionItem.ACCESS_TOKEN);
-                return (access_token != null && !Strings.isBlank(access_token));
-            }
-            return false;
-        } finally {
-            cursor.close();
-        }
-
-        /*return getTokens()
-            .flatMap(new Func1<SessionItem, Observable<? extends Boolean>>()
-            {
-                @Override
-                public Observable<? extends Boolean> call(SessionItem sessionItem)
-                {
-                    return Observable.just(sessionItem != null && !Strings.isBlank(sessionItem.access_token()));
-                }
-            });*/
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(SessionItem sessionItem)
+                    {
+                        return Observable.just(sessionItem.access_token() != null && !Strings.isBlank(sessionItem.access_token()));
+                    }
+                });
     }
     
     public Observable<SessionItem> getTokens()
     {
-        return db.createQuery(SessionItem.TABLE, SessionItem.QUERY)
+        return contentProvider.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
                 .map(SessionItem.MAP);
     }
 
-    public void updateTokens(Authorization authorization)
+    public void updateTokens(final Authorization authorization)
     {
-        Timber.d("UpdateTokens");
-        
-        SessionItem.Builder builder = new SessionItem.Builder()
+        final SessionItem.Builder builder = new SessionItem.Builder()
                 .access_token(authorization.access_token)
                 .refresh_token(authorization.refresh_token);
 
-        //db.beginTransaction();
-        
-        Cursor cursor = db.query(SessionItem.QUERY);
-        
-        try {
-            if(cursor.getCount() > 0) {
-               
-                cursor.moveToFirst();
-                long id = Db.getLong(cursor, SessionItem.ID);
-                db.update(SessionItem.TABLE, builder.build(), SessionItem.ID + " = ?", String.valueOf(id));
-                
-            } else {
-                db.insert(SessionItem.TABLE, builder.build());
-            }
-    
-            //db.setTransactionSuccessful();
-    
-        } finally {
-            //db.endTransaction();
-            cursor.close();
-        }
+        Subscription subscription = contentProvider.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
+                .map(SessionItem.MAP)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<SessionItem>()
+                {
+                    @Override
+                    public void call(SessionItem sessionItem)
+                    {
+                        if (sessionItem != null) {
+                            contentResolver.update(SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
+                        } else {
+                            contentResolver.insert(SyncProvider.SESSION_TABLE_URI, builder.build());
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        Timber.e(throwable.getLocalizedMessage());
+                    }
+                });
+
+        subscription.unsubscribe();
     }
     
     public Observable<ContactItem> contactQuery(String contactId)
@@ -162,7 +162,7 @@ public class DbManager
                 });
     }
     
-
+    @Deprecated
     public TreeMap<String, ArrayList<Contact>> updateContacts(List<Contact> contacts)
     {
         TreeMap<String, ArrayList<Contact>> updateMap = new TreeMap<String, ArrayList<Contact>>();
@@ -347,104 +347,25 @@ public class DbManager
         return updateMap;
     }
 
-    public void updateContact(Contact contact)
+    public int updateContact(Contact contact)
     {
-        ContactItem.Builder builder = new ContactItem.Builder()
-                .contact_id(contact.contact_id)
-                .created_at(contact.created_at)
-                .amount(contact.amount)
-                .amount_btc(contact.amount_btc)
-                .currency(contact.currency)
-                .reference_code(contact.reference_code)
-
-                .payment_completed_at(contact.payment_completed_at)
-                .contact_id(contact.contact_id)
-                .disputed_at(contact.disputed_at)
-                .funded_at(contact.funded_at)
-                .escrowed_at(contact.escrowed_at)
-                .released_at(contact.released_at)
-                .canceled_at(contact.canceled_at)
-                .closed_at(contact.closed_at)
-                .disputed_at(contact.disputed_at)
-                .is_funded(contact.is_funded)
-
-                .fund_url(contact.actions.fund_url)
-                .release_url(contact.actions.release_url)
-                .advertisement_public_view(contact.actions.advertisement_public_view)
-                .message_url(contact.actions.messages_url)
-                .message_post_url(contact.actions.message_post_url)
-                .mark_as_paid_url(contact.actions.mark_as_paid_url)
-                .dispute_url(contact.actions.dispute_url)
-                .cancel_url(contact.actions.cancel_url)
-
-                .buyer_name(contact.buyer.name)
-                .buyer_username(contact.buyer.username)
-                .buyer_trade_count(contact.buyer.trade_count)
-                .buyer_feedback_score(contact.buyer.feedback_score)
-                .buyer_last_online(contact.buyer.last_online)
-
-                .seller_name(contact.seller.name)
-                .seller_username(contact.seller.username)
-                .seller_trade_count(contact.seller.trade_count)
-                .seller_feedback_score(contact.seller.feedback_score)
-                .seller_last_online(contact.seller.last_online)
-
-                .account_receiver_email(contact.account_details.email)
-                .account_receiver_name(contact.account_details.receiver_name)
-                .account_iban(contact.account_details.iban)
-                .account_swift_bic(contact.account_details.swift_bic)
-                .account_reference(contact.account_details.reference)
-
-                .advertisement_id(contact.advertisement.id)
-                .advertisement_trade_type(contact.advertisement.trade_type.name())
-                .advertisement_payment_method(contact.advertisement.payment_method)
-
-                .advertiser_name(contact.advertisement.advertiser.name)
-                .advertiser_username(contact.advertisement.advertiser.username)
-                .advertiser_trade_count(contact.advertisement.advertiser.trade_count)
-                .advertiser_feedback_score(contact.advertisement.advertiser.feedback_score)
-                .advertiser_last_online(contact.advertisement.advertiser.last_online);
-
-        db.beginTransaction();
-
-        Cursor cursor = db.query(ContactItem.QUERY_ITEM, contact.contact_id);
-
-        try {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                long id = Db.getLong(cursor, ContactItem.ID);
-                db.update(ContactItem.TABLE, builder.build(), ContactItem.ID + " = ?", String.valueOf(id));
-            } else {
-                db.insert(ContactItem.TABLE, builder.build());
-            }
-            db.setTransactionSuccessful();
-
-        } finally {
-            db.endTransaction();
-            cursor.close();
-        }
+        return contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact).build(), ContactItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contact.contact_id)});
     }
-
+    
     public void deleteContact(String contactId)
     {
-        try {
-            db.beginTransaction();
-            db.delete(ContactItem.TABLE, ContactItem.ID + " = ?", contactId);
-            db.delete(MessageItem.TABLE, MessageItem.CONTACT_LIST_ID + " = ?", contactId);
-        } finally {
-            db.endTransaction();
-        }
+        contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
     }
     
     public Observable<List<ContactItem>> contactsQuery()
     {
-        return db.createQuery(ContactItem.TABLE, ContactItem.QUERY)
+        return contentProvider.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
                 .map(ContactItem.MAP);
     }
     
     public Observable<List<MessageItem>> messagesQuery(String contactId)
     {
-        return db.createQuery(MessageItem.TABLE, MessageItem.QUERY, contactId)
+        return contentProvider.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
                 .map(MessageItem.MAP);
     }
 
@@ -468,102 +389,56 @@ public class DbManager
                     }
                 });
     }
-    
-    // updates messages from list of contacts
-    public Observable<List<Message>> updateMessagesFromContacts(List<Contact> contacts)
-    {
-        final List<Message> newMessages = new ArrayList<Message>();
-        return Observable.just(Observable.from(contacts)
-                .flatMap(new Func1<Contact, Observable<? extends List<Message>>>()
-                {
-                    @Override
-                    public Observable<? extends List<Message>> call(final Contact contact)
-                    {
-                        if(contact.messages.isEmpty()) {
-                            return Observable.just(new ArrayList<Message>());
-                        } else {
-                            List<Message> messages = updateMessages(contact.messages, contact.contact_id);
-                            newMessages.addAll(messages);
-                            return Observable.just(newMessages);
-                        }
-                        
-                    }
-                }).toBlocking().lastOrDefault(newMessages));
-    }
 
-    public List<Message> updateMessages(List<Message> messages, String contactId)
+    public void updateMessages(final Contact contact)
     {
-        ArrayList<Message> newMessages = new ArrayList<Message>();
-        HashMap<String, Message> entryMap = new HashMap<String, Message>();
+        final ArrayList<Message> newMessages = new ArrayList<Message>();
+        final HashMap<String, Message> entryMap = new HashMap<String, Message>();
         
-        for (Message message : messages) {
-            message.contact_id = contactId;
+        for (Message message : contact.messages) {
+            message.id = contact.contact_id + "_" + contact.created_at;
+            message.contact_id = contact.contact_id;
             entryMap.put(message.created_at, message);
         }
-
-        db.beginTransaction();
         
-        Cursor cursor = db.query(MessageItem.SELECT_QUERY, String.valueOf(contactId));
-  
-        try {
-            
-            while (cursor.moveToNext()) {
+        // get all the current messages
+        Subscription subscription = contentProvider.createQuery(SyncProvider.MESSAGE_TABLE_URI,
+                null, null, null, null, false)
+                .map(MessageItem.MAP)
+                .subscribe(new Action1<List<MessageItem>>()
+                {
+                    @Override
+                    public void call(List<MessageItem> messageItems)
+                    {
+                        for (MessageItem messageItem : messageItems) {
+                            String id = messageItem.contact_id() + "_" + messageItem.create_at();
+                            Message match = entryMap.get(id);
+                            if (match != null) {
+                                entryMap.remove(id);
+                            }
+                        }
 
-                long id = Db.getLong(cursor, MessageItem.ID);
-                String createdAt = Db.getString(cursor, MessageItem.CREATED_AT);
-                boolean seen = Db.getBoolean(cursor, MessageItem.SEEN);
-                Message match = entryMap.get(createdAt);
-
-                if (match != null) {
-                    // Entry exists. Do not update message
-                    entryMap.remove(createdAt);
-
-                    if(seen != match.seen) {
-                        
-                        MessageItem.Builder builder = new MessageItem.Builder()
-                                .seen(true);
-
-                        db.update(MessageItem.TABLE, builder.build(), MessageItem.ID + " = ?", String.valueOf(id));
+                        for (Message message : entryMap.values()) {
+                            newMessages.add(message);
+                        }
                     }
-  
-                } else {
-                    // Entry doesn't exist. Remove it from the database.
-                    db.delete(MessageItem.TABLE, MessageItem.ID + " = ?", String.valueOf(id));
-                }
-            }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
 
-            // Add new items
-            for (Message item : entryMap.values()) {
-
-                MessageItem.Builder builder = new MessageItem.Builder()
-                        .contact_list_id(Long.parseLong(item.contact_id))
-                        .message(item.msg)
-                        .seen(true)
-                        .created_at(item.created_at)
-                        .sender_id(item.sender.id)
-                        .sender_name(item.sender.name)
-                        .sender_username(item.sender.username)
-                        .sender_trade_count(item.sender.trade_count)
-                        .sender_last_online(item.sender.last_seen_on)
-                        .is_admin(item.is_admin)
-                        .attachment_name(item.attachment_name)
-                        .attachment_type(item.attachment_type)
-                        .attachment_url(item.attachment_url);
-
-                db.insert(MessageItem.TABLE, builder.build());
-
-                newMessages.add(item);
-            }
-
-            db.setTransactionSuccessful();
-            
-        } finally {
-            
-            db.endTransaction();
-            cursor.close();
+        subscription.unsubscribe();
+        
+        for (Message item : newMessages) {
+            MessageItem.Builder builder = MessageItem.createBuilder(item);
+            contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, builder.build());
         }
         
-        return newMessages;
+        contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, new ContactItem.Builder().message_count(contact.messages.size()).unseen_messages(false).build());
     }
     
     public Observable<List<MethodItem>> methodQuery()
@@ -574,13 +449,13 @@ public class DbManager
 
     public Observable<ExchangeItem> exchangeQuery()
     {
-        return  db.createQuery(ExchangeItem.TABLE, ExchangeItem.QUERY)
+        return db.createQuery(ExchangeItem.TABLE, ExchangeItem.QUERY)
                 .map(ExchangeItem.MAP);
     }
     
     public Observable<List<AdvertisementItem>> advertisementQuery()
     {
-        return  db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY)
+       return  db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY)
                 .map(AdvertisementItem.MAP);
     }
 
@@ -604,60 +479,53 @@ public class DbManager
 
     public Observable<WalletItem> walletQuery()
     {
-        return db.createQuery(WalletItem.TABLE, WalletItem.QUERY).map(WalletItem.MAP);
+        return contentProvider.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+                .map(WalletItem.MAP);
     }
 
-    public void updateWallet(Wallet wallet)
+    public void updateWallet(final Wallet wallet)
     {
-        assert wallet.qrImage != null;
-        
-        Timber.d("Wallet Image: " + wallet.qrImage);
+        Subscription subscription = contentProvider.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+                .map(WalletItem.MAP)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<WalletItem>()
+                {
+                    @Override
+                    public void call(WalletItem walletItem)
+                    {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
 
-        // TODO This has to be in some type of async
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        
-        WalletItem.Builder builder = new WalletItem.Builder()
-                .message(wallet.message)
-                .balance(wallet.total.balance)
-                .sendable(wallet.total.sendable)
-                .address(wallet.address.address)
-                .receivable(wallet.address.received)
-                .qrcode(baos.toByteArray());
-        
-        db.beginTransaction();
-        
-        Cursor cursor = db.query(WalletItem.QUERY);
-        
-        try {
-            if (cursor.getCount() > 0) {
-                
-                cursor.moveToFirst();
+                        if (walletItem != null) {
 
-                long id = Db.getLong(cursor, WalletItem.ID);
-                String address = Db.getString(cursor, WalletItem.ADDRESS);
-                String balance = Db.getString(cursor, WalletItem.BALANCE);
-                String received = Db.getString(cursor, WalletItem.RECEIVABLE);
-                
-                if(!address.equals(wallet.address.address) 
-                        || !balance.equals(wallet.total.balance)
-                        || !received.equals(wallet.address.received)
-                        || !balance.equals(wallet.total.sendable )) {
-                    
-                    db.update(WalletItem.TABLE, builder.build(), WalletItem.ID + " = ?", String.valueOf(id)); 
-                }
- 
-            } else {
-                db.insert(WalletItem.TABLE, builder.build());
-            }
-            db.setTransactionSuccessful();
+                            if(!walletItem.address().equals(wallet.address.address)
+                                    || !walletItem.balance().equals(wallet.total.balance)
+                                    || !walletItem.receivable().equals(wallet.address.received)
+                                    || !walletItem.sendable().equals(wallet.total.sendable)) {
 
-        } finally {
-            db.endTransaction();
-            cursor.close();
-        }
+                                WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+                                contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
+                            }
+
+                        } else {
+
+                            WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+                            contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
+
+        subscription.unsubscribe();
     }
-    
+
     public void updateExchange(final Exchange exchange)
     {
         ExchangeItem.Builder builder = new ExchangeItem.Builder()
@@ -665,7 +533,7 @@ public class DbManager
                 .bid(exchange.bid)
                 .last(exchange.last)
                 .exchange(exchange.name);
-        
+
         db.beginTransaction();
         Cursor cursor = db.query(ExchangeItem.QUERY);
         try {
@@ -683,22 +551,22 @@ public class DbManager
             cursor.close();
         }
     }
-    
+
     // Experimental code for updating database without causing back pressure exception
     // rx.exceptions.MissingBackpressureException
     public void updateMethods(final List<Method> methods)
     {
         HashMap<String, Method> entryMap = new HashMap<String, Method>();
-        
+
         for (Method item : methods) {
             entryMap.put(item.key, item);
         }
 
         db.beginTransaction();
-        
+
         // Get list of all items
         Cursor cursor = db.query(MethodItem.QUERY);
-    
+
         try {
             while (cursor.moveToNext()) {
 
@@ -730,7 +598,7 @@ public class DbManager
             }
 
             db.setTransactionSuccessful();
-            
+
         } finally {
             db.endTransaction();
             cursor.close();
@@ -746,10 +614,10 @@ public class DbManager
         }
 
         db.beginTransaction();
-        
+
         // Get list of all items
         Cursor cursor = db.query(AdvertisementItem.QUERY);
-        
+
         try {
             while (cursor.moveToNext()) {
 
@@ -878,70 +746,108 @@ public class DbManager
 
                 db.insert(AdvertisementItem.TABLE, builder.build());
             }
-            
+
             db.setTransactionSuccessful();
-            
+
         } finally {
             db.endTransaction();
             cursor.close();
         }
+        
+        /*final ArrayList<Advertisement> newAdvertisements = new ArrayList<Advertisement>();
+        final ArrayList<String> deletedAdvertisements = new ArrayList<String>();
+        final ArrayList<Advertisement> updateAdvertisements = new ArrayList<Advertisement>();
+
+        final HashMap<String, Advertisement> entryMap = new HashMap<String, Advertisement>();
+        for (Advertisement item : advertisements) {
+            entryMap.put(item.ad_id, item);
+        }
+
+        Subscription subscription = contentProvider.createQuery(SyncProvider.ADVERTISEMENT_TABLE_URI,
+                null, null, null, null, false)
+                .map(AdvertisementItem.MAP)
+                .subscribe(new Action1<List<AdvertisementItem>>()
+                {
+                    @Override
+                    public void call(List<AdvertisementItem> advertisementItems)
+                    {
+                        Timber.d("Advertisements Items in Database: " + advertisementItems.size());
+
+                        for (AdvertisementItem advertisementItem : advertisementItems) {
+
+                            Advertisement match = entryMap.get(advertisementItem.ad_id());
+
+                            if (match != null) {
+
+                                entryMap.remove(advertisementItem.ad_id());
+
+                                if ((match.price_equation != null && !match.price_equation.equals(advertisementItem.price_equation())) ||
+                                        (match.temp_price != null && !match.temp_price.equals(advertisementItem.temp_price())) ||
+                                        (match.city != null && !match.city.equals(advertisementItem.city())) ||
+                                        (match.country_code != null && !match.country_code.equals(advertisementItem.country_code())) ||
+                                        (match.bank_name != null && !match.bank_name.equals(advertisementItem.bank_name())) ||
+                                        (match.currency != null && !match.currency.equals(advertisementItem.currency())) ||
+                                        (match.lat != advertisementItem.lat()) || (match.lon != advertisementItem.lon()) ||
+                                        (match.location != null && !match.location.equals(advertisementItem.location_string())) ||
+                                        (match.max_amount != null && !match.max_amount.equals(advertisementItem.max_amount())) ||
+                                        (match.min_amount != null && !match.min_amount.equals(advertisementItem.min_amount())) ||
+                                        (match.max_amount_available != null && !match.max_amount_available.equals(advertisementItem.max_amount_available())) ||
+                                        (match.online_provider != null && !match.online_provider.equals(advertisementItem.online_provider())) ||
+                                        (match.account_info != null && !match.account_info.equals(advertisementItem.account_info())) ||
+                                        (match.sms_verification_required != advertisementItem.sms_verification_required()) ||
+                                        (match.visible != advertisementItem.visible() ||
+                                                (match.trusted_required != advertisementItem.trusted_required()) ||
+                                                (match.track_max_amount != advertisementItem.track_max_amount()) ||
+                                                (match.message != null && !match.message.equals(advertisementItem.message())))) {
+
+                                    updateAdvertisements.add(match);
+                                }
+
+                            } else {
+
+                                deletedAdvertisements.add(advertisementItem.ad_id());
+                            }
+                        }
+
+                        for (Advertisement advertisement : entryMap.values()) {
+                            newAdvertisements.add(advertisement);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
+
+        subscription.unsubscribe();
+
+        for (Advertisement item : newAdvertisements) {
+            AdvertisementItem.Builder builder = AdvertisementItem.createBuilder(item);
+            contentResolver.insert(SyncProvider.ADVERTISEMENT_TABLE_URI, builder.build());
+        }
+
+        for (Advertisement item : updateAdvertisements) {
+            AdvertisementItem.Builder builder = AdvertisementItem.createBuilder(item);
+            contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, builder.build(), AdvertisementItem.AD_ID + " = ?", new String[]{item.ad_id});
+        }
+
+        for (String id : deletedAdvertisements) {
+            contentResolver.delete(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.AD_ID + " = ?", new String[]{id});
+        }*/
     }
 
-    public Boolean updateAdvertisement(Advertisement advertisement)
+    public void updateAdvertisementVisibility(final String adId, final boolean visible)
     {
-        AdvertisementItem.Builder builder = new AdvertisementItem.Builder()
-                .created_at(advertisement.created_at)
-                .ad_id(advertisement.ad_id)
-                .city(advertisement.city)
-                .country_code(advertisement.country_code)
-                .currency(advertisement.currency)
-                .email(advertisement.email)
-                .lat(advertisement.lat)
-                .lon(advertisement.lon)
-                .location_string(advertisement.location)
-                .max_amount(advertisement.max_amount)
-                .min_amount(advertisement.min_amount)
-                .max_amount_available(advertisement.max_amount_available)
-                .online_provider(advertisement.online_provider)
-                .require_trade_volume(advertisement.require_trade_volume)
-                .require_feedback_score(advertisement.require_feedback_score)
-                .atm_model(advertisement.atm_model)
-                .temp_price(advertisement.temp_price)
-                .temp_price_usd(advertisement.temp_price_usd)
-                .price_equation(advertisement.price_equation)
-                .reference_type(advertisement.reference_type)
-                .action_public_view(advertisement.actions.public_view)
-                .sms_verification_required(advertisement.sms_verification_required)
-                .trade_type(advertisement.trade_type.name())
-                .visible(advertisement.visible)
-                .account_info(advertisement.account_info)
-                .profile_last_online(advertisement.profile.last_online)
-                .profile_name(advertisement.profile.name)
-                .profile_username(advertisement.profile.username)
-                .profile_feedback_score(advertisement.profile.feedback_score)
-                .profile_trade_count(advertisement.profile.trade_count)
-                .bank_name(advertisement.bank_name)
-                .message(advertisement.message)
-                .track_max_amount(advertisement.track_max_amount)
-                .trusted_required(advertisement.trusted_required);
-        
-        db.beginTransaction();
-        Cursor cursor = db.query(AdvertisementItem.QUERY_ITEM, advertisement.ad_id);
-        try {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                long id = Db.getLong(cursor, AdvertisementItem.ID);
-                db.update(AdvertisementItem.TABLE, builder.build(), AdvertisementItem.ID + " = ?", String.valueOf(id));
-            } else {
-                db.insert(AdvertisementItem.TABLE, builder.build());
-            }
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-            cursor.close();
-        }
+        db.update(AdvertisementItem.TABLE, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
+    }
+    
+    public int updateAdvertisement(final Advertisement advertisement)
+    {
+       return db.update(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build(), AdvertisementItem.AD_ID + " = ?", advertisement.ad_id);
 
-        return true;
     }
 
     private class QrCodeTask extends AsyncTask<Object, Void, Object[]>
@@ -970,5 +876,11 @@ public class DbManager
             Wallet wallet = (Wallet) result[0];
             //updateWalletQrCode(wallet.id, wallet.qrImage, context);
         }
+    }
+
+    protected void reportError(Throwable throwable)
+    {
+        if(throwable != null && throwable.getLocalizedMessage() != null)
+            Timber.e("Database Manager Error: " + throwable.getLocalizedMessage());
     }
 }

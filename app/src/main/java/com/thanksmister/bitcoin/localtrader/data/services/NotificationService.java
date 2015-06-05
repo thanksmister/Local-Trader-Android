@@ -116,6 +116,11 @@ public class NotificationService
         }
     }
 
+    public void balanceUpdateNotification(String title, String ticker, String message)
+    {
+        NotificationUtils.createBalanceNotification(context.getApplicationContext(), title, ticker, message, NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
+    }
+
     public void contactNewNotification(List<Contact> contacts)
     {
         Timber.e("new contacts size: " + contacts.size());

@@ -56,6 +56,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
@@ -404,6 +405,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             {
                 hideProgress();
 
+                onRefreshStop();
+
                 if (contactItem != null) {
 
                     setContact(contactItem);
@@ -424,6 +427,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(List<MessageItem> messageItems)
             {
                 hideProgress();
+
+                onRefreshStop();
 
                 getAdapter().replaceWith(messageItems);
             }
@@ -447,13 +452,15 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
                onRefreshStop();
 
-               if (dashboardType == DashboardType.ACTIVE) {
-                   updateContact(contact);
-                   updateMessages(contact);
-               } else {
+               if(dashboardType != DashboardType.ACTIVE) {
+                   
                    setContact(ContactItem.convertContact(contact));
+
                    getAdapter().replaceWith(MessageItem.convertMessages(contact.messages, contact.contact_id));
                }
+               
+               updateContact(contact);
+               
            }
        }, new Action1<Throwable>()  {
            @Override
@@ -470,14 +477,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void updateContact(Contact contact)
     {
-        dbManager.updateContact(contact);
+        int updated = dbManager.updateContact(contact);
+        if(updated > 0) {
+            dbManager.updateMessages(contact);
+        }
     }
 
-    private void updateMessages(Contact contact)
-    {
-        dbManager.updateMessages(contact.messages, contact.contact_id);
-    }
-    
     public void setContact(ContactItem contact)
     {
         this.contact = contact;
@@ -605,9 +610,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(JSONObject jsonObject)
             {
                 hideProgressDialog();
+                
                 toast(R.string.toast_message_sent);
+                
                 newMessageText.setText("");
+
                 updateData();
+                
             }
         }, new Action1<Throwable>()
         {
@@ -615,6 +624,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(Throwable throwable)
             {
                 hideProgressDialog();
+                
                 toast(R.string.toast_error_message);
             }
         });
@@ -676,9 +686,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(JSONObject jsonObject)
             {
                 if (action == ContactAction.RELEASE) {
+                    
                     toast(R.string.trade_released_toast_text);
+                    
                     deleteContact(contactId);
+                    
                 } else {
+                    
                     updateData();
                 }
             }
@@ -697,7 +711,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private void deleteContact(String contactId)
     {
         Timber.d("Delete Contact: " + contactId);
+        
         dbManager.deleteContact(contactId);
+        
         finish();
     }
 

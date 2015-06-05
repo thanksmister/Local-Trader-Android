@@ -20,6 +20,9 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.support.annotation.Nullable;
 
+import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +47,7 @@ public abstract class WalletItem
     public static final String RECEIVABLE = "receivable";
     public static final String QRCODE = "qrcode";
     
-    public static final String QUERY = "SELECT * FROM " + WalletItem.TABLE + " LIMIT 1";;
+    public static final String QUERY = "SELECT * FROM " + WalletItem.TABLE + " LIMIT 1";
     
     public abstract long id();
     public abstract String message();
@@ -78,8 +81,20 @@ public abstract class WalletItem
             }
         }
     };
-    
+
+    public static Builder createBuilder(Wallet wallet, ByteArrayOutputStream baos)
+    {
+        return new Builder()
+                .message(wallet.message)
+                .balance(wallet.total.balance)
+                .sendable(wallet.total.sendable)
+                .address(wallet.address.address)
+                .receivable(wallet.address.received)
+                .qrcode(baos.toByteArray());
+    }
+
     public static final class Builder {
+        
         private final ContentValues values = new ContentValues();
 
         public Builder id(long id) {

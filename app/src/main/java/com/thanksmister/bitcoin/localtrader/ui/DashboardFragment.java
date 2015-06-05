@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,13 +33,12 @@ import android.widget.TextView;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
+import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
@@ -47,6 +47,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
+import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
@@ -59,9 +60,7 @@ import com.thanksmister.bitcoin.localtrader.ui.contacts.DashboardContactAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.LinearListView;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 
 import javax.inject.Inject;
 
@@ -70,8 +69,8 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.Optional;
 import rx.Observable;
+import rx.Observer;
 import rx.Subscription;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.subscriptions.CompositeSubscription;
@@ -92,6 +91,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     @Inject
     DbManager dbManager;
+
+    @Inject
+    SqlBrite db;
 
     @Inject
     Bus bus;
@@ -177,9 +179,10 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     private Observable<List<MethodItem>> methodObservable;
     private Observable<List<ContactItem>> contactObservable;
     private Observable<ExchangeItem> exchangeObservable;
-    //private Observable<List<Contact>> contactUpdateObservable;
+
     private Observable<List<Method>> methodUpdateObservable;
     private Observable<Exchange> exchangeUpdateObservable;
+    private Observable<List<Advertisement>> advertisementUpdateObservable;
 
     Subscription messageSubscriptions = Subscriptions.empty();
     CompositeSubscription subscriptions;
@@ -187,17 +190,20 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     private DashboardContactAdapter contactAdapter;
     private DashboardAdvertisementAdapter advertisementAdapter;
-    
+
+    ContentResolver contentResolver;
+    SqlBriteContentProvider sqlBriteContentProvider;
+ 
     private class AdvertisementData {
         public List<AdvertisementItem> advertisements;
         public List<MethodItem> methods;
     }
 
-    private class dashboardData
+    /*private class dashboardData
     {
         public List<Advertisement> advertisements;
         public List<Contact> contacts;
-    }
+    }*/
     
     private Handler handler;
 
@@ -224,16 +230,21 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-
+        
         // refresh handler
         handler = new Handler();
+
+        // sqlbrite content provider
+        contentResolver = getActivity().getContentResolver();
+        sqlBriteContentProvider = SqlBriteContentProvider.create(contentResolver);
+        sqlBriteContentProvider.setLoggingEnabled(true);
         
         // database data
         methodObservable = bindFragment(this, dbManager.methodQuery().cache());
-        contactObservable = bindFragment(this, dbManager.contactsQuery());
-        advertisementObservable = bindFragment(this, dbManager.advertisementQuery());
+        advertisementObservable = bindFragment(this, db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY).map(AdvertisementItem.MAP));
         exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
-     
+        contactObservable = bindFragment(this, dbManager.contactsQuery());
+        
         // update data
         methodUpdateObservable = bindFragment(this, dataService.getMethods().cache());
         exchangeUpdateObservable = bindFragment(this, dataService.getExchange());
@@ -324,12 +335,12 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     public void onResume()
     {
         super.onResume();
-                
+        
+        onRefreshStart();
+
         subscribeData();
 
         updateData(false);
-
-        onRefreshStart();
     }
 
     @Override
@@ -340,6 +351,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         subscriptions.unsubscribe();
         updateSubscriptions.unsubscribe();
         messageSubscriptions.unsubscribe();
+        
         handler.removeCallbacks(refreshRunnable);
     }
 
@@ -379,7 +391,32 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     protected void subscribeData()
     {
+        Timber.d("subscribeData");
+
         subscriptions = new CompositeSubscription();
+        subscriptions.add(contactObservable
+                .subscribe(new Action1<List<ContactItem>>()
+                {
+                    @Override
+                    public void call(List<ContactItem> contactItems)
+                    {
+                        Timber.d("Contacts Found: " + contactItems.size());
+                        setContacts(contactItems);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        Timber.e("Contacts Error");
+                        reportError(throwable);
+                    }
+                }));
+
+
+        Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache();
+        Observable<List<AdvertisementItem>> advertisementObservable = db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY).map(AdvertisementItem.MAP);
+        
         subscriptions.add(Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, List<AdvertisementItem>, AdvertisementData>()
         {
             @Override
@@ -399,24 +436,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             }
         }));
         
-        subscriptions.add(contactObservable.subscribe(new Action1<List<ContactItem>>()
-        {
-            @Override
-            public void call(List<ContactItem> items)
-            {
-                Timber.d("Contacts: " + items.size());
-                setContacts(items);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Timber.e("Contacts Error");
-                reportError(throwable);
-            }
-        }));
-
         subscriptions.add(exchangeObservable.subscribe(new Action1<ExchangeItem>()
         {
             @Override
@@ -448,6 +467,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(List<Method> methods)
             {
+                Timber.e("Methods Updated");
+                
                 updateMethods(methods);
             }
         }, new Action1<Throwable>()
@@ -468,6 +489,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Exchange exchange)
             {
+                Timber.e("Exchange Updated");
+                
                 updateExchange(exchange);
             }
         }, new Action1<Throwable>()
@@ -475,15 +498,40 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Throwable throwable)
             {
-                Timber.e("Exchange Error");
-                
                 onRefreshStop();
-                
+
                 handleError(throwable);
             }
         }));
 
-        Observable<List<Contact>> contactUpdateObservable = bindFragment(this, dataService.getContacts(DashboardType.ACTIVE, force));
+        advertisementUpdateObservable = bindFragment(this, dataService.getAdvertisements(force));
+        
+        updateSubscriptions.add(advertisementUpdateObservable.subscribe(new Observer<List<Advertisement>>()
+        {
+            @Override
+            public void onCompleted()
+            {
+                onRefreshStop();
+            }
+
+            @Override
+            public void onError(Throwable throwable)
+            {
+                reportError(throwable);
+            }
+
+            @Override
+            public void onNext(List<Advertisement> advertisements)
+            {
+                onRefreshStop();
+                
+                Timber.d("Advertisements Found: " + advertisements.size());
+                
+                updateAdvertisements(advertisements);
+            }
+        }));
+
+        /*Observable<List<Contact>> contactUpdateObservable = bindFragment(this, dataService.getContacts(DashboardType.ACTIVE, force));
         Observable<List<Advertisement>> advertisementUpdateObservable = bindFragment(this, dataService.getAdvertisements(force));
        
         updateSubscriptions.add(Observable.combineLatest(contactUpdateObservable, advertisementUpdateObservable, new Func2<List<Contact>, List<Advertisement>, dashboardData>()
@@ -527,7 +575,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             {
                 onRefreshStop();
             }
-        }));
+        }));*/
     }
     
     private void updateMethods(List<Method> methods) 
@@ -546,7 +594,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     }
 
     // update messages from contacts
-    private void updateMessages(final List<Contact> contacts)
+    /*private void updateMessages(final List<Contact> contacts)
     {
         ArrayList<Contact> messageContacts = new ArrayList<>();
         for (Contact contact : contacts) {
@@ -577,9 +625,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 }
             });
         }
-    }
+    }*/
     
-    private void updateContacts(List<Contact> contacts)
+    /*private void updateContacts(List<Contact> contacts)
     {
         if (!contacts.isEmpty()) {
             
@@ -602,7 +650,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 notificationService.contactDeleteNotification(deletedContacts);
             }
         }
-    }
+    }*/
 
     protected void setMarketValue(String exchange, String value)
     {
