@@ -14,206 +14,221 @@
   ~ limitations under the License.
   -->
 
-<ScrollView
+<android.support.design.widget.CoordinatorLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
+        android:id="@+id/coordinatorLayout"
         android:layout_height="match_parent"
-        android:background="@color/white"
-        android:orientation="vertical">
+        android:layout_width="match_parent">
 
-    <LinearLayout
+    <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="@dimen/activity_space"
-            android:orientation="vertical"
-            android:background="@android:color/white">
+            android:layout_height="wrap_content">
+
+        <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/Theme.AppCompat.Light"/>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.widget.NestedScrollView
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp">
+                android:paddingBottom="@dimen/activity_space"
+                android:orientation="vertical">
 
-            <ImageView
-                    android:layout_marginTop="10dp"
-                    android:layout_height="200dp"
-                    android:layout_width="200dp"
-                    android:src="@drawable/logo_screen"
-                    android:contentDescription="@string/desc"/>
-
-            <TextView
-                    android:text="@string/designer_developer_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    style="@style/TextMedium"
-                    android:ellipsize="marquee"
-                    android:fadingEdge="horizontal"/>
-
-            <TextView
-                    android:text="@string/thanks_mister_title"
-                    style="@style/TextExtraLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="30sp"
-                    android:maxLines="2"/>
-
-            <TextView
-                    android:text="@string/company_url_text"
-                    android:textColorLink="@color/text_link"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Text"
-                    android:maxLines="2"
-                    android:paddingBottom="2dp"
-                    android:autoLink="web|email"/>
-
-            <TextView
-                    android:id="@+id/versionName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/SmallText.ExtraSmall"
-                    android:maxLines="2"
-
-                    android:autoLink="web|email"/>
-
-        </LinearLayout>
-
-        <View style="@style/DividerHorizontal"/>
-
-        <LinearLayout
-                android:id="@+id/sendFeedbackButton"
-                style="@style/BorderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/view_padding"
-                android:orientation="horizontal">
-
-            <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_communication_email"/>
-
-            <TextView
-                    style="@style/TextMedium.SmallAction"
+            <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
-                    android:gravity="left|center_vertical"
-                    android:text="Provide feedback"/>
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="20dp">
 
-        </LinearLayout>
+                <ImageView
+                        android:layout_marginTop="10dp"
+                        android:layout_height="200dp"
+                        android:layout_width="200dp"
+                        android:src="@drawable/logo_screen"
+                        android:contentDescription="@string/desc"/>
 
-        <View style="@style/DividerHorizontal"/>
+                <TextView
+                        android:text="@string/designer_developer_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        style="@style/TextMedium"
+                        android:ellipsize="marquee"
+                        android:fadingEdge="horizontal"/>
 
-        <LinearLayout
-                android:id="@+id/donateBitcoinButton"
-                style="@style/BorderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/view_padding"
-                android:orientation="horizontal">
+                <TextView
+                        android:text="@string/thanks_mister_title"
+                        style="@style/TextExtraLarge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="30sp"
+                        android:maxLines="2"/>
 
-            <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_donate_bitcoin"/>
+                <TextView
+                        android:text="@string/company_url_text"
+                        android:textColorLink="@color/text_link"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/Text"
+                        android:maxLines="2"
+                        android:paddingBottom="2dp"
+                        android:autoLink="web|email"/>
 
-            <TextView
-                    style="@style/TextMedium.SmallAction"
+                <TextView
+                        android:id="@+id/versionName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/SmallText.ExtraSmall"
+                        android:maxLines="2"
+
+                        android:autoLink="web|email"/>
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal"/>
+
+            <LinearLayout
+                    android:id="@+id/sendFeedbackButton"
+                    style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
-                    android:gravity="left|center_vertical"
-                    android:text="Tip me!"/>
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal">
 
-        </LinearLayout>
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_communication_email"/>
 
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="Provide feedback"/>
 
-        <View style="@style/DividerHorizontal"/>
+            </LinearLayout>
 
-        <LinearLayout
-                android:id="@+id/rateApplicationButton"
-                style="@style/BorderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/view_padding"
-                android:orientation="horizontal">
+            <View style="@style/DividerHorizontal"/>
 
-            <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_toggle_star"/>
-
-            <TextView
-                    style="@style/TextMedium.SmallAction"
+            <LinearLayout
+                    android:id="@+id/donateBitcoinButton"
+                    style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
-                    android:gravity="left|center_vertical"
-                    android:text="Rate application"/>
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal">
 
-        </LinearLayout>
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_donate_bitcoin"/>
 
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="Tip me!"/>
 
-        <View style="@style/DividerHorizontal"/>
+            </LinearLayout>
 
-        <LinearLayout
-                android:id="@+id/joinCommunityButton"
-                style="@style/BorderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/view_padding"
-                android:orientation="horizontal">
+            <View style="@style/DividerHorizontal"/>
 
-            <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_google_plus"/>
-
-            <TextView
-                    style="@style/TextMedium.SmallAction"
+            <LinearLayout
+                    android:id="@+id/rateApplicationButton"
+                    style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
-                    android:gravity="left|center_vertical"
-                    android:text="Join community"/>
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal">
 
-        </LinearLayout>
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_toggle_star"/>
 
-        <View style="@style/DividerHorizontal"/>
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="Rate application"/>
 
+            </LinearLayout>
 
-        <LinearLayout
-                android:id="@+id/licenseButton"
-                style="@style/BorderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/view_padding"
-                android:orientation="horizontal">
+            <View style="@style/DividerHorizontal"/>
 
-            <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_info_outline"/>
-
-            <TextView
-                    style="@style/TextMedium.SmallAction"
+            <LinearLayout
+                    android:id="@+id/joinCommunityButton"
+                    style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
-                    android:gravity="left|center_vertical"
-                    android:text="License information"/>
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_google_plus"/>
+
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="Join community"/>
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal"/>
+
+            <LinearLayout
+                    android:id="@+id/licenseButton"
+                    style="@style/BorderlessButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_info_outline"/>
+
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="License information"/>
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal"/>
 
         </LinearLayout>
 
-        <View style="@style/DividerHorizontal"/>
+    </android.support.v4.widget.NestedScrollView>
 
+</android.support.design.widget.CoordinatorLayout>
 
-    </LinearLayout>
-
-</ScrollView>

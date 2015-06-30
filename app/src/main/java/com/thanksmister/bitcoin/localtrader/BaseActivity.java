@@ -18,19 +18,21 @@ package com.thanksmister.bitcoin.localtrader;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.zxing.android.IntentIntegrator;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -39,8 +41,11 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
+
+import org.json.JSONObject;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -48,12 +53,15 @@ import java.lang.annotation.RetentionPolicy;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import dagger.ObjectGraph;
-import rx.functions.Action0;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 /** Base activity which sets up a per-activity object graph and performs injection. */
-public abstract class BaseActivity extends ActionBarActivity 
+public abstract class BaseActivity extends AppCompatActivity 
 {
     /** This activity requires authentication */
     @Retention(RetentionPolicy.RUNTIME)
@@ -68,7 +76,9 @@ public abstract class BaseActivity extends ActionBarActivity
     @Inject
     DataService dataService;
 
-    private MaterialDialog progressDialog;
+    AlertDialog progressDialog;
+    
+    Subscription subscription = Subscriptions.empty();
 
     @Override 
     protected void onCreate(Bundle savedInstanceState) 
@@ -94,6 +104,8 @@ public abstract class BaseActivity extends ActionBarActivity
         bus.unregister(this);
 
         getApplicationContext().unregisterReceiver(connReceiver);
+
+        subscription.unsubscribe();
     }
 
     @Override
@@ -125,8 +137,8 @@ public abstract class BaseActivity extends ActionBarActivity
         TextView progressDialogMessage = (TextView) dialogView.findViewById(R.id.progressDialogMessage);
         progressDialogMessage.setText(event.message);
 
-        progressDialog = new MaterialDialog.Builder(this)
-                .customView(dialogView)
+        progressDialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
                 .show();
     }
 
@@ -140,33 +152,56 @@ public abstract class BaseActivity extends ActionBarActivity
 
     public void showAlertDialog(AlertDialogEvent event)
     {
-        new MaterialDialog.Builder(this)
-                .title(event.title)
-                .content(Html.fromHtml(event.message))
-                .neutralText(getString(android.R.string.ok))
+         new AlertDialog.Builder(this)
+                 .setTitle(event.title)
+                 .setMessage(Html.fromHtml(event.message))
+                 .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 
     public void logOutConfirmation()
     {
-        ConfirmationDialogEvent event = new ConfirmationDialogEvent(getString(R.string.dialog_logout_title),
-                getString(R.string.dialog_logout_message),
-                getString(R.string.button_ok),
-                getString(R.string.button_cancel), new Action0() {
-            @Override
-            public void call() {
-                logOut();
-            }
-        });
-
-        showConfirmationDialog(event);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_logout_title)
+                .setMessage(R.string.dialog_logout_message)
+                .setNegativeButton(R.string.button_cancel, null)
+                .setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        logOut();
+                    }
+                })
+                .show();
     }
 
     public void logOut()
     {
-        dbManager.clearDbManager();
-        dataService.reset();
-        
+        subscription = dataService.logout()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<JSONObject>()
+                {
+                    @Override
+                    public void call(JSONObject jsonObject)
+                    {
+                        Timber.d("Logged out: " + jsonObject.toString());
+                        onLoggedOut();
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                        onLoggedOut();
+                    }
+                });
+    }
+    
+    private void  onLoggedOut()
+    {
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);
         finish();
@@ -174,17 +209,18 @@ public abstract class BaseActivity extends ActionBarActivity
 
     public void showConfirmationDialog(final ConfirmationDialogEvent event)
     {
-        new MaterialDialog.Builder(this)
-                .callback(new MaterialDialog.SimpleCallback() {
+        new AlertDialog.Builder(this)
+                .setTitle(event.title)
+                .setMessage(event.message)
+                .setNegativeButton(event.negative, null)
+                .setPositiveButton(event.positive, new DialogInterface.OnClickListener()
+                {
                     @Override
-                    public void onPositive(MaterialDialog materialDialog) {
-                        event.action.call(); // call function 
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        event.action.call();
                     }
                 })
-                .title(event.title)
-                .content(event.message)
-                .positiveText(event.positive)
-                .negativeText(event.negative)
                 .show();
     }
 
@@ -209,40 +245,77 @@ public abstract class BaseActivity extends ActionBarActivity
 
     protected void reportError(Throwable throwable)
     {
-        if(throwable != null && throwable.getLocalizedMessage() != null)
+        if(throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.e("Data Error: " + throwable.getLocalizedMessage());
+        } else {
+            Timber.e("Null Error");
+        }
     }
     
-    protected void handleError(Throwable throwable)
+    protected void handleError(Throwable throwable) 
+    {
+        handleError(throwable, false);
+    }
+    
+    protected void handleError(Throwable throwable, boolean retry)
     {
         if(DataServiceUtils.isNetworkError(throwable)) {
-            toast(getString(R.string.error_no_internet) + ", Code 503");
+            Timber.e("Data Error: " + "Code 503");
+            snack(getString(R.string.error_no_internet), retry);
         } else if(DataServiceUtils.isHttp403Error(throwable)) {
-            toast(getString(R.string.error_authentication) + ", Code 403");
+            Timber.e("Data Error: " + "Code 403");
+            toast(getString(R.string.error_authentication));
             logOut();
         } else if(DataServiceUtils.isHttp401Error(throwable)) {
-            toast(getString(R.string.error_no_internet) + ", Code 401");
+            Timber.e("Data Error: " + "Code 401");
+            snack(getString(R.string.error_no_internet), retry);
         } else if(DataServiceUtils.isHttp500Error(throwable)) {
-            toast(getString(R.string.error_service_error) + ", Code 500");
+            Timber.e("Data Error: " + "Code 500");
+            snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp404Error(throwable)) {
-            toast(getString(R.string.error_service_error) + ", Code 404");
+            Timber.e("Data Error: " + "Code 404");
+            snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
-            toast(getString(R.string.error_authentication) + ", Code 400 Grant Invalid");
+            Timber.e("Data Error: " + "Code 400 Grant Invalid");
+            toast(getString(R.string.error_authentication));
             logOut();
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
-            toast(getString(R.string.error_service_error) + ", Code 400");
-        } else {
-            toast(R.string.error_unknown_error);
-        }
+            snack(getString(R.string.error_service_error), retry);
+        } 
 
-        if(throwable != null && throwable.getLocalizedMessage() != null)
+        if(throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.e("Data Error: " + throwable.getLocalizedMessage());
-        
+            snack(throwable.getLocalizedMessage(), retry);
+        } else {
+            snack(R.string.error_unknown_error, retry);
+        }
+    }
+
+    protected void snack(int message, boolean retry)
+    {
+        snack(getString(message), retry);
+    }
+    
+    protected void snack(String message, boolean retry)
+    {
+        if(retry){
+            Snackbar.make(findViewById(R.id.coordinatorLayout), message, Snackbar.LENGTH_LONG)
+                    .setAction("Retry", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view)
+                        {
+                            bus.post(RefreshEvent.RETRY);
+                        }
+                    })
+                    .show();
+        } else {
+            Snackbar.make(findViewById(R.id.coordinatorLayout), getString(R.string.error_no_internet), Snackbar.LENGTH_LONG)
+                    .show();
+        }
     }
 
     protected void toast(int messageId)
     {
         Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
     }
-    
 }

@@ -14,98 +14,111 @@
   ~ limitations under the License.
   -->
 
-<FrameLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:fab="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/white">
+<!--
+  ~ Copyright (c) 2015 ThanksMister LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License. 
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software distributed 
+  ~ under the License is distributed on an "AS IS" BASIS, 
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+  ~ See the License for the specific language governing permissions and 
+  ~ limitations under the License.
+  -->
 
-    <LinearLayout
+<android.support.design.widget.CoordinatorLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/coordinatorLayout"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
+
+    <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"
-            tools:visibility="visible"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
+
+        <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/Theme.AppCompat.Light"/>
 
         <LinearLayout
+                android:id="@+id/bitcoinLayout"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="@color/colorPrimary"
                 android:gravity="center_vertical"
-                android:paddingBottom="6dp"
-                android:visibility="visible">
+                android:paddingTop="@dimen/activity_space"
+                android:paddingBottom="@dimen/activity_space"
+                android:paddingLeft="72dp">
 
             <TextView
+                    android:id="@+id/bitcoinTitle"
                     style="@style/TextMedium.SmallAction.White"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="72dp"
-                    android:gravity="left"
-                    android:text="ACCOUNT BALANCE"/>
+                    android:gravity="start"
+                    android:text="MARKET PRICE"/>
 
             <TextView
-                    android:id="@+id/bitcoinBalance"
+                    android:id="@+id/bitcoinPrice"
                     style="@style/TextExtraLarge.White.Bold"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="72dp"
-                    android:gravity="left"
-                    android:textIsSelectable="true"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
 
             <TextView
                     android:id="@+id/bitcoinValue"
                     style="@style/TextSmall.White"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="72dp"
-                    android:gravity="left"
                     android:textIsSelectable="true"/>
 
         </LinearLayout>
-        
-        <FrameLayout
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.widget.SwipeRefreshLayout
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:id="@+id/swipeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <ListView
+                android:id="@+id/walletList"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:divider="@null"
+                android:drawSelectorOnTop="true"
+                android:visibility="visible"
+                tools:visibility="visible"
+                android:scrollbars="none"
+                android:paddingBottom="50dp"
+                android:clipToPadding="false"
+                android:fillViewport="true"/>
 
-            
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-            <android.support.v4.widget.SwipeRefreshLayout
-                    android:id="@+id/swipeLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-    
-                <ListView
-                        android:id="@android:id/list"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:divider="@null"
-                        android:drawSelectorOnTop="true"
-                        android:visibility="visible"
-                        tools:visibility="visible"
-                        android:scrollbars="none"/>
-            
-            </android.support.v4.widget.SwipeRefreshLayout>
-
-        </FrameLayout>
-
-    </LinearLayout>
-
-    <com.getbase.floatingactionbutton.FloatingActionButton
-            android:visibility="visible"
-            tools:visibility="visible"
-            android:id="@+id/walletFloatingButton"
+    <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:clickable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            fab:fab_icon="@drawable/ic_action_barcode_dark"
-            fab:fab_size="mini"
-            fab:fab_colorNormal="@color/white"
-            fab:fab_colorPressed="@color/gray_color"
-            android:layout_marginRight="@dimen/activity_padding"
-            android:layout_marginTop="46dp"
-            android:layout_gravity="right"/>
+            android:layout_marginRight="@dimen/activity_list_spacing"
+            android:layout_marginEnd="@dimen/activity_list_spacing"
+            android:src="@drawable/ic_action_barcode_2"
+            android:layout_marginBottom="@dimen/activity_list_spacing"
+            android:layout_gravity="bottom|end"
+            app:elevation="4dp"
+            app:borderWidth="0dp"
+            app:fabSize="normal"/>
 
-</FrameLayout>
+</android.support.design.widget.CoordinatorLayout>

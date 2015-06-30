@@ -14,313 +14,337 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout
+<android.support.design.widget.CoordinatorLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
+        android:id="@+id/coordinatorLayout"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@color/white">
+        android:layout_width="match_parent">
 
-    <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_height="wrap_content"
+    <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
-            android:minHeight="?android:attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            app:popupTheme="@style/Theme.AppCompat.Light"
-            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
 
-    <FrameLayout
+        <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:minHeight="?android:attr/actionBarSize"
+                android:background="@color/colorPrimary"
+                app:popupTheme="@style/Theme.AppCompat.Light"/>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <!-- Your Scrollable View -->
+    <android.support.v4.widget.SwipeRefreshLayout
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:id="@+id/swipeLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
-        <include
-                android:id="@android:id/progress"
-                layout="@layout/view_progress"
-                android:visibility="visible"
-                tools:visibility="visible"/>
-
-        <include
-                android:id="@android:id/empty"
-                layout="@layout/view_retry"
-                android:visibility="gone"
-                tools:visibility="visible"/>
-
-        <ScrollView
-                android:id="@+id/advertiserContent"
+        
+        <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scrollbars="none"
-                android:fillViewport="true"
-                android:visibility="gone"
-                tools:visibility="visible">
+                android:layout_height="match_parent">
 
-            <LinearLayout
+            <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="@dimen/activity_padding"
-                    android:orientation="vertical">
+                    android:layout_height="match_parent">
 
-                <TextView
-                        style="@style/TextLarge"
-                        android:id="@+id/noteTextAdvertiser"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="@dimen/view_padding_xlarge"
-                        android:paddingBottom="@dimen/view_padding_xlarge"
-                        android:paddingLeft="16dp"
-                        android:paddingRight="16dp"
-                        android:gravity="center"
-                        android:layout_gravity="center_vertical"
-                        android:text="@string/advertiser_notes_text_online"/>
+                <include
+                        android:id="@android:id/progress"
+                        layout="@layout/view_progress"
+                        android:visibility="visible"
+                        tools:visibility="visible"/>
 
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_marginBottom="@dimen/activity_padding"/>
-
-                <TextView
-                        style="@style/TextSmall"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingBottom="@dimen/view_padding_small"
-                        android:gravity="left"
-                        android:text="Advertiser"/>
+                <include
+                        android:id="@android:id/empty"
+                        layout="@layout/view_retry"
+                        android:visibility="gone"
+                        tools:visibility="visible"/>
 
                 <LinearLayout
+                        android:id="@+id/advertiserContent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingRight="@dimen/activity_padding"
                         android:paddingBottom="@dimen/activity_padding"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                    <TextView
+                            style="@style/TextLarge"
+                            android:id="@+id/noteTextAdvertiser"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="@dimen/view_padding_xlarge"
+                            android:paddingBottom="@dimen/view_padding_xlarge"
+                            android:paddingLeft="16dp"
+                            android:paddingRight="16dp"
+                            android:gravity="center"
+                            android:layout_gravity="center_vertical"
+                            android:text="@string/advertiser_notes_text_online"/>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_marginBottom="@dimen/activity_padding"/>
+
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingBottom="@dimen/view_padding_small"
+                            android:gravity="left"
+                            android:text="Advertiser"/>
 
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:paddingBottom="@dimen/activity_padding"
+                            android:orientation="horizontal">
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                            <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_weight="1">
+
+                                <TextView
+                                        android:id="@+id/traderName"
+                                        style="@style/TextLarge.SmallAction"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:gravity="left|center_vertical"
+                                        android:layout_gravity="center_vertical"
+                                        android:singleLine="true"
+                                        android:ellipsize="end"
+                                        android:layout_weight="0"
+                                        android:text="ThanksMister"/>
+
+                                <View
+                                        android:layout_width="4dp"
+                                        android:layout_height="match_parent"/>
+
+                                <View
+                                        android:id="@+id/lastSeenIcon"
+                                        android:layout_width="12dp"
+                                        android:layout_height="12dp"
+                                        android:layout_weight="0"
+                                        android:background="@drawable/last_seen_recently"
+                                        android:layout_gravity="center_vertical"/>
+
+                            </LinearLayout>
+
+                            <TextView
+                                    android:id="@+id/dateText"
+                                    style="@style/TextMedium.SmallAction.Light"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="left"
+                                    android:layout_gravity="center_vertical"
+                                    android:text="Last Seen - Feb 6, 12:00"/>
+
+                        </LinearLayout>
 
                         <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
+                                android:gravity="right"
                                 android:layout_weight="1">
 
-                            <TextView
-                                    android:id="@+id/traderName"
-                                    style="@style/TextLarge.SmallAction"
+                            <ImageView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:gravity="left|center_vertical"
-                                    android:layout_gravity="center_vertical"
-                                    android:singleLine="true"
-                                    android:ellipsize="end"
+                                    android:src="@drawable/ic_action_grade"
+                                    android:paddingRight="1dp"
                                     android:layout_weight="0"
-                                    android:text="ThanksMister"/>
-
-                            <View
-                                    android:layout_width="4dp"
-                                    android:layout_height="match_parent"/>
-
-                            <View
-                                    android:id="@+id/lastSeenIcon"
-                                    android:layout_width="12dp"
-                                    android:layout_height="12dp"
-                                    android:layout_weight="0"
-                                    android:background="@drawable/last_seen_recently"
                                     android:layout_gravity="center_vertical"/>
+
+                            <TextView
+                                    android:id="@+id/tradeFeedback"
+                                    style="@style/TextMedium.Secondary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="right"
+                                    android:layout_weight="0"
+                                    android:layout_gravity="center_vertical"
+                                    android:text="100"/>
+
+                            <ImageView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:paddingLeft="4dp"
+                                    android:src="@drawable/ic_chart"
+                                    android:layout_weight="0"
+                                    android:layout_gravity="center_vertical"/>
+
+                            <TextView
+                                    android:id="@+id/tradeCount"
+                                    style="@style/TextMedium.Secondary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="0"
+                                    android:layout_gravity="center_vertical"
+                                    android:text="100+"/>
 
                         </LinearLayout>
 
-                        <TextView
-                                android:id="@+id/dateText"
-                                style="@style/TextMedium.SmallAction.Light"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="left"
-                                android:layout_gravity="center_vertical"
-                                android:text="Last Seen - Feb 6, 12:00"/>
-
                     </LinearLayout>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:id="@+id/priceLayoutDivider"/>
 
                     <LinearLayout
+                            android:id="@+id/priceLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="right"
-                            android:layout_weight="1">
+                            android:orientation="horizontal">
 
-                        <ImageView
-                                android:layout_width="wrap_content"
+                        <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:src="@drawable/ic_action_grade"
-                                android:paddingRight="1dp"
-                                android:layout_weight="0"
-                                android:layout_gravity="center_vertical"/>
+                                android:layout_weight="1"
+                                android:orientation="vertical">
 
-                        <TextView
-                                android:id="@+id/tradeFeedback"
-                                style="@style/TextMedium.Secondary"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="right"
-                                android:layout_weight="0"
-                                android:layout_gravity="center_vertical"
-                                android:text="100"/>
+                            <TextView
+                                    style="@style/TextSmall"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:paddingTop="@dimen/activity_padding"
+                                    android:paddingLeft="@dimen/activity_padding"
+                                    android:paddingBottom="@dimen/view_padding_small"
+                                    android:gravity="left"
+                                    android:text="Deal Price"/>
 
-                        <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:paddingLeft="4dp"
-                                android:src="@drawable/ic_chart"
-                                android:layout_weight="0"
-                                android:layout_gravity="center_vertical"/>
+                            <TextView
+                                    android:id="@+id/tradePrice"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="left"
+                                    android:paddingLeft="@dimen/activity_padding"
+                                    android:paddingRight="@dimen/activity_padding"
+                                    android:paddingBottom="@dimen/activity_padding"
+                                    android:text="7000 ARS (1 BTC)"
+                                    android:singleLine="true"
+                                    android:ellipsize="end"/>
 
-                        <TextView
-                                android:id="@+id/tradeCount"
-                                style="@style/TextMedium.Secondary"
-                                android:layout_width="wrap_content"
+                        </LinearLayout>
+
+                        <LinearLayout
+
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="0"
-                                android:layout_gravity="center_vertical"
-                                android:text="100+"/>
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+
+                            <TextView
+                                    style="@style/TextSmall"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:paddingTop="@dimen/activity_padding"
+                                    android:paddingLeft="@dimen/activity_padding"
+                                    android:paddingBottom="@dimen/view_padding_small"
+                                    android:gravity="left"
+                                    android:text="Amount (Min - Max)"/>
+
+                            <TextView
+                                    android:id="@+id/tradeLimit"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:paddingLeft="@dimen/activity_padding"
+                                    android:paddingRight="@dimen/activity_padding"
+                                    android:paddingBottom="@dimen/activity_padding"
+                                    android:gravity="left"
+                                    android:text="1000 - 10000 ARS"
+                                    android:singleLine="true"
+                                    android:ellipsize="end"/>
+
+                        </LinearLayout>
 
                     </LinearLayout>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:id="@+id/buttonLayoutDivider"/>
+
+                    <LinearLayout
+                            android:id="@+id/buttonLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="@dimen/activity_padding"
+                            android:paddingLeft="@dimen/view_padding_xxlarge"
+                            android:paddingRight="@dimen/view_padding_xxlarge"
+                            android:orientation="horizontal">
+
+                        <Button
+                                android:id="@+id/requestButton"
+                                style="@style/ButtonGreen"
+                                android:layout_width="0dp"
+                                android:layout_height="48dp"
+                                android:layout_weight="1"
+                                android:text="Request Trade"/>
+
+                    </LinearLayout>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/view_padding_large"/>
+
+                    <View style="@style/DividerHorizontal"/>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/activity_padding"/>
+
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingBottom="@dimen/view_padding_small"
+                            android:text="Trade Terms"/>
+
+                    <TextView
+                            android:id="@+id/tradeTerms"
+                            style="@style/TextMedium.SmallAction"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:paddingBottom="@dimen/activity_padding"
+                            android:autoLink="all"
+                            android:textIsSelectable="true"/>
 
                 </LinearLayout>
 
-                <View style="@style/DividerHorizontal" android:id="@+id/priceLayoutDivider"/>
+            </FrameLayout>
 
-                <LinearLayout
-                        android:id="@+id/priceLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+        </android.support.v4.widget.NestedScrollView>
 
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:paddingTop="@dimen/activity_padding"
-                                android:paddingLeft="@dimen/activity_padding"
-                                android:paddingBottom="@dimen/view_padding_small"
-                                android:gravity="left"
-                                android:text="Deal Price"/>
+    <!--<android.support.v7.widget.Toolbar
+                android:id="@+id/contactToolBar"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:minHeight="?android:attr/actionBarSize"
+                android:background="@color/colorPrimary"
+                app:popupTheme="@style/Theme.AppCompat.Light"-->
 
-                        <TextView
-                                android:id="@+id/tradePrice"
-                                style="@style/TextLarge.SmallAction"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="left"
-                                android:paddingLeft="@dimen/activity_padding"
-                                android:paddingRight="@dimen/activity_padding"
-                                android:paddingBottom="@dimen/activity_padding"
-                                android:text="7000 ARS (1 BTC)"
-                                android:singleLine="true"
-                                android:ellipsize="end"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                            
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:paddingTop="@dimen/activity_padding"
-                                android:paddingLeft="@dimen/activity_padding"
-                                android:paddingBottom="@dimen/view_padding_small"
-                                android:gravity="left"
-                                android:text="Amount (Min - Max)"/>
-
-                        <TextView
-                                android:id="@+id/tradeLimit"
-                                style="@style/TextLarge.SmallAction"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:paddingLeft="@dimen/activity_padding"
-                                android:paddingRight="@dimen/activity_padding"
-                                android:paddingBottom="@dimen/activity_padding"
-                                android:gravity="left"
-                                android:text="1000 - 10000 ARS"
-                                android:singleLine="true"
-                                android:ellipsize="end"/>
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <View style="@style/DividerHorizontal" android:id="@+id/buttonLayoutDivider"/>
-
-                <LinearLayout
-                        android:id="@+id/buttonLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="@dimen/activity_padding"
-                        android:paddingLeft="@dimen/view_padding_xxlarge"
-                        android:paddingRight="@dimen/view_padding_xxlarge"
-                        android:orientation="horizontal">
-
-                    <Button
-                            android:id="@+id/requestButton"
-                            style="@style/ButtonGreen"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:text="Request Trade"/>
-
-                </LinearLayout>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/view_padding_large"/>
-
-                <View style="@style/DividerHorizontal"/>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_padding"/>
-
-                <TextView
-                        style="@style/TextSmall"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="left"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingBottom="@dimen/view_padding_small"
-                        android:text="Trade Terms"/>
-
-                <TextView
-                        android:id="@+id/tradeTerms"
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingRight="@dimen/activity_padding"
-                        android:paddingBottom="@dimen/activity_padding"
-                        android:autoLink="all"
-                        android:textIsSelectable="true"/>
-
-            </LinearLayout>
-
-        </ScrollView>
-
-    </FrameLayout>
-
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

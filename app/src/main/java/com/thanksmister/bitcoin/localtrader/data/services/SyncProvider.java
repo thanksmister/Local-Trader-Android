@@ -93,8 +93,7 @@ public class SyncProvider extends ContentProvider
     {
         String table = getTableName(uri);
         SQLiteDatabase database = dbOpenHelper.getReadableDatabase();
-        Cursor cursor = database.query(table, projection, selection, selectionArgs, null, null, sortOrder);
-        return cursor;
+        return database.query(table, projection, selection, selectionArgs, null, null, sortOrder);
     }
 
     @Override

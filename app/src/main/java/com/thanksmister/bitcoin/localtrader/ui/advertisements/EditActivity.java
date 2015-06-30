@@ -24,6 +24,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -43,6 +44,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -111,7 +113,10 @@ public class EditActivity extends BaseActivity
     DbManager dbManager;
 
     @Inject
-    SqlBrite db;
+    BriteDatabase db;
+
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
 
     @Inject
     GeoLocationService geoLocationService;
@@ -233,8 +238,7 @@ public class EditActivity extends BaseActivity
     private PredictAdapter predictAdapter;
     private Address address;
     private String adId;
-    AdvertisementData advertisementData;
-
+    
     private Observable<List<MethodItem>> methodObservable;
     private Observable<List<Address>> geoDecodeObservable;
     private Observable<List<Address>> geoLocationObservable;
@@ -252,6 +256,8 @@ public class EditActivity extends BaseActivity
         public AdvertisementItem advertisement;
         public List<Currency> currencies;
     }
+
+    private AdvertisementData advertisementData;
     
     public static Intent createStartIntent(Context context, Boolean create, String adId)
     {
@@ -384,6 +390,9 @@ public class EditActivity extends BaseActivity
         currencyObservable = bindActivity(this, dataService.getCurrencies().cache());
         methodObservable = bindActivity(this, db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache());
         advertisementItemObservable = bindActivity(this, db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId).map(AdvertisementItem.MAP_SINGLE));
+
+        swipeLayout.setEnabled(false);
+        showProgress();
     }
 
     @Override
@@ -405,15 +414,7 @@ public class EditActivity extends BaseActivity
 
         return super.onOptionsItemSelected(item);
     }
-
-    /*public void addToolbarView(Toolbar toolbar)
-    {
-        View container = LayoutInflater.from(this).inflate(R.layout.actionbar_custom_view_done_discard, toolbar, false);
-        Toolbar.LayoutParams layoutParams = new Toolbar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.gravity = Gravity.BOTTOM;
-        toolbar.addView(container, layoutParams);
-    }*/
-
+    
     public void setToolBarMenu(Toolbar toolbar)
     {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener()
@@ -421,7 +422,6 @@ public class EditActivity extends BaseActivity
             @Override
             public boolean onMenuItemClick(MenuItem menuItem)
             {
-
                 switch (menuItem.getItemId()) {
                     case R.id.action_cancel:
                         cancelChanges(create);
@@ -448,19 +448,15 @@ public class EditActivity extends BaseActivity
     public void onResume()
     {
         super.onResume();
-
+        
         if(create) {
-
             if (geoLocationService.isGooglePlayServicesAvailable()) {
                 subScribeData();
-            } 
-
+            }
             startLocationCheck();
-            
         }  else {
             subScribeData();
         }
-
     }
 
     @Override
@@ -506,6 +502,7 @@ public class EditActivity extends BaseActivity
                         public void call(Throwable throwable)
                         {
                             hideProgress();
+                            showError("No advertisement data.");
                             handleError(throwable);
                         }
                     }));
@@ -540,6 +537,7 @@ public class EditActivity extends BaseActivity
                 public void call(Throwable throwable)
                 {
                     hideProgress();
+                    showError("No advertisement data.");
                     handleError(throwable);
                 }
             }));
@@ -548,21 +546,18 @@ public class EditActivity extends BaseActivity
 
     private void showError(String message)
     {
-        Timber.e("Show Error: " + message);
-
         progress.setVisibility(View.GONE);
         content.setVisibility(View.GONE);
-
         empty.setVisibility(View.VISIBLE);
         emptyTextView.setText(message);
     }
 
-    /*private void showProgress()
+    private void showProgress()
     {
         empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         content.setVisibility(View.GONE);
-    }*/
+    }
     
     private void hideProgress()
     {

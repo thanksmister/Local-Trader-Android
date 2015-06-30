@@ -31,6 +31,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.squareup.otto.Subscribe;
+import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -42,6 +44,10 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
+import com.thanksmister.bitcoin.localtrader.ui.DashboardFragment;
+import com.thanksmister.bitcoin.localtrader.ui.RequestFragment;
+import com.thanksmister.bitcoin.localtrader.ui.WalletFragment;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -77,7 +83,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     DbManager dbManager;
     
     @Inject
-    SqlBrite db;
+    BriteDatabase db;
     
     @InjectView(R.id.tradePrice)
     TextView tradePrice;
@@ -216,8 +222,6 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     @Override
     public void onRefresh()
     {
-        Timber.d("onRefresh Pulled");
-        
         updateData();
     }
 
@@ -256,6 +260,15 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         updateSubscription.unsubscribe();
         subscription.unsubscribe();
+    }
+
+    @Subscribe
+    public void onRefreshEvent(RefreshEvent event)
+    {
+        if (event == RefreshEvent.RETRY) {
+            onRefreshStart();
+            updateData();
+        }
     }
     
     public void setToolBarMenu(Toolbar toolbar)
@@ -343,8 +356,6 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     
     protected void updateData()
     {
-        Timber.d("Update Data");
-        
         updateSubscription = updateAdvertisementObservable.subscribe(new Action1<Advertisement>()
         {
             @Override
@@ -362,14 +373,14 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             {
                 onRefreshStop();
                 
-                handleError(throwable);
+                handleError(throwable, true);
             }
         });
     }
     
     public void setAdvertisement(AdvertisementItem advertisement, @Nullable MethodItem method)
     {
-        Timber.d("Set Advertisement Data");
+        
         tradePrice.setText(getString(R.string.trade_price, advertisement.temp_price(), advertisement.currency()));
 
         String price = advertisement.currency();
@@ -417,8 +428,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             //message = message.replace("\n", "").replace("\r", "<br>");
             tradeTerms.setText(Html.fromHtml(message));
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
-        }*/
-
+        }
+*/
         if(!Strings.isBlank(advertisement.message())){
             tradeTerms.setText(advertisement.message().trim());
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());

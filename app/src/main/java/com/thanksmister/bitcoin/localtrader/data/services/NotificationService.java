@@ -99,6 +99,8 @@ public class NotificationService
     
     public void messageNotifications(List<Message> messages)
     {
+        if(messages.isEmpty()) return;
+        
         List<Message> newMessages = new ArrayList<Message>();
         for (Message message : messages) {
             boolean isAccountUser = message.sender.username.toLowerCase().equals(stringPreference.get());

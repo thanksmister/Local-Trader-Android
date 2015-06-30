@@ -114,9 +114,7 @@ public class ContactAdapter extends BaseAdapter
 
         holder.tradeType.setText(type + " - " + amount);
         holder.tradeDetails.setText("With " + person + " (" + date + ")");
-        
-        // TODO combine messages
-        //holder.contactMessageCount.setText(String.valueOf(contact.messages.size()));
+        holder.contactMessageCount.setText(String.valueOf(contact.messageCount()));
         
         return view;
     }

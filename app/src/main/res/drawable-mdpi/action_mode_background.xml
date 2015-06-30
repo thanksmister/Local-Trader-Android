@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright 2007 ZXing authors
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -15,12 +15,11 @@
   ~ limitations under the License.
   -->
 
-<resources>
-    <style name="AppBaseTheme" parent="Base.Theme.LocalTrader">
-        <!--<item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
-        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
-        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>-->
-    </style>
-</resources>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="-2dp" android:left="-2dp" android:right="-2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/colorPrimary"/>
+            <stroke android:color="@color/colorAccent" android:width="2dp"/>
+        </shape>
+    </item>
+</layer-list>

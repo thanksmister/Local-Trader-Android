@@ -18,33 +18,26 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
-import com.crashlytics.android.Crashlytics;
+import com.squareup.sqlbrite.BriteContentResolver;
+import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
-import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
-import com.thanksmister.bitcoin.localtrader.utils.Conversions;
-import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
@@ -52,8 +45,6 @@ import java.util.TreeMap;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -69,15 +60,15 @@ public class DbManager
     public static String ADDITIONS = "additions";
     public static String DELETIONS = "deletions";
     
-    private SqlBrite db;
-    private SqlBriteContentProvider contentProvider;
+    private BriteDatabase db;
+    private BriteContentResolver briteContentResolver;
     private ContentResolver contentResolver;
     
     @Inject
-    public DbManager(SqlBrite db, SqlBriteContentProvider contentProvider, ContentResolver contentResolver)
+    public DbManager(BriteDatabase db, BriteContentResolver briteContentResolver, ContentResolver contentResolver)
     {
         this.db = db;
-        this.contentProvider = contentProvider;
+        this.briteContentResolver = briteContentResolver;
         this.contentResolver = contentResolver;
     }
 
@@ -96,18 +87,23 @@ public class DbManager
     public Observable<Boolean> isLoggedIn()
     {
         return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Boolean>>() {
+                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
+                {
                     @Override
                     public Observable<Boolean> call(SessionItem sessionItem)
                     {
-                        return Observable.just(sessionItem.access_token() != null && !Strings.isBlank(sessionItem.access_token()));
+                        if (sessionItem == null) {
+                            return Observable.just(false);
+                        } else {
+                            return Observable.just((sessionItem.access_token() != null && !Strings.isBlank(sessionItem.access_token())));
+                        }
                     }
                 });
     }
-    
+
     public Observable<SessionItem> getTokens()
     {
-        return contentProvider.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
+        return briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
                 .map(SessionItem.MAP);
     }
 
@@ -117,7 +113,7 @@ public class DbManager
                 .access_token(authorization.access_token)
                 .refresh_token(authorization.refresh_token);
 
-        Subscription subscription = contentProvider.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
                 .map(SessionItem.MAP)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -175,7 +171,7 @@ public class DbManager
             entryMap.put(item.contact_id, item);
         }
 
-        db.beginTransaction();
+        //db.beginTransaction();
         
         Cursor cursor = db.query(ContactItem.QUERY);
 
@@ -328,15 +324,15 @@ public class DbManager
                         .advertiser_feedback_score(item.advertisement.advertiser.feedback_score)
                         .advertiser_last_online(item.advertisement.advertiser.last_online);
                 
-                db.insert(ContactItem.TABLE, builder.build());
+                //db.insert(ContactItem.TABLE, builder.build());
                 
                 Timber.d("Insert contact from database: " + item.contact_id);
             }
 
-            db.setTransactionSuccessful();
+            //db.setTransactionSuccessful();
 
         } finally {
-            db.endTransaction();
+           // db.endTransaction();
             cursor.close();
         }
         
@@ -346,26 +342,28 @@ public class DbManager
 
         return updateMap;
     }
-
-    public int updateContact(Contact contact)
+    
+    public int updateContact(Contact contact, int messageCount, boolean hasUnseenMessages)
     {
-        return contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact).build(), ContactItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contact.contact_id)});
+        return contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build(), ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id});
     }
     
     public void deleteContact(String contactId)
     {
+        Timber.d("Delete Contact: " + contactId);
         contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
+        contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contactId});
     }
     
     public Observable<List<ContactItem>> contactsQuery()
     {
-        return contentProvider.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
+        return briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
                 .map(ContactItem.MAP);
     }
     
     public Observable<List<MessageItem>> messagesQuery(String contactId)
     {
-        return contentProvider.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
+        return briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
                 .map(MessageItem.MAP);
     }
 
@@ -390,19 +388,19 @@ public class DbManager
                 });
     }
 
-    public void updateMessages(final Contact contact)
+    public void updateMessages(final String contactId, List<Message> messages)
     {
         final ArrayList<Message> newMessages = new ArrayList<Message>();
         final HashMap<String, Message> entryMap = new HashMap<String, Message>();
         
-        for (Message message : contact.messages) {
-            message.id = contact.contact_id + "_" + contact.created_at;
-            message.contact_id = contact.contact_id;
+        for (Message message : messages) {
+            message.id = contactId+ "_" + message.created_at;
+            message.contact_id = contactId;
             entryMap.put(message.created_at, message);
         }
         
         // get all the current messages
-        Subscription subscription = contentProvider.createQuery(SyncProvider.MESSAGE_TABLE_URI,
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI,
                 null, null, null, null, false)
                 .map(MessageItem.MAP)
                 .subscribe(new Action1<List<MessageItem>>()
@@ -433,12 +431,17 @@ public class DbManager
 
         subscription.unsubscribe();
         
-        for (Message item : newMessages) {
-            MessageItem.Builder builder = MessageItem.createBuilder(item);
-            contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, builder.build());
-        }
+        //Use transactions to prevent large changes to the data from spamming your subscribers.
+        db.beginTransaction();
+        try{
+            for (Message item : newMessages) {
+                contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(item).build());
+            }
+            db.setTransactionSuccessful();
         
-        contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, new ContactItem.Builder().message_count(contact.messages.size()).unseen_messages(false).build());
+        } finally {
+            db.endTransaction();
+        }
     }
     
     public Observable<List<MethodItem>> methodQuery()
@@ -479,13 +482,13 @@ public class DbManager
 
     public Observable<WalletItem> walletQuery()
     {
-        return contentProvider.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+        return briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP);
     }
 
     public void updateWallet(final Wallet wallet)
     {
-        Subscription subscription = contentProvider.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -534,7 +537,7 @@ public class DbManager
                 .last(exchange.last)
                 .exchange(exchange.name);
 
-        db.beginTransaction();
+        //db.beginTransaction();
         Cursor cursor = db.query(ExchangeItem.QUERY);
         try {
             if (cursor.getCount() > 0) {
@@ -544,10 +547,10 @@ public class DbManager
             } else {
                 db.insert(ExchangeItem.TABLE, builder.build());
             }
-            db.setTransactionSuccessful();
+           // db.setTransactionSuccessful();
 
         } finally {
-            db.endTransaction();
+            //db.endTransaction();
             cursor.close();
         }
     }
@@ -562,7 +565,7 @@ public class DbManager
             entryMap.put(item.key, item);
         }
 
-        db.beginTransaction();
+        //db.beginTransaction();
 
         // Get list of all items
         Cursor cursor = db.query(MethodItem.QUERY);
@@ -597,10 +600,10 @@ public class DbManager
                 db.insert(MethodItem.TABLE, builder.build());
             }
 
-            db.setTransactionSuccessful();
+            //db.setTransactionSuccessful();
 
         } finally {
-            db.endTransaction();
+            //db.endTransaction();
             cursor.close();
         }
     }
@@ -613,7 +616,7 @@ public class DbManager
             entryMap.put(item.ad_id, item);
         }
 
-        db.beginTransaction();
+        //db.beginTransaction();
 
         // Get list of all items
         Cursor cursor = db.query(AdvertisementItem.QUERY);
@@ -747,10 +750,10 @@ public class DbManager
                 db.insert(AdvertisementItem.TABLE, builder.build());
             }
 
-            db.setTransactionSuccessful();
+            //db.setTransactionSuccessful();
 
         } finally {
-            db.endTransaction();
+            //db.endTransaction();
             cursor.close();
         }
         
@@ -763,7 +766,7 @@ public class DbManager
             entryMap.put(item.ad_id, item);
         }
 
-        Subscription subscription = contentProvider.createQuery(SyncProvider.ADVERTISEMENT_TABLE_URI,
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.ADVERTISEMENT_TABLE_URI,
                 null, null, null, null, false)
                 .map(AdvertisementItem.MAP)
                 .subscribe(new Action1<List<AdvertisementItem>>()

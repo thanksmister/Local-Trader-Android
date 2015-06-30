@@ -36,6 +36,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,6 +45,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
+import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
@@ -59,6 +61,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MessageAdapter;
@@ -247,9 +250,25 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
             {
                 MessageItem message = (MessageItem) adapterView.getAdapter().getItem(i);
-                setMessageOnClipboard(message); 
+                setMessageOnClipboard(message);
             }
         });
+
+        list.setOnScrollListener(new AbsListView.OnScrollListener()
+        {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState)
+            {
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
+            {
+                int topRowVerticalPosition = (list == null || list.getChildCount() == 0) ? 0 : list.getChildAt(0).getTop();
+                swipeLayout.setEnabled(firstVisibleItem == 0 && topRowVerticalPosition >= 0);
+            }
+        });
+
 
         adapter = new MessageAdapter(this);
         setAdapter(adapter);
@@ -271,6 +290,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         if(dashboardType == DashboardType.ACTIVE) {
             subscribeData();
         }
+
+        onRefreshStart();
 
         updateData();
     }
@@ -337,6 +358,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     {
         hideProgress();
         
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
+
+    public void onRefreshStart()
+    {
         if(swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
@@ -431,6 +458,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                 onRefreshStop();
 
                 getAdapter().replaceWith(messageItems);
+                
             }
         }, new Action1<Throwable>()
         {
@@ -452,21 +480,23 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
                onRefreshStop();
 
-               if(dashboardType != DashboardType.ACTIVE) {
+               if(TradeUtils.isActiveTrade(contact)) {
+
+                   updateContact(contact);
+                   
+               } else {
                    
                    setContact(ContactItem.convertContact(contact));
 
                    getAdapter().replaceWith(MessageItem.convertMessages(contact.messages, contact.contact_id));
                }
                
-               updateContact(contact);
-               
            }
        }, new Action1<Throwable>()  {
            @Override
            public void call(Throwable throwable) {
                
-               handleError(throwable);
+               handleError(throwable, true);
                
                hideProgressDialog();
                
@@ -477,9 +507,15 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void updateContact(Contact contact)
     {
-        int updated = dbManager.updateContact(contact);
+        if(contact.contact_id == null) 
+            throw new Error("Contact has no valid ID");
+
+        //Timber.d("Update Contact Id: " + contact.contact_id);
+        
+        int messageCount = contact.messages.size();
+        int updated = dbManager.updateContact(contact, messageCount, false);
         if(updated > 0) {
-            dbManager.updateMessages(contact);
+            dbManager.updateMessages(contact.contact_id, contact.messages);
         }
     }
 
@@ -496,13 +532,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             case LOCAL_BUY:
             case LOCAL_SELL:
                 type = (contact.is_buying())? getString(R.string.contact_list_buying_locally, amount, date):getString(R.string.contact_list_selling_locally, amount, date);
-                //smsReleaseCodeLayout.setVisibility((contact.is_buying)? GONE:VISIBLE);
                 break;
             case ONLINE_BUY:
             case ONLINE_SELL:
                 String paymentMethod = TradeUtils.getPaymentMethodName(contact.advertisement_payment_method());
                 type = (contact.is_buying())? getString(R.string.contact_list_buying_online, amount, paymentMethod, date):getString(R.string.contact_list_selling_online, amount, paymentMethod, date);
-                //smsReleaseCodeLayout.setVisibility(GONE);
                 break;
         }
 
@@ -537,13 +571,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         noteText.setMovementMethod(LinkMovementMethod.getInstance());
         contactHeaderLayout.setVisibility((description == null)? View.GONE:View.VISIBLE);
 
-        if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
+        /*if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
             //disputeItem.setVisible(buttonTag != R.string.button_dispute);
         }
           
         if(TradeUtils.canCancelTrade(contact)) {
             //cancelItem.setVisible(buttonTag != R.string.button_cancel);
-        }
+        }*/
     }
 
     private MessageAdapter getAdapter()
@@ -610,11 +644,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(JSONObject jsonObject)
             {
                 hideProgressDialog();
-                
+
                 toast(R.string.toast_message_sent);
                 
-                newMessageText.setText("");
+                clearMessage();
 
+                onRefreshStart();
+                
                 updateData();
                 
             }
@@ -692,7 +728,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     deleteContact(contactId);
                     
                 } else {
-                    
+
+                    onRefreshStart();
                     updateData();
                 }
             }

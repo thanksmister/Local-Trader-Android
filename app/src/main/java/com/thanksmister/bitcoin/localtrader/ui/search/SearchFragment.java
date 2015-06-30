@@ -16,7 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.search;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Location;
@@ -26,6 +25,10 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -37,7 +40,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
@@ -45,7 +47,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MethodAdapter;
@@ -55,7 +56,6 @@ import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -66,17 +66,14 @@ import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
 public class SearchFragment extends BaseFragment
 {
-    private static final String ARG_SECTION_NUMBER = "section_number";
     private static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     private static final String EXTRA_TRADE_TYPE = "com.thanksmister.extra.EXTRA_TRADE_TYPE";
 
@@ -85,22 +82,22 @@ public class SearchFragment extends BaseFragment
 
     @Inject
     LocationManager locationManager;
+    
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
 
     @Inject
     GeoLocationService geoLocationService;
 
-    @InjectView(android.R.id.progress)
+    @InjectView(R.id.toolbar)
+    Toolbar toolbar;
+
+    @InjectView(R.id.searchProgress)
     View progress;
 
-    @InjectView(android.R.id.content)
+    @InjectView(R.id.searchContent)
     View content;
-
-    @InjectView(android.R.id.empty)
-    View empty;
-
-    @InjectView(R.id.emptyTextView)
-    TextView emptyTextView;
-
+    
     @InjectView(R.id.currentLocation)
     TextView currentLocation;
 
@@ -146,13 +143,7 @@ public class SearchFragment extends BaseFragment
     {
         showSearchResultsScreen();
     }
-
-    @OnClick(R.id.emptyRetryButton)
-    public void emptyButtonClicked()
-    {
-        onResume();
-    }
-
+    
     private Address address;
     private PredictAdapter predictAdapter;
     private TradeType tradeType;
@@ -167,13 +158,9 @@ public class SearchFragment extends BaseFragment
         public List<MethodItem> methods;
     }
     
-    public static SearchFragment newInstance(int sectionNumber)
+    public static SearchFragment newInstance()
     {
-        SearchFragment fragment = new SearchFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        fragment.setArguments(args);
-        return fragment;
+        return new SearchFragment();
     }
 
     public SearchFragment()
@@ -208,20 +195,11 @@ public class SearchFragment extends BaseFragment
     {
         if(address != null) {
             setAddress(address);
-            hideProgress();
         } else {
             startLocationCheck();
         }
 
         super.onResume();
-    }
-
-    @Override
-    public void onAttach(Activity activity)
-    {
-        super.onAttach(activity);
-
-        ((MainActivity) activity).onSectionAttached(getArguments().getInt(ARG_SECTION_NUMBER));
     }
 
     @Override
@@ -248,7 +226,10 @@ public class SearchFragment extends BaseFragment
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(fragmentView, savedInstanceState);
-
+        
+        // hack for not being able to have the NestedScrollView match width height of container
+        swipeLayout.setEnabled(false);
+        
         typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
@@ -341,52 +322,38 @@ public class SearchFragment extends BaseFragment
 
         methodObservable = bindFragment(this, dbManager.methodQuery().cache());
 
+        setupToolbar();
         showProgress();
     }
-    
-    private void showError(String message)
-    {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        emptyTextView.setText(message);
-    }
 
-    private void showProgress()
+    public void showProgress()
     {
-        empty.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         content.setVisibility(View.GONE);
     }
 
-    private void hideProgress()
+    public void hideProgress()
     {
-        empty.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
         content.setVisibility(View.VISIBLE);
     }
+    
+    private void setupToolbar()
+    {
+        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
 
+        // Show menu icon
+        final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
+        ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
+        ab.setTitle(getString(R.string.view_title_buy_sell));
+        ab.setDisplayHomeAsUpEnabled(true);
+    }
+  
     private PredictAdapter getEditLocationAdapter()
     {
         return predictAdapter;
     }
-
-    private List<Method> filterPaymentMethods(List<Method> methods, String countryName, String countryCode)
-    {
-        Method method = new Method();
-        method.code = "ALL";
-        method.name = ("All in " + countryName);
-        method.key = "all";
-        methods.add(0, method);
-
-        for (Method m : methods) {
-            m.countryCode = countryCode;
-            m.countryName = countryName;
-        }
-
-        return methods;
-    }
-
+    
     private void setMethods(List<MethodItem> methods)
     {
         MethodAdapter typeAdapter = new MethodAdapter(getActivity(), R.layout.spinner_layout, methods);
@@ -426,7 +393,9 @@ public class SearchFragment extends BaseFragment
     public void startLocationCheck()
     {
         if(!geoLocationService.isGooglePlayServicesAvailable()) {
+            hideProgress();
             missingGooglePlayServices();
+            getAddressFromLocation(null);
             return;
         }
 
@@ -441,13 +410,14 @@ public class SearchFragment extends BaseFragment
 
                 @Override
                 public void onError(Throwable e) {
-                    
-                    Timber.e(e.getMessage());
+
+                    hideProgress();
                     
                     if (e.getMessage().equals("1")) {
-                        showEnableLocationDialog();
+                        showEnableLocation();
+                        getAddressFromLocation(null);
                     } else {
-                        showError(e.getMessage());
+                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                     }
                 }
 
@@ -458,7 +428,7 @@ public class SearchFragment extends BaseFragment
                 }
             });
         } else {
-            showEnableLocationDialog();
+            showEnableLocation();
         }
     }
 
@@ -467,33 +437,31 @@ public class SearchFragment extends BaseFragment
         geoLocationService.stop();
     }
 
-    private void showEnableLocationDialog()
+    private void showEnableLocation()
     {
-        createAlert(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active), false);
+        createAlert(getString(R.string.warning_no_location_active), false);
     }
 
     private void missingGooglePlayServices()
     {
-        createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
+        createAlert(getString(R.string.warning_no_google_play_services), true);
     }
 
-    public void createAlert(String title, String message, final boolean googlePlay)
+    public void createAlert( String message, final boolean googlePlay)
     {
-        showError(getString(R.string.error_no_play_services));
-        
-        int positiveButton = (googlePlay)? R.string.button_install:R.string.button_enable;
-        ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(positiveButton), getString(R.string.button_cancel), new Action0() {
-            @Override
-            public void call() {
-                if(googlePlay) {
-                    installGooglePlayServices();
-                } else {
-                    openLocationServices();
-                }
-            }
-        });
-
-        showConfirmationDialog(event);
+        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), message, Snackbar.LENGTH_LONG)
+                .setAction("Install", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view)
+                    {
+                        if(googlePlay) {
+                            installGooglePlayServices();
+                        } else {
+                            openLocationServices();
+                        }
+                    }
+                })
+                .show();
     }
 
     private void openLocationServices()
@@ -517,60 +485,62 @@ public class SearchFragment extends BaseFragment
         return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
     }
-
-    public void getAddressFromLocation(Location location)
+    
+    public void getAddressFromLocation(final Location location)
     {
-        geoDecodeObservable = bindFragment(this, geoLocationService.geoDecodeLocation(location));
-        subscriptions.add(Observable.combineLatest(methodObservable, geoDecodeObservable, new Func2<List<MethodItem>, List<Address>, AddressData>()
-        {
-            @Override
-            public AddressData call(List<MethodItem> methods, List<Address> addresses)
-            {
-                AddressData data = new AddressData();
-                data.methods = methods;
-                data.addresses = addresses;
-                return data;
-            }
-        }).subscribe(new Action1<AddressData>()
-        {
-            @Override
-            public void call(AddressData data)
-            {
-                setMethods(data.methods);
+        if (location == null) {
 
-                if (!data.addresses.isEmpty()) {
-                    setAddress(data.addresses.get(0));
+            subscriptions.add(methodObservable.subscribe(new Action1<List<MethodItem>>()
+            {
+                @Override
+                public void call(List<MethodItem> methods)
+                {
+                    setMethods(methods);
                 }
-                
-                hideProgress();
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
+            }, new Action1<Throwable>()
             {
-                showError(getString(R.string.error_unable_load_address));
-            }
-        }));
-    }
+                @Override
+                public void call(Throwable throwable)
+                {
+                    reportError(throwable);
+                }
+            }));
+            
+        } else {
+            geoDecodeObservable = bindFragment(this, geoLocationService.geoDecodeLocation(location));
+            subscriptions.add(Observable.combineLatest(methodObservable, geoDecodeObservable, new Func2<List<MethodItem>, List<Address>, AddressData>()
+            {
+                @Override
+                public AddressData call(List<MethodItem> methods, List<Address> addresses)
+                {
+                    AddressData data = new AddressData();
+                    data.methods = methods;
+                    data.addresses = addresses;
+                    return data;
+                }
+            }).subscribe(new Action1<AddressData>()
+            {
+                @Override
+                public void call(AddressData data)
+                {
+                    setMethods(data.methods);
 
-    public void showConfirmationDialog(final ConfirmationDialogEvent event)
-    {
-        new MaterialDialog.Builder(getActivity())
-                .callback(new MaterialDialog.SimpleCallback() {
-                    @Override
-                    public void onPositive(MaterialDialog materialDialog) {
-                        event.action.call(); // call function 
+                    if (!data.addresses.isEmpty()) {
+                        setAddress(data.addresses.get(0));
                     }
-                })
-                .title(event.title)
-                .content(event.message)
-                .positiveText(event.positive)
-                .negativeText(event.negative)
-                .show();
+                }
+            }, new Action1<Throwable>()
+            {
+                @Override
+                public void call(Throwable throwable)
+                {
+                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                }
+            }));
+        }
     }
-
-    public void doAddressLookup(String locationName)
+    
+    private void doAddressLookup(String locationName)
     {
         geoLocationObservable = bindFragment(this, geoLocationService.geoGetLocationFromName(locationName));
         geoLocationObservable.subscribe(new Action1<List<Address>>() {
@@ -589,7 +559,7 @@ public class SearchFragment extends BaseFragment
         return (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
     }
     
-    public void showSearchResultsScreen()
+    private void showSearchResultsScreen()
     {
         if(!geoLocationService.isGooglePlayServicesAvailable()) {
             missingGooglePlayServices();
@@ -603,7 +573,7 @@ public class SearchFragment extends BaseFragment
             Intent intent = SearchResultsActivity.createStartIntent(getActivity(), tradeType, address, methodCode);
             startActivity(intent);
         } else {
-            showEnableLocationDialog();
+            showEnableLocation();
         }
     }
 }

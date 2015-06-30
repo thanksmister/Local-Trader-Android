@@ -136,6 +136,11 @@ public class TradeUtils
             return contact.advertiser_username().equals(contact.buyer_username());
         }
     }
+    
+    public static boolean isActiveTrade(Contact contact)
+    {
+        return !(isCanceledTrade(contact) || isClosedTrade(contact));
+    }
 
     public static boolean isCanceledTrade(ContactItem contact)
     {
@@ -175,6 +180,11 @@ public class TradeUtils
     public static boolean isClosedTrade(ContactItem contact)
     {
         return contact.closed_at() != null;
+    }
+
+    public static boolean isClosedTrade(Contact contact)
+    {
+        return contact.closed_at != null;
     }
 
     public static boolean canDisputeTrade(ContactItem contact)

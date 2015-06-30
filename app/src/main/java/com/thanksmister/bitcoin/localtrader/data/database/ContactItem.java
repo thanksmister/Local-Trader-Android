@@ -281,7 +281,7 @@ public abstract class ContactItem
                    contact.advertisement.advertiser.name, contact.hasUnseenMessages, contact.messageCount);
     };
     
-    public static Builder createBuilder(Contact item)
+    public static Builder createBuilder(Contact item, int messageCount, boolean hasUnseenMessages)
     {
         return new Builder()
                 .contact_id(item.contact_id)
@@ -333,8 +333,8 @@ public abstract class ContactItem
                 .advertiser_trade_count(item.advertisement.advertiser.trade_count)
                 .advertiser_feedback_score(item.advertisement.advertiser.feedback_score)
                 .advertiser_last_online(item.advertisement.advertiser.last_online)
-                .unseen_messages(item.hasUnseenMessages)
-                .message_count(item.messageCount);
+                .unseen_messages(hasUnseenMessages)
+                .message_count(messageCount);
     }
 
     public static final class Builder {

@@ -349,7 +349,7 @@ public class PinCodeActivity extends BaseActivity
             public void call(Throwable throwable)
             {
                 Timber.e(throwable.getLocalizedMessage());
-                handleError(new Throwable(getString(R.string.toast_pin_code_invalid)));
+                handleError(new Throwable(getString(R.string.toast_pin_code_invalid)), false);
                 finish();
             }
         });

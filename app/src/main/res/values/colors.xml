@@ -18,11 +18,15 @@
 
     <color name="colorPrimary">#d7523e</color>
     <color name="colorPrimaryDark">#ffd3402a</color>
-    <color name="colorAccent">#ffd6d6d6</color>
-    <color name="colorAccentDark">#ffcdcdcd</color>
-
+    <color name="colorAccent">#d7523e</color>
+    <color name="colorAccentDark">#ffd3402a</color>
     <color name="colorSecondary">#0099cc</color>
     <color name="colorSecondaryDark">#eeeeee</color>
+
+    <color name="primary_text">#ffffff</color>
+    <color name="secondary_text">#ffffff</color>
+
+    <color name="window_background">@color/white</color>
 
     <color name="transparent">#00000000</color>
 

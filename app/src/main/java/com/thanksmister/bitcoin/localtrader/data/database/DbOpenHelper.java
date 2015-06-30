@@ -24,8 +24,9 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 26;
+    private static final int DATABASE_VERSION = 28;
     private static final int DATABASE_VERSION_MESSAGES = 25;
+    private static final int CONTACT_VERSION_MESSAGES = 27;
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_TEXT_NOT_NULL = " TEXT NOT NULL";
     private static final String TYPE_INTEGER = " INTEGER";
@@ -108,7 +109,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
             + ContactItem.IS_BUYING + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
             + ContactItem.ADVERTISEMENT_PAYMENT_METHOD + TYPE_TEXT + COMMA_SEP
             + ContactItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP
-            + ContactItem.RECEIVER_EMAIL + TYPE_TEXT
+            + ContactItem.RECEIVER_EMAIL + TYPE_TEXT  + COMMA_SEP
             + ContactItem.MESSAGE_COUNT + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
             + ContactItem.UNSEEN_MESSAGES + " INTEGER NOT NULL DEFAULT 0"
             + ")";
@@ -253,7 +254,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
             
         }
 
-        if (oldVersion < newVersion) {
+        if (oldVersion < CONTACT_VERSION_MESSAGES) {
             
             final String ALTER_TBL =
                     "ALTER TABLE " + ContactItem.TABLE +

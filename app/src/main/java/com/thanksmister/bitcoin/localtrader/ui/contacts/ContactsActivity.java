@@ -24,6 +24,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -37,7 +38,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementAdapter;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +59,7 @@ import static rx.android.app.AppObservable.bindActivity;
 public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_TYPE";
+    public static final String EXTRA_HAS_ACTIVE = "com.thanksmister.extras.EXTRA_HAS_ACTIVE";
 
     @Inject
     DataService dataService;
@@ -92,7 +94,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     SwipeRefreshLayout swipeLayout;
 
     private DashboardType dashboardType;
-    private AdvertisementAdapter.ContactAdapter adapter;
+    private boolean hasActiveTrades;
+    private ContactAdapter adapter;
     
     private Observable<List<ContactItem>> contactItemObservable;
   
@@ -121,6 +124,10 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             dashboardType = (DashboardType) savedInstanceState.getSerializable(EXTRA_TYPE);
         }
         
+        if(dashboardType == DashboardType.ACTIVE) {
+            hasActiveTrades = true;
+        }
+        
         if(toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -135,12 +142,28 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
             {
-                Contact contact = (Contact) adapterView.getAdapter().getItem(i);
+                ContactItem contact = (ContactItem) adapterView.getAdapter().getItem(i);
                 getContact(contact);
             }
         });
+
+        // hack because swipe refresh and scroll up with child list don't play well together
+        list.setOnScrollListener(new AbsListView.OnScrollListener()
+        {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState)
+            {
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
+            {
+                int topRowVerticalPosition = (list == null || list.getChildCount() == 0) ? 0 : list.getChildAt(0).getTop();
+                swipeLayout.setEnabled(firstVisibleItem == 0 && topRowVerticalPosition >= 0);
+            }
+        });
      
-        adapter = new AdvertisementAdapter.ContactAdapter(this);
+        adapter = new ContactAdapter(this);
         setAdapter(getAdapter());
         
         contactItemObservable = bindActivity(this, dbManager.contactsQuery());
@@ -181,6 +204,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         if(dashboardType == DashboardType.ACTIVE) {
             subscribeData();
         } else {
+            onRefreshStart();
             updateData(dashboardType);  
         }
     }
@@ -210,19 +234,23 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             onRefreshStop();
         }
     }
-    
-    public void onRefreshStop()
+
+    public void onRefreshStart()
     {
-        hideProgress();
-        
         if(swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
-    
+
+    public void onRefreshStop()
+    {
+        hideProgress();
+
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
+
     public void showError(String message)
     {
-        Timber.e("Show Error: " + message);
-        
         progress.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
 
@@ -239,24 +267,27 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             {
                 switch (menuItem.getItemId()) {
                     case R.id.action_active:
-                        showProgress();
-                        setContacts(new ArrayList<Contact>());
-                        subscribeData();
-                        //updateData(DashboardType.ACTIVE);
+                        if(hasActiveTrades) {
+                            showProgress();
+                            setContacts(new ArrayList<ContactItem>());
+                            subscribeData(); 
+                        } else {
+                            toast("There are no active trades.");
+                        }
                         return true;
                     case R.id.action_canceled:
                         showProgress();
-                        setContacts(new ArrayList<Contact>());
+                        setContacts(new ArrayList<ContactItem>());
                         updateData(DashboardType.CANCELED);
                         return true;
                     case R.id.action_closed:
                         showProgress();
-                        setContacts(new ArrayList<Contact>());
+                        setContacts(new ArrayList<ContactItem>());
                         updateData(DashboardType.CLOSED);
                         return true;
                     case R.id.action_released:
                         showProgress();
-                        setContacts(new ArrayList<Contact>());
+                        setContacts(new ArrayList<ContactItem>());
                         updateData(DashboardType.RELEASED);
                         return true;
                 }
@@ -284,14 +315,14 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         subscription = contactItemObservable.subscribe(new Action1<List<ContactItem>>()
         {
             @Override
-            public void call(List<ContactItem> contactItems)
+            public void call(List<ContactItem> contacts)
             {
                 if(dashboardType == DashboardType.ACTIVE) {
-                    ArrayList<Contact> contacts = new ArrayList<Contact>();
+                    /*ArrayList<Contact> contacts = new ArrayList<Contact>();
                     for (ContactItem item : contactItems) {
                         Contact contact = new Contact();
                         contacts.add(contact.convertContentItemToContact(item));
-                    }
+                    }*/
                     
                     if(contacts.isEmpty()) {
                         showError(getString(R.string.error_no_trade_data));
@@ -304,13 +335,11 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         });
     }
 
-    public void updateData(final DashboardType dashboardType)
+    public void updateData(final DashboardType type)
     {
-        Timber.d("Update Data: " + dashboardType.name());
-
         subscription.unsubscribe(); // stop subscribed database data
         
-        this.dashboardType = dashboardType;
+        dashboardType = type;
 
         setTitle(dashboardType);
         
@@ -327,7 +356,11 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                 if(contacts.isEmpty()) {
                     showError(getString(R.string.error_no_trade_data));
                 } else {
-                    setContacts(contacts);
+                    ArrayList<ContactItem> contactItems = new ArrayList<ContactItem>();
+                    for (Contact contact : contacts) {
+                        contactItems.add(ContactItem.convertContact(contact));
+                    }
+                    setContacts(contactItems);
                 }
             }
         }, new Action1<Throwable>()
@@ -335,34 +368,32 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             @Override
             public void call(Throwable throwable)
             {
-                Timber.d("Update Data Error: " + throwable.getLocalizedMessage());
+                handleError(throwable, true);
                 
                 onRefreshStop();
 
                 showError(getString(R.string.error_no_trade_data));
-                
-                handleError(throwable);
             }
         });
     }
   
-    private void getContact(final Contact contact)
+    private void getContact(final ContactItem contact)
     {
-        Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id, dashboardType);
+        Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id(), dashboardType);
         startActivity(intent);
     }
 
-    private void setContacts(List<Contact> contacts)
+    private void setContacts(List<ContactItem> contacts)
     {
         getAdapter().replaceWith(contacts);
     }
 
-    private AdvertisementAdapter.ContactAdapter getAdapter()
+    private ContactAdapter getAdapter()
     {
         return adapter;
     }
 
-    private void setAdapter(AdvertisementAdapter.ContactAdapter adapter)
+    private void setAdapter(ContactAdapter adapter)
     {
         list.setAdapter(adapter);
     }

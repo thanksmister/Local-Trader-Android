@@ -26,6 +26,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
@@ -40,6 +42,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -50,6 +53,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.bitcoin.QRCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
@@ -77,8 +81,6 @@ import static rx.android.app.AppObservable.bindFragment;
 
 public class RequestFragment extends BaseFragment
 {
-    public static final String ARG_SECTION_NUMBER = "ARG_SECTION_NUMBER";
-    
     public static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
     public static final String EXTRA_WALLET_TYPE = "com.thanksmister.extra.EXTRA_WALLET_TYPE";
@@ -94,7 +96,13 @@ public class RequestFragment extends BaseFragment
     @Inject
     DbManager dbManager;
 
-    @InjectView(android.R.id.progress)
+    @Inject
+    Bus bus;
+
+    @InjectView(R.id.toolbar)
+    Toolbar toolbar;
+
+    @InjectView(R.id.requestProgress)
     View progress;
 
     @InjectView(R.id.tradeContent)
@@ -165,11 +173,10 @@ public class RequestFragment extends BaseFragment
         public Exchange exchange;
     }
 
-    public static RequestFragment newInstance(int sectionNumber, String address, String amount)
+    public static RequestFragment newInstance(String address, String amount)
     {
         RequestFragment fragment = new RequestFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         args.putString(EXTRA_ADDRESS, address);
         args.putString(EXTRA_AMOUNT, amount);
         
@@ -177,11 +184,10 @@ public class RequestFragment extends BaseFragment
         return fragment;
     }
 
-    public static RequestFragment newInstance(int sectionNumber, WalletTransactionType transactionType)
+    public static RequestFragment newInstance(WalletTransactionType transactionType)
     {
         RequestFragment fragment = new RequestFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         args.putSerializable(EXTRA_WALLET_TYPE, transactionType);
 
         fragment.setArguments(args);
@@ -286,19 +292,13 @@ public class RequestFragment extends BaseFragment
                 
         showProgress();
     }
-
-    @Override
-    public void onAttach(Activity activity)
-    {
-        super.onAttach(activity);
-
-        ((MainActivity) activity).onSectionAttached(getArguments().getInt(ARG_SECTION_NUMBER));
-    }
-
+    
     @Override
     public void onResume()
     {
         super.onResume();
+        
+        bus.post(RefreshEvent.REFRESH);
 
         subscribeData();
 
@@ -320,6 +320,11 @@ public class RequestFragment extends BaseFragment
         ButterKnife.reset(this);
         
         super.onDetach();
+    }
+    
+    public void onRefresh()
+    {
+        updateData();
     }
 
     @Override
@@ -396,6 +401,7 @@ public class RequestFragment extends BaseFragment
         setSpinnerAdapter(transactionAdapter);
 
         setLayout(transactionType);
+        setupToolbar();
     }
 
     @Override
@@ -409,6 +415,17 @@ public class RequestFragment extends BaseFragment
             outState.putString(EXTRA_AMOUNT, amount);
         
         outState.putSerializable(EXTRA_WALLET_TYPE, transactionType);
+    }
+
+    private void setupToolbar()
+    {
+        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+
+        // Show menu icon
+        final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
+        ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
+        ab.setTitle(getString(R.string.view_title_request));
+        ab.setDisplayHomeAsUpEnabled(true);
     }
 
     protected void subscribeData()
@@ -465,6 +482,7 @@ public class RequestFragment extends BaseFragment
             @Override
             public void call(WalletUpdateData walletData)
             {
+                bus.post(RefreshEvent.STOP);
                 updateWallet(walletData.wallet);
                 updateExchange(walletData.exchange);
             }
@@ -473,7 +491,8 @@ public class RequestFragment extends BaseFragment
             @Override
             public void call(Throwable throwable)
             {
-                handleError(throwable);
+                bus.post(RefreshEvent.STOP);
+                handleError(throwable, true);
             }
         }));
     }

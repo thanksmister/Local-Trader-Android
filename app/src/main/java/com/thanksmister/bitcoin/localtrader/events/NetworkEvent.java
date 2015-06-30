@@ -18,5 +18,5 @@ package com.thanksmister.bitcoin.localtrader.events;
 
 public enum NetworkEvent
 {
-    CONNECTED, DISCONNECTED
+    CONNECTED, NetworkEvent, DISCONNECTED
 }

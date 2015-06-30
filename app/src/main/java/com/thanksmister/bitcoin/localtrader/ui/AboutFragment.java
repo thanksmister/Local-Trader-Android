@@ -23,6 +23,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,12 +37,14 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 
 import butterknife.ButterKnife;
+import butterknife.InjectView;
 import butterknife.OnClick;
 import timber.log.Timber;
 
 public class AboutFragment extends BaseFragment 
 {
-    private static final String ARG_SECTION_NUMBER = "section_number";
+    @InjectView(R.id.toolbar)
+    Toolbar toolbar;
     
     @OnClick(R.id.sendFeedbackButton)
     public void sendButtonClicked()
@@ -72,12 +76,9 @@ public class AboutFragment extends BaseFragment
         showLicense();
     }
 
-    public static AboutFragment newInstance(int sectionNumber)
+    public static AboutFragment newInstance()
     {
         AboutFragment fragment = new AboutFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -90,15 +91,7 @@ public class AboutFragment extends BaseFragment
     {
         super.onCreate(savedInstanceState);
     }
-
-    @Override
-    public void onAttach(Activity activity)
-    {
-        super.onAttach(activity);
-
-        ((MainActivity) activity).onSectionAttached(getArguments().getInt(ARG_SECTION_NUMBER));
-    }
-
+    
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -121,6 +114,24 @@ public class AboutFragment extends BaseFragment
         } catch (PackageManager.NameNotFoundException e) {
             Timber.e(e.getMessage());
         }
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+        setupToolbar();
+    }
+
+    private void setupToolbar()
+    {
+        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+
+        // Show menu icon
+        final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
+        ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
+        ab.setTitle(getString(R.string.view_title_about));
+        ab.setDisplayHomeAsUpEnabled(true);
     }
     
     protected void rate()

@@ -155,6 +155,9 @@ public class Contact
         contact.advertisement.advertiser.last_online = contactItem.advertiser_last_online();
         contact.advertisement.advertiser.name = contactItem.advertiser_name();
         
+        contact.messageCount = contactItem.messageCount();
+        contact.hasUnseenMessages = contactItem.hasUnseenMessages();
+        
         return contact;
     }
 }

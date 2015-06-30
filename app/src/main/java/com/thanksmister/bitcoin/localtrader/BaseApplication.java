@@ -24,6 +24,7 @@ import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
 
+import butterknife.ButterKnife;
 import dagger.ObjectGraph;
 import timber.log.Timber;
 

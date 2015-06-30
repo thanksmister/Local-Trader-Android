@@ -20,6 +20,8 @@ import android.content.ContentResolver;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.squareup.sqlbrite.BriteContentResolver;
+import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
@@ -43,18 +45,28 @@ public final class DbModule
         return application.getContentResolver();
     }
 
-    @Provides
-    @Singleton
-    SqlBriteContentProvider provideSqlBriteContentProvider(ContentResolver contentResolver)
+    @Provides 
+    @Singleton SqlBrite provideSqlBrite() 
     {
-        return SqlBriteContentProvider.create(contentResolver);
+        return SqlBrite.create(new SqlBrite.Logger() {
+            @Override public void log(String message) {
+                Timber.tag("Database").v(message);
+            }
+        });
     }
     
     @Provides
     @Singleton
-    DbManager provideDbManager(SqlBrite sqlBrite, SqlBriteContentProvider sqlBriteContentProvider, ContentResolver contentResolver)
+    BriteContentResolver provideBriteContentResolver(ContentResolver contentResolver, SqlBrite sqlBrite)
     {
-        return new DbManager(sqlBrite, sqlBriteContentProvider, contentResolver);
+        return sqlBrite.wrapContentProvider(contentResolver);
+    }
+    
+    @Provides
+    @Singleton
+    DbManager provideDbManager(BriteDatabase briteDatabase, BriteContentResolver briteContentResolver, ContentResolver contentResolver)
+    {
+        return new DbManager(briteDatabase, briteContentResolver, contentResolver);
     }
 
     @Provides
@@ -66,22 +78,8 @@ public final class DbModule
 
     @Provides
     @Singleton
-    SqlBrite provideSqlBrite(SQLiteOpenHelper openHelper)
+    BriteDatabase provideBriteDatabase(SQLiteOpenHelper openHelper, SqlBrite sqlBrite)
     {
-        SqlBrite db = SqlBrite.create(openHelper);
-
-        if (BuildConfig.DEBUG) {
-            db.setLogger(new SqlBrite.Logger()
-            {
-                @Override
-                public void log(String message)
-                {
-                    Timber.tag("Database").v(message);
-                }
-            });
-            db.setLoggingEnabled(true);
-        }
-
-        return db;
+        return sqlBrite.wrapDatabaseHelper(openHelper);
     }
 }

@@ -28,6 +28,7 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -60,7 +61,7 @@ public class LoginActivity extends BaseActivity
     DataService dataService;
     
     @Inject
-    SqlBrite db;
+    BriteDatabase db;
 
     @Inject
     SharedPreferences sharedPreferences;

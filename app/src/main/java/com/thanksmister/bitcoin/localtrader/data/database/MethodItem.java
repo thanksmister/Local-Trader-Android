@@ -96,6 +96,10 @@ public abstract class MethodItem
         }
     };
 
+    public static MethodItem convertMethod(Method method) {
+        return new AutoParcel_MethodItem(0, method.key, method.code, method.name, method.countryCode, method.countryName);
+    };
+
     public static final class Builder {
         private final ContentValues values = new ContentValues();
 

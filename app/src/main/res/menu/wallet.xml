@@ -18,7 +18,6 @@
       xmlns:tools="http://schemas.android.com/tools"
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
       tools:context=".MainActivity">
-
     
     <item android:id="@+id/action_copy"
           android:title="@string/menu_action_copy"

@@ -50,7 +50,7 @@
 
         <provider
                 android:name="com.thanksmister.bitcoin.localtrader.data.services.SyncProvider"
-                android:label="Local Bitcoins"
+                android:label="LocalBitcoins"
                 android:authorities="com.thanksmister.bitcoin.localtrader.provider"
                 android:exported="false"
                 android:syncable="true"/>

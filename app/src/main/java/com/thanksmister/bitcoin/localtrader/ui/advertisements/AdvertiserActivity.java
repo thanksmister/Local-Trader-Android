@@ -293,7 +293,9 @@ public class AdvertiserActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                showError("Unable to retrieve advertisement data.");
+                hideProgress();
+                handleError(throwable);
+                showError("No advertisement data.");
             }
         });
     }

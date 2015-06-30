@@ -29,6 +29,8 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.sqlbrite.BriteContentResolver;
+import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
@@ -50,12 +52,9 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
@@ -86,12 +85,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     private Subscription tokensSubscription;
 
     ContentResolver contentResolver;
+    BriteContentResolver briteContentResolver;
     SQLiteOpenHelper dbOpenHelper;
     private LocalBitcoins localBitcoins;
     private DbManager dbManager;
     private NotificationService notificationService;
     private SharedPreferences sharedPreferences;
-    private SqlBriteContentProvider sqlBriteContentProvider;
 
     private Handler handler;
     
@@ -106,15 +105,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         localBitcoins = initLocalBitcoins();
         
         dbOpenHelper = new DbOpenHelper(context.getApplicationContext());
-        
-        SqlBrite db = SqlBrite.create(dbOpenHelper);
-        db.setLoggingEnabled(true);
 
-        contentResolver = context.getContentResolver();
-        sqlBriteContentProvider = SqlBriteContentProvider.create(contentResolver);
-        sqlBriteContentProvider.setLoggingEnabled(true);
+        SqlBrite sqlBrite = SqlBrite.create();
+        BriteDatabase db = sqlBrite.wrapDatabaseHelper(dbOpenHelper);
         
-        dbManager = new DbManager(db, sqlBriteContentProvider, contentResolver);
+        contentResolver = context.getContentResolver();
+        briteContentResolver = sqlBrite.wrapContentProvider(contentResolver);
+        
+        dbManager = new DbManager(db, briteContentResolver, contentResolver);
 
         handler = new Handler();
     }
@@ -125,15 +123,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         Timber.d("onPerformSync");
 
         dbManager.isLoggedIn()
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<Boolean>()
         {
             @Override
             public void call(Boolean isLoggedIn)
             {
                 if (isLoggedIn) {
-
                     // refresh handler to give a little room on initial install
                     handler.postDelayed(new Runnable()
                     {
@@ -141,9 +136,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                         public void run()
                         {
                             updateContacts();
-
                             updateWalletBalance();
-
                             //updateAdvertisements();
                         }
                     }, 10000);
@@ -178,15 +171,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         Timber.d("UpdateContacts");
         
         contactsSubscription = getContactsObservable()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Contact>>()
                 {
                     @Override
                     public void call(List<Contact> contacts)
                     {
                         contactsSubscription = null;
-
                         updateMessages(contacts);
                     }
                 }, new Action1<Throwable>()
@@ -195,7 +185,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public void call(Throwable throwable)
                     {
                         contactsSubscription = null;
-
                         handleError(throwable);
                     }
                 });
@@ -318,8 +307,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             entryMap.put(item.ad_id, item);
         }
 
-        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.ADVERTISEMENT_TABLE_URI,
-                null, null, null, null, false)
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.ADVERTISEMENT_TABLE_URI, null, null, null, null, false)
                 .map(AdvertisementItem.MAP)
                 .subscribe(new Action1<List<AdvertisementItem>>()
                 {
@@ -398,7 +386,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         Timber.d("Update Wallet");
         
-        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
                 .subscribe(new Action1<WalletItem>()
                 {
@@ -460,8 +448,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         
         getContactInfo(contacts)
                 .onErrorResumeNext(getContactInfo(contacts))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Contact>>()
                 {
                     @Override
@@ -489,9 +475,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<Wallet> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-
                         Timber.d("Access Token: " + sessionItem.access_token());
-
                         return localBitcoins.getWalletBalance(sessionItem.access_token())
                                 .map(new ResponseToWalletBalance())
                                 .flatMap(new Func1<Wallet, Observable<Wallet>>()
@@ -550,9 +534,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-
                         Timber.d("Access Token: " + sessionItem.access_token());
-
                         return Observable.just(Observable.from(contactIds)
                                 .flatMap(new Func1<String, Observable<? extends List<Contact>>>()
                                 {
@@ -588,9 +570,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<List<Advertisement>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-
                         Timber.d("Access Token: " + sessionItem.access_token());
-
                         return localBitcoins.getAds(sessionItem.access_token())
                                 .map(new ResponseToAds());
 
@@ -615,9 +595,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-
                         Timber.d("Access Token: " + sessionItem.access_token());
-
                         return localBitcoins.getDashboard(sessionItem.access_token())
                                 .map(new ResponseToContacts())
                                 .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
@@ -677,7 +655,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 .access_token(authorization.access_token)
                 .refresh_token(authorization.refresh_token);
 
-        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
                 .map(SessionItem.MAP)
                 .subscribe(new Action1<SessionItem>()
                 {
@@ -733,32 +711,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
     
-    private void updateContacts(List<Contact> contacts)
+    private void updateContactsData(final HashMap<String, Contact> entryMap)
     {
+        Timber.d("Update Contacts Data Size: " + entryMap.size());
+        
         final ArrayList<Contact> newContacts = new ArrayList<Contact>();
         final ArrayList<String> deletedContacts = new ArrayList<String>();
         final ArrayList<Contact> updatedNotifyContacts = new ArrayList<Contact>();
         final ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
-
-        final HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
-        for (Contact item : contacts) {
-            
-            //contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{item.contact_id});
-            //contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{item.contact_id});
-           
-            entryMap.put(item.contact_id, item);
-        }
         
-        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
                 .map(ContactItem.MAP)
-                
                 .subscribe(new Action1<List<ContactItem>>()
                 {
                     @Override
                     public void call(List<ContactItem> contactItems)
                     {
                         Timber.d("Contact Items in Database: " + contactItems.size());
-
                         for (ContactItem contactItem : contactItems) {
 
                             Contact match = entryMap.get(contactItem.contact_id());
@@ -795,6 +764,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                         for (Contact contact : entryMap.values()) {
                             newContacts.add(contact);
                         }
+                        
                     }
                 }, new Action1<Throwable>()
                 {
@@ -806,23 +776,27 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
 
         subscription.unsubscribe();
-
+        
         Timber.d("New Contact Items: " + newContacts.size());
 
         for (Contact item : newContacts) {
-            ContactItem.Builder builder = ContactItem.createBuilder(item);
-            contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, builder.build());
+            Timber.d("New Contact Id: " + item.contact_id);
+            int messageCount = item.messages.size();
+            contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(item, messageCount, true).build());
         }
+
+        Timber.d("Updated Contact Items: " + updatedContacts.size());
         
         for (Contact item : updatedContacts) {
-            ContactItem.Builder builder = ContactItem.createBuilder(item);
-            contentResolver.update(SyncProvider.CONTACT_TABLE_URI, builder.build(), ContactItem.CONTACT_ID + " = ?", new String[]{item.contact_id});
+            Timber.d("Update Contact Id: " + item.contact_id);
+            int messageCount = item.messages.size();
+            contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(item, messageCount, item.hasUnseenMessages).build(), ContactItem.CONTACT_ID + " = ?", new String[]{item.contact_id});
         }
 
         Timber.d("Delete Contacts: " + deletedContacts.size());
         
         for (String id : deletedContacts) {
-            Timber.d("Delete Contact: " + id);
+            Timber.d("Delete Contact Id: " + id);
             contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{id});
             contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
         }
@@ -840,41 +814,39 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         final ArrayList<String> deletedMessages = new ArrayList<String>();
         final ArrayList<Message> newMessages = new ArrayList<Message>();
+        final ArrayList<Message> deleteMessages = new ArrayList<Message>();
+        final HashMap<String, Contact> contactMap = new HashMap<String, Contact>();
         final HashMap<String, Message> entryMap = new HashMap<String, Message>();
         
         for (Contact contact : contacts) {
-            
+
+            //contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id});
+            //contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contact.contact_id});
+
+            contact.messageCount = contact.messages.size(); // update item message count
+            contactMap.put(contact.contact_id, contact);
+
             Timber.d("Message Contact Id: " + contact.contact_id);
-            
+            Timber.d("Contact Message Count: " + contact.messageCount);
+
             for (Message message : contact.messages) {
-                
-                message.id = contact.contact_id + "_" + contact.created_at;
-                
+                message.id = contact.contact_id + "_" + message.created_at;
                 message.contact_id = contact.contact_id;
-                
                 entryMap.put(message.id, message);
             }
         }
 
         // get all the current messages
-        Subscription subscription = sqlBriteContentProvider.createQuery(SyncProvider.MESSAGE_TABLE_URI,
-                null, null, null, null, false)
+        Subscription subscription = briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
                 .map(MessageItem.MAP)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<MessageItem>>()
                 {
                     @Override
                     public void call(List<MessageItem> messageItems)
                     {
                         for (MessageItem messageItem : messageItems) {
-
-                            Timber.d("Message Contact Id: " + messageItem.contact_id());
-
                             String id = messageItem.contact_id() + "_" + messageItem.create_at();
-
                             Message match = entryMap.get(id);
-
                             if (match != null) {
                                 entryMap.remove(id);
                             } else {
@@ -898,19 +870,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         subscription.unsubscribe();
 
         for (Message item : newMessages) {
-            
-            MessageItem.Builder builder = MessageItem.createBuilder(item);
-            contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, builder.build());
-
-            for (Contact contact : contacts) {
-                if(contact.contact_id.equals(item.contact_id)) {
-                    contact.messageCount += 1;
-                    contact.hasUnseenMessages = true;
-                    
-                    Timber.d("Contact Message Count: " + contact.messageCount);
-                    Timber.d("Contact Messages Unseen: " + contact.hasUnseenMessages);
-                }
-            }
+            contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(item).build());
+            Contact contact = contactMap.get(item.contact_id);
+            contact.hasUnseenMessages = true;
         }
 
         for (String id : deletedMessages) {
@@ -919,6 +881,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
         notificationService.messageNotifications(newMessages);
         
-        updateContacts(contacts); // let's update contacts now
+        updateContactsData(contactMap); // let's update contacts now
     }
 }

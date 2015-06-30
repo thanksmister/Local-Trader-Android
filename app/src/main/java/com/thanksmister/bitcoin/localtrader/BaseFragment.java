@@ -17,25 +17,19 @@
 package com.thanksmister.bitcoin.localtrader;
 
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.widget.Toolbar;
+import android.support.v4.app.Fragment;
 import android.view.View;
-import android.widget.Toast;
 
-import com.google.zxing.android.IntentIntegrator;
 import com.squareup.leakcanary.RefWatcher;
-import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import butterknife.ButterKnife;
-import timber.log.Timber;
 
 /**
  * Base fragment which performs injection using the activity object graph of its parent.
  */
-public abstract class BaseFragment extends DialogFragment
+public abstract class BaseFragment extends Fragment
 {
-    private Toolbar toolbar;
-
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -61,60 +55,34 @@ public abstract class BaseFragment extends DialogFragment
         }
     }
 
-    public Toolbar getToolbar()
-    {
-        if (toolbar == null) {
-            throw new RuntimeException("Toolbar has not been set.  Make sure not to call getToolbar() until onViewCreated() at the earliest.");
-        }
-        return toolbar;
-    }
-
     public void launchScanner()
     {
-        IntentIntegrator scanIntegrator = new IntentIntegrator(getActivity());
-        scanIntegrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
+        ((MainActivity) getActivity()).launchScanner();
     }
     
     protected void reportError(Throwable throwable)
     {
-        if(throwable != null)
-            Timber.e("Data Error: " + throwable.getLocalizedMessage());
+        ((MainActivity) getActivity()).reportError(throwable);
+    }
+
+    protected void handleError(Throwable throwable, boolean retry)
+    {
+        ((MainActivity) getActivity()).handleError(throwable, retry);
     }
 
     protected void handleError(Throwable throwable)
     {
-        if(DataServiceUtils.isNetworkError(throwable)) {
-            toast(getString(R.string.error_no_internet) + ", Code 503");
-        } else if(DataServiceUtils.isHttp403Error(throwable)) {
-            toast(getString(R.string.error_authentication) + ", Code 403");
-            //((BaseActivity)getActivity()).logOut();
-        } else if(DataServiceUtils.isHttp401Error(throwable)) {
-            toast(getString(R.string.error_no_internet) + ", Code 401");
-        } else if(DataServiceUtils.isHttp500Error(throwable)) {
-            toast(getString(R.string.error_service_error) + ", Code 500");
-        } else if(DataServiceUtils.isHttp404Error(throwable)) {
-            toast(getString(R.string.error_service_error) + ", Code 404");
-        } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
-            toast(getString(R.string.error_authentication) + ", Code 400 Grant Invalid");
-            //((BaseActivity)getActivity()).logOut();
-        } else if(DataServiceUtils.isHttp400Error(throwable)) {
-            toast(getString(R.string.error_service_error) + ", Code 400");
-        } else {
-            toast(R.string.error_generic_error);
-        }
-
-        if(throwable != null)
-            Timber.e("Data Error: " + throwable.getLocalizedMessage());
+        ((MainActivity) getActivity()).handleError(throwable, false);
     }
 
     protected void toast(int messageId)
     {
-        Toast.makeText(getActivity(), messageId, Toast.LENGTH_SHORT).show();
+        ((MainActivity) getActivity()).toast(messageId);
     }
 
     protected void toast(String message)
     {
-        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        ((MainActivity) getActivity()).toast(message);
     }
 
     protected int getColor(int colorRes)

@@ -40,6 +40,7 @@ import static com.squareup.sqlbrite.SqlBrite.Query;
 public final class SqlBriteContentProvider
 {
 
+    @Deprecated
     public static SqlBriteContentProvider create(@NonNull ContentResolver contentResolver)
     {
         return new SqlBriteContentProvider(contentResolver);

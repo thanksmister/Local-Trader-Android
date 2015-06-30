@@ -231,8 +231,6 @@ public class Parser
             JSONObject dataObject = jsonObject.getJSONObject("data");
             JSONArray contactListObject = dataObject.getJSONArray("contact_list");
             
-            Timber.d("contactListObject: " + contactListObject.toString());
-
             for (int i = 0; i < contactListObject.length(); i++) {
                 JSONObject item = contactListObject.getJSONObject(i);
                 Contact contact = createContact(item); // you are selling, they are buying
@@ -322,6 +320,8 @@ public class Parser
                 JSONObject account_details = data.getJSONObject("account_details");
                 if (account_details.has("receiver_name"))
                     item.account_details.receiver_name = (account_details.getString("receiver_name"));
+                if (account_details.has("email"))
+                    item.account_details.email = (account_details.getString("email"));
                 if (account_details.has("iban")) item.account_details.iban = (account_details.getString("iban"));
                 if (account_details.has("swift_bic"))
                     item.account_details.swift_bic = (account_details.getString("swift_bic"));

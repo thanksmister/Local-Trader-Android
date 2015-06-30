@@ -13,259 +13,283 @@
   ~ See the License for the specific language governing permissions and 
   ~ limitations under the License.
   -->
-<FrameLayout
+
+<android.support.design.widget.CoordinatorLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:id="@+id/coordinatorLayout"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
 
-    <include
-            android:id="@android:id/progress"
-            layout="@layout/view_progress"
-            android:visibility="visible"
-            tools:visibility="visible"/>
-
-    <include
-            android:id="@android:id/empty"
-            layout="@layout/view_empty"
-            android:visibility="gone"
-            tools:visibility="visible"/>
-
-    <LinearLayout
-            android:id="@android:id/content"
-            android:orientation="vertical"
+    <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/white"
-            tools:visibility="visible"
-            android:visibility="gone">
+            android:layout_height="wrap_content">
 
-        <LinearLayout
+        <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
-                android:orientation="horizontal"
-                android:paddingTop="@dimen/activity_padding"
-                android:paddingBottom="@dimen/activity_padding">
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/Theme.AppCompat.Light"/>
 
-            <View
-                    android:layout_width="@dimen/view_padding_small"
-                    android:layout_height="match_parent"/>
+    </android.support.design.widget.AppBarLayout>
 
-            <!-- <ImageView
-                     android:layout_width="48dp"
-                     android:layout_height="match_parent"
-                     android:scaleType="center"
-                     android:src="@drawable/ic_action_search"/>-->
+    <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipeLayout"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-            <View
-                    android:layout_width="@dimen/view_padding_small"
-                    android:layout_height="match_parent"/>
+        <!-- Your Scrollable View -->
+        <android.support.v4.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
 
-            <FrameLayout
-                    android:layout_width="wrap_content"
+        <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            
+            <LinearLayout
+                    android:id="@+id/searchContent"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1">
+                    tools:visibility="visible"
+                    android:visibility="gone">
 
                 <LinearLayout
-                        android:id="@+id/searchLayout"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="72dp"
                         android:orientation="horizontal"
-                        android:layout_gravity="center_vertical"
-                        android:visibility="gone">
+                        android:paddingTop="@dimen/activity_padding"
+                        android:paddingBottom="@dimen/activity_padding">
 
-                    <AutoCompleteTextView
-                            style="@style/TextLarge.SmallAction"
-                            android:id="@+id/editLocation"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginRight="10dp"
-                            android:hint="Enter city or address"
-                            android:layout_weight="1"/>
+                    <View
+                            android:layout_width="@dimen/view_padding_small"
+                            android:layout_height="match_parent"/>
 
-                    <ImageButton
-                            android:id="@+id/mapButton"
-                            style="@style/BorderlessButtonStyle"
-                            android:contentDescription="@string/desc"
+                    <FrameLayout
+                            android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_width="48dp"
-                            android:src="@drawable/ic_action_location_2"
-                            android:layout_gravity="center"
-                            android:layout_weight="0"/>
+                            android:layout_weight="1">
+
+                        <LinearLayout
+                                android:id="@+id/searchLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal"
+                                android:layout_gravity="center_vertical"
+                                android:visibility="gone">
+
+                            <AutoCompleteTextView
+                                    style="@style/TextLarge.SmallAction"
+                                    android:id="@+id/editLocation"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginRight="10dp"
+                                    android:hint="Enter city or address"
+                                    android:layout_weight="1"/>
+
+                            <ImageButton
+                                    android:id="@+id/mapButton"
+                                    style="@style/BorderlessButtonStyle"
+                                    android:contentDescription="@string/desc"
+                                    android:layout_height="match_parent"
+                                    android:layout_width="48dp"
+                                    android:src="@drawable/ic_action_location_2"
+                                    android:layout_gravity="center"
+                                    android:layout_weight="0"/>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                                android:id="@+id/mapLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal"
+                                android:visibility="visible">
+
+                            <TextView
+                                    style="@style/TextLarge.SmallAction"
+                                    android:id="@+id/currentLocation"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:maxLines="2"
+                                    android:ellipsize="end"
+                                    android:text="- - - -"
+                                    android:layout_gravity="center_vertical"
+                                    android:textIsSelectable="true"
+                                    android:layout_weight="1"/>
+
+                            <View
+                                    android:layout_width="@dimen/view_padding_small"
+                                    android:layout_height="match_parent"/>
+
+                            <ImageButton
+                                    style="@style/BorderlessButtonStyle"
+                                    android:id="@+id/clearButton"
+                                    android:contentDescription="@string/desc"
+                                    android:layout_height="match_parent"
+                                    android:layout_width="48dp"
+                                    android:src="@drawable/ic_action_content_clear"
+                                    android:layout_weight="0"/>
+
+                            <View
+                                    android:layout_width="@dimen/view_padding_small"
+                                    android:layout_height="match_parent"/>
+
+                        </LinearLayout>
+
+                    </FrameLayout>
 
                 </LinearLayout>
 
-                <LinearLayout
-                        android:id="@+id/mapLayout"
+                <View
+                        style="@style/DividerHorizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal"
-                        android:visibility="visible">
+                        android:layout_height="1dp"/>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/activity_padding"/>
+
+                <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Buying or selling?"
+                        android:gravity="left"
+                        android:layout_marginLeft="@dimen/activity_padding"/>
+
+                <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/view_padding_small"
+                        android:paddingBottom="@dimen/view_padding_small"
+                        android:paddingLeft="@dimen/view_padding"
+                        android:paddingRight="@dimen/view_padding">
+
+                    <Spinner
+                            android:id="@+id/typeSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"/>
+
+                </FrameLayout>
+
+                <View
+                        style="@style/DividerHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"/>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/activity_padding"/>
+
+                <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Locally or online?"
+                        android:gravity="left"
+                        android:layout_marginLeft="@dimen/activity_padding"/>
+
+                <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/view_padding_small"
+                        android:paddingBottom="@dimen/activity_padding"
+                        android:paddingLeft="@dimen/activity_padding"
+                        android:paddingRight="@dimen/activity_padding">
+
+                    <Spinner
+                            android:id="@+id/locationSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"/>
+
+                </FrameLayout>
+
+                <LinearLayout
+                        android:id="@+id/paymentMethodLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"/>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/activity_padding"/>
 
                     <TextView
-                            style="@style/TextLarge.SmallAction"
-                            android:id="@+id/currentLocation"
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Online payment method?"
+                            android:gravity="left"
+                            android:layout_marginLeft="@dimen/activity_padding"/>
+
+                    <FrameLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:maxLines="2"
-                            android:ellipsize="end"
-                            android:text="- - - -"
-                            android:layout_gravity="center_vertical"
-                            android:textIsSelectable="true"
-                            android:layout_weight="1"/>
+                            android:paddingTop="@dimen/view_padding_small"
+                            android:paddingBottom="@dimen/activity_padding"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding">
 
-                    <View
-                            android:layout_width="@dimen/view_padding_small"
-                            android:layout_height="match_parent"/>
+                        <Spinner
+                                android:id="@+id/paymentMethodSpinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"/>
 
-                    <ImageButton
-                            style="@style/BorderlessButtonStyle"
-                            android:id="@+id/clearButton"
-                            android:contentDescription="@string/desc"
-                            android:layout_height="match_parent"
-                            android:layout_width="48dp"
-                            android:src="@drawable/ic_action_content_clear"
-                            android:layout_weight="0"/>
-
-                    <View
-                            android:layout_width="@dimen/view_padding_small"
-                            android:layout_height="match_parent"/>
+                    </FrameLayout>
 
                 </LinearLayout>
 
-            </FrameLayout>
-
-        </LinearLayout>
-
-        <View
-                style="@style/DividerHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"/>
-
-        <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/activity_padding"/>
-
-        <TextView
-                style="@style/TextSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Buying or selling?"
-                android:gravity="left"
-                android:layout_marginLeft="@dimen/activity_padding"/>
-
-        <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="@dimen/view_padding_small"
-                android:paddingBottom="@dimen/view_padding_small"
-                android:paddingLeft="@dimen/view_padding"
-                android:paddingRight="@dimen/view_padding">
-
-            <Spinner
-                    android:id="@+id/typeSpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
-
-        </FrameLayout>
-
-        <View
-                style="@style/DividerHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"/>
-
-        <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/activity_padding"/>
-
-        <TextView
-                style="@style/TextSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Locally or online?"
-                android:gravity="left"
-                android:layout_marginLeft="@dimen/activity_padding"/>
-
-        <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="@dimen/view_padding_small"
-                android:paddingBottom="@dimen/activity_padding"
-                android:paddingLeft="@dimen/activity_padding"
-                android:paddingRight="@dimen/activity_padding">
-
-            <Spinner
-                    android:id="@+id/locationSpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
-
-        </FrameLayout>
-
-        <LinearLayout
-                android:id="@+id/paymentMethodLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-            <View
-                    style="@style/DividerHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"/>
-
-            <View
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/activity_padding"/>
-
-            <TextView
-                    style="@style/TextSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Online payment method?"
-                    android:gravity="left"
-                    android:layout_marginLeft="@dimen/activity_padding"/>
-
-            <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="@dimen/view_padding_small"
-                    android:paddingBottom="@dimen/activity_padding"
-                    android:paddingLeft="@dimen/activity_padding"
-                    android:paddingRight="@dimen/activity_padding">
-
-                <Spinner
-                        android:id="@+id/paymentMethodSpinner"
+                <FrameLayout
+                        android:id="@+id/buttonLayout"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"/>
+                        android:layout_height="wrap_content"
+                        android:background="@color/white">
 
-            </FrameLayout>
+                    <Button
+                            android:id="@+id/searchButton"
+                            android:layout_margin="@dimen/activity_padding"
+                            style="@style/ButtonGreen"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Search Trades"/>
 
-        </LinearLayout>
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            style="@style/DividerHorizontal"
+                            android:layout_gravity="top"/>
 
-        <FrameLayout
-                android:id="@+id/buttonLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/white">
+                </FrameLayout>
 
-            <Button
-                    android:id="@+id/searchButton"
-                    android:layout_margin="@dimen/activity_padding"
-                    style="@style/ButtonGreen"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Search Trades"/>
+            </LinearLayout>
 
-            <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    style="@style/DividerHorizontal"
-                    android:layout_gravity="top"/>
+            <include
+                    android:id="@+id/searchProgress"
+                    layout="@layout/view_progress"
+                    android:visibility="visible"
+                    tools:visibility="visible"/>
 
+            
         </FrameLayout>
 
-    </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
+    
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-</FrameLayout>
+</android.support.design.widget.CoordinatorLayout>
+

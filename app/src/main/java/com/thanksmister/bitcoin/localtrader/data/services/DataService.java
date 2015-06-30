@@ -120,11 +120,23 @@ public class DataService
         this.dbManager = dbManager;
     }
     
-    public void reset()
+    public Observable<JSONObject> logout()
     {
-        resetExchangeExpireTime();
-        resetAdvertisementsExpireTime();
-        resetMethodsExpireTime();
+        return getTokens()
+                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
+                {
+                    @Override
+                    public Observable<JSONObject> call(SessionItem sessionItem)
+                    {
+                        resetExchangeExpireTime();
+                        resetAdvertisementsExpireTime();
+                        resetMethodsExpireTime();
+                        dbManager.clearDbManager();
+                        
+                        return localBitcoins.logOut(sessionItem.access_token())
+                                .map(new ResponseToJSONObject());
+                    }
+                });
     }
 
     public Observable<Exchange> getExchange()
@@ -528,6 +540,7 @@ public class DataService
                                             }
 
                                             setContactsExpireTime();
+
                                             return getContactsMessages(contacts, sessionItem.access_token());
                                         }
                                     });
@@ -602,6 +615,7 @@ public class DataService
                                     @Override
                                     public List<Contact> call(List<Message> messages)
                                     {
+                                        contact.messageCount = messages.size();
                                         contact.messages = messages;
                                         return contacts;
                                     }
@@ -755,11 +769,8 @@ public class DataService
         if(!needToRefreshMethods()) {
             return Observable.empty();
         }
-
-
+        
         Timber.d("Get Methods");
-
-
         return localBitcoins.getOnlineProviders()
                 .doOnNext(new Action1<Response>()
                 {

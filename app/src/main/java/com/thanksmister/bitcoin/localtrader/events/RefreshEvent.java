@@ -18,5 +18,5 @@ package com.thanksmister.bitcoin.localtrader.events;
 
 public enum RefreshEvent
 {
-    REFRESH, STOP
+    REFRESH, STOP, RETRY
 }
