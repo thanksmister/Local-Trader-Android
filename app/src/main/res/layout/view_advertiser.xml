@@ -46,23 +46,12 @@
         
         <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:fillViewport="true">
 
             <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-
-                <include
-                        android:id="@android:id/progress"
-                        layout="@layout/view_progress"
-                        android:visibility="visible"
-                        tools:visibility="visible"/>
-
-                <include
-                        android:id="@android:id/empty"
-                        layout="@layout/view_retry"
-                        android:visibility="gone"
-                        tools:visibility="visible"/>
 
                 <LinearLayout
                         android:id="@+id/advertiserContent"
@@ -129,7 +118,7 @@
                                         android:singleLine="true"
                                         android:ellipsize="end"
                                         android:layout_weight="0"
-                                        android:text="ThanksMister"/>
+                                        tools:text="ThanksMister"/>
 
                                 <View
                                         android:layout_width="4dp"
@@ -152,7 +141,7 @@
                                     android:layout_height="wrap_content"
                                     android:gravity="left"
                                     android:layout_gravity="center_vertical"
-                                    android:text="Last Seen - Feb 6, 12:00"/>
+                                    tools:text="Last Seen - Feb 6, 12:00"/>
 
                         </LinearLayout>
 
@@ -179,7 +168,7 @@
                                     android:gravity="right"
                                     android:layout_weight="0"
                                     android:layout_gravity="center_vertical"
-                                    android:text="100"/>
+                                    tools:text="100"/>
 
                             <ImageView
                                     android:layout_width="wrap_content"
@@ -196,7 +185,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="0"
                                     android:layout_gravity="center_vertical"
-                                    android:text="100+"/>
+                                    tools:text="100+"/>
 
                         </LinearLayout>
 
@@ -237,7 +226,7 @@
                                     android:paddingLeft="@dimen/activity_padding"
                                     android:paddingRight="@dimen/activity_padding"
                                     android:paddingBottom="@dimen/activity_padding"
-                                    android:text="7000 ARS (1 BTC)"
+                                    tools:text="7000 ARS (1 BTC)"
                                     android:singleLine="true"
                                     android:ellipsize="end"/>
 
@@ -270,7 +259,7 @@
                                     android:paddingRight="@dimen/activity_padding"
                                     android:paddingBottom="@dimen/activity_padding"
                                     android:gravity="left"
-                                    android:text="1000 - 10000 ARS"
+                                    tools:text="1000 - 10000 ARS"
                                     android:singleLine="true"
                                     android:ellipsize="end"/>
 
@@ -333,18 +322,22 @@
 
                 </LinearLayout>
 
+                <include
+                        android:id="@+id/advertiserProgress"
+                        layout="@layout/view_progress"
+                        android:visibility="visible"
+                        tools:visibility="visible"/>
+
+                <include
+                        android:id="@+id/advertiserEmpty"
+                        layout="@layout/view_retry"
+                        android:visibility="gone"
+                        tools:visibility="visible"/>
+
             </FrameLayout>
 
         </android.support.v4.widget.NestedScrollView>
 
     </android.support.v4.widget.SwipeRefreshLayout>
-
-    <!--<android.support.v7.widget.Toolbar
-                android:id="@+id/contactToolBar"
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:minHeight="?android:attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"-->
-
+    
 </android.support.design.widget.CoordinatorLayout>

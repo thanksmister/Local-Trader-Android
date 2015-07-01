@@ -83,6 +83,7 @@
 
                     <Spinner
                             android:id="@+id/typeSpinner"
+                            android:theme="@style/SpinnerTheme"
                             android:layout_width="match_parent"
                             android:layout_marginLeft="@dimen/activity_padding"
                             android:layout_marginRight="@dimen/activity_padding"
@@ -123,7 +124,7 @@
                             android:layout_marginLeft="@dimen/activity_padding"
                             android:layout_marginRight="@dimen/activity_padding"
                             android:paddingLeft="2dp"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:text="@string/ad_status_edit_description"/>
 
                     <View
@@ -169,6 +170,7 @@
 
                                 <AutoCompleteTextView
                                         style="@style/TextMedium.Secondary"
+                                        android:theme="@style/EditTextTheme"
                                         android:id="@+id/editLocation"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
@@ -250,6 +252,7 @@
 
                     <Spinner
                             android:id="@+id/currencySpinner"
+                            android:theme="@style/SpinnerTheme"
                             style="@style/TextLarge.SmallAction"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"/>
@@ -299,7 +302,7 @@
                                 android:inputType="numberDecimal"
                                 android:maxLength="8"
                                 android:layout_weight="1"
-                                android:theme="@style/CustomAccent"
+                                android:theme="@style/EditTextTheme"
                                 android:text="1"/>
 
                         <TextView
@@ -352,7 +355,7 @@
                             android:inputType="textMultiLine|textNoSuggestions"
                             android:lines="2"
                             android:minLines="1"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:gravity="left|bottom"/>
 
                     <View
@@ -392,15 +395,13 @@
                             android:layout_width="match_parent"
                             android:layout_height="@dimen/view_padding_small"/>
 
-
                     <EditText
                             android:id="@+id/messageText"
                             style="@style/TextMedium.SmallAction"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:minLines="3"/>
-
 
                 </LinearLayout>
 
@@ -441,7 +442,7 @@
                                 android:layout_height="wrap_content"
                                 android:hint="0.00"
                                 android:inputType="numberDecimal"
-                                android:theme="@style/CustomAccent"
+                                android:theme="@style/EditTextTheme"
                                 android:layout_weight="1"/>
 
                         <View
@@ -513,7 +514,7 @@
                                 android:layout_height="wrap_content"
                                 android:hint="0.00"
                                 android:inputType="numberDecimal"
-                                android:theme="@style/CustomAccent"
+                                android:theme="@style/EditTextTheme"
                                 android:layout_weight="1"/>
 
                         <View
@@ -571,6 +572,7 @@
 
                     <Spinner
                             android:id="@+id/paymentMethodSpinner"
+                            android:theme="@style/SpinnerTheme"
                             style="@style/TextLarge.SmallAction"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -625,7 +627,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="@dimen/activity_padding"
                             android:layout_marginRight="@dimen/activity_padding"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:hint="Enter Bank name"/>
 
                     <TextView
@@ -670,7 +672,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="@dimen/activity_padding"
                             android:layout_marginRight="@dimen/activity_padding"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:hint="Enter payment details"/>
 
                     <TextView
@@ -717,7 +719,7 @@
                             android:gravity="center_vertical"
                             android:layout_gravity="center_vertical"
                             android:paddingLeft="2dp"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:text="@string/advertisement_sms_verified"/>
 
                 </LinearLayout>
@@ -758,7 +760,7 @@
                             android:linksClickable="true"
                             android:autoLink="web"
                             android:textColorLink="@color/body_text_blue_1"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:text="@string/advertisement_trusted_only"/>
 
                 </LinearLayout>
@@ -796,7 +798,7 @@
                             android:gravity="center_vertical"
                             android:layout_gravity="center_vertical"
                             android:paddingLeft="2dp"
-                            android:theme="@style/CustomAccent"
+                            android:theme="@style/EditTextTheme"
                             android:text="@string/advertisement_track_liquidity"/>
 
                 </LinearLayout>

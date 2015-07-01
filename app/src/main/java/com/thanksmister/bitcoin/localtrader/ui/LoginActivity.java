@@ -160,6 +160,8 @@ public class LoginActivity extends BaseActivity
         {
 
             hideProgress();
+            
+            //Timber.e("URL: " + url);
 
             //check if the login was successful and the access token returned
             if (url.contains("thanksmr.com")) {

@@ -64,22 +64,19 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     @Inject
     GeoLocationService geoLocationService;
     
-    @InjectView(android.R.id.list)
+    @InjectView(R.id.resultsList)
     ListView list;
 
-    @InjectView(android.R.id.progress)
+    @InjectView(R.id.resultsProgress)
     View progress;
-
-    @InjectView(android.R.id.content)
-    View content;
-
-    @InjectView(android.R.id.empty)
+    
+    @InjectView(R.id.resultsEmpty)
     View empty;
 
     @InjectView(R.id.emptyTextView)
     TextView emptyTextView;
 
-    @InjectView(R.id.contactToolBar)
+    @InjectView(R.id.searchResultsToolBar)
     Toolbar toolbar;
 
     @InjectView(R.id.swipeLayout)
@@ -141,7 +138,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
             {
                 Advertisement advertisement = (Advertisement) adapterView.getAdapter().getItem(i);
-                showAdvertiser(advertisement); 
+                showAdvertiser(advertisement);
             }
         });
   
@@ -189,12 +186,6 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     }
 
     @Override
-    public void onDestroy()
-    {
-        super.onDestroy();
-    }
-
-    @Override
     public void onRefresh()
     {
         subscribeData();
@@ -215,13 +206,6 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
         emptyTextView.setText(message);
     }
     
-    public void showProgress()
-    {
-        empty.setVisibility(View.GONE);
-        progress.setVisibility(View.VISIBLE);
-        list.setVisibility(View.GONE);
-    }
-    
     public void hideProgress()
     {
         empty.setVisibility(View.GONE);
@@ -232,8 +216,6 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     protected void subscribeData()
     {
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
-
-            showProgress();
 
             advertisementsObservable = bindActivity(this, geoLocationService.getLocalAdvertisements(address.getLatitude(), address.getLongitude(), tradeType));
             advertisementsObservable.subscribe(new Action1<List<Advertisement>>()

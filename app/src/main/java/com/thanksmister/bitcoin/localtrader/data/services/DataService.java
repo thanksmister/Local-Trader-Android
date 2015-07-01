@@ -131,7 +131,6 @@ public class DataService
                         resetExchangeExpireTime();
                         resetAdvertisementsExpireTime();
                         resetMethodsExpireTime();
-                        dbManager.clearDbManager();
                         
                         return localBitcoins.logOut(sessionItem.access_token())
                                 .map(new ResponseToJSONObject());

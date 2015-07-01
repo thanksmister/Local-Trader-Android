@@ -69,6 +69,7 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
@@ -392,7 +393,12 @@ public class SearchFragment extends BaseFragment
 
     public void startLocationCheck()
     {
+        Timber.d("startLocationCheck");
+        
         if(!geoLocationService.isGooglePlayServicesAvailable()) {
+
+            Timber.d("no google play services");
+            
             hideProgress();
             missingGooglePlayServices();
             getAddressFromLocation(null);
@@ -401,6 +407,8 @@ public class SearchFragment extends BaseFragment
 
         if(hasLocationServices()) {
 
+            Timber.d("has location services");
+            
             geoLocationService.start();
 
             subscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
@@ -417,6 +425,7 @@ public class SearchFragment extends BaseFragment
                         showEnableLocation();
                         getAddressFromLocation(null);
                     } else {
+                        getAddressFromLocation(null);
                         handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                     }
                 }
@@ -488,6 +497,8 @@ public class SearchFragment extends BaseFragment
     
     public void getAddressFromLocation(final Location location)
     {
+        Timber.d("getAddressFromLocation: " + location);
+        
         if (location == null) {
 
             subscriptions.add(methodObservable.subscribe(new Action1<List<MethodItem>>()
@@ -495,6 +506,8 @@ public class SearchFragment extends BaseFragment
                 @Override
                 public void call(List<MethodItem> methods)
                 {
+                    hideProgress();
+                    
                     setMethods(methods);
                 }
             }, new Action1<Throwable>()
@@ -502,17 +515,22 @@ public class SearchFragment extends BaseFragment
                 @Override
                 public void call(Throwable throwable)
                 {
+                    hideProgress();
+                    
                     reportError(throwable);
                 }
             }));
             
         } else {
+            
             geoDecodeObservable = bindFragment(this, geoLocationService.geoDecodeLocation(location));
             subscriptions.add(Observable.combineLatest(methodObservable, geoDecodeObservable, new Func2<List<MethodItem>, List<Address>, AddressData>()
             {
                 @Override
                 public AddressData call(List<MethodItem> methods, List<Address> addresses)
                 {
+                    Timber.d("AddressData");
+                    
                     AddressData data = new AddressData();
                     data.methods = methods;
                     data.addresses = addresses;
@@ -523,6 +541,8 @@ public class SearchFragment extends BaseFragment
                 @Override
                 public void call(AddressData data)
                 {
+                    hideProgress();
+                    
                     setMethods(data.methods);
 
                     if (!data.addresses.isEmpty()) {
@@ -534,6 +554,7 @@ public class SearchFragment extends BaseFragment
                 @Override
                 public void call(Throwable throwable)
                 {
+                    hideProgress();
                     handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                 }
             }));

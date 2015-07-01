@@ -26,7 +26,6 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
@@ -67,13 +66,13 @@ public class AdvertiserActivity extends BaseActivity
     @Inject
     DbManager dbManager;
 
-    @InjectView(android.R.id.progress)
+    @InjectView(R.id.advertiserProgress)
     View progress;
 
     @InjectView(R.id.advertiserContent)
-    ScrollView content;
+    View content;
 
-    @InjectView(android.R.id.empty)
+    @InjectView(R.id.advertiserEmpty)
     View empty;
     
     @InjectView(R.id.buttonLayout)

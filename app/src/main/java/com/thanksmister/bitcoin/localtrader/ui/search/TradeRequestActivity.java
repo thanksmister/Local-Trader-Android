@@ -25,15 +25,12 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
@@ -61,20 +58,8 @@ public class TradeRequestActivity extends BaseActivity
 
     @Inject
     DataService dataService;
-
-    @InjectView(android.R.id.progress)
-    View progress;
-
-    @InjectView(R.id.requestContent)
-    ScrollView content;
-
-    @InjectView(android.R.id.empty)
-    View empty;
-
-    @InjectView(R.id.retryTextView)
-    TextView emptyTextView;
-
-    @InjectView(R.id.toolbar)
+    
+    @InjectView(R.id.tradeRequestToolbar)
     Toolbar toolbar;
 
     @InjectView(R.id.editAmountText)
@@ -227,18 +212,6 @@ public class TradeRequestActivity extends BaseActivity
         outState.putString(EXTRA_AD_PROFILE_NAME, profileName);
     }
 
-    public void showProgress()
-    {
-        progress.setVisibility(View.VISIBLE);
-        content.setVisibility(View.GONE);
-    }
-    
-    public void hideProgress()
-    {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
-    }
-
     private void validateChangesAndSend()
     {
         String amount = editAmountText.getText().toString();
@@ -273,7 +246,7 @@ public class TradeRequestActivity extends BaseActivity
             @Override
             public void call(ContactRequest contactRequest)
             {
-                toast("Contact request sent to " + profileName + "!");
+                snack("Contact request sent to " + profileName + "!", false);
                 finish();
             }
         }, new Action1<Throwable>()
@@ -281,7 +254,7 @@ public class TradeRequestActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                toast("Unable to send trade request.");
+                handleError(new Throwable("Unable to send trade request."), false);
             }
         });
     }

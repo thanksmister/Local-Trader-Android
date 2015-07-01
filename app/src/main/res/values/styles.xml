@@ -55,8 +55,31 @@
         <item name="actionModeBackground">@drawable/action_mode_background</item>
         
     </style>
+
+    <!-- Spinner theme. -->
+    <style name="SpinnerTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="colorControlNormal">@color/gray</item>
+        <item name="colorControlActivated">@color/blue</item>
+        <item name="colorControlHighlight">@color/blue</item>
+
+    </style>
+
+    <!-- Edit theme. -->
+    <style name="EditTextTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="colorControlNormal">@color/gray</item>
+        <item name="colorControlActivated">@color/blue</item>
+        <item name="colorControlHighlight">@color/blue</item>
+
+    </style>
+
+    <!-- Edit theme. -->
+    <style name="FabTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="colorAccent">@color/white</item>
+    </style>
     
-   
     <!--
       Base application theme, dependent on API level. This theme is replaced
       by AppBaseTheme from res/values-vXX/styles.xml on newer devices.

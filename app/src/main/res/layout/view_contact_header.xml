@@ -329,6 +329,7 @@
 
                 <EditText
                         android:id="@+id/newMessageText"
+                        android:theme="@style/EditTextTheme"
                         style="@style/TextMedium.Secondary"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -336,7 +337,6 @@
                         android:lines="4"
                         android:minLines="1"
                         android:gravity="left|center_vertical"
-                        android:theme="@style/CustomAccent"
                         android:hint="@string/hint_send_message"/>
 
             </FrameLayout>

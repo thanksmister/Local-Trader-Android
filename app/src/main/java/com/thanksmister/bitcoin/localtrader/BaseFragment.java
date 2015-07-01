@@ -50,8 +50,8 @@ public abstract class BaseFragment extends Fragment
         super.onDestroy();
         
         if (BuildConfig.DEBUG) {
-            RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
+            //RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
+            //refWatcher.watch(this);
         }
     }
 

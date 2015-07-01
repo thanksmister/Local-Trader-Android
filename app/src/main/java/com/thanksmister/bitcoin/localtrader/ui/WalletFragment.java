@@ -29,6 +29,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
@@ -54,6 +55,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.misc.AutoResizeTextView;
 import com.thanksmister.bitcoin.localtrader.ui.misc.TransactionsAdapter;
@@ -79,7 +81,7 @@ import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
-public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
+public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener
 {
     @Inject
     DataService dataService;
@@ -92,6 +94,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
+
+    @InjectView(R.id.fab)
+    FloatingActionButton fab;
     
     @InjectView(R.id.walletList)
     ListView list;
@@ -208,6 +213,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         
         setAdapter(transactionsAdapter);
         setupToolbar();
+        setupFab();
     }
 
     @Override
@@ -278,6 +284,19 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         updateData();
     }
 
+    @Override
+    public void onClick(View view)
+    {
+        if (view.getId() == R.id.fab) {
+            bus.post(NavigateEvent.QRCODE);
+        }
+    }
+
+    private void setupFab()
+    {
+        fab.setOnClickListener(this);
+    }
+
     private void setupToolbar()
     {
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
@@ -307,20 +326,11 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         handler.removeCallbacks(refreshRunnable);
         swipeLayout.setRefreshing(false);
     }
-
-    @Subscribe
-    public void onRefreshEvent(RefreshEvent event)
-    {
-        if (event == RefreshEvent.RETRY) {
-            onRefreshStart();
-            updateData();
-        }
-    }
-
+    
     protected void showActivity(Boolean show)
     {
         noActivityTextView.setVisibility(show?View.GONE:View.VISIBLE);
-        recentTextView.setVisibility(show?View.VISIBLE:View.GONE);
+        recentTextView.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     protected void subscribeData()
@@ -336,14 +346,17 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 walletData.wallet = wallet;
                 walletData.exchange = exchange;
                 return walletData;
+                
             }
         }).subscribe(new Action1<WalletData>()
         {
             @Override
             public void call(WalletData walletData)
             {
-                setWallet(walletData.wallet);
-                setAppBarText(walletData);
+                if(walletData.wallet != null && walletData.exchange != null) {
+                    setWallet(walletData.wallet);
+                    setAppBarText(walletData); 
+                }
             }
         }, new Action1<Throwable>()
         {
@@ -362,8 +375,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             @Override
             public void call(Wallet wallet)
             {
-                onRefreshStop();
-                
                 updateWalletBalance(wallet);
 
                 setTransactions(wallet.getTransactions());
@@ -403,30 +414,28 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     String address = walletItem.address();
 
                     if (oldBalance != newBalance || !address.equals(wallet.address.address)) {
-                        updateWallet(wallet);
+                        dbManager.updateWallet(wallet);
                     }
                     
                     if (newBalance > oldBalance) {
                         String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
                         toast("Received " + diff + " BTC");
                     }
+                    
                 } else {
-                    updateWallet(wallet);
+                    dbManager.updateWallet(wallet);
                 }
+                
+                onRefreshStop();
             }
             }, new Action1<Throwable>() {
                 @Override
                 public void call(Throwable throwable)
                 {
+                    onRefreshStop();
                     reportError(throwable);
                 }
         });
-    }
-
-    private void updateWallet(Wallet wallet)
-    {
-        Timber.d("Update Wallet Address: " + wallet.address.address);
-        dbManager.updateWallet(wallet);
     }
     
     public void setWallet(WalletItem wallet)

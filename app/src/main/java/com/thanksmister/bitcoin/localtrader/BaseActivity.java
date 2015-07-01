@@ -202,6 +202,8 @@ public abstract class BaseActivity extends AppCompatActivity
     
     private void  onLoggedOut()
     {
+        dbManager.clearDbManager();
+        
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);
         finish();

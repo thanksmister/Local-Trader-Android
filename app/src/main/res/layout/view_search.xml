@@ -86,11 +86,13 @@
 
                             <AutoCompleteTextView
                                     style="@style/TextLarge.SmallAction"
+                                    android:theme="@style/EditTextTheme"
                                     android:id="@+id/editLocation"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center"
-                                    android:layout_marginRight="10dp"
+                                    android:layout_marginRight="5dp"
+                                    android:layout_marginLeft="5dp"
                                     android:hint="Enter city or address"
                                     android:layout_weight="1"/>
 
@@ -120,6 +122,8 @@
                                     android:layout_height="wrap_content"
                                     android:maxLines="2"
                                     android:ellipsize="end"
+                                    android:layout_marginRight="10dp"
+                                    android:layout_marginLeft="10dp"
                                     android:text="- - - -"
                                     android:layout_gravity="center_vertical"
                                     android:textIsSelectable="true"
@@ -175,6 +179,7 @@
 
                     <Spinner
                             android:id="@+id/typeSpinner"
+                            android:theme="@style/SpinnerTheme"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"/>
 
@@ -207,6 +212,7 @@
 
                     <Spinner
                             android:id="@+id/locationSpinner"
+                            android:theme="@style/SpinnerTheme"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"/>
 
@@ -247,6 +253,7 @@
 
                         <Spinner
                                 android:id="@+id/paymentMethodSpinner"
+                                android:theme="@style/SpinnerTheme"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"/>
 

@@ -44,7 +44,8 @@ public abstract class ExchangeItem
     public static final String BID = "bid";
     public static final String LAST = "last";
 
-    public static final String QUERY = "SELECT * FROM " + ExchangeItem.TABLE + " LIMIT 1";;
+    //public static final String QUERY = "SELECT * FROM " + ExchangeItem.TABLE + " LIMIT 1";
+    public static final String QUERY = "SELECT * FROM " + ExchangeItem.TABLE;
 
     public abstract long id();
     public abstract String exchange();

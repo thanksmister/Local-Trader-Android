@@ -20,6 +20,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
@@ -80,7 +81,7 @@ import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
-public class DashboardFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
+public class DashboardFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener
 {
     @Inject
     DataService dataService;
@@ -96,6 +97,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     @Inject
     Bus bus;
+
+    @InjectView(R.id.fab)
+    FloatingActionButton fab;
 
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
@@ -182,7 +186,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     Observable<List<ContactItem>> contactsObservable;
 
     Observable<ExchangeItem> exchangeObservable;
-    Observable<WalletItem> walletObservable;
+    //Observable<WalletItem> walletObservable;
     
     Observable<List<Method>> methodUpdateObservable;
     Observable<Exchange> exchangeUpdateObservable;
@@ -243,12 +247,17 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         methodObservable = bindFragment(this, dbManager.methodQuery().cache());
         advertisementObservable = bindFragment(this, db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY).map(AdvertisementItem.MAP));
         contactsObservable = bindFragment(this, dbManager.contactsQuery());
-        walletObservable = bindFragment(this, dbManager.walletQuery());
+        //walletObservable = bindFragment(this, dbManager.walletQuery());
         exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
         
         // update data
         methodUpdateObservable = bindFragment(this, dataService.getMethods().cache());
         exchangeUpdateObservable = bindFragment(this, dataService.getExchange());
+    }
+
+    private void setupFab()
+    {
+        fab.setOnClickListener(this);
     }
 
     private void setupToolbar()
@@ -302,6 +311,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         });
 
         setupToolbar();
+        setupFab();
     }
 
     @Override
@@ -363,7 +373,15 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         
         super.onDetach();
     }
-    
+
+    @Override
+    public void onClick(View view)
+    {
+        if (view.getId() == R.id.fab) {
+            bus.post(NavigateEvent.QRCODE);
+        }
+    }
+
     public void onRefresh()
     {
         updateData(true);
@@ -393,22 +411,15 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         subscriptions = new CompositeSubscription();
         
-        subscriptions.add(Observable.combineLatest(walletObservable, exchangeObservable, new Func2<WalletItem, ExchangeItem, WalletData>()
+        subscriptions.add(exchangeObservable.subscribe(new Action1<ExchangeItem>()
         {
             @Override
-            public WalletData call(WalletItem wallet, ExchangeItem exchange)
+            public void call(ExchangeItem exchangeItem)
             {
-                WalletData walletData = new WalletData();
-                walletData.wallet = wallet;
-                walletData.exchange = exchange;
-                return walletData;
-            }
-        }).subscribe(new Action1<WalletData>()
-        {
-            @Override
-            public void call(WalletData walletData)
-            {
-                setAppBarText(walletData);
+                if(exchangeItem != null) {
+                    Timber.d("Exchange Item: " + exchangeItem.exchange());
+                    setAppBarText(exchangeItem);
+                }
             }
         }, new Action1<Throwable>()
         {
@@ -488,6 +499,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void call(Exchange exchange)
             {
+                Timber.d("Exchange Received: " + exchange.name);
                 updateExchange(exchange);
             }
         }, new Action1<Throwable>()
@@ -538,6 +550,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     private void updateExchange(Exchange exchange)
     {
+        Timber.d("Update Exchange Database: " + exchange.name);
+        
         dbManager.updateExchange(exchange);
     }
     
@@ -625,11 +639,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         getActivity().startActivity(intent);
     }
     
-    protected void setAppBarText(WalletData data)
+    protected void setAppBarText(ExchangeItem exchange)
     {
-        String value = Calculations.calculateAverageBidAskFormatted(data.exchange.bid(), data.exchange.ask());
+        String value = Calculations.calculateAverageBidAskFormatted(exchange.bid(), exchange.ask());
         bitcoinTitle.setText("MARKET PRICE");
         bitcoinPrice.setText("$" + value + " / BTC");
-        bitcoinValue.setText("Source " + data.exchange.exchange());
+        bitcoinValue.setText("Source " + exchange.exchange());
     }
 }
