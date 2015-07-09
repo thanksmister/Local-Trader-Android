@@ -16,10 +16,12 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
+import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.squareup.sqlbrite.BriteContentResolver;
@@ -37,6 +39,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,6 +116,7 @@ public class DbManager
                 .access_token(authorization.access_token)
                 .refresh_token(authorization.refresh_token);
 
+        final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
                 .map(SessionItem.MAP)
                 .subscribeOn(Schedulers.io())
@@ -123,9 +127,11 @@ public class DbManager
                     public void call(SessionItem sessionItem)
                     {
                         if (sessionItem != null) {
-                            contentResolver.update(SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
+                            contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
+                            //contentResolver.update(SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
                         } else {
-                            contentResolver.insert(SyncProvider.SESSION_TABLE_URI, builder.build());
+                            contentResolverAsyncHandler.startInsert(0, null, SyncProvider.SESSION_TABLE_URI, builder.build());
+                            //contentResolver.insert(SyncProvider.SESSION_TABLE_URI, builder.build());
                         }
                     }
                 }, new Action1<Throwable>()
@@ -324,15 +330,10 @@ public class DbManager
                         .advertiser_feedback_score(item.advertisement.advertiser.feedback_score)
                         .advertiser_last_online(item.advertisement.advertiser.last_online);
                 
-                //db.insert(ContactItem.TABLE, builder.build());
-                
                 Timber.d("Insert contact from database: " + item.contact_id);
             }
-
-            //db.setTransactionSuccessful();
-
+            
         } finally {
-           // db.endTransaction();
             cursor.close();
         }
         
@@ -343,27 +344,33 @@ public class DbManager
         return updateMap;
     }
     
-    public int updateContact(Contact contact, int messageCount, boolean hasUnseenMessages)
+    public void updateContact(Contact contact, int messageCount, boolean hasUnseenMessages, ContentResolverAsyncHandler.AsyncQueryListener listener)
     {
-        return contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build(), ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id});
+        // TODO check that update is needed before runnging update query
+        ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver, listener);
+        contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build(), ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id});
+        //return contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build(), ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id});
     }
     
-    public void deleteContact(String contactId)
+    public void deleteContact(String contactId, ContentResolverAsyncHandler.AsyncQueryListener listener)
     {
-        Timber.d("Delete Contact: " + contactId);
-        contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
-        contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contactId});
+        ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver, listener);
+        contentResolverAsyncHandler.startDelete(1, null, SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
+        contentResolverAsyncHandler.startDelete(2, null, SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contactId});
+      
+        //contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
+        //contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contactId});
     }
     
     public Observable<List<ContactItem>> contactsQuery()
     {
-        return briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
+        return briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, ContactItem.CREATED_AT  + " ASC", false)
                 .map(ContactItem.MAP);
     }
     
     public Observable<List<MessageItem>> messagesQuery(String contactId)
     {
-        return briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
+        return briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, MessageItem.CREATED_AT + " DESC", false)
                 .map(MessageItem.MAP);
     }
 
@@ -388,7 +395,7 @@ public class DbManager
                 });
     }
 
-    public void updateMessages(final String contactId, List<Message> messages)
+    public void updateMessages(final String contactId, List<Message> messages, final ContentResolverAsyncHandler.AsyncQueryListener listener)
     {
         final ArrayList<Message> newMessages = new ArrayList<Message>();
         final HashMap<String, Message> entryMap = new HashMap<String, Message>();
@@ -396,7 +403,7 @@ public class DbManager
         for (Message message : messages) {
             message.id = contactId+ "_" + message.created_at;
             message.contact_id = contactId;
-            entryMap.put(message.created_at, message);
+            entryMap.put(message.id, message);
         }
         
         // get all the current messages
@@ -411,13 +418,22 @@ public class DbManager
                         for (MessageItem messageItem : messageItems) {
                             String id = messageItem.contact_id() + "_" + messageItem.create_at();
                             Message match = entryMap.get(id);
+                            
                             if (match != null) {
                                 entryMap.remove(id);
                             }
                         }
 
-                        for (Message message : entryMap.values()) {
-                            newMessages.add(message);
+                        ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
+                        contentResolverAsyncHandler.setQueryListener(listener);
+                        if(entryMap.isEmpty()) {
+                            contentResolverAsyncHandler.onQueryComplete();
+                        } else {
+                            int token = 100;
+                            for (Message message : entryMap.values()) {
+                                contentResolverAsyncHandler.startInsert(token, null, SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(message).build());
+                                token++;
+                            } 
                         }
                     }
                 }, new Action1<Throwable>()
@@ -430,19 +446,9 @@ public class DbManager
                 });
 
         subscription.unsubscribe();
-        
-        //Use transactions to prevent large changes to the data from spamming your subscribers.
-        db.beginTransaction();
-        try{
-            for (Message item : newMessages) {
-                contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(item).build());
-            }
-            db.setTransactionSuccessful();
-        
-        } finally {
-            db.endTransaction();
-        }
     }
+    
+   
     
     public Observable<List<MethodItem>> methodQuery()
     {
@@ -456,7 +462,7 @@ public class DbManager
                 .map(ExchangeItem.MAP);
     }
     
-    public Observable<List<AdvertisementItem>> advertisementQuery()
+    public Observable<List<AdvertisementItem>> advertisementsQuery()
     {
        return  db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY)
                 .map(AdvertisementItem.MAP);
@@ -488,6 +494,7 @@ public class DbManager
 
     public void updateWallet(final Wallet wallet)
     {
+        final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
                 .subscribeOn(Schedulers.io())
@@ -502,19 +509,22 @@ public class DbManager
 
                         if (walletItem != null) {
 
-                            if(!walletItem.address().equals(wallet.address.address)
+                            if (!walletItem.address().equals(wallet.address.address)
                                     || !walletItem.balance().equals(wallet.total.balance)
                                     || !walletItem.receivable().equals(wallet.address.received)
                                     || !walletItem.sendable().equals(wallet.total.sendable)) {
 
+
                                 WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
-                                contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
+                                contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.MESSAGE_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
+                                //contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
                             }
 
                         } else {
 
                             WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
-                            contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
+                            contentResolverAsyncHandler.startInsert(0, null, SyncProvider.WALLET_TABLE_URI, builder.build());
+                            //contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
                         }
                     }
                 }, new Action1<Throwable>()
@@ -547,10 +557,10 @@ public class DbManager
             } else {
                 db.insert(ExchangeItem.TABLE, builder.build());
             }
-           // db.setTransactionSuccessful();
+            //db.setTransactionSuccessful();
 
         } finally {
-            //db.endTransaction();
+           // db.endTransaction();
             cursor.close();
         }
     }

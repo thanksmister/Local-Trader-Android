@@ -103,7 +103,7 @@ public abstract class BaseActivity extends AppCompatActivity
 
         bus.unregister(this);
 
-        getApplicationContext().unregisterReceiver(connReceiver);
+        //unregisterReceiver(connReceiver);
 
         subscription.unsubscribe();
     }
@@ -115,7 +115,7 @@ public abstract class BaseActivity extends AppCompatActivity
         
         bus.register(this);
 
-        getApplicationContext().registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        //registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
     
     public void launchScanner()
@@ -227,7 +227,7 @@ public abstract class BaseActivity extends AppCompatActivity
     }
 
     // TODO replace with RxAndroid
-    private BroadcastReceiver connReceiver = new BroadcastReceiver()
+    /*private BroadcastReceiver connReceiver = new BroadcastReceiver()
     {
         public void onReceive(Context context, Intent intent) {
             ConnectivityManager connectivityManager = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE));
@@ -238,7 +238,7 @@ public abstract class BaseActivity extends AppCompatActivity
                 bus.post(NetworkEvent.DISCONNECTED);
             }
         }
-    };
+    };*/
 
     protected void toast(String message)
     {
@@ -283,9 +283,7 @@ public abstract class BaseActivity extends AppCompatActivity
             logOut();
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
             snack(getString(R.string.error_service_error), retry);
-        } 
-
-        if(throwable != null && throwable.getLocalizedMessage() != null) {
+        } else if(throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.e("Data Error: " + throwable.getLocalizedMessage());
             snack(throwable.getLocalizedMessage(), retry);
         } else {

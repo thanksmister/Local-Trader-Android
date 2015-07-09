@@ -40,6 +40,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
@@ -47,6 +48,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MethodAdapter;
@@ -325,6 +327,16 @@ public class SearchFragment extends BaseFragment
 
         setupToolbar();
         showProgress();
+    }
+    
+    public void onRefresh()
+    {
+        if(address != null) {
+            setAddress(address);
+        } else {
+            startLocationCheck();
+        }
+
     }
 
     public void showProgress()

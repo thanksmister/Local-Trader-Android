@@ -146,8 +146,7 @@ public interface LocalBitcoins
     @FormUrlEncoded
     @POST("/api/wallet-send-pin/")
     Observable<Response> walletSendPin(@Field("pincode") String pincode, @Field("address") String address, @Field("amount") String amount, @Query("access_token") String token);
-
-    @FormUrlEncoded
+    
     @POST("/api/logout/")
     Observable<Response> logOut(@Query("access_token") String token);
 }

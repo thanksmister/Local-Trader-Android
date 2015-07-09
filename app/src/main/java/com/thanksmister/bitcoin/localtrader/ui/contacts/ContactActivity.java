@@ -24,6 +24,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -43,27 +44,24 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.content.AsyncQueryHandler;
 
-import com.crashlytics.android.Crashlytics;
-import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.PinCodeActivity;
+import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MessageAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
@@ -279,7 +277,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         contactObservable = bindActivity(this, dataService.getContact(contactId));
         tokensObservable =  bindActivity(this, dataService.getTokens());
     }
-
+    
     @Override
     public void onResume()
     {
@@ -292,7 +290,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         }
 
         onRefreshStart();
-
         updateData();
     }
 
@@ -320,9 +317,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     @Override
     public void onSaveInstanceState(Bundle outState)
     {
-        super.onSaveInstanceState(outState);
         outState.putString(EXTRA_ID, contactId);
         outState.putSerializable(EXTRA_TYPE, dashboardType);
+        //super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -423,6 +420,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     public void subscribeData()
     {
+        Timber.d("subscribeData");
+        
         subscriptions = new CompositeSubscription();
 
         subscriptions.add(contactItemObservable.subscribe(new Action1<ContactItem>()
@@ -431,11 +430,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(ContactItem contactItem)
             {
                 hideProgress();
-
                 onRefreshStop();
-
                 if (contactItem != null) {
-
                     setContact(contactItem);
                 }
             }
@@ -454,11 +450,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(List<MessageItem> messageItems)
             {
                 hideProgress();
-
                 onRefreshStop();
-
                 getAdapter().replaceWith(messageItems);
-                
+
             }
         }, new Action1<Throwable>()
         {
@@ -472,22 +466,22 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void updateData()
     {
+        Timber.d("updateData");
+        
        updateSubscription = contactObservable.subscribe(new Action1<Contact>() {
            @Override
            public void call(Contact contact) {
-
-               hideProgressDialog();
-
-               onRefreshStop();
-
+               
                if(TradeUtils.isActiveTrade(contact)) {
-
+                   
                    updateContact(contact);
                    
                } else {
                    
+                   hideProgressDialog();
+                   onRefreshStop();
+                   
                    setContact(ContactItem.convertContact(contact));
-
                    getAdapter().replaceWith(MessageItem.convertMessages(contact.messages, contact.contact_id));
                }
                
@@ -497,26 +491,45 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
            public void call(Throwable throwable) {
                
                handleError(throwable, true);
-               
                hideProgressDialog();
-               
                onRefreshStop();
            }
        }); 
     }
     
-    private void updateContact(Contact contact)
+    private void updateContact(final Contact contact)
     {
+        Timber.d("updateContact");
+        
         if(contact.contact_id == null) 
             throw new Error("Contact has no valid ID");
-
-        //Timber.d("Update Contact Id: " + contact.contact_id);
         
         int messageCount = contact.messages.size();
-        int updated = dbManager.updateContact(contact, messageCount, false);
-        if(updated > 0) {
-            dbManager.updateMessages(contact.contact_id, contact.messages);
-        }
+        dbManager.updateContact(contact, messageCount, false, new ContentResolverAsyncHandler.AsyncQueryListener()
+        {
+            @Override
+            public void onQueryComplete()
+            {
+                Timber.d("updateContact onQueryComplete");
+                updateMessages(contact);
+            }
+        });
+    }
+    
+    private void updateMessages(Contact contact)
+    {
+        Timber.d("updateMessages");
+        
+        dbManager.updateMessages(contact.contact_id, contact.messages, new ContentResolverAsyncHandler.AsyncQueryListener() 
+        {
+            @Override
+            public void onQueryComplete()
+            {
+                Timber.d("updateMessages onQueryComplete");
+                hideProgressDialog();
+                onRefreshStop();
+            }
+        });
     }
 
     public void setContact(ContactItem contact)
@@ -635,33 +648,25 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     public void postMessage(String message)
     {
-        showProgressDialog(new ProgressDialogEvent("Sending message..."));
-
+        //showProgressDialog(new ProgressDialogEvent("Sending message..."));
+        
         Observable<JSONObject> messageObservable = bindActivity(this, dataService.postMessage(contactId, message));
         postSubscription = messageObservable.subscribe(new Action1<JSONObject>()
         {
             @Override
             public void call(JSONObject jsonObject)
             {
-                hideProgressDialog();
-
-                toast(R.string.toast_message_sent);
-                
+                //toast(R.string.toast_message_sent);
                 clearMessage();
-
                 onRefreshStart();
-                
                 updateData();
-                
             }
         }, new Action1<Throwable>()
         {
             @Override
             public void call(Throwable throwable)
             {
-                hideProgressDialog();
-                
-                toast(R.string.toast_error_message);
+                snack(R.string.toast_error_message, false);
             }
         });
     }
@@ -722,13 +727,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(JSONObject jsonObject)
             {
                 if (action == ContactAction.RELEASE) {
-                    
-                    toast(R.string.trade_released_toast_text);
-                    
                     deleteContact(contactId);
-                    
                 } else {
-
                     onRefreshStart();
                     updateData();
                 }
@@ -739,7 +739,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void call(Throwable throwable)
             {
                 hideProgressDialog();
-
                 handleError(throwable);
             }
         });
@@ -748,10 +747,16 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private void deleteContact(String contactId)
     {
         Timber.d("Delete Contact: " + contactId);
-        
-        dbManager.deleteContact(contactId);
-        
-        finish();
+        dbManager.deleteContact(contactId, new ContentResolverAsyncHandler.AsyncQueryListener() {
+            
+            @Override
+            public void onQueryComplete()
+            {
+                hideProgressDialog();
+                //snack(R.string.trade_released_toast_text, false);
+                finish();
+            }
+        });
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

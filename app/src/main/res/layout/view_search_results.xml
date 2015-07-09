@@ -53,8 +53,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:scrollbars="none"
-                    android:visibility="gone"
-                    android:background="@color/white"/>
+                    android:visibility="gone"/>
 
             <include
                     android:id="@+id/resultsProgress"

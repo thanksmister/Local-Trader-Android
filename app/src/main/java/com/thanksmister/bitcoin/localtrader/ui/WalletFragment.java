@@ -281,6 +281,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @Override
     public void onRefresh()
     {
+        onRefreshStart();
         updateData();
     }
 
@@ -329,8 +330,11 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     
     protected void showActivity(Boolean show)
     {
-        noActivityTextView.setVisibility(show?View.GONE:View.VISIBLE);
-        recentTextView.setVisibility(show ? View.VISIBLE : View.GONE);
+        // TODO we need to store these in database
+        if(transactionsAdapter.getCount() == 0) {
+            noActivityTextView.setVisibility(show?View.GONE:View.VISIBLE);
+            recentTextView.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 
     protected void subscribeData()
@@ -376,9 +380,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             public void call(Wallet wallet)
             {
                 updateWalletBalance(wallet);
-
                 setTransactions(wallet.getTransactions());
-
             }
         }, new Action1<Throwable>()
         {
@@ -386,9 +388,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             public void call(Throwable throwable)
             {
                 onRefreshStop();
-                
                 handleError(throwable, true);
-                
                 showActivity(false);
             }
         }, new Action0()
@@ -407,26 +407,27 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             @Override
             public void call(WalletItem walletItem)
             {
+                onRefreshStop();
+                
                 if(walletItem != null) {
                     
                     double oldBalance = Doubles.convertToDouble(walletItem.balance());
                     double newBalance = Doubles.convertToDouble(wallet.total.balance);
                     String address = walletItem.address();
+                    
+                    Timber.d("Wallet Address: " + address);
 
-                    if (oldBalance != newBalance || !address.equals(wallet.address.address)) {
+                   /* if (oldBalance != newBalance || !address.equals(wallet.address.address)) {
                         dbManager.updateWallet(wallet);
                     }
-                    
+                    */
                     if (newBalance > oldBalance) {
                         String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
-                        toast("Received " + diff + " BTC");
+                        snack("Received " + diff + " BTC");
                     }
-                    
-                } else {
-                    dbManager.updateWallet(wallet);
-                }
+                } 
                 
-                onRefreshStop();
+                dbManager.updateWallet(wallet);
             }
             }, new Action1<Throwable>() {
                 @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright 2007 ZXing authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. 
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.data.api.model;
+package com.thanksmister.bitcoin.localtrader.ui.misc;
 
-public enum DashboardType 
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+
+public class MainViewHolder extends RecyclerView.ViewHolder 
 {
-    ACTIVE,
-    RELEASED
-    , CANCELED
-    , CLOSED
-    , NOTIFIED
+    public MainViewHolder ( View itemView )
+    {
+        super ( itemView );
+    }
 }
-
-

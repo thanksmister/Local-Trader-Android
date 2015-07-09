@@ -26,6 +26,9 @@ import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
 
 import butterknife.ButterKnife;
 import dagger.ObjectGraph;
+import io.fabric.sdk.android.Fabric;
+import rx.plugins.RxJavaErrorHandler;
+import rx.plugins.RxJavaPlugins;
 import timber.log.Timber;
 
 public class BaseApplication extends Application
@@ -41,10 +44,21 @@ public class BaseApplication extends Application
             //LeakCanary.install(this);
             //refWatcher = LeakCanary.install(this);
         } else {
-            Crashlytics.start(this);
+            Fabric.with(this, new Crashlytics());
+
+            RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()
+            {
+                @Override
+                public void handleError(Throwable e)
+                {
+                    Timber.e("RXJava Error", e);
+                    Crashlytics.logException(e);
+                }
+            });
+            
             Timber.plant(new CrashlyticsTree());
         }
-
+        
         Injector.init(this);
     }
 

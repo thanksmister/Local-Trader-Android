@@ -33,22 +33,17 @@
                 app:popupTheme="@style/Theme.AppCompat.Light"/>
 
     </android.support.design.widget.AppBarLayout>
-    
-    <android.support.v4.widget.NestedScrollView
+
+    <android.support.v4.widget.SwipeRefreshLayout
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:id="@+id/swipeLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
-        <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            <include
-                    android:id="@+id/requestProgress"
-                    layout="@layout/view_progress"
-                    android:visibility="visible"
-                    tools:visibility="visible"/>
-
+        
+    <android.support.v4.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        
             <LinearLayout
                     android:id="@+id/tradeContent"
                     android:scrollbars="none"
@@ -291,9 +286,9 @@
                 </FrameLayout>
 
             </LinearLayout>
-
-        </FrameLayout>
-
+        
     </android.support.v4.widget.NestedScrollView>
+    
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </android.support.design.widget.CoordinatorLayout>

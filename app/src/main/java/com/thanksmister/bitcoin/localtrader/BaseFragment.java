@@ -85,6 +85,11 @@ public abstract class BaseFragment extends Fragment
         ((MainActivity) getActivity()).toast(message);
     }
 
+    protected void snack(String message)
+    {
+        ((MainActivity) getActivity()).snack(message, false);
+    }
+
     protected int getColor(int colorRes)
     {
         return getResources().getColor(colorRes);

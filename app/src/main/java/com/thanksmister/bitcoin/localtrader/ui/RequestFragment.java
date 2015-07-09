@@ -24,8 +24,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -43,6 +45,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -72,6 +75,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.subscriptions.CompositeSubscription;
@@ -79,7 +83,7 @@ import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
-public class RequestFragment extends BaseFragment
+public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
@@ -99,12 +103,12 @@ public class RequestFragment extends BaseFragment
     @Inject
     Bus bus;
 
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
+
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
-
-    @InjectView(R.id.requestProgress)
-    View progress;
-
+    
     @InjectView(R.id.tradeContent)
     View content;
 
@@ -161,6 +165,7 @@ public class RequestFragment extends BaseFragment
     private Observable<Exchange> updateExchangeObservable;
     private Observable<Boolean> sendPinCodeMoneyObservable;
 
+    private Handler handler;
     private WalletData walletData;
 
     private class WalletData {
@@ -202,6 +207,9 @@ public class RequestFragment extends BaseFragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        // refresh handler
+        handler = new Handler();
 
         if (getArguments() != null) {
             
@@ -289,49 +297,16 @@ public class RequestFragment extends BaseFragment
         
         updateWalletBalanceObservable = bindFragment(this, dataService.getWalletBalance());
         updateExchangeObservable = bindFragment(this, dataService.getExchange());
-                
-        showProgress();
-    }
-    
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-        
-        bus.post(RefreshEvent.REFRESH);
-
-        subscribeData();
-
-        updateData();
-    }
-    
-    @Override
-    public void onPause()
-    {
-        super.onPause();
-
-        subscriptions.unsubscribe();
-        updateSubscriptions.unsubscribe();
-    }
-
-    @Override
-    public void onDetach()
-    {
-        ButterKnife.reset(this);
-        
-        super.onDetach();
-    }
-    
-    public void onRefresh()
-    {
-        updateData();
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState)
     {
         super.onActivityCreated(savedInstanceState);
-        
+
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+
         amountText.addTextChangedListener(new TextWatcher(){
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3){
@@ -413,9 +388,66 @@ public class RequestFragment extends BaseFragment
 
         if(amount != null)
             outState.putString(EXTRA_AMOUNT, amount);
-        
+
         outState.putSerializable(EXTRA_WALLET_TYPE, transactionType);
     }
+    
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        onRefreshStart();
+        
+        subscribeData();
+
+        updateData();
+    }
+    
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        handler.removeCallbacks(refreshRunnable);
+        subscriptions.unsubscribe();
+        updateSubscriptions.unsubscribe();
+    }
+
+    @Override
+    public void onDetach()
+    {
+        ButterKnife.reset(this);
+        
+        super.onDetach();
+    }
+
+    @Override
+    public void onRefresh()
+    {
+        onRefreshStart();
+        updateData();
+    }
+
+    public void onRefreshStart()
+    {
+        handler = new Handler();
+        handler.postDelayed(refreshRunnable, 1000);
+    }
+
+    protected void onRefreshStop()
+    {
+        handler.removeCallbacks(refreshRunnable);
+        swipeLayout.setRefreshing(false);
+    }
+
+    private Runnable refreshRunnable = new Runnable()
+    {
+        @Override
+        public void run() {
+            swipeLayout.setRefreshing(true);
+        }
+    };
 
     private void setupToolbar()
     {
@@ -448,7 +480,6 @@ public class RequestFragment extends BaseFragment
             public void call(WalletData results)
             {
                 walletData = results;
-                hideProgress();
                 setWallet();
             }
         }, new Action1<Throwable>()
@@ -456,7 +487,6 @@ public class RequestFragment extends BaseFragment
             @Override
             public void call(Throwable throwable)
             {
-                hideProgress();
                 reportError(throwable);
             }
         }));
@@ -474,7 +504,6 @@ public class RequestFragment extends BaseFragment
                 WalletUpdateData updateData = new WalletUpdateData();
                 updateData.exchange = exchange;
                 updateData.wallet = wallet;
-
                 return updateData;
             }
         }).subscribe(new Action1<WalletUpdateData>()
@@ -482,7 +511,7 @@ public class RequestFragment extends BaseFragment
             @Override
             public void call(WalletUpdateData walletData)
             {
-                bus.post(RefreshEvent.STOP);
+                onRefreshStop();
                 updateWallet(walletData.wallet);
                 updateExchange(walletData.exchange);
             }
@@ -491,8 +520,15 @@ public class RequestFragment extends BaseFragment
             @Override
             public void call(Throwable throwable)
             {
-                bus.post(RefreshEvent.STOP);
+                onRefreshStop();
                 handleError(throwable, true);
+            }
+        }, new Action0()
+        {
+            @Override
+            public void call()
+            {
+                onRefreshStop();
             }
         }));
     }
@@ -520,18 +556,6 @@ public class RequestFragment extends BaseFragment
         startActivity(intent);
     }
     
-    public void showProgress()
-    {
-        progress.setVisibility(View.VISIBLE);
-        content.setVisibility(View.GONE);
-    }
-    
-    public void hideProgress()
-    {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
-    }
-
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     @SuppressWarnings("deprecation")
     public void setAddressFromClipboard()

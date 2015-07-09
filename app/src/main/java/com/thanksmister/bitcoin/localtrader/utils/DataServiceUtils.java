@@ -123,9 +123,8 @@ public class DataServiceUtils
 
     public static int getStatusCode(RetrofitError error) 
     {
-         //if (error.getKind() == RetrofitError.Kind.NETWORK) 
         try {
-            if (error.isNetworkError()) {
+            if (error.getKind() == RetrofitError.Kind.NETWORK) {
                 return 503; // Use another code if you'd prefer
             } 
         } catch (Exception e){

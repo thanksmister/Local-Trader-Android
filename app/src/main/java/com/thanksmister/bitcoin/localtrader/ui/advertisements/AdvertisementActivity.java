@@ -247,9 +247,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         super.onResume();
 
         onRefreshStart();
-
         subscribeData();
-
         updateData();
     }
 
@@ -345,10 +343,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             @Override
             public void call(Throwable throwable)
             {
-                reportError(throwable);
-                
                 showError();
-                
+                reportError(throwable);
                 toast("Unable to retrieve advertisement data.");
             }
         });

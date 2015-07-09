@@ -16,7 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -55,7 +54,7 @@ public class AboutFragment extends BaseFragment
     @OnClick(R.id.donateBitcoinButton)
     public void donateButtonClicked()
     {
-        donate();
+        changeTipMe();
     }
 
     @OnClick(R.id.rateApplicationButton)
@@ -78,8 +77,7 @@ public class AboutFragment extends BaseFragment
 
     public static AboutFragment newInstance()
     {
-        AboutFragment fragment = new AboutFragment();
-        return fragment;
+        return new AboutFragment();
     }
 
     public AboutFragment()
@@ -139,7 +137,7 @@ public class AboutFragment extends BaseFragment
         final String appName = Constants.GOOGLE_PLAY_RATING;
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appName)));
-        } catch (android.content.ActivityNotFoundException anfe) {
+        } catch (android.content.ActivityNotFoundException ex) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appName)));
         }
     }
@@ -149,16 +147,13 @@ public class AboutFragment extends BaseFragment
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("bitcoin:" + Constants.BITCOIN_ADDRESS + "?amount=" + ".01")));
         } catch (android.content.ActivityNotFoundException ex) {
-            /*Intent sendEmail = new Intent(Intent.ACTION_SEND);
-            sendEmail.setType("text/plain");
-            sendEmail.putExtra(Intent.EXTRA_SUBJECT, "Donation Bitcoin Address");
-            sendEmail.putExtra(Intent.EXTRA_TEXT, Constants.BITCOIN_ADDRESS);
-            startActivity(Intent.createChooser(sendEmail, "Share using:"));*/
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BITCOIN_URL)));
+            changeTipMe();
+        } catch (Exception e) {
+            Timber.e(e.getLocalizedMessage());
         }
     }
 
-    /*protected void changeTipMe()
+    protected void changeTipMe()
     {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.CHANGE_TIP_ADDRESS)));
@@ -169,7 +164,7 @@ public class AboutFragment extends BaseFragment
             sendEmail.putExtra(Intent.EXTRA_TEXT, Constants.CHANGE_TIP_ADDRESS);
             startActivity(Intent.createChooser(sendEmail, "Share using:"));
         }
-    }*/
+    }
 
     protected void feedback()
     {

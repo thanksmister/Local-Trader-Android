@@ -148,7 +148,7 @@ public class NotificationService
             Contact contact = contacts.get(0);
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
-            NotificationUtils.createNotification(context.getApplicationContext(), "Trade Updated", ("The trade with" + contactName + " updated."), ("Trade #" + contact.contact_id + saleType + contactName + " has been updated."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
+            NotificationUtils.createNotification(context.getApplicationContext(), "Trade Updated", ("The trade with " + contactName + " updated."), ("Trade #" + contact.contact_id + saleType + contactName + " has been updated."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
         }
     }
 

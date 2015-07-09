@@ -25,10 +25,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -36,6 +38,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiserActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiseAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -85,7 +88,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     @OnClick(R.id.emptyRetryButton)
     public void emptyButtonClicked()
     {
-        subscribeData();
+        updateData();
     }
 
     private AdvertiseAdapter adapter;
@@ -141,6 +144,21 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                 showAdvertiser(advertisement);
             }
         });
+
+        list.setOnScrollListener(new AbsListView.OnScrollListener()
+        {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState)
+            {
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
+            {
+                int topRowVerticalPosition = (list == null || list.getChildCount() == 0) ? 0 : list.getChildAt(0).getTop();
+                swipeLayout.setEnabled(firstVisibleItem == 0 && topRowVerticalPosition >= 0);
+            }
+        });
   
         adapter = new AdvertiseAdapter(this);
         setAdapter(adapter);
@@ -182,13 +200,21 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     {
         super.onResume();
 
-        subscribeData();
+        updateData();
     }
 
     @Override
     public void onRefresh()
     {
-        subscribeData();
+        updateData();
+    }
+
+    @Subscribe
+    public void onRefreshEvent(RefreshEvent event)
+    {
+        if (event == RefreshEvent.REFRESH) {
+            updateData();
+        }
     }
     
     public void onRefreshStop()
@@ -213,7 +239,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
         list.setVisibility(View.VISIBLE);
     }
 
-    protected void subscribeData()
+    protected void updateData()
     {
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
 
