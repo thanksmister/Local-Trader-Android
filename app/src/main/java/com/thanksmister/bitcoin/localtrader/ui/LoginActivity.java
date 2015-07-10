@@ -180,13 +180,12 @@ public class LoginActivity extends BaseActivity
                 }
                 
             } else if (url.contains("authorize") || url.contains("oauth2") || url.contains("accounts") || url.contains("threefactor_login_verification")) {
-               
                 hideProgress();
                 return false;
             } else if (url.contains("ads")) { // hack to get past 3 factor screen
                 webview.loadUrl(Constants.OAUTH_URL); // reload authentication page
             } else if (url.contains("error=access_denied")) {
-                showError("Access denied, invalid credentials");
+                handleError(new Throwable(getString(R.string.error_invalid_credentials)));
                 return false;
             }
 
