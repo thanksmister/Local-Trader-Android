@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.utils;
+package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.Context;
 
@@ -37,6 +37,17 @@ public class DataServiceUtils
         } else if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 503);
+        }
+
+        return false;
+    }
+
+    // bad gateway eror
+    public static boolean isHttp502Error(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetrofitError retroError = (RetrofitError) throwable;
+            return (getStatusCode(retroError) == 502);
         }
 
         return false;

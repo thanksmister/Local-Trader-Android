@@ -325,9 +325,7 @@ public class PinCodeActivity extends BaseActivity
                     JSONObject object = jsonObject.getJSONObject("data");
                     Boolean valid = (object.getString("pincode_ok").equals("true"));
                     if (valid) {
-
-                        toast("PIN verified!");
-
+                        
                         Intent intent = getIntent();
                         intent.putExtra(PinCodeActivity.EXTRA_PIN_CODE, pinCode);
                         intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, address);
@@ -348,7 +346,6 @@ public class PinCodeActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                Timber.e(throwable.getLocalizedMessage());
                 handleError(new Throwable(getString(R.string.toast_pin_code_invalid)), false);
                 finish();
             }

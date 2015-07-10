@@ -40,13 +40,12 @@ public class BaseApplication extends Application
 
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
-            //ButterKnife.setDebug(BuildConfig.DEBUG);
-            //LeakCanary.install(this);
-            //refWatcher = LeakCanary.install(this);
+            ButterKnife.setDebug(BuildConfig.DEBUG);
+            LeakCanary.install(this);
+            refWatcher = LeakCanary.install(this);
         } else {
             Fabric.with(this, new Crashlytics());
-
-            RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()
+            /*RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()
             {
                 @Override
                 public void handleError(Throwable e)
@@ -54,7 +53,7 @@ public class BaseApplication extends Application
                     Timber.e("RXJava Error", e);
                     Crashlytics.logException(e);
                 }
-            });
+            });*/
             
             Timber.plant(new CrashlyticsTree());
         }

@@ -18,55 +18,13 @@ package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.data.api.model.User;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseBitfinexToExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAd;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContactRequest;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToCurrencyList;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToJSONObject;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMethod;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToUser;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
-import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
-import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
-import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
-
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,11 +32,6 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import retrofit.client.Response;
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.functions.Func1;
 import timber.log.Timber;
 
 
@@ -113,6 +66,7 @@ public class NotificationService
             NotificationUtils.createMessageNotification(context.getApplicationContext(), "New Messages", "You have new messages!", "You have " + newMessages.size() + " new trade messages.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
         } else if (newMessages.size() == 1) {
             Message message = newMessages.get(0);
+            assert message.contact_id != null;
             String username = message.sender.username;
             NotificationUtils.createMessageNotification(context.getApplicationContext(), "New message from " + username, "New message from " + username, message.msg, NotificationUtils.NOTIFICATION_TYPE_MESSAGE, message.contact_id);
         }
@@ -131,6 +85,7 @@ public class NotificationService
             NotificationUtils.createNotification(context.getApplicationContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + contacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
         } else if (contacts.size() == 1) {
             Contact contact = contacts.get(0);
+            assert contact.contact_id != null;
             String username = TradeUtils.getContactName(contact);
             String type = (contact.is_buying) ? "sell" : "buy";
             String location = (TradeUtils.isLocalTrade(contact)) ? "local" : "online";
@@ -146,6 +101,7 @@ public class NotificationService
             NotificationUtils.createNotification(context.getApplicationContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
         } else if (contacts.size() == 1) {
             Contact contact = contacts.get(0);
+            assert contact.contact_id != null;
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
             NotificationUtils.createNotification(context.getApplicationContext(), "Trade Updated", ("The trade with " + contactName + " updated."), ("Trade #" + contact.contact_id + saleType + contactName + " has been updated."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
@@ -177,6 +133,7 @@ public class NotificationService
             }
         } else if (contacts.size() == 1) {
             Contact contact = contacts.get(0);
+            assert contact.contact_id != null;
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
             if (TradeUtils.isCanceledTrade(contact)) {

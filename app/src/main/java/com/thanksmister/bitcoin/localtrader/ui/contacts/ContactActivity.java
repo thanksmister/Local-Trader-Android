@@ -285,10 +285,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         
         registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
-        if(dashboardType == DashboardType.ACTIVE) {
-            subscribeData();
-        }
-
+        subscribeData();
         onRefreshStart();
         updateData();
     }
@@ -429,11 +426,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(ContactItem contactItem)
             {
-                hideProgress();
-                onRefreshStop();
                 if (contactItem != null) {
+                    hideProgress();
+                    onRefreshStop();
                     setContact(contactItem);
-                }
+                } 
             }
         }, new Action1<Throwable>()
         {
@@ -449,10 +446,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void call(List<MessageItem> messageItems)
             {
-                hideProgress();
-                onRefreshStop();
-                getAdapter().replaceWith(messageItems);
-
+                if(!messageItems.isEmpty()) {
+                    getAdapter().replaceWith(messageItems);
+                }
             }
         }, new Action1<Throwable>()
         {

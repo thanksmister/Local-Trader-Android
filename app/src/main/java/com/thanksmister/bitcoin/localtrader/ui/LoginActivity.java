@@ -161,7 +161,7 @@ public class LoginActivity extends BaseActivity
 
             hideProgress();
             
-            //Timber.e("URL: " + url);
+            Timber.e("URL: " + url);
 
             //check if the login was successful and the access token returned
             if (url.contains("thanksmr.com")) {
@@ -178,7 +178,9 @@ public class LoginActivity extends BaseActivity
                         return true;
                     }
                 }
+                
             } else if (url.contains("authorize") || url.contains("oauth2") || url.contains("accounts") || url.contains("threefactor_login_verification")) {
+               
                 hideProgress();
                 return false;
             } else if (url.contains("ads")) { // hack to get past 3 factor screen

@@ -39,11 +39,10 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
-import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
+import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 
 import org.json.JSONObject;
 
@@ -103,7 +102,7 @@ public abstract class BaseActivity extends AppCompatActivity
 
         bus.unregister(this);
 
-        //unregisterReceiver(connReceiver);
+        unregisterReceiver(connReceiver);
 
         subscription.unsubscribe();
     }
@@ -115,7 +114,7 @@ public abstract class BaseActivity extends AppCompatActivity
         
         bus.register(this);
 
-        //registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
     
     public void launchScanner()
@@ -227,18 +226,18 @@ public abstract class BaseActivity extends AppCompatActivity
     }
 
     // TODO replace with RxAndroid
-    /*private BroadcastReceiver connReceiver = new BroadcastReceiver()
+    private BroadcastReceiver connReceiver = new BroadcastReceiver()
     {
         public void onReceive(Context context, Intent intent) {
             ConnectivityManager connectivityManager = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE));
             NetworkInfo currentNetworkInfo = connectivityManager.getActiveNetworkInfo();
             if(currentNetworkInfo != null && currentNetworkInfo.isConnected()) {
-                bus.post(NetworkEvent.CONNECTED);
+                //bus.post(NetworkEvent.CONNECTED);
             } else {
-                bus.post(NetworkEvent.DISCONNECTED);
+                snack(R.string.error_no_internet, true);
             }
         }
-    };*/
+    };
 
     protected void toast(String message)
     {
@@ -264,6 +263,9 @@ public abstract class BaseActivity extends AppCompatActivity
         if(DataServiceUtils.isNetworkError(throwable)) {
             Timber.e("Data Error: " + "Code 503");
             snack(getString(R.string.error_no_internet), retry);
+        } else if(DataServiceUtils.isHttp502Error(throwable)) {
+            Timber.e("Data Error: " + "Code 502");
+            snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp403Error(throwable)) {
             Timber.e("Data Error: " + "Code 403");
             toast(getString(R.string.error_authentication));

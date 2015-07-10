@@ -380,7 +380,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             
            String contactId = extras.getString(EXTRA_CONTACT);
             if(contactId != null) {
-                Intent contactIntent = ContactActivity.createStartIntent(this, contactId, DashboardType.NOTIFIED);
+                Intent contactIntent = ContactActivity.createStartIntent(this, contactId, DashboardType.ACTIVE);
                 startActivity(contactIntent);
             }
             

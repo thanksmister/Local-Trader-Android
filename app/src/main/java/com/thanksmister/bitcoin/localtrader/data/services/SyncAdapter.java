@@ -53,7 +53,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
-import com.thanksmister.bitcoin.localtrader.utils.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
@@ -453,8 +452,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(List<Contact> contacts)
                     {
-                        Timber.e("deleted contacts info: " + contacts.size());
-                        notificationService.contactDeleteNotification(contacts);
+                        Timber.e("List of Deleted Contacts Size: " + contacts.size());
+                        if(!contacts.isEmpty())
+                            notificationService.contactDeleteNotification(contacts);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -548,8 +548,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                                     @Override
                                                     public List<Contact> call(Contact contactResult)
                                                     {
-                                                        if (TradeUtils.isCanceledTrade(contactResult) || TradeUtils.isReleased(contactResult)) {
-                                                            contactList.add(contactResult);
+                                                        if(contactResult != null && (TradeUtils.isCanceledTrade(contactResult) || TradeUtils.isReleased(contactResult))) {
+                                                           contactList.add(contactResult);
                                                         }
 
                                                         return contactList;
@@ -801,8 +801,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
         }
         
-        notificationService.contactNewNotification(newContacts);
-        notificationService.contactUpdateNotification(updatedNotifyContacts);
+        if(!newContacts.isEmpty())
+         notificationService.contactNewNotification(newContacts);
+
+        if(!updatedNotifyContacts.isEmpty())
+            notificationService.contactUpdateNotification(updatedNotifyContacts);
 
         // look up deleted trades and find the reason
         if (!deletedContacts.isEmpty()) {
@@ -875,11 +878,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             contact.hasUnseenMessages = true;
         }
 
+        if(!newMessages.isEmpty())
+         notificationService.messageNotifications(newMessages);
+
         for (String id : deletedMessages) {
             contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
         }
-
-        notificationService.messageNotifications(newMessages);
         
         updateContactsData(contactMap); // let's update contacts now
     }
