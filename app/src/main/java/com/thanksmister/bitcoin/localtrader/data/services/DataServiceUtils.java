@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.utils;
+package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.Context;
 
