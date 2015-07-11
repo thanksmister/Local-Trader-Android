@@ -479,8 +479,7 @@ public class GeoLocationService
                     subscriber.onError(e);
                 } 
             }
-        }).observeOn(AndroidSchedulers.mainThread())
-          .subscribeOn(Schedulers.newThread());
+        });
     }
 
     public Observable<List<Address>> geoGetLocationFromName(final String locationName)
@@ -503,7 +502,6 @@ public class GeoLocationService
                     subscriber.onError(e);
                 }  
             }
-        }).observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.newThread());
+        });
     }
 }

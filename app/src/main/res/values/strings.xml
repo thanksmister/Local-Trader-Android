@@ -454,5 +454,6 @@
     <string name="wallet_my_address_share">My Bitcoin Address</string>
     <string name="share_using">Share using:</string>
     <string name="error_invalid_credentials">Access denied, invalid credentials</string>
+    <string name="message_advertisement_changed">Advertisement changed successfully!</string>
 
 </resources>

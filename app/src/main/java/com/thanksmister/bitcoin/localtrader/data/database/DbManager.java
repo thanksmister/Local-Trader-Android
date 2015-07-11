@@ -370,7 +370,7 @@ public class DbManager
     
     public Observable<List<MessageItem>> messagesQuery(String contactId)
     {
-        return briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, MessageItem.CREATED_AT + " DESC", false)
+        return briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contactId}, MessageItem.CREATED_AT + " DESC", false)
                 .map(MessageItem.MAP);
     }
 
@@ -447,7 +447,6 @@ public class DbManager
 
         subscription.unsubscribe();
     }
-    
    
     
     public Observable<List<MethodItem>> methodQuery()

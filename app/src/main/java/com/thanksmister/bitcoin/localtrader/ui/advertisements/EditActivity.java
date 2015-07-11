@@ -44,6 +44,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
@@ -60,6 +61,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.CurrencyAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MethodAdapter;
@@ -981,7 +983,7 @@ public class EditActivity extends BaseActivity
             
             hideProgressDialog();
             
-            toast("Advertisement changed successfully!");
+            snack(getString(R.string.message_advertisement_changed), false);
             
             Intent returnIntent = new Intent();
             returnIntent.putExtra(AdvertisementActivity.EXTRA_AD_ID, adId);
@@ -994,13 +996,21 @@ public class EditActivity extends BaseActivity
     public void doAddressLookup(String locationName)
     {
         geoLocationObservable = bindActivity(this, geoLocationService.geoGetLocationFromName(locationName));
-        geoLocalSubscription = geoLocationObservable.subscribe(new Action1<List<Address>>() {
+        geoLocalSubscription = geoLocationObservable.subscribe(new Action1<List<Address>>()
+        {
             @Override
             public void call(List<Address> addresses)
             {
                 if (!addresses.isEmpty()) {
                     getEditLocationAdapter().replaceWith(addresses);
                 }
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                handleError(new Throwable(getString(R.string.error_unable_load_address)), false);
             }
         });
     }

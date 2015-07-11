@@ -576,12 +576,21 @@ public class SearchFragment extends BaseFragment
     private void doAddressLookup(String locationName)
     {
         geoLocationObservable = bindFragment(this, geoLocationService.geoGetLocationFromName(locationName));
-        geoLocationObservable.subscribe(new Action1<List<Address>>() {
+        geoLocationObservable.subscribe(new Action1<List<Address>>()
+        {
             @Override
-            public void call(List<Address> addresses) {
+            public void call(List<Address> addresses)
+            {
                 if (!addresses.isEmpty()) {
                     getEditLocationAdapter().replaceWith(addresses);
                 }
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
             }
         });
     }

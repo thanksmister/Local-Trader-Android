@@ -501,6 +501,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             throw new Error("Contact has no valid ID");
         
         int messageCount = contact.messages.size();
+        
         dbManager.updateContact(contact, messageCount, false, new ContentResolverAsyncHandler.AsyncQueryListener()
         {
             @Override
