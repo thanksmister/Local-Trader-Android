@@ -121,7 +121,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     TextView recentTextView;
     View noActivityTextView;
 
-    CompositeSubscription subscriptions;
+    CompositeSubscription subscriptions = new CompositeSubscription();
     Subscription subscription = Subscriptions.empty();
     Subscription walletSubscription = Subscriptions.empty();
     Subscription updateSubscription = Subscriptions.empty();

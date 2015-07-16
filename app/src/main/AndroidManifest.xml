@@ -125,10 +125,10 @@
                 android:name=".ui.PromoActivity">
         </activity>
 
-        <!--<activity
+        <activity
                 android:name=".ui.bitcoin.QRCodeActivity"
                 android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth" >
-        </activity>-->
+        </activity>
 
         <activity
                android:name=".ui.bitcoin.BitcoinHandler"

@@ -245,28 +245,28 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         if (position == DRAWER_WALLET) {
             fragment = WalletFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, fragment, WALLET_FRAGMENT)
-                    .commit();
+            .replace(R.id.content_frame, fragment, WALLET_FRAGMENT)
+                    .commitAllowingStateLoss();
         } else if (position == DRAWER_SEARCH) {
             fragment = SearchFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, fragment, SEARCH_FRAGMENT)
-                    .commit();
+                    .commitAllowingStateLoss();
         } else if (position == DRAWER_SEND) {
             fragment = RequestFragment.newInstance(RequestFragment.WalletTransactionType.SEND);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, fragment, SEND_RECEIVE_FRAGMENT)
-                    .commit();
+                    .commitAllowingStateLoss();
         } else if (position == DRAWER_DASHBOARD) {
             fragment = DashboardFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, fragment, DASHBOARD_FRAGMENT)
-                    .commit();
+                    .commitAllowingStateLoss();
         } else if (position == DRAWER_ABOUT) {
             fragment = AboutFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, fragment, ABOUT_FRAGMENT)
-                    .commit();
+                    .commitAllowingStateLoss();
         }
     }
     

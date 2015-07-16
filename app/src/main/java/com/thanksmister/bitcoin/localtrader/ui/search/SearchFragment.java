@@ -22,6 +22,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -40,18 +41,15 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
-import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MethodAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -69,8 +67,7 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
 import rx.functions.Action1;
-import rx.functions.Func2;
-import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
@@ -150,16 +147,23 @@ public class SearchFragment extends BaseFragment
     private Address address;
     private PredictAdapter predictAdapter;
     private TradeType tradeType;
-    private Subscription subscription;
+    
     private Observable<List<MethodItem>> methodObservable;
     private Observable<List<Address>> geoLocationObservable;
     private Observable<List<Address>> geoDecodeObservable;
-    private CompositeSubscription subscriptions = new CompositeSubscription();
+
+    private Subscription subscription = Subscriptions.empty();
+    private Subscription geoLocationSubscriptoin = Subscriptions.empty();
+    private Subscription geoDecodeSubscription = Subscriptions.empty();
+    private Subscription methodSubscription = Subscriptions.empty();
+    
     
     private class AddressData {
         public List<Address> addresses;
         public List<MethodItem> methods;
     }
+
+    private Handler handler;
     
     public static SearchFragment newInstance()
     {
@@ -175,6 +179,8 @@ public class SearchFragment extends BaseFragment
     {
         super.onCreate(savedInstanceState);
 
+        handler = new Handler();
+        
         if(savedInstanceState != null) {
             if(savedInstanceState.containsKey(EXTRA_ADDRESS)) {
                 address = savedInstanceState.getParcelable(EXTRA_ADDRESS);
@@ -199,7 +205,7 @@ public class SearchFragment extends BaseFragment
         if(address != null) {
             setAddress(address);
         } else {
-            startLocationCheck();
+            delayLocationCheck();
         }
 
         super.onResume();
@@ -210,11 +216,10 @@ public class SearchFragment extends BaseFragment
     {
         ButterKnife.reset(this);
 
-        if(subscriptions != null)
-            subscriptions.unsubscribe();
-
-        if(subscription != null)
-            subscription.unsubscribe();
+        methodSubscription.unsubscribe();
+        geoLocationSubscriptoin.unsubscribe();
+        geoDecodeSubscription.unsubscribe();
+        subscription.unsubscribe();
 
         super.onDetach();
     }
@@ -334,11 +339,24 @@ public class SearchFragment extends BaseFragment
         if(address != null) {
             setAddress(address);
         } else {
-            startLocationCheck();
+            delayLocationCheck();
         }
-
+    }
+    
+    private void delayLocationCheck()
+    {
+        handler.removeCallbacks(refreshRunnable);
+        handler.postDelayed(refreshRunnable, 2000);
     }
 
+    private Runnable refreshRunnable = new Runnable()
+    {
+        @Override
+        public void run() {
+            startLocationCheck();
+        }
+    };
+    
     public void showProgress()
     {
         progress.setVisibility(View.VISIBLE);
@@ -405,11 +423,7 @@ public class SearchFragment extends BaseFragment
 
     public void startLocationCheck()
     {
-        Timber.d("startLocationCheck");
-        
         if(!geoLocationService.isGooglePlayServicesAvailable()) {
-
-            Timber.d("no google play services");
             
             hideProgress();
             missingGooglePlayServices();
@@ -419,8 +433,6 @@ public class SearchFragment extends BaseFragment
 
         if(hasLocationServices()) {
 
-            Timber.d("has location services");
-            
             geoLocationService.start();
 
             subscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
@@ -509,56 +521,34 @@ public class SearchFragment extends BaseFragment
     
     public void getAddressFromLocation(final Location location)
     {
-        Timber.d("getAddressFromLocation: " + location);
+        methodSubscription = methodObservable.subscribe(new Action1<List<MethodItem>>()
+        {
+            @Override
+            public void call(List<MethodItem> methodItems)
+            {
+                setMethods(methodItems);
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                reportError(throwable);
+            }
+        });
         
-        if (location == null) {
-
-            subscriptions.add(methodObservable.subscribe(new Action1<List<MethodItem>>()
-            {
-                @Override
-                public void call(List<MethodItem> methods)
-                {
-                    hideProgress();
-                    
-                    setMethods(methods);
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    hideProgress();
-                    
-                    reportError(throwable);
-                }
-            }));
-            
-        } else {
+        if (location != null) {
             
             geoDecodeObservable = bindFragment(this, geoLocationService.geoDecodeLocation(location));
-            subscriptions.add(Observable.combineLatest(methodObservable, geoDecodeObservable, new Func2<List<MethodItem>, List<Address>, AddressData>()
+            geoDecodeSubscription = geoDecodeObservable.subscribe(new Action1<List<Address>>()
             {
                 @Override
-                public AddressData call(List<MethodItem> methods, List<Address> addresses)
-                {
-                    Timber.d("AddressData");
-                    
-                    AddressData data = new AddressData();
-                    data.methods = methods;
-                    data.addresses = addresses;
-                    return data;
-                }
-            }).subscribe(new Action1<AddressData>()
-            {
-                @Override
-                public void call(AddressData data)
+                public void call(List<Address> addresses)
                 {
                     hideProgress();
-                    
-                    setMethods(data.methods);
 
-                    if (!data.addresses.isEmpty()) {
-                        setAddress(data.addresses.get(0));
+                    if (!addresses.isEmpty()) {
+                        setAddress(addresses.get(0));
                     }
                 }
             }, new Action1<Throwable>()
@@ -569,14 +559,14 @@ public class SearchFragment extends BaseFragment
                     hideProgress();
                     handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                 }
-            }));
+            });
         }
     }
     
     private void doAddressLookup(String locationName)
     {
         geoLocationObservable = bindFragment(this, geoLocationService.geoGetLocationFromName(locationName));
-        geoLocationObservable.subscribe(new Action1<List<Address>>()
+        geoLocationSubscriptoin = geoLocationObservable.subscribe(new Action1<List<Address>>()
         {
             @Override
             public void call(List<Address> addresses)

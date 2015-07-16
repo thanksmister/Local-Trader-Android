@@ -983,7 +983,7 @@ public class EditActivity extends BaseActivity
             
             hideProgressDialog();
             
-            snack(getString(R.string.message_advertisement_changed), false);
+            //snack(getString(R.string.message_advertisement_changed), false);
             
             Intent returnIntent = new Intent();
             returnIntent.putExtra(AdvertisementActivity.EXTRA_AD_ID, adId);
