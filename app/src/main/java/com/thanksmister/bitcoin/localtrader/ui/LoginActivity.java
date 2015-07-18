@@ -51,7 +51,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
 import rx.subscriptions.Subscriptions;
-import timber.log.Timber;
+//import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
 
@@ -81,7 +81,7 @@ public class LoginActivity extends BaseActivity
     @InjectView(R.id.webview)
     WebView webview;
     
-    private Subscription subscription = Subscriptions.empty();
+    private Subscription subscription = Subscriptions.unsubscribed();
 
     public static Intent createStartIntent(Context context)
     {
@@ -158,11 +158,8 @@ public class LoginActivity extends BaseActivity
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url)
         {
-
             hideProgress();
-            
-            Timber.e("URL: " + url);
-
+            //Timber.e("URL: " + url);
             //check if the login was successful and the access token returned
             if (url.contains("thanksmr.com")) {
                 Pattern codePattern = Pattern.compile("code=([^&]+)?");
@@ -173,7 +170,7 @@ public class LoginActivity extends BaseActivity
 
                     //if (accessToken.length > 0 && expiresIn.length > 0) {
                     if (code.length > 0) {
-                        Timber.d("code: " + code[1]);
+                        //Timber.d("code: " + code[1]);
                         setAuthorizationCode(code[1]);
                         return true;
                     }
@@ -209,8 +206,8 @@ public class LoginActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                Timber.e(throwable.getLocalizedMessage());
-                Toast.makeText(getContext(), getString(R.string.error_authentication), Toast.LENGTH_SHORT).show();
+                //Timber.e(throwable.getLocalizedMessage());
+                toast(getString(R.string.error_authentication));
             }
         });
     }
@@ -223,11 +220,11 @@ public class LoginActivity extends BaseActivity
             @Override
             public void call(User user)
             {
-                Timber.d("User: " + user.username);
+                //Timber.d("User: " + user.username);
                 StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
                 stringPreference.set(user.username);
 
-                Toast.makeText(getContext(), "Login successful for " + user.username, Toast.LENGTH_SHORT).show();
+                toast("Login successful for " + user.username);
                 showMain();
             }
         }, new Action1<Throwable>()
@@ -235,7 +232,7 @@ public class LoginActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                showError("Login error");
+                toast("Login error");
             }
         });
     }

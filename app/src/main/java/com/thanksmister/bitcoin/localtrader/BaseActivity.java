@@ -298,21 +298,29 @@ public abstract class BaseActivity extends AppCompatActivity
         snack(getString(message), retry);
     }
     
+    // TODO add action to this
     protected void snack(String message, boolean retry)
     {
-        if(retry){
-            Snackbar.make(findViewById(R.id.coordinatorLayout), message, Snackbar.LENGTH_LONG)
-                    .setAction("Retry", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view)
-                        {
-                            bus.post(RefreshEvent.RETRY);
-                        }
-                    })
-                    .show();
-        } else {
-            Snackbar.make(findViewById(R.id.coordinatorLayout), getString(R.string.error_no_internet), Snackbar.LENGTH_LONG)
-                    .show();
+        View view = findViewById(R.id.coordinatorLayout);
+        if(view != null) {
+            try {
+                if(retry){
+                    Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+                            .setAction("Retry", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view)
+                                {
+                                    bus.post(RefreshEvent.RETRY);
+                                }
+                            })
+                            .show();
+                } else {
+                    Snackbar.make(view, getString(R.string.error_no_internet), Snackbar.LENGTH_LONG)
+                            .show();
+                }
+            } catch (NullPointerException e) {
+                // TODO probably calling this on activity that does not include coordinatorLayout
+            }
         }
     }
 
