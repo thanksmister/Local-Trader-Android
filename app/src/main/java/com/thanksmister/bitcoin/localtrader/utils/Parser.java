@@ -471,8 +471,8 @@ public class Parser
             wallet.message = (data.getString("message"));
 
             JSONObject total = data.getJSONObject("total");
-            wallet.total.balance = (total.getString("balance"));
-            wallet.total.sendable = (total.getString("sendable"));
+            wallet.balance = (total.getString("balance"));
+            wallet.sendable = (total.getString("sendable"));
 
             JSONArray sent_transactions = data.getJSONArray("sent_transactions_30d");
 
@@ -558,8 +558,8 @@ public class Parser
             // just get the first address
             JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
             JSONObject object = (JSONObject) receiving_address_list.get(receiving_address_list.length() - 1);
-            wallet.address.address = (object.getString("address"));
-            wallet.address.received = (object.getString("received"));
+            wallet.address = (object.getString("address"));
+            wallet.received = (object.getString("received"));
 
             return wallet;
 
@@ -588,14 +588,14 @@ public class Parser
             wallet.message = (data.getString("message"));
 
             JSONObject total = data.getJSONObject("total");
-            wallet.total.balance = (total.getString("balance"));
-            wallet.total.sendable = (total.getString("sendable"));
+            wallet.balance = (total.getString("balance"));
+            wallet.sendable = (total.getString("sendable"));
 
             // just get the first address
             JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
             JSONObject object = (JSONObject) receiving_address_list.get(0);
-            wallet.address.address = (object.getString("address"));
-            wallet.address.received = (object.getString("received"));
+            wallet.address = (object.getString("address"));
+            wallet.received = (object.getString("received"));
 
             return wallet;
 

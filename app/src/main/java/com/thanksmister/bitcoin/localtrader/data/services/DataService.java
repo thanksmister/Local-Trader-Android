@@ -247,7 +247,7 @@ public class DataService
 
     private Observable<Wallet> getWalletBitmap(final Wallet wallet)
     {
-        return generateBitmap(wallet.address.address)
+        return generateBitmap(wallet.address)
                 .map(new Func1<Bitmap, Wallet>()
                 {
                     @Override
@@ -728,7 +728,7 @@ public class DataService
                                     @Override
                                     public Observable<Wallet> call(final Wallet wallet)
                                     {
-                                        return generateBitmap(wallet.address.address)
+                                        return generateBitmap(wallet.address)
                                                 .map(new Func1<Bitmap, Wallet>()
                                                 {
                                                     @Override

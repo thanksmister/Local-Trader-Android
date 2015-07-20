@@ -398,10 +398,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                         if (walletItem != null) {
 
-                            if (!walletItem.address().equals(wallet.address.address)
-                                    || !walletItem.balance().equals(wallet.total.balance)
-                                    || !walletItem.receivable().equals(wallet.address.received)
-                                    || !walletItem.sendable().equals(wallet.total.sendable)) {
+                            if (!walletItem.address().equals(wallet.address)
+                                    || !walletItem.balance().equals(wallet.balance)
+                                    || !walletItem.receivable().equals(wallet.received)
+                                    || !walletItem.sendable().equals(wallet.sendable)) {
 
                                 WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
                                 contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
@@ -415,11 +415,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                         if (walletItem == null) {
 
-                            notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.total.balance + " BTC");
+                            notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.balance + " BTC");
 
                         } else {
 
-                            double newBalance = Doubles.convertToDouble(wallet.total.balance);
+                            double newBalance = Doubles.convertToDouble(wallet.balance);
                             double oldBalance = Doubles.convertToDouble(walletItem.balance());
                             String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
 
@@ -483,7 +483,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                     @Override
                                     public Observable<Wallet> call(final Wallet wallet)
                                     {
-                                        return generateBitmap(wallet.address.address)
+                                        return generateBitmap(wallet.address)
                                                 .map(new Func1<Bitmap, Wallet>()
                                                 {
                                                     @Override

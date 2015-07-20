@@ -63,6 +63,7 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
@@ -74,24 +75,15 @@ public class GeoLocationService
     private static final String API_URL = "http://maps.googleapis.com";
 
     public final static String MODE_DRIVING = "driving";
-    public final static String MODE_WALKING = "walking";
-    public final static String MODE_BICYCLING = "bicycling";
-
-    public static final int CHECK_LOCATION_TIMEOUT = 2 * 60 * 1000;// 2 MINUTES
 
     private BaseApplication application;
-    private SharedPreferences preferences;
     private LocalBitcoins localBitcoins;
-    private LocationManager locationManager;
-    private android.location.LocationListener locationListener;
-    private Handler delayHandler;
     private GetDirectionsTask getDirectionsTask;
 
     private BehaviorSubject<Location> behaviorSubject;
-    private PublishSubject<List<Advertisement>> advertisementPublishSubject;
+    private Location location;
     private GoogleApiClient googleApiClient;
-    private List<Advertisement> advertisements;
-
+   
     static class Direction
     {
         List<Route> routes;
@@ -133,21 +125,12 @@ public class GeoLocationService
     }
 
     @Inject
-    public GeoLocationService(BaseApplication application, SharedPreferences preferences, LocationManager locationManager, LocalBitcoins localBitcoins)
+    public GeoLocationService(BaseApplication application, LocalBitcoins localBitcoins)
     {
         this.application = application;
-        this.preferences = preferences;
-        this.locationManager = locationManager;
-        //delayHandler = new Handler();
-        
         this.localBitcoins = localBitcoins;
        
         setupLocationProvider();
-    }
-
-    public void clearSearchResults()
-    {
-        advertisements = Collections.emptyList();
     }
     
     public void getTravelTimeToMeetingPlace(double originLat, double originLon, double destinationLat, double destinationLon)
@@ -297,40 +280,36 @@ public class GeoLocationService
         });
     }
 
-    public Subscription subscribeToLocation(final Observer<Location> observer)
+    public Observable<Location> subscribeToLocation()
     {
-        if(behaviorSubject != null) {
-            return behaviorSubject.subscribe(observer);
+        if(behaviorSubject != null || location != null) {
+            return Observable.just(location);
         }
 
         behaviorSubject = BehaviorSubject.create(new Location("initProvider"));
-        behaviorSubject.subscribe(new EndObserver<Location>()
-        {
-            @Override
-            public void onEnd()
-            {
-                behaviorSubject = null;
-            }
-
-            @Override
-            public void onNext(Location location)
-            {
-                // TODO save last location so we can retrieve it sooner
-            }
-        });
-
         return behaviorSubject
-                .filter(new Func1<Location, Boolean>()
-                {
+                .filter(new Func1<Location, Boolean>() {
                     @Override
                     public Boolean call(Location location)
                     {
                         return (location != null && !location.getProvider().equals("initProvider"));
                     }
-                })
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
-            .subscribe(observer);
+                }).doOnNext(new Action1<Location>()
+                {
+                    @Override
+                    public void call(Location results)
+                    {
+                        behaviorSubject = null;
+                        location = results;
+                    }
+                }).doOnError(new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        behaviorSubject = null;
+                    }
+                });
     }
     
     public boolean isGooglePlayServicesAvailable()
@@ -345,44 +324,6 @@ public class GeoLocationService
 
     public Observable<List<Advertisement>> getLocalAdvertisements(final double latitude, final double longitude, final TradeType tradeType)
     {
-        /*if(advertisements != null && !advertisements.isEmpty()) {
-            //observer.onNext(advertisements);
-        }
-        
-        if(advertisementPublishSubject != null) {
-            return advertisementPublishSubject.subscribe(observer);
-        }
-
-        advertisementPublishSubject = PublishSubject.create();
-        advertisementPublishSubject.subscribe(new EndObserver<List<Advertisement>>() {
-            @Override
-            public void onEnd() {
-                Timber.d("getAdvertisements onEnd");
-                advertisementPublishSubject = null;
-            }
-
-            @Override
-            public void onNext(List<Advertisement> result) {
-
-                advertisementPublishSubject = null;
-                advertisements = result;
-                Timber.d("getAdvertisements: " + advertisements.size());
-            }
-        });
-        
-        
-        .flatMap(new Func1<Place, Observable<List<Advertisement>> >()
-                {
-                    @Override
-                    public Observable<List<Advertisement>> call(Place place)
-                    {
-                        return getAdvertisementsInPlace(place, tradeType);
-                    }
-                });
- 
-        */
-
-        //Subscription subscription = advertisementPublishSubject.subscribe(observer);
         return localBitcoins.getPlaces(latitude, longitude)
                    .map(new ResponseToPlace())
                     .flatMap(new Func1<Place, Observable<List<Advertisement>>>()
@@ -395,27 +336,8 @@ public class GeoLocationService
                     });
     }
 
-    //https://localbitcoins.com/buy-bitcoins-online/ar/argentina/
     public Observable<List<Advertisement>> getOnlineAdvertisements(final String countryCode, final String countryName, final TradeType type, final MethodItem paymentMethod)
     {
-        /*if(advertisementPublishSubject != null) {
-            return advertisementPublishSubject.subscribe(observer);
-        }
-
-        advertisementPublishSubject = PublishSubject.create();
-        advertisementPublishSubject.subscribe(new EndObserver<List<Advertisement>>() {
-            @Override
-            public void onEnd() {
-                advertisementPublishSubject = null;
-            }
-
-            @Override
-            public void onNext(List<Advertisement> advertisements) {
-
-                Timber.d("getAdvertisements: " + advertisements.size());
-            }
-        });*/
-
         String url;
         if(type == TradeType.ONLINE_BUY) {
             url = "buy-bitcoins-online";

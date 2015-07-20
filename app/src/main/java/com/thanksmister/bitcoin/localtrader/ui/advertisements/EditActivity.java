@@ -44,6 +44,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
@@ -97,6 +98,7 @@ import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
+import static rx.android.app.AppObservable.bindFragment;
 
 public class EditActivity extends BaseActivity
 {
@@ -106,7 +108,6 @@ public class EditActivity extends BaseActivity
 
     public static final int REQUEST_CODE = 10937;
     public static final int RESULT_UPDATED = 72322;
-    public static final int RESULT_CANCELED = 72321;
 
     @Inject
     DataService dataService;
@@ -248,12 +249,13 @@ public class EditActivity extends BaseActivity
     private Observable<Advertisement> createAdvertisementObservable;
     private Observable<JSONObject> updateAdvertisementObservable;
     private Observable<List<Currency>> currencyObservable;
+    private Observable<Location> locationObservable;
     
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription geoLocalSubscription = Subscriptions.empty();
     private Subscription geoDecodeSubscription = Subscriptions.empty();
     private Subscription advertisementSubscription = Subscriptions.empty();
-    
+  
     private class AdvertisementData {
         public AdvertisementItem advertisement;
         public List<Currency> currencies;
@@ -392,7 +394,8 @@ public class EditActivity extends BaseActivity
         currencyObservable = bindActivity(this, dataService.getCurrencies().cache());
         methodObservable = bindActivity(this, db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache());
         advertisementItemObservable = bindActivity(this, db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId).map(AdvertisementItem.MAP_SINGLE));
-
+        locationObservable = bindActivity(this, geoLocationService.subscribeToLocation());
+        
         swipeLayout.setEnabled(false);
         showProgress();
     }
@@ -452,11 +455,15 @@ public class EditActivity extends BaseActivity
         super.onResume();
         
         if(create) {
+            
             if (geoLocationService.isGooglePlayServicesAvailable()) {
                 subScribeData();
             }
+            
             startLocationCheck();
+            
         }  else {
+            
             subScribeData();
         }
     }
@@ -658,8 +665,7 @@ public class EditActivity extends BaseActivity
             bankNameLayout.setVisibility(create?View.VISIBLE:View.GONE);
         }
     }
-
-    //bitfinexusd*USD_in_XAR*1.01
+    
     protected void setPriceEquation()
     {
         TradeType tradeType = TradeType.values()[typeSpinner.getSelectedItemPosition()];
@@ -692,11 +698,9 @@ public class EditActivity extends BaseActivity
     public void validateChangesAndSend()
     {
         if (create && !geoLocationService.isGooglePlayServicesAvailable()) {
+            toast(getString(R.string.error_no_play_services));
             return;
         }
-        
-        Advertisement advertisement = new Advertisement(); // used to store values 
-        advertisement = advertisement.convertAdvertisementItemToAdvertisement(advertisementData.advertisement);
         
         String min = editMinimumAmount.getText().toString();
         String bankName = editBankNameText.getText().toString();
@@ -706,21 +710,38 @@ public class EditActivity extends BaseActivity
         String msg = messageText.getText().toString();
 
         if (TextUtils.isEmpty(equation)) {
-            Toast.makeText(this, "Price equation can't be blank.", Toast.LENGTH_SHORT).show();
+            toast("Price equation can't be blank.");
             return;
         } else  if (Strings.isBlank(min)) {
-            Toast.makeText(this, "Enter a valid minimum amount.", Toast.LENGTH_SHORT).show();
+            toast("Enter a valid minimum amount.");
             return;
         } else if (Strings.isBlank(max)) {
-            Toast.makeText(this, "Enter a valid maximum amount.", Toast.LENGTH_SHORT).show();
+            toast("Enter a valid maximum amount.");
             return;
         }
 
+        Advertisement advertisement = new Advertisement(); // used to store values for service call
+        
         if (create) {
+            
+            if(address == null) {
+                toast("Unable to save changes, please try again");
+                return;
+            }
+            
             advertisement.visible = true;
             advertisement.trade_type = TradeType.values()[typeSpinner.getSelectedItemPosition()];
             advertisement.online_provider = ((Method) paymentMethodSpinner.getSelectedItem()).code; // TODO code or name?
+            
         } else {
+            
+            if(advertisementData == null) {
+                toast("Unable to save changes, please try again");
+                return;
+            }
+            
+            // convert data to editable advertisement if not creating new advertisement
+            advertisement = advertisement.convertAdvertisementItemToAdvertisement(advertisementData.advertisement);
             advertisement.ad_id = adId;
             advertisement.visible = activeCheckBox.isChecked();
         }
@@ -735,12 +756,7 @@ public class EditActivity extends BaseActivity
         advertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
         advertisement.track_max_amount = liquidityCheckBox.isChecked();
         advertisement.trusted_required = trustedCheckBox.isChecked();
-
-        if(address == null && advertisementData == null) {
-            toast("Unable to save changes, please try again");
-            return;
-        }
-  
+        
         if(address != null) {
             advertisement.location = TradeUtils.getAddressShort(address);
             advertisement.city = address.getLocality();
@@ -806,25 +822,25 @@ public class EditActivity extends BaseActivity
 
             geoLocationService.start();
             
-            geoLocalSubscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
+            geoLocalSubscription = locationObservable.subscribe(new Action1<Location>()
+            {
                 @Override
-                public void onCompleted(){
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    Timber.e(e.getMessage());
-                    if (e.getMessage().equals("1")) {
-                        showEnableLocationDialog();
-                    }
-                }
-
-                @Override
-                public void onNext(Location location) {
+                public void call(Location location)
+                {
                     geoLocationService.stop();
                     getAddressFromLocation(location);
                 }
+            }, new Action1<Throwable>()
+            {
+                @Override
+                public void call(Throwable throwable)
+                {
+                    if (throwable.getMessage().equals("1")) {
+                        showEnableLocationDialog();
+                    }
+                }
             });
+            
         } else {
             showEnableLocationDialog();
         }
@@ -898,7 +914,16 @@ public class EditActivity extends BaseActivity
             {
                 if (!addresses.isEmpty()) {
                     setAddress(addresses.get(0));
+                } else {
+                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                 }
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
             }
         });
     }
@@ -983,7 +1008,7 @@ public class EditActivity extends BaseActivity
             
             hideProgressDialog();
             
-            //snack(getString(R.string.message_advertisement_changed), false);
+            toast(getString(R.string.message_advertisement_changed));
             
             Intent returnIntent = new Intent();
             returnIntent.putExtra(AdvertisementActivity.EXTRA_AD_ID, adId);
@@ -1003,6 +1028,8 @@ public class EditActivity extends BaseActivity
             {
                 if (!addresses.isEmpty()) {
                     getEditLocationAdapter().replaceWith(addresses);
+                } else {
+                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                 }
             }
         }, new Action1<Throwable>()
@@ -1010,7 +1037,7 @@ public class EditActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                handleError(new Throwable(getString(R.string.error_unable_load_address)), false);
+                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
             }
         });
     }

@@ -775,7 +775,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     private void calculateBitcoinAmount(String usd)
     {
         if(walletData == null) return;
-        WalletItem wallet = walletData.wallet;
+        //WalletItem wallet = walletData.wallet;
         ExchangeItem exchange = walletData.exchange;
         
         if(Doubles.convertToDouble(usd) == 0) {

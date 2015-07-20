@@ -292,6 +292,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             ((RequestFragment) fragment).onRefresh();
         }
     }
+    
+    @Subscribe
+    public void onNetworkEvent(NetworkEvent event)
+    {
+        if (event == NetworkEvent.DISCONNECTED) {
+            snack(R.string.error_no_internet, true);
+        }
+    }
 
     @Subscribe
     public void onNavigateEvent (NavigateEvent event)

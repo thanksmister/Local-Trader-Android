@@ -26,10 +26,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -51,7 +49,6 @@ import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
 import rx.subscriptions.Subscriptions;
-//import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
 
@@ -69,17 +66,17 @@ public class LoginActivity extends BaseActivity
     @Inject
     DbManager dbManager;
 
-    @InjectView(android.R.id.progress)
+    @InjectView(R.id.loginProgress)
     View progress;
 
-    @InjectView(android.R.id.empty)
+    @InjectView(R.id.loginEmpty)
     View empty;
 
     @InjectView(R.id.retryTextView)
     TextView errorTextView;
 
-    @InjectView(R.id.webview)
-    WebView webview;
+    @InjectView(R.id.webView)
+    WebView webView;
     
     private Subscription subscription = Subscriptions.unsubscribed();
 
@@ -107,27 +104,17 @@ public class LoginActivity extends BaseActivity
 
         subscription.unsubscribe();
     }
-
-    public void showProgress()
-    {
-        progress.setVisibility(View.VISIBLE);
-        webview.setVisibility(View.GONE);
-    }
-
+    
     public void hideProgress()
     {
-        progress.setVisibility(View.GONE);
-        webview.setVisibility(View.VISIBLE);
+        try {
+            progress.setVisibility(View.GONE);
+            webView.setVisibility(View.VISIBLE); 
+        } catch (NullPointerException e) {
+            // we should be getting this but we are
+        }
     }
-
-    public void showError(String message)
-    {
-        progress.setVisibility(View.GONE);
-        webview.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        errorTextView.setText(message);
-    }
-
+    
     public void showMain()
     {
         Intent intent = new Intent(this, MainActivity.class);
@@ -144,13 +131,13 @@ public class LoginActivity extends BaseActivity
     private void initWebView()
     {
         //load the url of the oAuth login page and client
-        webview.setWebViewClient(new OauthWebViewClient());
-        webview.setWebChromeClient(new WebChromeClient());
+        webView.setWebViewClient(new OauthWebViewClient());
+        webView.setWebChromeClient(new WebChromeClient());
 
         //activates JavaScript (just in case)
-        WebSettings webSettings = webview.getSettings();
+        WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        webview.loadUrl(Constants.OAUTH_URL);
+        webView.loadUrl(Constants.OAUTH_URL);
     }
 
     private class OauthWebViewClient extends WebViewClient
@@ -159,7 +146,7 @@ public class LoginActivity extends BaseActivity
         public boolean shouldOverrideUrlLoading(WebView view, String url)
         {
             hideProgress();
-            //Timber.e("URL: " + url);
+            
             //check if the login was successful and the access token returned
             if (url.contains("thanksmr.com")) {
                 Pattern codePattern = Pattern.compile("code=([^&]+)?");
@@ -168,9 +155,7 @@ public class LoginActivity extends BaseActivity
                 if (codeMatcher.find()) {
                     String code[] = codeMatcher.group().split("=");
 
-                    //if (accessToken.length > 0 && expiresIn.length > 0) {
                     if (code.length > 0) {
-                        //Timber.d("code: " + code[1]);
                         setAuthorizationCode(code[1]);
                         return true;
                     }
@@ -180,7 +165,7 @@ public class LoginActivity extends BaseActivity
                 hideProgress();
                 return false;
             } else if (url.contains("ads")) { // hack to get past 3 factor screen
-                webview.loadUrl(Constants.OAUTH_URL); // reload authentication page
+                webView.loadUrl(Constants.OAUTH_URL); // reload authentication page
             } else if (url.contains("error=access_denied")) {
                 handleError(new Throwable(getString(R.string.error_invalid_credentials)));
                 return false;
@@ -206,7 +191,6 @@ public class LoginActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                //Timber.e(throwable.getLocalizedMessage());
                 toast(getString(R.string.error_authentication));
             }
         });
@@ -220,10 +204,8 @@ public class LoginActivity extends BaseActivity
             @Override
             public void call(User user)
             {
-                //Timber.d("User: " + user.username);
                 StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
                 stringPreference.set(user.username);
-
                 toast("Login successful for " + user.username);
                 showMain();
             }

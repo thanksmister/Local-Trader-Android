@@ -743,14 +743,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     private void deleteContact(String contactId)
     {
-        Timber.d("Delete Contact: " + contactId);
         dbManager.deleteContact(contactId, new ContentResolverAsyncHandler.AsyncQueryListener() {
             
             @Override
             public void onQueryComplete()
             {
                 hideProgressDialog();
-                //snack(R.string.trade_released_toast_text, false);
+                toast(getString(R.string.trade_released_toast_text));
                 finish();
             }
         });

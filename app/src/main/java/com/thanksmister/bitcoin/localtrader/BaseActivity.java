@@ -39,6 +39,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
@@ -234,7 +235,7 @@ public abstract class BaseActivity extends AppCompatActivity
             if(currentNetworkInfo != null && currentNetworkInfo.isConnected()) {
                 //bus.post(NetworkEvent.CONNECTED);
             } else {
-                snack(R.string.error_no_internet, true);
+                bus.post(NetworkEvent.DISCONNECTED);
             }
         }
     };
@@ -301,9 +302,8 @@ public abstract class BaseActivity extends AppCompatActivity
     // TODO add action to this
     protected void snack(String message, boolean retry)
     {
-        View view = findViewById(R.id.coordinatorLayout);
-        if(view != null) {
-            try {
+         try { 
+                View view = findViewById(R.id.coordinatorLayout);
                 if(retry){
                     Snackbar.make(view, message, Snackbar.LENGTH_LONG)
                             .setAction("Retry", new View.OnClickListener() {
@@ -319,9 +319,8 @@ public abstract class BaseActivity extends AppCompatActivity
                             .show();
                 }
             } catch (NullPointerException e) {
-                // TODO probably calling this on activity that does not include coordinatorLayout
+                // nothing
             }
-        }
     }
 
     protected void toast(int messageId)

@@ -86,10 +86,10 @@ public abstract class WalletItem
     {
         return new Builder()
                 .message(wallet.message)
-                .balance(wallet.total.balance)
-                .sendable(wallet.total.sendable)
-                .address(wallet.address.address)
-                .receivable(wallet.address.received)
+                .balance(wallet.balance)
+                .sendable(wallet.sendable)
+                .address(wallet.address)
+                .receivable(wallet.received)
                 .qrcode(baos.toByteArray());
     }
 

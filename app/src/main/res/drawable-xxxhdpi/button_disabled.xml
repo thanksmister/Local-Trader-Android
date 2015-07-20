@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright 2007 ZXing authors
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -15,8 +15,30 @@
   ~ limitations under the License.
   -->
 
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-  <item android:drawable="@drawable/button_disabled" android:state_enabled="false"/>
-    <item android:drawable="@drawable/button_green_pressed" android:state_pressed="true"/>
-    <item android:drawable="@drawable/button_green"/>
-</selector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item >
+
+        <shape  android:shape="rectangle" >
+
+            <corners android:radius="0dp" />
+
+            <solid android:color="@color/gray_up" />
+
+        </shape>
+
+    </item>
+
+    <item android:bottom="1dp" android:top="0dp" android:left="0dp" android:right="0dp">
+
+        <shape  android:shape="rectangle">
+
+            <corners android:radius="0dp" />
+
+            <solid android:color="@color/light_gray" />
+
+        </shape>
+
+    </item>
+
+</layer-list>

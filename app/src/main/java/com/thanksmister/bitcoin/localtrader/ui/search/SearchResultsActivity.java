@@ -241,6 +241,8 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     protected void updateData()
     {
+        if(address == null) return;
+        
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
 
             advertisementsObservable = bindActivity(this, geoLocationService.getLocalAdvertisements(address.getLatitude(), address.getLongitude(), tradeType));
@@ -251,7 +253,6 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                 {
                     hideProgress();
                     onRefreshStop();
-                    //TradeUtils.getAddressShort(address);
                     setData(advertisements, null);
                 }
             }, new Action1<Throwable>()

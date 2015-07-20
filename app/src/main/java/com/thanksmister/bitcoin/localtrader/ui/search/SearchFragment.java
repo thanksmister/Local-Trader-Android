@@ -38,9 +38,11 @@ import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
@@ -66,10 +68,11 @@ import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.subscriptions.Subscriptions;
-import timber.log.Timber;
 
+import static rx.android.app.AppObservable.bindActivity;
 import static rx.android.app.AppObservable.bindFragment;
 
 public class SearchFragment extends BaseFragment
@@ -91,10 +94,7 @@ public class SearchFragment extends BaseFragment
 
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
-
-    @InjectView(R.id.searchProgress)
-    View progress;
-
+    
     @InjectView(R.id.searchContent)
     View content;
     
@@ -121,6 +121,9 @@ public class SearchFragment extends BaseFragment
 
     @InjectView(R.id.paymentMethodLayout)
     View paymentMethodLayout;
+    
+    @InjectView(R.id.searchButton)
+    Button searchButton;
 
     @OnClick(R.id.clearButton)
     public void clearButtonClicked()
@@ -151,18 +154,13 @@ public class SearchFragment extends BaseFragment
     private Observable<List<MethodItem>> methodObservable;
     private Observable<List<Address>> geoLocationObservable;
     private Observable<List<Address>> geoDecodeObservable;
+    private Observable<Location> locationObservable;
 
-    private Subscription subscription = Subscriptions.empty();
+    private Subscription locationSubscription = Subscriptions.empty();
     private Subscription geoLocationSubscriptoin = Subscriptions.empty();
     private Subscription geoDecodeSubscription = Subscriptions.empty();
     private Subscription methodSubscription = Subscriptions.empty();
     
-    
-    private class AddressData {
-        public List<Address> addresses;
-        public List<MethodItem> methods;
-    }
-
     private Handler handler;
     
     public static SearchFragment newInstance()
@@ -193,6 +191,7 @@ public class SearchFragment extends BaseFragment
     public void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);
+        
         if(address != null) {
             outState.putParcelable(EXTRA_ADDRESS, address);
             outState.putSerializable(EXTRA_TRADE_TYPE, tradeType);
@@ -219,7 +218,7 @@ public class SearchFragment extends BaseFragment
         methodSubscription.unsubscribe();
         geoLocationSubscriptoin.unsubscribe();
         geoDecodeSubscription.unsubscribe();
-        subscription.unsubscribe();
+        locationSubscription.unsubscribe();
 
         super.onDetach();
     }
@@ -328,10 +327,10 @@ public class SearchFragment extends BaseFragment
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
+        locationObservable = bindFragment(this, geoLocationService.subscribeToLocation());
         methodObservable = bindFragment(this, dbManager.methodQuery().cache());
 
         setupToolbar();
-        showProgress();
     }
     
     public void onRefresh()
@@ -346,7 +345,7 @@ public class SearchFragment extends BaseFragment
     private void delayLocationCheck()
     {
         handler.removeCallbacks(refreshRunnable);
-        handler.postDelayed(refreshRunnable, 2000);
+        handler.postDelayed(refreshRunnable, 1000);
     }
 
     private Runnable refreshRunnable = new Runnable()
@@ -356,18 +355,6 @@ public class SearchFragment extends BaseFragment
             startLocationCheck();
         }
     };
-    
-    public void showProgress()
-    {
-        progress.setVisibility(View.VISIBLE);
-        content.setVisibility(View.GONE);
-    }
-
-    public void hideProgress()
-    {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
-    }
     
     private void setupToolbar()
     {
@@ -394,6 +381,8 @@ public class SearchFragment extends BaseFragment
     public void setAddress(Address address)
     {
         this.address = address;
+
+        //searchButton.setEnabled(true);
         
         if (address != null)
             currentLocation.setText(TradeUtils.getAddressShort(address));
@@ -424,8 +413,6 @@ public class SearchFragment extends BaseFragment
     public void startLocationCheck()
     {
         if(!geoLocationService.isGooglePlayServicesAvailable()) {
-            
-            hideProgress();
             missingGooglePlayServices();
             getAddressFromLocation(null);
             return;
@@ -434,18 +421,21 @@ public class SearchFragment extends BaseFragment
         if(hasLocationServices()) {
 
             geoLocationService.start();
-
-            subscription = geoLocationService.subscribeToLocation(new Observer<Location>() {
+            
+            locationSubscription = locationObservable.subscribe(new Action1<Location>()
+            {
                 @Override
-                public void onCompleted(){
+                public void call(Location location)
+                {
+                    geoLocationService.stop();
+                    getAddressFromLocation(location);
                 }
-
+            }, new Action1<Throwable>()
+            {
                 @Override
-                public void onError(Throwable e) {
-
-                    hideProgress();
-                    
-                    if (e.getMessage().equals("1")) {
+                public void call(Throwable throwable)
+                {
+                    if (throwable.getMessage().equals("1")) {
                         showEnableLocation();
                         getAddressFromLocation(null);
                     } else {
@@ -453,13 +443,15 @@ public class SearchFragment extends BaseFragment
                         handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                     }
                 }
-
+            }, new Action0()
+            {
                 @Override
-                public void onNext(Location location) {
+                public void call()
+                {
                     geoLocationService.stop();
-                    getAddressFromLocation(location);
                 }
             });
+            
         } else {
             showEnableLocation();
         }
@@ -545,8 +537,6 @@ public class SearchFragment extends BaseFragment
                 @Override
                 public void call(List<Address> addresses)
                 {
-                    hideProgress();
-
                     if (!addresses.isEmpty()) {
                         setAddress(addresses.get(0));
                     }
@@ -556,7 +546,6 @@ public class SearchFragment extends BaseFragment
                 @Override
                 public void call(Throwable throwable)
                 {
-                    hideProgress();
                     handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                 }
             });

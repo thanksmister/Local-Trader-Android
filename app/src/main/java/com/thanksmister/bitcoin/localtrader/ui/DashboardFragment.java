@@ -34,6 +34,7 @@ import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -50,6 +51,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
+import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.DashboardAdvertisementAdapter;

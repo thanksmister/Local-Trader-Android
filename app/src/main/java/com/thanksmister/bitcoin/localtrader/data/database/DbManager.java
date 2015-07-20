@@ -508,10 +508,10 @@ public class DbManager
 
                         if (walletItem != null) {
 
-                            if (!walletItem.address().equals(wallet.address.address)
-                                    || !walletItem.balance().equals(wallet.total.balance)
-                                    || !walletItem.receivable().equals(wallet.address.received)
-                                    || !walletItem.sendable().equals(wallet.total.sendable)) {
+                            if (!walletItem.address().equals(wallet.address)
+                                    || !walletItem.balance().equals(wallet.balance)
+                                    || !walletItem.receivable().equals(wallet.received)
+                                    || !walletItem.sendable().equals(wallet.sendable)) {
 
 
                                 WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
@@ -878,7 +878,7 @@ public class DbManager
             context = (Context) params[1];
             Bitmap qrCode = null;
 
-            wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address.address, context.getApplicationContext());
+            wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address, context.getApplicationContext());
 
             return new Object[]{wallet};
         }

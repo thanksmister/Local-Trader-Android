@@ -80,8 +80,8 @@ public final class ActivityModule
 
     @Provides
     @Singleton
-    GeoLocationService provideGeoLocationService(BaseApplication app, SharedPreferences preferences, LocationManager locationManager, LocalBitcoins localBitcoins)
+    GeoLocationService provideGeoLocationService(BaseApplication app, LocalBitcoins localBitcoins)
     {
-        return new GeoLocationService(app, preferences, locationManager, localBitcoins);
+        return new GeoLocationService(app, localBitcoins);
     }
 }

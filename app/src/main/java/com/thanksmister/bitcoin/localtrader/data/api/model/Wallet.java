@@ -33,20 +33,11 @@ public class Wallet
     public Bitmap qrImage;
     public List<Transaction> sent_transactions = Collections.emptyList();
     public List<Transaction> receiving_transactions = Collections.emptyList();
-   
-    public Total total = new Total();
-    public Address address = new Address();
-
-    public class Total {
-        public String balance;
-        public String sendable;
-    }
+    public String address;
+    public String received;
+    public String balance;
+    public String sendable;
     
-    public class Address {
-        public String address;
-        public String received;
-    }
-
     public List<Transaction> getTransactions()
     {
         ArrayList<Transaction> transactions = new ArrayList<>();

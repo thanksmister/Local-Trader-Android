@@ -20,16 +20,16 @@
                 android:layout_height="match_parent"
                 tools:context="com.thanksmister.bitcoin.localtrader.ui.LoginActivity">
     
-    <include android:id="@android:id/progress" 
+    <include android:id="@+id/loginProgress" 
              layout="@layout/view_progress"
              android:visibility="visible"/>
 
-    <include android:id="@android:id/empty" 
+    <include android:id="@+id/loginEmpty" 
              layout="@layout/view_retry" 
              android:visibility="gone"/>
     
     <WebView
-            android:id="@+id/webview"
+            android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"/>
