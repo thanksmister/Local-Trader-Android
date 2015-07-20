@@ -20,6 +20,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -99,7 +101,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     private Observable<List<MethodItem>> methodObservable;
     private Observable<List<Advertisement>> advertisementsObservable;
 
-    public static Intent createStartIntent(Context context, TradeType tradeType, Address address, String paymentMethod)
+    public static Intent createStartIntent(Context context, @NonNull TradeType tradeType, @NonNull Address address, @Nullable String paymentMethod)
     {
         Intent intent = new Intent(context, SearchResultsActivity.class);
         intent.putExtra(EXTRA_TRADE_TYPE, tradeType);

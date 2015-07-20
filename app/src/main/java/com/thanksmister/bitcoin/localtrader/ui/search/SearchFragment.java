@@ -215,6 +215,8 @@ public class SearchFragment extends BaseFragment
     {
         ButterKnife.reset(this);
 
+        stopLocationCheck();
+        
         methodSubscription.unsubscribe();
         geoLocationSubscriptoin.unsubscribe();
         geoDecodeSubscription.unsubscribe();
@@ -576,10 +578,15 @@ public class SearchFragment extends BaseFragment
     
     private MethodItem getPaymentMethod()
     {
-        int position = paymentMethodSpinner.getSelectedItemPosition();
-        return (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
+        if(paymentMethodSpinner.getAdapter().getCount() > 0) {
+            int position = paymentMethodSpinner.getSelectedItemPosition();
+            return (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
+        }
+        
+        return null;
     }
     
+    // TODO don't load payment methods unless needed
     private void showSearchResultsScreen()
     {
         if(!geoLocationService.isGooglePlayServicesAvailable()) {
@@ -587,10 +594,9 @@ public class SearchFragment extends BaseFragment
             return;
         }
         
-        MethodItem paymentMethod = getPaymentMethod();
-        
         if(hasLocationServices()) {
-            String methodCode = paymentMethod.code();
+            MethodItem paymentMethod = getPaymentMethod();
+            String methodCode = (paymentMethod != null)? paymentMethod.code():null;
             Intent intent = SearchResultsActivity.createStartIntent(getActivity(), tradeType, address, methodCode);
             startActivity(intent);
         } else {
