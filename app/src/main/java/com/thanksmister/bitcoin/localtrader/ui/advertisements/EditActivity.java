@@ -17,24 +17,24 @@
 package com.thanksmister.bitcoin.localtrader.ui.advertisements;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
-import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
@@ -42,12 +42,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -60,12 +56,10 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
-import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.CurrencyAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.MethodAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
@@ -76,7 +70,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -89,7 +82,6 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
@@ -98,7 +90,6 @@ import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
-import static rx.android.app.AppObservable.bindFragment;
 
 public class EditActivity extends BaseActivity
 {
@@ -108,10 +99,11 @@ public class EditActivity extends BaseActivity
 
     public static final int REQUEST_CODE = 10937;
     public static final int RESULT_UPDATED = 72322;
+    public static final int RESULT_CREATED = 72323;
 
     @Inject
     DataService dataService;
-    
+
     @Inject
     DbManager dbManager;
 
@@ -126,7 +118,7 @@ public class EditActivity extends BaseActivity
 
     @Inject
     LocationManager locationManager;
-    
+
     @Optional
     @InjectView(R.id.editToolBar)
     Toolbar toolbar;
@@ -184,7 +176,7 @@ public class EditActivity extends BaseActivity
 
     @InjectView(R.id.bankNameLayout)
     View bankNameLayout;
-    
+
     @InjectView(R.id.marginLayout)
     View marginLayout;
 
@@ -211,7 +203,7 @@ public class EditActivity extends BaseActivity
 
     @InjectView(R.id.editProgress)
     View progress;
-    
+
     @InjectView(R.id.editContent)
     View content;
 
@@ -241,42 +233,43 @@ public class EditActivity extends BaseActivity
     private PredictAdapter predictAdapter;
     private Address address;
     private String adId;
-    
+
     private Observable<List<MethodItem>> methodObservable;
-    private Observable<List<Address>> geoDecodeObservable;
     private Observable<List<Address>> geoLocationObservable;
     private Observable<AdvertisementItem> advertisementItemObservable;
-    private Observable<Advertisement> createAdvertisementObservable;
+    private Observable<JSONObject> createAdvertisementObservable;
     private Observable<JSONObject> updateAdvertisementObservable;
     private Observable<List<Currency>> currencyObservable;
-    private Observable<Location> locationObservable;
-    
+
+    private Observable<Address> addressObservable;
+
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription geoLocalSubscription = Subscriptions.empty();
     private Subscription geoDecodeSubscription = Subscriptions.empty();
     private Subscription advertisementSubscription = Subscriptions.empty();
-  
-    private class AdvertisementData {
+
+    private class AdvertisementData
+    {
         public AdvertisementItem advertisement;
         public List<Currency> currencies;
     }
 
     private AdvertisementData advertisementData;
-    
+
     public static Intent createStartIntent(Context context, Boolean create, String adId)
     {
         Intent intent = new Intent(context, EditActivity.class);
         intent.putExtra(EXTRA_CREATE, create);
         intent.putExtra(EXTRA_AD_ID, adId);
-        
+
         return intent;
     }
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
+
         setContentView(R.layout.view_edit);
 
         ButterKnife.inject(this);
@@ -289,11 +282,11 @@ public class EditActivity extends BaseActivity
             create = savedInstanceState.getBoolean(EXTRA_CREATE);
             adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
-        
-        if(toolbar != null) {
+
+        if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle((create)? "Post new advertisement": "Edit advertisement");
+            getSupportActionBar().setTitle((create) ? "Post new advertisement" : "Edit advertisement");
             setToolBarMenu(toolbar);
         }
 
@@ -334,7 +327,7 @@ public class EditActivity extends BaseActivity
             {
             }
         });
-        
+
         editLocation.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
@@ -346,7 +339,7 @@ public class EditActivity extends BaseActivity
                 editLocation.setText("");
             }
         });
-        
+
         editLocation.addTextChangedListener(new TextWatcher()
         {
             @Override
@@ -367,7 +360,7 @@ public class EditActivity extends BaseActivity
             {
             }
         });
-        
+
         marginText.addTextChangedListener(new TextWatcher()
         {
             @Override
@@ -394,8 +387,11 @@ public class EditActivity extends BaseActivity
         currencyObservable = bindActivity(this, dataService.getCurrencies().cache());
         methodObservable = bindActivity(this, db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache());
         advertisementItemObservable = bindActivity(this, db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId).map(AdvertisementItem.MAP_SINGLE));
-        locationObservable = bindActivity(this, geoLocationService.subscribeToLocation());
-        
+        addressObservable = bindActivity(this, geoLocationService.getUpdatedLocation()
+                .cache()
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread()));
+
         swipeLayout.setEnabled(false);
         showProgress();
     }
@@ -419,7 +415,7 @@ public class EditActivity extends BaseActivity
 
         return super.onOptionsItemSelected(item);
     }
-    
+
     public void setToolBarMenu(Toolbar toolbar)
     {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener()
@@ -443,7 +439,7 @@ public class EditActivity extends BaseActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        if(toolbar != null)
+        if (toolbar != null)
             toolbar.inflateMenu(R.menu.edit);
 
         return true;
@@ -453,17 +449,17 @@ public class EditActivity extends BaseActivity
     public void onResume()
     {
         super.onResume();
-        
-        if(create) {
-            
+
+        if (create) {
+
             if (geoLocationService.isGooglePlayServicesAvailable()) {
                 subScribeData();
             }
-            
+
             startLocationCheck();
-            
-        }  else {
-            
+
+        } else {
+
             subScribeData();
         }
     }
@@ -472,17 +468,17 @@ public class EditActivity extends BaseActivity
     public void onPause()
     {
         super.onPause();
-        
+
         subscriptions.unsubscribe();
         geoLocalSubscription.unsubscribe();
         geoDecodeSubscription.unsubscribe();
         advertisementSubscription.unsubscribe();
     }
-    
+
     public void subScribeData()
     {
         subscriptions = new CompositeSubscription();
-        
+
         subscriptions.add(methodObservable.subscribe(new Action1<List<MethodItem>>()
         {
             @Override
@@ -491,8 +487,8 @@ public class EditActivity extends BaseActivity
                 setMethods(methodItems);
             }
         }));
-        
-        if(create) {
+
+        if (create) {
             subscriptions.add(currencyObservable
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -528,28 +524,28 @@ public class EditActivity extends BaseActivity
                     return advertisementData;
                 }
             })
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Action1<AdvertisementData>()
-            {
-                @Override
-                public void call(AdvertisementData data)
-                {
-                    advertisementData = data;
-                    setAdvertisement(advertisementData.advertisement);
-                    setCurrencies(advertisementData.currencies, advertisementData.advertisement);
-                    hideProgress();
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    hideProgress();
-                    showError("No advertisement data.");
-                    handleError(throwable);
-                }
-            }));
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<AdvertisementData>()
+                    {
+                        @Override
+                        public void call(AdvertisementData data)
+                        {
+                            advertisementData = data;
+                            setAdvertisement(advertisementData.advertisement);
+                            setCurrencies(advertisementData.currencies, advertisementData.advertisement);
+                            hideProgress();
+                        }
+                    }, new Action1<Throwable>()
+                    {
+                        @Override
+                        public void call(Throwable throwable)
+                        {
+                            hideProgress();
+                            showError("No advertisement data.");
+                            handleError(throwable);
+                        }
+                    }));
         }
     }
 
@@ -567,7 +563,7 @@ public class EditActivity extends BaseActivity
         progress.setVisibility(View.VISIBLE);
         content.setVisibility(View.GONE);
     }
-    
+
     private void hideProgress()
     {
         empty.setVisibility(View.GONE);
@@ -592,9 +588,9 @@ public class EditActivity extends BaseActivity
         currencySpinner.setAdapter(typeAdapter);
 
         int i = 0;
-        String defaultCurrency = (create)? this.getString(R.string.usd):(advertisement != null)? advertisement.currency():this.getString(R.string.usd);
+        String defaultCurrency = (create) ? this.getString(R.string.usd) : (advertisement != null) ? advertisement.currency() : this.getString(R.string.usd);
         for (Currency currency : currencies) {
-            if(currency.ticker.equals(defaultCurrency)) {
+            if (currency.ticker.equals(defaultCurrency)) {
                 currencySpinner.setSelection(i);
                 break;
             }
@@ -608,11 +604,11 @@ public class EditActivity extends BaseActivity
         smsVerifiedCheckBox.setChecked(false);
         trustedCheckBox.setChecked(false);
         activeCheckBox.setChecked(true);
-        
+
         advertisementTypeLayout.setVisibility(View.VISIBLE);
-        
+
         setAdvertisementType(TradeType.LOCAL_SELL);
-        
+
         editMinimumAmountCurrency.setText(this.getString(R.string.usd));
         editMaximumAmountCurrency.setText(this.getString(R.string.usd));
         activeLayout.setVisibility(View.GONE);
@@ -621,12 +617,12 @@ public class EditActivity extends BaseActivity
     private void setAdvertisement(AdvertisementItem advertisement)
     {
         currentLocation.setText(advertisement.location_string());
-  
+
         liquidityCheckBox.setChecked(advertisement.track_max_amount());
         smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required());
         trustedCheckBox.setChecked(advertisement.trusted_required());
         activeCheckBox.setChecked(advertisement.visible());
-        
+
         messageText.setText(advertisement.message());
         editBankNameText.setText(advertisement.bank_name());
         editMinimumAmount.setText(advertisement.min_amount());
@@ -635,73 +631,73 @@ public class EditActivity extends BaseActivity
         advertisementTypeLayout.setVisibility(create ? View.VISIBLE : View.GONE);
 
         TradeType tradeType = TradeType.valueOf(advertisement.trade_type());
-        
-        if(tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
+
+        if (tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
             editPaymentDetailsLayout.setVisibility(View.GONE);
             bankNameLayout.setVisibility(View.GONE);
             paymentMethodLayout.setVisibility(View.GONE);
         } else {
             editPaymentDetailsLayout.setVisibility(View.VISIBLE);
-            paymentMethodLayout.setVisibility(create?View.VISIBLE:View.GONE);
-            bankNameLayout.setVisibility(create?View.VISIBLE:View.GONE);
+            paymentMethodLayout.setVisibility(create ? View.VISIBLE : View.GONE);
+            bankNameLayout.setVisibility(create ? View.VISIBLE : View.GONE);
         }
-        
+
         editMinimumAmountCurrency.setText(advertisement.currency());
         editMaximumAmountCurrency.setText(advertisement.currency());
         editPriceEquation.setText(advertisement.price_equation());
         marginLayout.setVisibility(View.GONE);
     }
-    
+
     // TODO save trade type to survive through rotation
     protected void setAdvertisementType(TradeType tradeType)
     {
-        if(tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
+        if (tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
             editPaymentDetailsLayout.setVisibility(View.GONE);
             bankNameLayout.setVisibility(View.GONE);
             paymentMethodLayout.setVisibility(View.GONE);
         } else {
             editPaymentDetailsLayout.setVisibility(View.VISIBLE);
-            paymentMethodLayout.setVisibility(create?View.VISIBLE:View.GONE);
-            bankNameLayout.setVisibility(create?View.VISIBLE:View.GONE);
+            paymentMethodLayout.setVisibility(create ? View.VISIBLE : View.GONE);
+            bankNameLayout.setVisibility(create ? View.VISIBLE : View.GONE);
         }
     }
-    
+
     protected void setPriceEquation()
     {
         TradeType tradeType = TradeType.values()[typeSpinner.getSelectedItemPosition()];
 
         String equation = Constants.DEFAULT_PRICE_EQUATION;
         Currency currency = (Currency) currencySpinner.getSelectedItem();
-        if(currency == null) return; // currency values may not yet be set
-        
-        if(!currency.ticker.equals(Constants.DEFAULT_CURRENCY)) {
+        if (currency == null) return; // currency values may not yet be set
+
+        if (!currency.ticker.equals(Constants.DEFAULT_CURRENCY)) {
             equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency.ticker;
         }
-        
+
         String margin = marginText.getText().toString();
-        if(!Strings.isBlank(margin)) {
+        if (!Strings.isBlank(margin)) {
             double marginValue = Doubles.convertToDouble(margin);
             double marginPercent = 1.0;
-            if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
-                marginPercent = 1 - marginValue/100;
+            if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
+                marginPercent = 1 - marginValue / 100;
             } else {
-                marginPercent = 1 + marginValue/100;
-            }   
+                marginPercent = 1 + marginValue / 100;
+            }
             equation = equation + "*" + marginPercent;
         } else {
             equation = equation + "*" + Constants.DEFAULT_MARGIN;
         }
-        
+
         editPriceEquation.setText(equation);
     }
-    
+
     public void validateChangesAndSend()
     {
         if (create && !geoLocationService.isGooglePlayServicesAvailable()) {
             toast(getString(R.string.error_no_play_services));
             return;
         }
-        
+
         String min = editMinimumAmount.getText().toString();
         String bankName = editBankNameText.getText().toString();
         String max = editMaximumAmount.getText().toString();
@@ -712,7 +708,7 @@ public class EditActivity extends BaseActivity
         if (TextUtils.isEmpty(equation)) {
             toast("Price equation can't be blank.");
             return;
-        } else  if (Strings.isBlank(min)) {
+        } else if (Strings.isBlank(min)) {
             toast("Enter a valid minimum amount.");
             return;
         } else if (Strings.isBlank(max)) {
@@ -721,25 +717,26 @@ public class EditActivity extends BaseActivity
         }
 
         Advertisement advertisement = new Advertisement(); // used to store values for service call
-        
+
         if (create) {
-            
-            if(address == null) {
+
+            if (address == null) {
                 toast("Unable to save changes, please try again");
                 return;
             }
-            
+
             advertisement.visible = true;
+            advertisement.currency =  ((Currency) currencySpinner.getSelectedItem()).ticker;
             advertisement.trade_type = TradeType.values()[typeSpinner.getSelectedItemPosition()];
-            advertisement.online_provider = ((Method) paymentMethodSpinner.getSelectedItem()).code; // TODO code or name?
-            
+            advertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code(); 
+
         } else {
-            
-            if(advertisementData == null) {
+
+            if (advertisementData == null) {
                 toast("Unable to save changes, please try again");
                 return;
             }
-            
+
             // convert data to editable advertisement if not creating new advertisement
             advertisement = advertisement.convertAdvertisementItemToAdvertisement(advertisementData.advertisement);
             advertisement.ad_id = adId;
@@ -756,18 +753,18 @@ public class EditActivity extends BaseActivity
         advertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
         advertisement.track_max_amount = liquidityCheckBox.isChecked();
         advertisement.trusted_required = trustedCheckBox.isChecked();
-        
-        if(address != null) {
+
+        if (address != null) {
             advertisement.location = TradeUtils.getAddressShort(address);
             advertisement.city = address.getLocality();
             advertisement.country_code = address.getCountryCode();
             advertisement.lon = address.getLongitude();
-            advertisement.lat = address.getLatitude(); 
+            advertisement.lat = address.getLatitude();
         }
 
         updateAdvertisement(advertisement, create);
     }
-    
+
     public void setAddress(Address address)
     {
         if (address == null) return;
@@ -798,7 +795,7 @@ public class EditActivity extends BaseActivity
         if (editLocation != null)
             editLocation.setAdapter(adapter);
     }
-    
+
     public PredictAdapter getEditLocationAdapter()
     {
         return predictAdapter;
@@ -806,41 +803,41 @@ public class EditActivity extends BaseActivity
 
     public void cancelChanges(Boolean create)
     {
-        String message = (create)? "New advertisement canceled":"Advertisement update canceled";
+        String message = (create) ? "New advertisement canceled" : "Advertisement update canceled";
         toast(message);
         finish();
     }
 
     public void startLocationCheck()
     {
-        if(!geoLocationService.isGooglePlayServicesAvailable()) {
+        if (!geoLocationService.isGooglePlayServicesAvailable()) {
             missingGooglePlayServices();
             return;
         }
 
-        if(hasLocationServices()) {
+        if (!isNetworkConnected()) {
+            handleError(new Throwable(getString(R.string.error_no_internet)), true);
+            return;
+        }
 
-            geoLocationService.start();
-            
-            geoLocalSubscription = locationObservable.subscribe(new Action1<Location>()
+        if (hasLocationServices()) {
+
+            geoLocalSubscription = addressObservable.subscribe(new Action1<Address>()
             {
                 @Override
-                public void call(Location location)
+                public void call(Address address)
                 {
-                    geoLocationService.stop();
-                    getAddressFromLocation(location);
+                    setAddress(address);
                 }
             }, new Action1<Throwable>()
             {
                 @Override
                 public void call(Throwable throwable)
                 {
-                    if (throwable.getMessage().equals("1")) {
-                        showEnableLocationDialog();
-                    }
+                    showEnableLocationDialog();
                 }
             });
-            
+
         } else {
             showEnableLocationDialog();
         }
@@ -850,36 +847,48 @@ public class EditActivity extends BaseActivity
     {
         geoLocationService.stop();
     }
-    
+
     private void showEnableLocationDialog()
     {
         createAlert(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active), false);
     }
 
+    private boolean isNetworkConnected()
+    {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        return networkInfo != null;
+    }
+
     private void missingGooglePlayServices()
     {
-        if(create){
+        /*if(create){
             showError(getString(R.string.error_no_play_services));
         }
-        
+        */
         createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
     }
 
     public void createAlert(String title, String message, final boolean googlePlay)
     {
-        int positiveButton = (googlePlay)? R.string.button_install:R.string.button_enable;
-        ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(positiveButton), getString(R.string.button_cancel), new Action0() {
-            @Override
-            public void call() {
-                if(googlePlay) {
-                    installGooglePlayServices();
-                } else {
-                    openLocationServices();
-                }
-            }
-        });
-
-        showConfirmationDialog(event);
+        int positiveButton = (googlePlay) ? R.string.button_install : R.string.button_enable;
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setNegativeButton(R.string.button_cancel, null)
+                .setPositiveButton(positiveButton, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        if (googlePlay) {
+                            installGooglePlayServices();
+                        } else {
+                            openLocationServices();
+                        }
+                    }
+                })
+                .show();
     }
 
     private void openLocationServices()
@@ -903,39 +912,15 @@ public class EditActivity extends BaseActivity
         return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
     }
-    
-    public void getAddressFromLocation(Location location)
-    {
-        geoDecodeObservable = bindActivity(this, geoLocationService.geoDecodeLocation(location));
-        geoDecodeSubscription = geoDecodeObservable.subscribe(new Action1<List<Address>>()
-        {
-            @Override
-            public void call(List<Address> addresses)
-            {
-                if (!addresses.isEmpty()) {
-                    setAddress(addresses.get(0));
-                } else {
-                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-            }
-        });
-    }
 
     public void updateAdvertisement(final Advertisement advertisement, final Boolean create)
     {
-        if(create) {
+        if (create) {
 
             showProgressDialog(new ProgressDialogEvent("Posting advertisement..."));
-            
+
             createAdvertisementObservable = bindActivity(this, dataService.createAdvertisement(advertisement));
-            advertisementSubscription = createAdvertisementObservable.subscribe(new Observer<Advertisement>()
+            advertisementSubscription = createAdvertisementObservable.subscribe(new Observer<JSONObject>()
             {
                 @Override
                 public void onCompleted()
@@ -951,16 +936,18 @@ public class EditActivity extends BaseActivity
                 }
 
                 @Override
-                public void onNext(Advertisement advertisement)
+                public void onNext(JSONObject jsonObject)
                 {
                     toast("New advertisement posted!");
-           
-                    db.insert(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build());
-                            
+
+                    // TODO have to refresh main view after creating new advertisement
+                    //db.insert(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build());
+
+                    setResult(RESULT_CREATED);
                     finish();
                 }
             });
-            
+
         } else {
 
             showProgressDialog(new ProgressDialogEvent("Saving changes..."));
@@ -991,29 +978,28 @@ public class EditActivity extends BaseActivity
                         toast("Error updating advertisement visibility");
 
                     } else {
-                        
+
                         updateAdvertisement(advertisement);
                     }
                 }
             });
         }
     }
-    
+
     private void updateAdvertisement(Advertisement advertisement)
     {
-        //int updated = db.update(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build(), AdvertisementItem.AD_ID + " = ?", adId);
         int updated = dbManager.updateAdvertisement(advertisement);
-       
-        if(updated > 0) {
-            
+
+        if (updated > 0) {
+
             hideProgressDialog();
-            
+
             toast(getString(R.string.message_advertisement_changed));
-            
+
             Intent returnIntent = new Intent();
             returnIntent.putExtra(AdvertisementActivity.EXTRA_AD_ID, adId);
             setResult(RESULT_UPDATED, returnIntent);
-            
+
             finish();
         }
     }
@@ -1028,8 +1014,6 @@ public class EditActivity extends BaseActivity
             {
                 if (!addresses.isEmpty()) {
                     getEditLocationAdapter().replaceWith(addresses);
-                } else {
-                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                 }
             }
         }, new Action1<Throwable>()
@@ -1037,6 +1021,7 @@ public class EditActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
+                Timber.d(throwable.getLocalizedMessage());
                 handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
             }
         });

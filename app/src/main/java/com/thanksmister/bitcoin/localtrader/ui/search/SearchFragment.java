@@ -16,19 +16,22 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.search;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
-import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -42,7 +45,6 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
@@ -66,13 +68,15 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
-import rx.Observer;
+import rx.Scheduler;
 import rx.Subscription;
-import rx.functions.Action0;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
+import timber.log.Timber;
 
-import static rx.android.app.AppObservable.bindActivity;
 import static rx.android.app.AppObservable.bindFragment;
 
 public class SearchFragment extends BaseFragment
@@ -85,7 +89,7 @@ public class SearchFragment extends BaseFragment
 
     @Inject
     LocationManager locationManager;
-    
+
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
@@ -94,10 +98,13 @@ public class SearchFragment extends BaseFragment
 
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
-    
+
+    @InjectView(R.id.searchProgress)
+    View progress;
+
     @InjectView(R.id.searchContent)
     View content;
-    
+
     @InjectView(R.id.currentLocation)
     TextView currentLocation;
 
@@ -121,7 +128,7 @@ public class SearchFragment extends BaseFragment
 
     @InjectView(R.id.paymentMethodLayout)
     View paymentMethodLayout;
-    
+
     @InjectView(R.id.searchButton)
     Button searchButton;
 
@@ -129,16 +136,14 @@ public class SearchFragment extends BaseFragment
     public void clearButtonClicked()
     {
         showSearchLayout();
-        stopLocationCheck();
     }
 
     @OnClick(R.id.mapButton)
     public void mapButtonClicked()
     {
         showMapLayout();
-        stopLocationCheck();
         currentLocation.setText("- - - -");
-        startLocationCheck(); // get location
+        startLocationCheck();
     }
 
     @OnClick(R.id.searchButton)
@@ -146,23 +151,28 @@ public class SearchFragment extends BaseFragment
     {
         showSearchResultsScreen();
     }
-    
+
     private Address address;
     private PredictAdapter predictAdapter;
     private TradeType tradeType;
-    
+
     private Observable<List<MethodItem>> methodObservable;
     private Observable<List<Address>> geoLocationObservable;
-    private Observable<List<Address>> geoDecodeObservable;
-    private Observable<Location> locationObservable;
+    private Observable<Address> addressObservable;
 
     private Subscription locationSubscription = Subscriptions.empty();
-    private Subscription geoLocationSubscriptoin = Subscriptions.empty();
+    private Subscription geoLocationSubscription = Subscriptions.empty();
     private Subscription geoDecodeSubscription = Subscriptions.empty();
-    private Subscription methodSubscription = Subscriptions.empty();
-    
+    private Subscription methodLocationSubscription = Subscriptions.empty();
+
     private Handler handler;
-    
+
+    private class LocationData
+    {
+        public Address address;
+        public List<MethodItem> methods;
+    }
+
     public static SearchFragment newInstance()
     {
         return new SearchFragment();
@@ -178,9 +188,9 @@ public class SearchFragment extends BaseFragment
         super.onCreate(savedInstanceState);
 
         handler = new Handler();
-        
-        if(savedInstanceState != null) {
-            if(savedInstanceState.containsKey(EXTRA_ADDRESS)) {
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(EXTRA_ADDRESS)) {
                 address = savedInstanceState.getParcelable(EXTRA_ADDRESS);
                 tradeType = (TradeType) savedInstanceState.getSerializable(EXTRA_TRADE_TYPE);
             }
@@ -191,8 +201,8 @@ public class SearchFragment extends BaseFragment
     public void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);
-        
-        if(address != null) {
+
+        if (address != null) {
             outState.putParcelable(EXTRA_ADDRESS, address);
             outState.putSerializable(EXTRA_TRADE_TYPE, tradeType);
         }
@@ -201,7 +211,7 @@ public class SearchFragment extends BaseFragment
     @Override
     public void onResume()
     {
-        if(address != null) {
+        if (address != null) {
             setAddress(address);
         } else {
             delayLocationCheck();
@@ -215,10 +225,10 @@ public class SearchFragment extends BaseFragment
     {
         ButterKnife.reset(this);
 
-        stopLocationCheck();
-        
-        methodSubscription.unsubscribe();
-        geoLocationSubscriptoin.unsubscribe();
+        handler.removeCallbacks(locationRunnable);
+
+        methodLocationSubscription.unsubscribe();
+        geoLocationSubscription.unsubscribe();
         geoDecodeSubscription.unsubscribe();
         locationSubscription.unsubscribe();
 
@@ -235,10 +245,10 @@ public class SearchFragment extends BaseFragment
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(fragmentView, savedInstanceState);
-        
+
         // hack for not being able to have the NestedScrollView match width height of container
         swipeLayout.setEnabled(false);
-        
+
         typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
@@ -246,7 +256,7 @@ public class SearchFragment extends BaseFragment
             {
                 switch (position) {
                     case 0:
-                        tradeType  = (locationSpinner.getSelectedItemPosition() == 0 ? TradeType.LOCAL_BUY : TradeType.ONLINE_BUY);
+                        tradeType = (locationSpinner.getSelectedItemPosition() == 0 ? TradeType.LOCAL_BUY : TradeType.ONLINE_BUY);
                         break;
                     case 1:
                         tradeType = (locationSpinner.getSelectedItemPosition() == 0 ? TradeType.LOCAL_SELL : TradeType.ONLINE_SELL);
@@ -260,25 +270,29 @@ public class SearchFragment extends BaseFragment
             }
         });
 
-        locationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+        locationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
             @Override
-            public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
+            public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3)
+            {
                 switch (position) {
                     case 0:
-                        tradeType = (typeSpinner.getSelectedItemPosition() == 0? TradeType.LOCAL_BUY:TradeType.LOCAL_SELL);
+                        tradeType = (typeSpinner.getSelectedItemPosition() == 0 ? TradeType.LOCAL_BUY : TradeType.LOCAL_SELL);
                         break;
                     case 1:
-                        tradeType = (typeSpinner.getSelectedItemPosition() == 0? TradeType.ONLINE_BUY:TradeType.ONLINE_SELL);
+                        tradeType = (typeSpinner.getSelectedItemPosition() == 0 ? TradeType.ONLINE_BUY : TradeType.ONLINE_SELL);
                         break;
                 }
 
                 paymentMethodLayout.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
             }
+
             @Override
-            public void onNothingSelected(AdapterView<?> arg0){
+            public void onNothingSelected(AdapterView<?> arg0)
+            {
             }
         });
-        
+
         String[] locationTitles = getResources().getStringArray(R.array.list_location_spinner);
         List<String> locationList = new ArrayList<String>(Arrays.asList(locationTitles));
 
@@ -299,8 +313,6 @@ public class SearchFragment extends BaseFragment
                 Address address = predictAdapter.getItem(i);
                 showMapLayout();
                 editLocation.setText("");
-
-                stopLocationCheck();
                 setAddress(address);
             }
         });
@@ -329,35 +341,47 @@ public class SearchFragment extends BaseFragment
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
-        locationObservable = bindFragment(this, geoLocationService.subscribeToLocation());
         methodObservable = bindFragment(this, dbManager.methodQuery().cache());
+        addressObservable = bindFragment(this,
+                geoLocationService.getUpdatedLocation()
+                        .cache()
+                        .observeOn(Schedulers.io())
+                        .subscribeOn(AndroidSchedulers.mainThread()));
 
         setupToolbar();
     }
-    
+
     public void onRefresh()
     {
-        if(address != null) {
+        if (address != null) {
             setAddress(address);
         } else {
             delayLocationCheck();
         }
     }
-    
+
     private void delayLocationCheck()
     {
-        handler.removeCallbacks(refreshRunnable);
-        handler.postDelayed(refreshRunnable, 1000);
+        handler.removeCallbacks(locationRunnable);
+        handler.postDelayed(locationRunnable, 500);
     }
 
-    private Runnable refreshRunnable = new Runnable()
+    private Runnable locationRunnable = new Runnable()
     {
         @Override
-        public void run() {
+        public void run()
+        {
             startLocationCheck();
         }
     };
-    
+
+
+    public void hideProgress()
+    {
+        progress.setVisibility(View.GONE);
+        content.setVisibility(View.VISIBLE);
+    }
+
     private void setupToolbar()
     {
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
@@ -368,24 +392,22 @@ public class SearchFragment extends BaseFragment
         ab.setTitle(getString(R.string.view_title_buy_sell));
         ab.setDisplayHomeAsUpEnabled(true);
     }
-  
+
     private PredictAdapter getEditLocationAdapter()
     {
         return predictAdapter;
     }
-    
+
     private void setMethods(List<MethodItem> methods)
     {
         MethodAdapter typeAdapter = new MethodAdapter(getActivity(), R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
     }
-    
+
     public void setAddress(Address address)
     {
         this.address = address;
 
-        //searchButton.setEnabled(true);
-        
         if (address != null)
             currentLocation.setText(TradeUtils.getAddressShort(address));
     }
@@ -414,74 +436,85 @@ public class SearchFragment extends BaseFragment
 
     public void startLocationCheck()
     {
-        if(!geoLocationService.isGooglePlayServicesAvailable()) {
+        if (!geoLocationService.isGooglePlayServicesAvailable()) {
+            hideProgress();
             missingGooglePlayServices();
-            getAddressFromLocation(null);
             return;
         }
 
-        if(hasLocationServices()) {
+        if (!isNetworkConnected()) {
+            handleError(new Throwable(getString(R.string.error_no_internet)), true);
+            return;
+        }
 
-            geoLocationService.start();
-            
-            locationSubscription = locationObservable.subscribe(new Action1<Location>()
+        if (hasLocationServices()) {
+
+            Timber.d("hasLocationServices");
+
+            methodLocationSubscription = Observable.combineLatest(methodObservable, addressObservable, new Func2<List<MethodItem>, Address, LocationData>()
             {
                 @Override
-                public void call(Location location)
+                public LocationData call(List<MethodItem> methods, Address address)
                 {
-                    geoLocationService.stop();
-                    getAddressFromLocation(location);
+                    Timber.d("Address: " + address);
+
+                    LocationData data = new LocationData();
+                    data.methods = methods;
+                    data.address = address;
+                    return data;
                 }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    if (throwable.getMessage().equals("1")) {
-                        showEnableLocation();
-                        getAddressFromLocation(null);
-                    } else {
-                        getAddressFromLocation(null);
-                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                    }
-                }
-            }, new Action0()
-            {
-                @Override
-                public void call()
-                {
-                    geoLocationService.stop();
-                }
-            });
-            
+            })
+
+                    .subscribe(new Action1<LocationData>()
+                    {
+                        @Override
+                        public void call(LocationData data)
+                        {
+                            hideProgress();
+
+                            if (!data.methods.isEmpty()) {
+                                setMethods(data.methods);
+                                setAddress(data.address);
+                            }
+                        }
+                    }, new Action1<Throwable>()
+                    {
+                        @Override
+                        public void call(Throwable throwable)
+                        {
+                            hideProgress();
+                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                        }
+                    });
+
         } else {
             showEnableLocation();
         }
     }
 
-    public void stopLocationCheck()
-    {
-        geoLocationService.stop();
-    }
-
     private void showEnableLocation()
     {
-        createAlert(getString(R.string.warning_no_location_active), false);
+        createAlert(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active), false);
     }
 
     private void missingGooglePlayServices()
     {
-        createAlert(getString(R.string.warning_no_google_play_services), true);
+        createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
     }
 
-    public void createAlert( String message, final boolean googlePlay)
+    public void createAlert(String title, String message, final boolean googlePlay)
     {
-        Snackbar.make(getActivity().findViewById(R.id.coordinatorLayout), message, Snackbar.LENGTH_LONG)
-                .setAction("Install", new View.OnClickListener() {
+        int positiveButton = (googlePlay) ? R.string.button_install : R.string.button_enable;
+        new AlertDialog.Builder(getActivity())
+                .setTitle(title)
+                .setMessage(message)
+                .setNegativeButton(R.string.button_cancel, null)
+                .setPositiveButton(positiveButton, new DialogInterface.OnClickListener()
+                {
                     @Override
-                    public void onClick(View view)
+                    public void onClick(DialogInterface dialogInterface, int i)
                     {
-                        if(googlePlay) {
+                        if (googlePlay) {
                             installGooglePlayServices();
                         } else {
                             openLocationServices();
@@ -506,97 +539,63 @@ public class SearchFragment extends BaseFragment
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appPackageName)));
         }
     }
-
-    public boolean hasLocationServices()
+    
+    private boolean hasLocationServices()
     {
         return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
     }
-    
-    public void getAddressFromLocation(final Location location)
+
+    private boolean isNetworkConnected()
     {
-        methodSubscription = methodObservable.subscribe(new Action1<List<MethodItem>>()
-        {
-            @Override
-            public void call(List<MethodItem> methodItems)
-            {
-                setMethods(methodItems);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                reportError(throwable);
-            }
-        });
-        
-        if (location != null) {
-            
-            geoDecodeObservable = bindFragment(this, geoLocationService.geoDecodeLocation(location));
-            geoDecodeSubscription = geoDecodeObservable.subscribe(new Action1<List<Address>>()
-            {
-                @Override
-                public void call(List<Address> addresses)
-                {
-                    if (!addresses.isEmpty()) {
-                        setAddress(addresses.get(0));
-                    }
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                }
-            });
-        }
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        return networkInfo != null;
     }
-    
+
     private void doAddressLookup(String locationName)
     {
         geoLocationObservable = bindFragment(this, geoLocationService.geoGetLocationFromName(locationName));
-        geoLocationSubscriptoin = geoLocationObservable.subscribe(new Action1<List<Address>>()
-        {
-            @Override
-            public void call(List<Address> addresses)
-            {
-                if (!addresses.isEmpty()) {
-                    getEditLocationAdapter().replaceWith(addresses);
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-            }
-        });
+        geoLocationSubscription = geoLocationObservable
+                .subscribe(new Action1<List<Address>>()
+                {
+                    @Override
+                    public void call(List<Address> addresses)
+                    {
+                        if (!addresses.isEmpty()) {
+                            getEditLocationAdapter().replaceWith(addresses);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                    }
+                });
     }
-    
+
     private MethodItem getPaymentMethod()
     {
-        if(paymentMethodSpinner.getAdapter().getCount() > 0) {
+        if (paymentMethodSpinner.getAdapter().getCount() > 0) {
             int position = paymentMethodSpinner.getSelectedItemPosition();
             return (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
         }
-        
+
         return null;
     }
     
-    // TODO don't load payment methods unless needed
     private void showSearchResultsScreen()
     {
-        if(!geoLocationService.isGooglePlayServicesAvailable()) {
+        if (!geoLocationService.isGooglePlayServicesAvailable()) {
             missingGooglePlayServices();
             return;
         }
-        
-        if(hasLocationServices()) {
+
+        if (hasLocationServices()) {
             MethodItem paymentMethod = getPaymentMethod();
-            String methodCode = (paymentMethod != null)? paymentMethod.code():null;
+            String methodCode = (paymentMethod != null) ? paymentMethod.code() : null;
             Intent intent = SearchResultsActivity.createStartIntent(getActivity(), tradeType, address, methodCode);
             startActivity(intent);
         } else {

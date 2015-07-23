@@ -298,8 +298,6 @@ public class PinCodeActivity extends BaseActivity
 
     private void onSetPinCodeClick(String pinCode)
     {
-        sendingInProgress = true;
-        
         validatePinCode(pinCode, address, amount);
     }
 
@@ -310,11 +308,13 @@ public class PinCodeActivity extends BaseActivity
         if (keyCode == KeyEvent.KEYCODE_BACK && sendingInProgress) {   
             return false;
         }
-        return super.onKeyDown(keyCode, event);
+
+        return true;
     }
 
     private void validatePinCode(final String pinCode, final String address, final String amount)
     {
+        sendingInProgress = true; // we are sending pin
         validateObservable = bindActivity(this, dataService.validatePinCode(pinCode));
         subscription = validateObservable.subscribe(new Action1<JSONObject>()
         {
@@ -336,9 +336,13 @@ public class PinCodeActivity extends BaseActivity
 
                     } else {
                         Timber.d(object.toString());
+                        toast(R.string.toast_pin_code_invalid);
+                        finish();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    toast(R.string.toast_pin_code_invalid);
+                    finish();
                 }
             }
         }, new Action1<Throwable>()
@@ -346,7 +350,7 @@ public class PinCodeActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                handleError(new Throwable(getString(R.string.toast_pin_code_invalid)), false);
+                toast(R.string.toast_pin_code_invalid);
                 finish();
             }
         });

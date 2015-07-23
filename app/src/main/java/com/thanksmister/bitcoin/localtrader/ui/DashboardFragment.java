@@ -50,6 +50,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
@@ -214,8 +215,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
      */
     public static DashboardFragment newInstance()
     {
-        DashboardFragment fragment = new DashboardFragment();
-        return fragment;
+        return new DashboardFragment();
     }
 
     public DashboardFragment()
@@ -307,6 +307,17 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         setupFab();
     }
 
+    public void onActivityResult(int requestCode, int resultCode, Intent intent)
+    {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if(requestCode == EditActivity.REQUEST_CODE) {
+            if (resultCode == EditActivity.RESULT_CREATED || resultCode == EditActivity.RESULT_UPDATED ) {
+                updateData(true);
+            }
+        }
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) 
     {
@@ -375,8 +386,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public void onRefresh()
     {
-        onRefreshStart();
-        updateData(false);
+        updateData(true);
+        SyncUtils.TriggerRefresh(getActivity().getApplicationContext());
     }
     
     public void onRefreshStart()
@@ -624,7 +635,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         Intent intent = EditActivity.createStartIntent(getActivity(), true, null);
         intent.setClass(getActivity(), EditActivity.class);
-        getActivity().startActivity(intent);
+        getActivity().startActivityForResult(intent, EditActivity.REQUEST_CODE);
     }
     
     protected void setAppBarText(ExchangeItem exchange)

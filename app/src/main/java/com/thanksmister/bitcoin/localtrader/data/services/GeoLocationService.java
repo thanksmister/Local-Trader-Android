@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.location.Address;
@@ -29,9 +30,13 @@ import android.os.Handler;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
@@ -39,10 +44,12 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Place;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.AddressToStringFunc;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToPlace;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.rx.EndObserver;
+import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
@@ -52,6 +59,7 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
+import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -75,6 +83,7 @@ public class GeoLocationService
     private static final String API_URL = "http://maps.googleapis.com";
 
     public final static String MODE_DRIVING = "driving";
+    public final static int MAX_ADDRESSES = 5;
 
     private BaseApplication application;
     private LocalBitcoins localBitcoins;
@@ -130,7 +139,37 @@ public class GeoLocationService
         this.application = application;
         this.localBitcoins = localBitcoins;
        
-        setupLocationProvider();
+        //setupLocationProvider();
+    }
+    
+    public Observable<Address> getUpdatedLocation()
+    {
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(application.getApplicationContext());
+        
+        final LocationRequest locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setNumUpdates(1)
+                .setInterval(1000);
+
+        return locationProvider.getUpdatedLocation(locationRequest)
+                .flatMap(new Func1<Location, Observable<List<Address>>>() {
+                    @Override
+                    public Observable<List<Address>> call(Location location) {
+                        return locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1);
+                    }
+                })
+                .map(new Func1<List<Address>, Address>() {
+                    @Override
+                    public Address call(List<Address> addresses) {
+                        return addresses != null && !addresses.isEmpty() ? addresses.get(0) : null;
+                    }
+                });
+    }
+    
+    public Observable<List<Address>> geoGetLocationFromName(String userQuery)
+    {
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(application.getApplicationContext());
+        return locationProvider.getGeocodeObservable(userQuery, MAX_ADDRESSES);
     }
     
     public void getTravelTimeToMeetingPlace(double originLat, double originLon, double destinationLat, double destinationLon)
@@ -256,11 +295,11 @@ public class GeoLocationService
 
     public void stop()
     {
-        if (googleApiClient.isConnected())
+        /*if (googleApiClient.isConnected())
             googleApiClient.disconnect();
 
         if(behaviorSubject != null)
-            behaviorSubject.onCompleted();
+            behaviorSubject.onCompleted();*/
     }
 
     private Observable<Location> getLocation()
@@ -404,7 +443,7 @@ public class GeoLocationService
         });
     }
 
-    public Observable<List<Address>> geoGetLocationFromName(final String locationName)
+    /*public Observable<List<Address>> geoGetLocationFromName(final String locationName)
     {
         if(Strings.isBlank(locationName) || locationName.length() < 3) {
             return Observable.empty();
@@ -425,5 +464,5 @@ public class GeoLocationService
                 }  
             }
         });
-    }
+    }*/
 }

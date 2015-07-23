@@ -52,6 +52,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
+import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -453,6 +454,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public void call(List<Contact> contacts)
                     {
                         Timber.e("List of Deleted Contacts Size: " + contacts.size());
+                        
                         if(!contacts.isEmpty())
                             notificationService.contactDeleteNotification(contacts);
                     }
@@ -534,7 +536,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-                        Timber.d("Access Token: " + sessionItem.access_token());
+                        //Timber.d("Access Token: " + sessionItem.access_token());
                         return Observable.just(Observable.from(contactIds)
                                 .flatMap(new Func1<String, Observable<? extends List<Contact>>>()
                                 {
@@ -802,7 +804,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
         
         if(!newContacts.isEmpty())
-         notificationService.contactNewNotification(newContacts);
+            notificationService.contactNewNotification(newContacts);
 
         if(!updatedNotifyContacts.isEmpty())
             notificationService.contactUpdateNotification(updatedNotifyContacts);
@@ -872,14 +874,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
         subscription.unsubscribe();
 
+        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
+        String username = stringPreference.get();
+        
         for (Message item : newMessages) {
+            
             contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(item).build());
             Contact contact = contactMap.get(item.contact_id);
-            contact.hasUnseenMessages = true;
+            
+            if(!item.sender.username.equals(username)) {
+                contact.hasUnseenMessages = true; 
+            }
         }
 
         if(!newMessages.isEmpty())
-         notificationService.messageNotifications(newMessages);
+            notificationService.messageNotifications(newMessages);
 
         for (String id : deletedMessages) {
             contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});

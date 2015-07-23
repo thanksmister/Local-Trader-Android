@@ -396,17 +396,16 @@ public class DataService
                 });
     }
 
-    public Observable<Advertisement> createAdvertisement(final Advertisement advertisement)
+    public Observable<JSONObject> createAdvertisement(final Advertisement advertisement)
     {
         return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Advertisement>>()
+                .flatMap(new Func1<SessionItem, Observable<JSONObject>>()
                 {
                     @Override
-                    public Observable<Advertisement> call(SessionItem sessionItem)
+                    public Observable<JSONObject> call(SessionItem sessionItem)
                     {
                         return createAdvertisementObservable(advertisement, sessionItem.access_token())
-                                .onErrorResumeNext(refreshTokenAndRetry(createAdvertisementObservable(advertisement, sessionItem.access_token())))
-                                .map(new ResponseToAd());
+                                .onErrorResumeNext(refreshTokenAndRetry(createAdvertisementObservable(advertisement, sessionItem.access_token())));
                     }
                 });
     }
@@ -419,7 +418,7 @@ public class DataService
     Optional arguments: min_amount, max_amount, opening_hours
     trade_type and online_provider
      */
-    private Observable<Response> createAdvertisementObservable(final Advertisement advertisement, String access_token)
+    private Observable<JSONObject> createAdvertisementObservable(final Advertisement advertisement, String access_token)
     {
         String city;
         if(Strings.isBlank(advertisement.city)){
@@ -433,7 +432,8 @@ public class DataService
                 String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
                 String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
-                String.valueOf(advertisement.trusted_required), advertisement.message);
+                String.valueOf(advertisement.trusted_required), advertisement.message, advertisement.currency)
+                .map(new ResponseToJSONObject());
     }
 
     public Observable<JSONObject> postMessage(final String contact_id, final String message)

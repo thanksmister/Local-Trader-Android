@@ -17,7 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -45,7 +44,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -56,9 +54,8 @@ import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
-import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.bitcoin.QRCodeActivity;
+import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -75,11 +72,9 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
@@ -120,6 +115,9 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
     @InjectView(R.id.balanceText)
     TextView balance;
+    
+    @InjectView(R.id.balanceTitle)
+    TextView balanceTitle;
 
     @InjectView(R.id.address)
     TextView addressText;
@@ -172,12 +170,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         public WalletItem wallet;
         public ExchangeItem exchange;
     }
-
-    private class WalletUpdateData {
-        public Wallet wallet;
-        public Exchange exchange;
-    }
-
+    
     public static RequestFragment newInstance(String address, String amount)
     {
         RequestFragment fragment = new RequestFragment();
@@ -265,7 +258,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     {
         switch (item.getItemId()) {
             case R.id.action_paste:
-                if(transactionType == WalletTransactionType.SEND) {
+                if(transactionType == WalletTransactionType.REQUEST) {
                     setAmountFromClipboard();
                 } else {
                     setAddressFromClipboard();
@@ -371,7 +364,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         }
 
         String[] spinnerTitles = getResources().getStringArray(R.array.list_transaction_types);
-        List<String> stringList = new ArrayList<String>(Arrays.asList(spinnerTitles));
+        List<String> stringList = new ArrayList<>(Arrays.asList(spinnerTitles));
         SpinnerAdapter transactionAdapter = new SpinnerAdapter(getActivity(), R.layout.spinner_layout, stringList);
         setSpinnerAdapter(transactionAdapter);
 
@@ -397,11 +390,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     {
         super.onResume();
 
-        onRefreshStart();
-        
         subscribeData();
-
-        updateData();
     }
     
     @Override
@@ -425,7 +414,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     @Override
     public void onRefresh()
     {
-        onRefreshStart();
         updateData();
     }
 
@@ -495,26 +483,15 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     private void updateData()
     {
         updateSubscriptions = new CompositeSubscription();
-        
-        updateSubscriptions.add(Observable.combineLatest(updateExchangeObservable, updateWalletBalanceObservable, new Func2<Exchange, Wallet, WalletUpdateData>()
+        updateSubscriptions.add(updateWalletBalanceObservable.subscribe(new Action1<Wallet>()
         {
             @Override
-            public WalletUpdateData call(Exchange exchange, Wallet wallet)
-            {
-                WalletUpdateData updateData = new WalletUpdateData();
-                updateData.exchange = exchange;
-                updateData.wallet = wallet;
-                return updateData;
-            }
-        }).subscribe(new Action1<WalletUpdateData>()
-        {
-            @Override
-            public void call(WalletUpdateData walletData)
+            public void call(Wallet wallet)
             {
                 onRefreshStop();
-                updateWallet(walletData.wallet);
-                updateExchange(walletData.exchange);
+                updateWallet(wallet);
             }
+
         }, new Action1<Throwable>()
         {
             @Override
@@ -523,24 +500,34 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                 onRefreshStop();
                 handleError(throwable, true);
             }
-        }, new Action0()
+        }));
+
+        updateSubscriptions.add(updateExchangeObservable.subscribe(new Action1<Exchange>()
         {
             @Override
-            public void call()
+            public void call(Exchange exchange)
+            {
+                updateExchange(exchange);
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
             {
                 onRefreshStop();
+                reportError(throwable);
             }
         }));
+    }
+    
+    private void updateWallet(Wallet wallet)
+    {
+        dbManager.updateWallet(wallet);
     }
     
     private void updateExchange(Exchange exchange)
     {
         dbManager.updateExchange(exchange);
-    }
-
-    private void updateWallet(Wallet wallet)
-    {
-        dbManager.updateWallet(wallet);
     }
 
     private void promptForPin(String bitcoinAddress, String bitcoinAmount)
@@ -556,8 +543,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         startActivity(intent);
     }
     
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    @SuppressWarnings("deprecation")
     public void setAddressFromClipboard()
     {
         String clipText = getClipboardText();
@@ -589,9 +574,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             toast(R.string.toast_invalid_address);
         }
     }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    @SuppressWarnings("deprecation")
+    
     public void setAmountFromClipboard()
     {
         String clipText = getClipboardText();
@@ -610,7 +593,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     private String getClipboardText()
     {
         String clipText = "";
-        ClipboardManager clipboardManager = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);;
+        ClipboardManager clipboardManager = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             ClipData clip = clipboardManager.getPrimaryClip();
             if(clip != null) {
@@ -627,7 +610,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     
     public void pinCodeEvent(String pinCode, String address, String amount)
     {
-        ((BaseActivity) getActivity()).showProgressDialog(new ProgressDialogEvent("Sending bitcoin..."));
+        showProgressDialog(new ProgressDialogEvent("Sending bitcoin..."));
 
         sendPinCodeMoneyObservable = bindFragment(this, dataService.sendPinCodeMoney(pinCode, address, amount));
         sendPinCodeMoneyObservable.subscribe(new Action1<Boolean>()
@@ -635,12 +618,8 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             @Override
             public void call(Boolean aBoolean)
             {
-                ((BaseActivity) getActivity()).hideProgressDialog();
-
-                subscribeData();
-
+                hideProgressDialog();
                 resetWallet();
-
                 toast(R.string.toast_transaction_success);
             }
         }, new Action1<Throwable>()
@@ -648,8 +627,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             @Override
             public void call(Throwable throwable)
             {
-                ((BaseActivity) getActivity()).hideProgressDialog();
-
+                hideProgressDialog();
                 handleError(throwable);
             }
         });
@@ -672,6 +650,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
     public void resetWallet()
     {
+        updateData(); // refresh wallet data
         amountText.setText("");
         addressText.setText("");
         calculateCurrencyAmount("0.00");
@@ -695,7 +674,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         if(walletData == null) return;
         
         WalletItem wallet = walletData.wallet;
-        ExchangeItem exchange = walletData.exchange;
+        //ExchangeItem exchange = walletData.exchange;
         
         boolean cancel = false;
 
@@ -757,19 +736,25 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     protected void computeBalance(double btcAmount)
     {
         if(walletData == null) return;
+        
         WalletItem wallet = walletData.wallet;
         ExchangeItem exchange = walletData.exchange;
         
-        double balanceAmount = Conversions.convertToDouble(wallet.balance());
-        String btcBalance = Conversions.formatBitcoinAmount(balanceAmount - btcAmount);
-        
-        String value = WalletUtils.getBitcoinValue(exchange, wallet);
+        if(transactionType == WalletTransactionType.SEND) {
+            
+            double balanceAmount = Conversions.convertToDouble(wallet.balance());
+            String btcBalance = Conversions.formatBitcoinAmount(balanceAmount - btcAmount);
+            String value = WalletUtils.getBitcoinValue(exchange, wallet);
 
-        if(balanceAmount < btcAmount) {
-            balance.setText(Html.fromHtml(getString(R.string.form_balance_negative, btcBalance, value)));
-        } else {
-            balance.setText(Html.fromHtml(getString(R.string.form_balance_positive, btcBalance, value)));
-        }
+            if(balanceAmount < btcAmount) {
+                balance.setText(Html.fromHtml(getString(R.string.form_balance_negative, btcBalance, value)));
+            } else {
+                balance.setText(Html.fromHtml(getString(R.string.form_balance_positive, btcBalance, value)));
+            }
+
+            balanceTitle.setText(getString(R.string.form_balance_label));
+            
+        } 
     }
 
     private void calculateBitcoinAmount(String usd)

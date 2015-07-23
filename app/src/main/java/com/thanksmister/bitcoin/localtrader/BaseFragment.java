@@ -21,6 +21,7 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.squareup.leakcanary.RefWatcher;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import butterknife.ButterKnife;
@@ -90,8 +91,23 @@ public abstract class BaseFragment extends Fragment
         ((MainActivity) getActivity()).snack(message, false);
     }
 
+    protected void snack(String message, boolean retry)
+    {
+        ((MainActivity) getActivity()).snack(message, retry);
+    }
+
     protected int getColor(int colorRes)
     {
         return getResources().getColor(colorRes);
+    }
+    
+    public void showProgressDialog(ProgressDialogEvent event)
+    {
+        ((BaseActivity) getActivity()).showProgressDialog(event);
+    }
+
+    public void hideProgressDialog()
+    {
+        ((BaseActivity) getActivity()).hideProgressDialog();
     }
 }

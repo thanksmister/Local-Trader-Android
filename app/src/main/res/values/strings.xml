@@ -333,6 +333,7 @@
     <string name="receive_header_text">Enter the amount to request (can be blank)</string>
     <string name="hint_bitcoin_address">Bitcoin address</string>
     <string name="form_balance_label">Available balance</string>
+    <string name="form_market_label">Market rate</string>
     <string name="form_value_label">Value (Bitstamp)</string>
     <string name="button_qr_code">QR Code</string>
     <string name="progress_generating_code">Generating code...</string>
@@ -341,6 +342,7 @@
 
     <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s USD</font>]]></string>
     <string name="form_balance_positive"><![CDATA[<font color="#ff67932c">%1$s BTC / %2$s USD</font>]]></string>
+    <string name="form_rate"><![CDATA[<font color="#ff67932c">%1$s USD / 1 BTC</font>]]></string>
 
     <string name="pin_code_send"><![CDATA[A PIN code is required to send Bitcoin from your wallet or release trades. PIN code info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
     <string name="pin_code_description_text"><![CDATA[Enter your PIN code to release this trade:]]></string>
@@ -456,5 +458,6 @@
     <string name="error_invalid_credentials">Access denied, invalid credentials</string>
     <string name="message_advertisement_changed">Advertisement changed successfully!</string>
     <string name="button_search_trades">Search Trades</string>
+    <string name="dialog_send_message">Sending message...</string>
 
 </resources>

@@ -16,7 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -28,7 +27,6 @@ import android.support.v7.app.ActionBar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
@@ -147,7 +145,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     protected void onSaveInstanceState(Bundle outState)
     {
         //No call for super(). Bug on API Level > 11.
-        //super.onSaveInstanceState(outState);
         outState.putInt(EXTRA_FRAGMENT, position);
     }
     
@@ -228,7 +225,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         drawerLayout.closeDrawers();
     }
     
-    private void setInitialFragment(int position)
+    /*private void setInitialFragment(int position)
     {
         FragmentManager fragmentManager = getFragmentManager();
         if(fragmentManager.findFragmentByTag(DASHBOARD_FRAGMENT) == null) {
@@ -236,7 +233,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         } else {
             setContentFragment(position);
         }
-    }
+    }*/
     
     private void setContentFragment(int position)
     {
@@ -297,7 +294,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     public void onNetworkEvent(NetworkEvent event)
     {
         if (event == NetworkEvent.DISCONNECTED) {
-            snack(R.string.error_no_internet, true);
+            boolean retry = (position == DRAWER_DASHBOARD || position == DRAWER_WALLET);
+            snack(getString(R.string.error_no_internet), retry);
         }
     }
 
@@ -349,7 +347,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             if (scanningResult != null) {
                 handleBitcoinUri(scanningResult.getContents());
             } else {
-                Toast.makeText(this, getString(R.string.toast_scan_canceled), Toast.LENGTH_SHORT).show();
+                toast(getString(R.string.toast_scan_canceled));
             }
         }
     }
@@ -360,15 +358,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
 
         if(bitcoinAddress == null) {
-            Toast.makeText(this, getString(R.string.toast_scan_canceled), Toast.LENGTH_SHORT).show();
+            toast(getString(R.string.toast_scan_canceled));
             return;
         } else if(!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-            Toast.makeText(this, getString(R.string.toast_invalid_address), Toast.LENGTH_SHORT).show();
+            toast(getString(R.string.toast_invalid_address));
             return;
         }
 
         if(bitcoinAmount != null && !WalletUtils.validAmount(bitcoinAmount)) {
-            Toast.makeText(this, getString(R.string.toast_invalid_btc_amount), Toast.LENGTH_SHORT).show();
+            toast(getString(R.string.toast_invalid_btc_amount));
             bitcoinAmount = null; // set it to null and show toast
         }
 
@@ -387,6 +385,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT || type == NotificationUtils.NOTIFICATION_TYPE_MESSAGE ) {
             
            String contactId = extras.getString(EXTRA_CONTACT);
+            
             if(contactId != null) {
                 Intent contactIntent = ContactActivity.createStartIntent(this, contactId, DashboardType.ACTIVE);
                 startActivity(contactIntent);
@@ -394,6 +393,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_BALANCE) {
             setContentFragment(DRAWER_WALLET);
+            bus.post(NavigateEvent.WALLET);
         }
     }
 
@@ -404,13 +404,4 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             launchScanner();
         }
     }
-
-   /* @Subscribe
-    public void onNetworkEvent(NetworkEvent event)
-    {
-        if (event == NetworkEvent.DISCONNECTED) {
-            boolean retry = (position == DRAWER_DASHBOARD || position == DRAWER_WALLET);
-            snack(getString(R.string.error_no_internet), retry); 
-        }
-    }*/
 }

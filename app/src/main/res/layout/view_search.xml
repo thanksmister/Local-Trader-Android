@@ -47,11 +47,18 @@
                 android:layout_height="match_parent"
                 android:fillViewport="true">
 
+        <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            
             <LinearLayout
                     android:id="@+id/searchContent"
                     android:orientation="vertical"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    tools:visibility="visible"
+                    android:visibility="invisible">
 
                 <LinearLayout
                         android:layout_width="match_parent"
@@ -277,7 +284,16 @@
                 </FrameLayout>
 
             </LinearLayout>
+
+            <include
+                    android:id="@+id/searchProgress"
+                    layout="@layout/view_progress"
+                    android:visibility="visible"
+                    tools:visibility="visible"/>
+
             
+        </FrameLayout>
+
     </android.support.v4.widget.NestedScrollView>
     
     </android.support.v4.widget.SwipeRefreshLayout>

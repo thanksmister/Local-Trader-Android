@@ -54,6 +54,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.functions.Action1;
+import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindActivity;
 
@@ -227,11 +228,15 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     
     public void showError(String message)
     {
-        progress.setVisibility(View.GONE);
-        list.setVisibility(View.GONE);
+        try {
+            progress.setVisibility(View.GONE);
+            list.setVisibility(View.GONE);
 
-        empty.setVisibility(View.VISIBLE);
-        emptyTextView.setText(message);
+            empty.setVisibility(View.VISIBLE);
+            emptyTextView.setText(message); 
+        } catch (NullPointerException e){
+            Timber.e(e.toString());
+        }
     }
     
     public void hideProgress()

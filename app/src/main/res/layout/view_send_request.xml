@@ -39,10 +39,11 @@
             android:id="@+id/swipeLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-        
+     
     <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fillViewport="true">
         
             <LinearLayout
                     android:id="@+id/tradeContent"
@@ -70,7 +71,7 @@
                         style="@style/DividerHorizontal"
                         android:layout_width="match_parent"
                         android:layout_height="1dp"/>
-
+                
                 <LinearLayout
                         android:id="@+id/addressLayout"
                         android:layout_width="match_parent"
@@ -95,8 +96,10 @@
                             android:layout_height="wrap_content"
                             android:id="@+id/address"
                             style="@style/TextLarge.SmallAction"
+                            android:singleLine="true"
                             android:theme="@style/EditTextTheme"
-                            android:hint="@string/hint_bitcoin_address"/>
+                            android:hint="@string/hint_bitcoin_address"
+                            android:nextFocusDown="@+id/amountText"/>
 
                 </LinearLayout>
 
@@ -138,7 +141,8 @@
                                     android:layout_weight="1"
                                     android:gravity="center"
                                     android:theme="@style/EditTextTheme"
-                                    android:hint="@string/hint_bitcoin"/>
+                                    android:hint="@string/hint_bitcoin"
+                                    android:nextFocusDown="@+id/buttonLayout"/>
 
                             <View
                                     android:layout_width="8dp"
@@ -168,10 +172,12 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     style="@style/TextLarge.SmallAction"
+                                    android:inputType="numberDecimal"
                                     android:singleLine="true"
                                     android:layout_weight="1"
                                     android:gravity="center"
-                                    android:hint="@string/hint_amount"/>
+                                    android:hint="@string/hint_amount"
+                                    android:nextFocusForward="@+id/buttonLayout"/>
 
                             <View
                                     android:layout_width="8dp"
@@ -194,17 +200,6 @@
 
                     </LinearLayout>
 
-                    <TextView
-
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="left"
-                            android:layout_marginTop="2dp"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:text="≈ 0.00 USD"
-                            style="@style/TextSmall.Green"
-                            android:visibility="gone"/>
-
                 </LinearLayout>
 
                 <View
@@ -218,6 +213,7 @@
                         android:orientation="vertical">
 
                     <TextView
+                            android:id="@+id/balanceTitle"
                             style="@style/TextSmall"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -250,6 +246,7 @@
 
                 </LinearLayout>
 
+
                 <View
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/activity_padding"/>
@@ -266,6 +263,7 @@
                             style="@style/ButtonGreen"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:nextFocusUp="@id/amountText"
                             android:text="Send"/>
 
                     <Button
@@ -275,6 +273,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Create Request"
+                            android:nextFocusUp="@id/amountText"
                             android:visibility="gone"/>
 
                     <View

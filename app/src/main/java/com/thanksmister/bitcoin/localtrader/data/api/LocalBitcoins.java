@@ -106,7 +106,8 @@ public interface LocalBitcoins
                                              @Field("location_string") String location_string, @Field("countrycode") String countrycode,
                                              @Field("account_info") String account_info, @Field("bank_name") String bank_name,
                                              @Field("sms_verification_required") String sms_verification_required, @Field("track_max_amount") String track_max_amount,
-                                             @Field("require_trusted_by_advertiser") String require_trusted_by_advertiser, @Field("msg") String msg);
+                                             @Field("require_trusted_by_advertiser") String require_trusted_by_advertiser, @Field("msg") String msg, 
+                                             @Field("currency") String currency);
 
     @POST("/api/contact_dispute/{contact_id}/")
     Observable<Response> contactDispute(@Path("contact_id") String contact_id, @Query("access_token") String token);
