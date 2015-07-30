@@ -19,7 +19,7 @@
     package="com.thanksmister.bitcoin.localtrader" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />-->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -45,6 +45,7 @@
         <meta-data
             android:name="com.crashlytics.ApiKey"
             android:value="6aa105ab19b074264f7333064640f494720b90f1" />
+        
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -59,12 +60,6 @@
                 android:authorities="com.thanksmister.bitcoin.localtrader.provider"
                 android:exported="false"
                 android:syncable="true"/>
-
-        <!--<provider
-                android:name=".data.services.StubProvider"
-                android:exported="false"
-                android:syncable="true"
-                android:authorities="com.thanksmister.bitcoin.localtrader.provider"/>-->
 
         <!-- Services -->
         <service android:name=".data.services.AuthenticatorService" >
@@ -144,8 +139,7 @@
                <data android:scheme="bitcoin" />
            </intent-filter>
        </activity>
-
-
+        
     </application>
 
 </manifest>

@@ -279,7 +279,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                 @Override
                 public void call(final List<MethodItem> methodItems)
                 {
-                    MethodItem method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
+                    String method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
                     advertisementsObservable = bindActivity(SearchResultsActivity.this, geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method));
                     advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
                     {

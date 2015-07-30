@@ -217,7 +217,6 @@ public class EditActivity extends BaseActivity
     public void clearButtonClicked()
     {
         showSearchLayout();
-        stopLocationCheck(); // stop current check
     }
 
     @OnClick(R.id.mapButton)
@@ -225,7 +224,6 @@ public class EditActivity extends BaseActivity
     {
         showMapLayout();
         currentLocation.setText("- - - -");
-        stopLocationCheck(); // stop current check
         startLocationCheck(); // get new location
     }
 
@@ -841,11 +839,6 @@ public class EditActivity extends BaseActivity
         } else {
             showEnableLocationDialog();
         }
-    }
-
-    public void stopLocationCheck()
-    {
-        geoLocationService.stop();
     }
 
     private void showEnableLocationDialog()

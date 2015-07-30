@@ -131,10 +131,10 @@ public class DataService
     {
         Timber.d("Get Exchange");
         
-        if (!needToRefreshExchanges()) {
+        /*if (!needToRefreshExchanges()) {
             return Observable.empty();
         }
-
+*/
         return bitfinexExchange.ticker()
                 .map(new ResponseBitfinexToExchange())
                 .doOnNext(new Action1<Exchange>()
@@ -768,6 +768,13 @@ public class DataService
                         setMethodsExpireTime();
                     }
                 })
+                .map(new ResponseToMethod());
+    }
+
+    public Observable<List<Method>> getMethods(String countryCode)
+    {
+        Timber.d("Get Methods");
+        return localBitcoins.getOnlineProviders(countryCode)
                 .map(new ResponseToMethod());
     }
     

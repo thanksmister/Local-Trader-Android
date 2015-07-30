@@ -495,7 +495,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(Throwable throwable)
             {
                 onRefreshStop();
-                reportError(throwable);
+                handleError(throwable, true);
             }
         }));
 
@@ -512,7 +512,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(Throwable throwable)
             {
                 onRefreshStop();
-                reportError(throwable);
+                handleError(throwable, true);
             }
         }));
 

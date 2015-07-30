@@ -411,12 +411,24 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             onlinePaymentLayout.setVisibility(View.GONE);
         }
 
-        if(advertisement.max_amount() == null) {
+        if(advertisement.atm_model() != null) {
+            tradeLimit.setText("");
+        } else if(advertisement.min_amount() == null) {
+            tradeLimit.setText("");
+        } else if(advertisement.max_amount() == null) {
             tradeLimit.setText(getString(R.string.trade_limit_min, advertisement.min_amount(), advertisement.currency()));
         } else { // no maximum set
             tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount(), advertisement.max_amount(), advertisement.currency()));
         }
-
+        
+        /*if(advertisement.max_amount() == null && advertisement.min_amount() != null) {
+            tradeLimit.setText(getString(R.string.trade_limit_min, advertisement.min_amount(), advertisement.currency()));
+        } else if (advertisement.min_amount() != null && advertisement.max_amount() != null) { // no maximum set
+            tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount(), advertisement.max_amount(), advertisement.currency()));
+        } else {
+            tradeLimit.setText("");
+        }
+*/
         priceEquation.setText(advertisement.price_equation());
         
         /*if(!Strings.isBlank(advertisement.message())){

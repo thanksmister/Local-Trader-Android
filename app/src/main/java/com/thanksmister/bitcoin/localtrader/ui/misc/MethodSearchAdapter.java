@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright 2007 ZXing authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. 
@@ -31,12 +31,12 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import java.util.Collections;
 import java.util.List;
 
-public class MethodAdapter extends ArrayAdapter<MethodItem>
+public class MethodSearchAdapter extends ArrayAdapter<Method>
 {
     private Context context;
-    private List<MethodItem> items = Collections.emptyList();
+    private List<Method> items = Collections.emptyList();
 
-    public MethodAdapter(Context _context, int _resource, List<MethodItem> _items)
+    public MethodSearchAdapter(Context _context, int _resource, List<Method> _items)
     {
         super(_context, _resource, _items);
         context = _context;
@@ -59,7 +59,7 @@ public class MethodAdapter extends ArrayAdapter<MethodItem>
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).name());
+        spinnerTarget.setText(items.get(position).name);
 
         return convertView;
     }
@@ -73,7 +73,7 @@ public class MethodAdapter extends ArrayAdapter<MethodItem>
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).name());
+        spinnerTarget.setText(items.get(position).name);
 
         return convertView;
     }

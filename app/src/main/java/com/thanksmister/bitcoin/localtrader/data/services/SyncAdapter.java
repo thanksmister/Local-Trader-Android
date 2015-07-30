@@ -142,6 +142,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     }, 10000);
                 }
             }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                Timber.e(throwable.getLocalizedMessage());
+            }
         });
     }
 

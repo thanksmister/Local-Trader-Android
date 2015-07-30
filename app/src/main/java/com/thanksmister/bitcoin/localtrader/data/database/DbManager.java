@@ -95,10 +95,10 @@ public class DbManager
                     @Override
                     public Observable<Boolean> call(SessionItem sessionItem)
                     {
-                        if (sessionItem == null) {
-                            return Observable.just(false);
-                        } else {
+                        if (sessionItem != null) {
                             return Observable.just((sessionItem.access_token() != null && !Strings.isBlank(sessionItem.access_token())));
+                        } else {
+                            return Observable.just(false);
                         }
                     }
                 });

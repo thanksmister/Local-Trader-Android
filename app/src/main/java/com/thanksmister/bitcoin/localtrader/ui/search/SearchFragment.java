@@ -47,12 +47,13 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
-import com.thanksmister.bitcoin.localtrader.ui.misc.MethodAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.misc.MethodSearchAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -68,11 +69,9 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
@@ -87,6 +86,9 @@ public class SearchFragment extends BaseFragment
     @Inject
     DbManager dbManager;
 
+    @Inject
+    DataService dataService;
+    
     @Inject
     LocationManager locationManager;
 
@@ -155,8 +157,8 @@ public class SearchFragment extends BaseFragment
     private Address address;
     private PredictAdapter predictAdapter;
     private TradeType tradeType;
-
-    private Observable<List<MethodItem>> methodObservable;
+    
+    private Observable<List<Method>> methodUpdateObservable;
     private Observable<List<Address>> geoLocationObservable;
     private Observable<Address> addressObservable;
 
@@ -170,7 +172,7 @@ public class SearchFragment extends BaseFragment
     private class LocationData
     {
         public Address address;
-        public List<MethodItem> methods;
+        public List<Method> methods;
     }
 
     public static SearchFragment newInstance()
@@ -262,6 +264,10 @@ public class SearchFragment extends BaseFragment
                         tradeType = (locationSpinner.getSelectedItemPosition() == 0 ? TradeType.LOCAL_SELL : TradeType.ONLINE_SELL);
                         break;
                 }
+
+                if( (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && address != null) {
+                    getMethods(address.getCountryCode());
+                }
             }
 
             @Override
@@ -285,6 +291,10 @@ public class SearchFragment extends BaseFragment
                 }
 
                 paymentMethodLayout.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
+                
+                if( position == 1 && address != null) {
+                    getMethods(address.getCountryCode());
+                }
             }
 
             @Override
@@ -341,10 +351,10 @@ public class SearchFragment extends BaseFragment
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
-        methodObservable = bindFragment(this, dbManager.methodQuery().cache());
+        //methodObservable = bindFragment(this, dbManager.methodQuery().cache());
+        
         addressObservable = bindFragment(this,
                 geoLocationService.getUpdatedLocation()
-                        .cache()
                         .observeOn(Schedulers.io())
                         .subscribeOn(AndroidSchedulers.mainThread()));
 
@@ -398,9 +408,9 @@ public class SearchFragment extends BaseFragment
         return predictAdapter;
     }
 
-    private void setMethods(List<MethodItem> methods)
+    private void setMethods(List<Method> methods)
     {
-        MethodAdapter typeAdapter = new MethodAdapter(getActivity(), R.layout.spinner_layout, methods);
+        MethodSearchAdapter typeAdapter = new MethodSearchAdapter(getActivity(), R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
     }
 
@@ -448,23 +458,43 @@ public class SearchFragment extends BaseFragment
         }
 
         if (hasLocationServices()) {
-
-            Timber.d("hasLocationServices");
-
-            methodLocationSubscription = Observable.combineLatest(methodObservable, addressObservable, new Func2<List<MethodItem>, Address, LocationData>()
+            
+            locationSubscription = addressObservable.subscribe(new Action1<Address>()
             {
                 @Override
-                public LocationData call(List<MethodItem> methods, Address address)
+                public void call(Address address)
+                {
+                    setAddress(address);
+                    
+                    if(tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL ) {
+                        getMethods(address.getCountryCode()); 
+                    } else {
+                        hideProgress();
+                    }
+                }
+            }, new Action1<Throwable>()
+            {
+                @Override
+                public void call(Throwable throwable)
+                {
+                    hideProgress();
+                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                }
+            });
+            
+            /*methodLocationSubscription = Observable.combineLatest(methodUpdateObservable, addressObservable, new Func2<List<Method>, Address, LocationData>()
+            {
+                @Override
+                public LocationData call(List<Method> methods, Address address)
                 {
                     Timber.d("Address: " + address);
-
+                    
                     LocationData data = new LocationData();
                     data.methods = methods;
                     data.address = address;
                     return data;
                 }
             })
-
                     .subscribe(new Action1<LocationData>()
                     {
                         @Override
@@ -485,11 +515,38 @@ public class SearchFragment extends BaseFragment
                             hideProgress();
                             handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                         }
-                    });
+                    });*/
 
         } else {
             showEnableLocation();
         }
+    }
+    
+    private void getMethods(String countryCode)
+    {
+        methodUpdateObservable = bindFragment(this, dataService.getMethods(countryCode));
+        methodLocationSubscription = methodUpdateObservable.subscribe(new Action1<List<Method>>()
+        {
+            @Override
+            public void call(List<Method> methods)
+            {
+                if(!methods.isEmpty()) {
+                    Method method = new Method();
+                    method.countryCode = "all";
+                    method.name = "All";
+                    methods.add(0, method);
+                    setMethods(methods);
+                }
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                hideProgress();
+                handleError(throwable, true);
+            }
+        });
     }
 
     private void showEnableLocation()
@@ -576,13 +633,14 @@ public class SearchFragment extends BaseFragment
                 });
     }
 
-    private MethodItem getPaymentMethod()
+    private Method getPaymentMethod()
     {
-        if (paymentMethodSpinner.getAdapter().getCount() > 0) {
-            int position = paymentMethodSpinner.getSelectedItemPosition();
-            return (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
+        try {
+            return (Method) paymentMethodSpinner.getSelectedItem();
+        } catch (NullPointerException e) {
+            Timber.e(e.getLocalizedMessage());
         }
-
+        
         return null;
     }
     
@@ -594,8 +652,8 @@ public class SearchFragment extends BaseFragment
         }
 
         if (hasLocationServices()) {
-            MethodItem paymentMethod = getPaymentMethod();
-            String methodCode = (paymentMethod != null) ? paymentMethod.code() : null;
+            Method paymentMethod = getPaymentMethod();
+            String methodCode = (paymentMethod != null) ? paymentMethod.code : "all";
             Intent intent = SearchResultsActivity.createStartIntent(getActivity(), tradeType, address, methodCode);
             startActivity(intent);
         } else {

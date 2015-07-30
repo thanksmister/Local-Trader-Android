@@ -107,7 +107,7 @@ public abstract class AdvertisementItem
     public abstract String account_info();
     public abstract double lat();
     public abstract double lon();
-    public abstract String min_amount();
+    @Nullable public abstract String min_amount();
     @Nullable public abstract String max_amount();
     @Nullable public abstract String max_amount_available();
     public abstract String require_trade_volume();

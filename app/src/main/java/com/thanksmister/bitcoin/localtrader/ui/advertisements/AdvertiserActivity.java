@@ -340,8 +340,10 @@ public class AdvertiserActivity extends BaseActivity
             tradeLimit.setText("");
         } else if(advertisement.max_amount == null) {
             tradeLimit.setText(getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
-        } else { // no maximum set
+        } else if (advertisement.max_amount_available != null){ // no maximum set
             tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency));
+        } else {
+            tradeLimit.setText("");
         }
 
         if(!Strings.isBlank(advertisement.message)){

@@ -448,7 +448,7 @@
         limitations under the License.
     ]]></string>
     <string name="error_no_play_services">No Google Play Services</string>
-    <string name="error_unable_load_address">Unable to get current address. Click to try again.</string>
+    <string name="error_unable_load_address">Unable to get current address.</string>
     <string name="error_no_trade_data">There are no trades.</string>
     <string name="dialog_logout_title">Log Out</string>
     <string name="dialog_logout_message">Do you wish to logout?</string>

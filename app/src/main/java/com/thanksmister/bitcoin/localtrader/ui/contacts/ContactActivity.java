@@ -370,6 +370,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         if (resultCode == PinCodeActivity.RESULT_VERIFIED) {
             String pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE);
             releaseTradeWithPin(pinCode);
+        } else if (resultCode == PinCodeActivity.RESULT_CANCELED) {
+            toast(R.string.toast_pin_code_canceled);
         }
     }
 

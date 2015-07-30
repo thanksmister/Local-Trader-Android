@@ -318,14 +318,14 @@ public class TradeUtils
         return null;
     }*/
 
-    public static MethodItem getPaymentMethod(String code, List<MethodItem> methods)
+    public static String getPaymentMethod(String code, List<MethodItem> methods)
     {
         for (MethodItem method : methods) {
             if(method.code().equals(code)) {
-                return method;
+                return method.key();
             }
         }
-        return null;
+        return "all";
     }
 
     public static String getPaymentMethodFromItems(Advertisement advertisement, List<MethodItem> methodItems)

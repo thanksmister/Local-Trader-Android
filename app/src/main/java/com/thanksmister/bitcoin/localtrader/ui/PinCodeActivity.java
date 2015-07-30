@@ -54,6 +54,7 @@ public class PinCodeActivity extends BaseActivity
     public static final int REQUEST_CODE = 648;
     
     public static final int RESULT_VERIFIED = 7652;
+    public static final int RESULT_CANCELED = 7653;
 
     @Inject
     DataService dataService;
@@ -307,9 +308,12 @@ public class PinCodeActivity extends BaseActivity
         // block back button while in progress
         if (keyCode == KeyEvent.KEYCODE_BACK && sendingInProgress) {   
             return false;
+        } else if (keyCode == KeyEvent.KEYCODE_BACK ) {
+            setResult(PinCodeActivity.RESULT_CANCELED);
+            finish();
         }
 
-        return true;
+        return super.onKeyDown(keyCode, event);
     }
 
     private void validatePinCode(final String pinCode, final String address, final String amount)
