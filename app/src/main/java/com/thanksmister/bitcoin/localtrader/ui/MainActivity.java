@@ -111,16 +111,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         setContentView(R.layout.activity_main);
 
         ButterKnife.inject(this);
-        
-        String bitcoinUri = getIntent().getStringExtra(BITCOIN_URI);
-        if(bitcoinUri != null) {
-            handleBitcoinUri(bitcoinUri);
-        }
-        
+
         if(savedInstanceState != null) {
             position = savedInstanceState.getInt(EXTRA_FRAGMENT);
         }
         
+        final String bitcoinUri = getIntent().getStringExtra(BITCOIN_URI);
+
         setupNavigationView();
         
         dbManager.isLoggedIn()
@@ -132,8 +129,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             public void call(Boolean isLoggedIn)
             {
                 Timber.d("isLoggedIn " + isLoggedIn);
+                
                 if (isLoggedIn) {
-                    setContentFragment(position);
+                    
+                    if(bitcoinUri != null && validAddressOrAmount(bitcoinUri)) { // we have a uri request so override setting content
+                        handleBitcoinUri(bitcoinUri);
+                    } else {
+                        setContentFragment(position);
+                    }
+                    
                     SyncUtils.CreateSyncAccount(getApplicationContext());
                     SyncUtils.TriggerRefresh(getApplicationContext());
                 }
@@ -274,6 +278,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_frame, fragment, SEND_RECEIVE_FRAGMENT)
                 .commit();
+        
+        navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);
+        position = DRAWER_SEND;
     }
 
     @Subscribe
@@ -351,25 +358,34 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             }
         }
     }
+    
+    protected boolean validAddressOrAmount(String bitcoinUri)
+    {
+        String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
+        String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
+    
+        Timber.d("Bitcoin Address: " + bitcoinAddress);
+        Timber.d("Bitcoin Amount: " + bitcoinAmount);
+
+        if(bitcoinAddress == null) {
+            return false;
+        } else if(!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
+            toast(getString(R.string.toast_invalid_address));
+            return false;
+        }
+
+        if(bitcoinAmount != null && !WalletUtils.validAmount(bitcoinAmount)) {
+            toast(getString(R.string.toast_invalid_btc_amount));
+            return false;
+        }
+        
+        return true;
+    }
 
     protected void handleBitcoinUri(String bitcoinUri)
     {
         String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
         String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
-
-        if(bitcoinAddress == null) {
-            toast(getString(R.string.toast_scan_canceled));
-            return;
-        } else if(!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-            toast(getString(R.string.toast_invalid_address));
-            return;
-        }
-
-        if(bitcoinAmount != null && !WalletUtils.validAmount(bitcoinAmount)) {
-            toast(getString(R.string.toast_invalid_btc_amount));
-            bitcoinAmount = null; // set it to null and show toast
-        }
-
         startSendRequestFragment(bitcoinAddress, bitcoinAmount);
     }
     
@@ -392,7 +408,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             }
             
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_BALANCE) {
-            setContentFragment(DRAWER_WALLET);
             bus.post(NavigateEvent.WALLET);
         }
     }

@@ -253,7 +253,7 @@ public class WalletUtils
         if(amount == null || amount.isEmpty() || amount.equals("")) return false;
         
         try {
-            double result = Double.valueOf(amount);
+            Double.valueOf(amount);
         } catch (NumberFormatException e) {
             return false;
         } catch (NullPointerException e) {

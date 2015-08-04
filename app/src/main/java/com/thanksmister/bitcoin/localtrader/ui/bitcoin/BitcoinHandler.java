@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
@@ -70,7 +71,7 @@ public class BitcoinHandler extends BaseActivity
                 }
             });
         } else {
-            //showToast(getString(R.string.toast_invalid_address));
+            toast(getString(R.string.toast_invalid_address));
             launchMainApplication();
         }
 	}

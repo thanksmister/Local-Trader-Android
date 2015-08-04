@@ -241,9 +241,13 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     
     public void hideProgress()
     {
-        empty.setVisibility(View.GONE);
-        progress.setVisibility(View.GONE);
-        list.setVisibility(View.VISIBLE);
+        try {
+            empty.setVisibility(View.GONE);
+            progress.setVisibility(View.GONE);
+            list.setVisibility(View.VISIBLE);
+        } catch (NullPointerException e){
+            Timber.e(e.toString());
+        }
     }
 
     protected void updateData()

@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -59,6 +60,7 @@ import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -225,6 +227,8 @@ public class SearchFragment extends BaseFragment
     @Override
     public void onDetach()
     {
+        super.onDetach();
+        
         ButterKnife.reset(this);
 
         handler.removeCallbacks(locationRunnable);
@@ -234,7 +238,16 @@ public class SearchFragment extends BaseFragment
         geoDecodeSubscription.unsubscribe();
         locationSubscription.unsubscribe();
 
-        super.onDetach();
+        //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
+        try {
+            Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
+            childFragmentManager.setAccessible(true);
+            childFragmentManager.set(this, null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -265,7 +278,7 @@ public class SearchFragment extends BaseFragment
                         break;
                 }
 
-                if( (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && address != null) {
+                if ((tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && address != null) {
                     getMethods(address.getCountryCode());
                 }
             }
@@ -291,8 +304,8 @@ public class SearchFragment extends BaseFragment
                 }
 
                 paymentMethodLayout.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
-                
-                if( position == 1 && address != null) {
+
+                if (position == 1 && address != null) {
                     getMethods(address.getCountryCode());
                 }
             }
