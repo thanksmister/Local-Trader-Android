@@ -13,7 +13,6 @@
   ~ See the License for the specific language governing permissions and 
   ~ limitations under the License.
   -->
-
 <android.support.design.widget.CoordinatorLayout
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -22,27 +21,46 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
-    <android.support.design.widget.AppBarLayout
-            android:id="@+id/appBar"
+    <android.support.v4.widget.SwipeRefreshLayout
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:id="@+id/swipeLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:background="@color/light_gray"
+            android:fitsSystemWindows="true">
+
+        <android.support.v7.widget.RecyclerView
+                android:id="@+id/recycleView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/white"
+                android:fitsSystemWindows="true"/>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <android.support.design.widget.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
 
         <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
+                app:popupTheme="@style/Theme.AppCompat.Light"
+                app:layout_scrollFlags="scroll|enterAlways"/>
 
         <LinearLayout
                 android:id="@+id/bitcoinLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@color/colorPrimary"
-                android:gravity="center_vertical"
+                android:gravity="bottom"
                 android:paddingTop="@dimen/activity_space"
                 android:paddingBottom="@dimen/activity_space"
+                app:layout_scrollFlags="scroll|enterAlways"
                 android:paddingLeft="72dp">
 
             <TextView
@@ -69,306 +87,20 @@
         </LinearLayout>
 
     </android.support.design.widget.AppBarLayout>
-    
-        <android.support.v4.widget.SwipeRefreshLayout
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                android:id="@+id/swipeLayout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            <android.support.v4.widget.NestedScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-
-                    <LinearLayout
-                            android:id="@+id/dashContent"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                        <LinearLayout
-                                android:id="@+id/tradesLayout"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                tools:visibility="visible">
-
-                            <FrameLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="48dp"
-                                    android:paddingLeft="@dimen/activity_padding">
-
-                                <TextView
-                                        style="@style/TextMedium.SmallAction"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_gravity="center_vertical"
-                                        android:text="Active Trades"/>
-
-                            </FrameLayout>
-
-                            <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="vertical">
-
-                                <FrameLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content">
-
-                                    <LinearLayout
-                                            android:id="@+id/emptyTradesLayout"
-                                            style="@style/BorderlessButtonStyle"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="horizontal">
-
-                                        <ImageView
-                                                android:id="@android:id/icon"
-                                                android:contentDescription="@string/desc"
-                                                android:layout_width="72dp"
-                                                android:layout_height="wrap_content"
-                                                android:layout_gravity="center"
-                                                android:src="@drawable/ic_communication_messenger"/>
-
-                                        <LinearLayout
-                                                android:layout_width="match_parent"
-                                                android:layout_height="wrap_content"
-                                                android:paddingTop="@dimen/activity_padding"
-                                                android:paddingRight="@dimen/activity_padding"
-                                                android:gravity="start|center_vertical"
-                                                android:orientation="vertical">
-
-                                            <TextView
-                                                    style="@style/TextLarge"
-                                                    android:layout_width="wrap_content"
-                                                    android:layout_height="wrap_content"
-                                                    android:text="No active trades"/>
-
-                                            <TextView
-                                                    style="@style/TextMedium.Secondary"
-                                                    android:layout_width="wrap_content"
-                                                    android:layout_height="wrap_content"
-                                                    android:text="Click to view past trades"/>
-
-                                            <View
-                                                    style="@style/DividerHorizontal"
-                                                    android:layout_gravity="bottom"
-                                                    android:layout_marginBottom="0dp"
-                                                    android:layout_marginTop="@dimen/activity_padding"/>
-
-                                        </LinearLayout>
-
-                                    </LinearLayout>
-
-                                    <com.thanksmister.bitcoin.localtrader.ui.misc.LinearListView
-                                            android:id="@+id/contactList"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"/>
-
-                                </FrameLayout>
-
-                                <View
-                                        android:layout_width="match_parent"
-                                        android:layout_height="@dimen/view_padding_small"/>
-
-                                <LinearLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="48dp"
-                                        android:paddingLeft="72dp"
-                                        android:paddingRight="@dimen/activity_padding"
-                                        android:gravity="center_vertical|left"
-                                        android:orientation="horizontal"
-                                        android:visibility="visible">
-
-                                    <Button
-                                            android:id="@+id/tradesButton"
-                                            style="@style/ButtonGreen.Small"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="36dp"
-                                            android:layout_weight="1"
-                                            android:text="All Trades"/>
-
-                                    <View
-                                            android:layout_width="8dp"
-                                            android:layout_height="match_parent"
-                                            android:layout_weight="0"/>
-
-                                    <Button
-                                            android:id="@+id/searchButton"
-                                            style="@style/ButtonGreen.Small"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="36dp"
-                                            android:layout_weight="1"
-                                            android:visibility="invisible"
-                                            android:text="Search"/>
-
-                                </LinearLayout>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                                android:id="@+id/advertisementsLayout"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:visibility="visible">
-
-                            <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="@dimen/view_padding_small"/>
-
-                            <FrameLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="48dp"
-                                    android:paddingLeft="@dimen/activity_padding">
-
-                                <TextView
-                                        style="@style/TextMedium.SmallAction"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_gravity="center_vertical"
-                                        android:text="Advertisements"/>
-
-                            </FrameLayout>
-
-                            <FrameLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content">
-
-                                <LinearLayout
-                                        android:id="@+id/emptyAdvertisementsLayout"
-                                        style="@style/BorderlessButtonStyle"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="horizontal">
-
-                                    <ImageView
-                                            android:id="@android:id/icon"
-                                            android:contentDescription="@string/desc"
-                                            android:layout_width="72dp"
-                                            android:layout_height="wrap_content"
-                                            android:layout_gravity="center_vertical"
-                                            android:layout_weight="0"
-                                            android:src="@drawable/ic_action_news_add"/>
-
-                                    <LinearLayout
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:paddingTop="@dimen/activity_padding"
-                                            android:paddingRight="@dimen/activity_padding"
-                                            android:gravity="start|center_vertical"
-                                            android:orientation="vertical"
-                                            tools:visibility="visible">
-
-                                        <TextView
-                                                style="@style/TextLarge"
-                                                android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:text="No advertisements"/>
-
-                                        <TextView
-                                                style="@style/TextMedium.Secondary"
-                                                android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:text="Click to post new ad"/>
-
-                                        <View
-                                                style="@style/DividerHorizontal"
-                                                android:layout_gravity="bottom"
-                                                android:layout_marginBottom="0dp"
-                                                android:layout_marginTop="@dimen/activity_padding"/>
-
-                                    </LinearLayout>
-
-                                </LinearLayout>
-
-                                <com.thanksmister.bitcoin.localtrader.ui.misc.LinearListView
-                                        android:id="@+id/advertisementList"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="vertical"/>
-
-                            </FrameLayout>
-
-                            <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="@dimen/view_padding_small"/>
-
-                            <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="48dp"
-                                    android:paddingLeft="72dp"
-                                    android:paddingRight="@dimen/activity_padding"
-                                    android:gravity="center_vertical|left"
-                                    android:orientation="horizontal">
-
-                                <Button
-                                        android:id="@+id/advertisementsButton"
-                                        style="@style/ButtonGreen.Small"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="36dp"
-                                        android:layout_weight="1"
-                                        android:text="Advertise"/>
-
-                                <View
-                                        android:layout_width="8dp"
-                                        android:layout_height="match_parent"
-                                        android:layout_weight="0"/>
-
-                                <Button
-                                        android:id="@+id/advertiseButton"
-                                        style="@style/ButtonGreen.Small"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="36dp"
-                                        android:layout_weight="1"
-                                        android:visibility="invisible"
-                                        android:text="Advertise"/>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <View
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/activity_padding"/>
-
-                    </LinearLayout>
-
-
-                    <include
-                            android:id="@android:id/progress"
-                            layout="@layout/view_progress"
-                            android:visibility="gone"
-                            tools:visibility="visible"/>
-
-                </FrameLayout>
-
-            </android.support.v4.widget.NestedScrollView>
-
-        </android.support.v4.widget.SwipeRefreshLayout>
 
     <android.support.design.widget.FloatingActionButton
-            android:theme="@style/FabTheme"
             android:id="@+id/fab"
             android:clickable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="@dimen/activity_list_spacing"
             android:layout_marginEnd="@dimen/activity_list_spacing"
-            android:src="@drawable/ic_action_barcode_dark"
+            android:src="@drawable/ic_action_barcode_2"
             android:layout_marginBottom="@dimen/activity_list_spacing"
-            app:layout_anchor="@id/appBar"
+            app:layout_anchor="@id/swipeLayout"
             app:layout_anchorGravity="bottom|right|end"
             app:elevation="4dp"
             app:borderWidth="0dp"
-            app:fabSize="mini"/>
+            app:fabSize="normal"/>
 
 </android.support.design.widget.CoordinatorLayout>

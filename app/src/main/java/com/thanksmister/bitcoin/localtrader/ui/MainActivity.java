@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -50,10 +51,15 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
+
+import static rx.android.app.AppObservable.bindActivity;
 
 @BaseActivity.RequiresAuthentication
 public class MainActivity extends BaseActivity implements View.OnClickListener
@@ -61,7 +67,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     private static final String BITCOIN_URI = "com.thanksmister.extra.BITCOIN_URI";
     private static final String DASHBOARD_FRAGMENT = "com.thanksmister.fragment.DASHBOARD_FRAGMENT";
     private static final String ABOUT_FRAGMENT = "com.thanksmister.fragment.ACCOUNT_FRAGMENT";
-    private static final String SEND_RECEIVE_FRAGMENT = "com.thanksmister.fragment.SEND_RECEIVE_FRAGMENT";
+    private static final String RECEIVE_FRAGMENT = "com.thanksmister.fragment.RECEIVE_FRAGMENT";
+    private static final String SEND_FRAGMENT = "com.thanksmister.fragment.SEND_FRAGMENT";
     private static final String SEARCH_FRAGMENT = "com.thanksmister.fragment.SEARCH_FRAGMENT";
     private static final String WALLET_FRAGMENT = "com.thanksmister.fragment.WALLET_FRAGMENT";
     
@@ -71,9 +78,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     
     private static final int DRAWER_DASHBOARD = 0;
     private static final int DRAWER_SEARCH = 1;
-    private static final int DRAWER_WALLET = 3;
     private static final int DRAWER_SEND = 2;
-    private static final int DRAWER_ABOUT = 4;
+    private static final int DRAWER_RECEIVE= 3;
+    private static final int DRAWER_WALLET = 4;
+    private static final int DRAWER_ABOUT = 5;
     
     private static final int REQUEST_SCAN = 49374;
 
@@ -92,9 +100,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     @InjectView(R.id.navigation)
     NavigationView navigationView;
     
-    CharSequence mTitle = "";
     Fragment fragment;
     int position = DRAWER_DASHBOARD;
+    Observable<Boolean> loginObserver;
+    Subscription loginSubscription = Subscriptions.unsubscribed();
+    boolean activityCreated;
     
     public static Intent createStartIntent(Context context, String bitcoinUri)
     {
@@ -120,29 +130,36 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
 
         setupNavigationView();
         
-        dbManager.isLoggedIn()
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean isLoggedIn)
-            {
-                Timber.d("isLoggedIn " + isLoggedIn);
-                
-                if (isLoggedIn) {
-                    
-                    if(bitcoinUri != null && validAddressOrAmount(bitcoinUri)) { // we have a uri request so override setting content
-                        handleBitcoinUri(bitcoinUri);
-                    } else {
-                        setContentFragment(position);
+        loginObserver = bindActivity(this, dbManager.isLoggedIn());
+
+        loginSubscription = loginObserver
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>()
+                {
+                    @Override
+                    public void call(Boolean isLoggedIn)
+                    {
+                        if (isLoggedIn) {
+                            if (bitcoinUri != null && validAddressOrAmount(bitcoinUri)) { // we have a uri request so override setting content
+                                handleBitcoinUri(bitcoinUri);
+                            } else {
+                                setContentFragment(position);
+                            }
+
+                            SyncUtils.TriggerRefresh(getApplicationContext());
+                            SyncUtils.CreateSyncAccount(getApplicationContext());
+                        } else {
+                            launchPromoScreen();
+                        }
                     }
-                    
-                    SyncUtils.CreateSyncAccount(getApplicationContext());
-                    SyncUtils.TriggerRefresh(getApplicationContext());
-                }
-            }
-        });
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        Timber.e("Error thrown during login verification");
+                    }
+                });
     }
 
     @Override
@@ -158,23 +175,32 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         super.onResume();
         
         if (((Object) this).getClass().isAnnotationPresent(RequiresAuthentication.class)) {
-            dbManager.isLoggedIn()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Action1<Boolean>()
-            {
-                @Override
-                public void call(Boolean isLoggedIn)
-                {
-                    if (!isLoggedIn) {
-                        Intent intent = new Intent(MainActivity.this, PromoActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    }
-                }
-            });
+
+            if(loginSubscription.isUnsubscribed()) {
+                
+                loginSubscription = dbManager.isLoggedIn()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Boolean>()
+                        {
+                            @Override
+                            public void call(Boolean isLoggedIn)
+                            {
+                                if (!isLoggedIn) {
+                                    launchPromoScreen();
+                                }
+                            }
+                        });
+            }
         }
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        loginSubscription.unsubscribe();
     }
     
     @Override
@@ -187,6 +213,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    
+    private void launchPromoScreen()
+    {
+        Intent intent = new Intent(MainActivity.this, PromoActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
   
     private void setupNavigationView()
@@ -213,6 +247,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                 break;
             case R.id.navigationItemSend:
                 setContentFragment(DRAWER_SEND);
+                break;
+            case R.id.navigationItemReceive:
+                setContentFragment(DRAWER_RECEIVE);
                 break;
             case R.id.navigationItemWallet:
                 setContentFragment(DRAWER_WALLET);
@@ -254,9 +291,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                     .replace(R.id.content_frame, fragment, SEARCH_FRAGMENT)
                     .commitAllowingStateLoss();
         } else if (position == DRAWER_SEND) {
-            fragment = RequestFragment.newInstance(RequestFragment.WalletTransactionType.SEND);
+            fragment = SendFragment.newInstance();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, fragment, SEND_RECEIVE_FRAGMENT)
+                    .replace(R.id.content_frame, fragment, SEND_FRAGMENT)
+                    .commitAllowingStateLoss();
+        } else if (position == DRAWER_RECEIVE) {
+            fragment = RequestFragment.newInstance();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.content_frame, fragment, RECEIVE_FRAGMENT)
                     .commitAllowingStateLoss();
         } else if (position == DRAWER_DASHBOARD) {
             fragment = DashboardFragment.newInstance();
@@ -271,12 +313,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         }
     }
     
-    private void startSendRequestFragment(String bitcoinAddress, String bitcoinAmount)
+    private void startSendFragment(String bitcoinAddress, String bitcoinAmount)
     {
-        fragment = RequestFragment.newInstance(bitcoinAddress, bitcoinAmount);
+        fragment = SendFragment.newInstance(bitcoinAddress, bitcoinAmount);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_frame, fragment, SEND_RECEIVE_FRAGMENT)
+                .replace(R.id.content_frame, fragment, SEARCH_FRAGMENT)
                 .commit();
         
         navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);
@@ -292,7 +334,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             ((WalletFragment) fragment).onRefresh();
         } else if (fragment.getTag().equals(SEARCH_FRAGMENT)){
             ((SearchFragment) fragment).onRefresh();
-        } else if (fragment.getTag().equals(SEND_RECEIVE_FRAGMENT)){
+        } else if (fragment.getTag().equals(SEND_FRAGMENT)){
             ((RequestFragment) fragment).onRefresh();
         }
     }
@@ -329,9 +371,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     
     public void restoreActionBar()
     {
-        ActionBar actionBar = getSupportActionBar();
+        /*ActionBar actionBar = getSupportActionBar();
         if(actionBar != null)
-            actionBar.setTitle(mTitle);
+            actionBar.setTitle(mTitle);*/
     }
 
     @Override
@@ -386,7 +428,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     {
         String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
         String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
-        startSendRequestFragment(bitcoinAddress, bitcoinAmount);
+        startSendFragment(bitcoinAddress, bitcoinAmount);
     }
     
     @Override

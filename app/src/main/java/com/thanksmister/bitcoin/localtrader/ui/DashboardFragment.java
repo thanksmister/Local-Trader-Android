@@ -20,22 +20,25 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
-import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -53,37 +56,35 @@ import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
-import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.DashboardAdvertisementAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
+import com.thanksmister.bitcoin.localtrader.ui.components.ItemAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
+import com.thanksmister.bitcoin.localtrader.ui.components.SectionRecycleViewAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
-import com.thanksmister.bitcoin.localtrader.ui.contacts.DashboardContactAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.misc.LinearListView;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnClick;
-import butterknife.Optional;
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func2;
+import rx.functions.Func3;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
+import timber.log.Timber;
 
 import static rx.android.app.AppObservable.bindFragment;
 
-public class DashboardFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener
+public class DashboardFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, AppBarLayout.OnOffsetChangedListener
 {
     @Inject
     DataService dataService;
@@ -103,15 +104,15 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @InjectView(R.id.fab)
     FloatingActionButton fab;
 
+    @InjectView(R.id.appBarLayout)
+    AppBarLayout appBarLayout;
+
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.dashContent)
-    View content; 
-    
-    @InjectView(android.R.id.progress)
-    View progress;
-    
+    @InjectView(R.id.recycleView)
+    RecyclerView recycleView;
+   
     @InjectView(R.id.bitcoinTitle)
     TextView bitcoinTitle;
     
@@ -120,51 +121,12 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     @InjectView(R.id.bitcoinValue)
     TextView bitcoinValue;
-    
-    @InjectView(R.id.bitcoinLayout)
-    View bitcoinLayout;
-
-    @InjectView(R.id.advertisementList)
-    LinearListView advertisementList;
-
-    @InjectView(R.id.contactList)
-    LinearListView contactsList;
-    
-    @InjectView(R.id.tradesLayout)
-    View tradesLayout;
-
-    @InjectView(R.id.emptyAdvertisementsLayout)
-    View emptyAdvertisementsLayout;
-
-    @InjectView(R.id.emptyTradesLayout)
-    View emptyTradesLayout;
-
-    @InjectView(R.id.advertisementsLayout)
-    View advertisementsLayout;
-
+   
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
-
-    @OnClick(R.id.emptyTradesLayout)
-    public void emptyTradesButtonClicked()
-    {
-        showTradesScreen();
-    }
-
-    @OnClick(R.id.tradesButton)
-    public void tradesButtonClicked()
-    {
-        showTradesScreen();
-    }
-
-    @OnClick(R.id.advertisementsButton)
-    public void advertisementsButtonClicked()
-    {
-        createAdvertisementScreen();
-    }
-
-    @OnClick(R.id.emptyAdvertisementsLayout)
-    public void emptyAdvertisementsButtonClicked()
+    
+    /*@OnClick(R.id.advertiseButton)
+    public void advertiseButtonClicked()
     {
         createAdvertisementScreen();
     }
@@ -174,39 +136,30 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     public void searchButtonClicked()
     {
         showSearchScreen();
-    }
+    }*/
 
-    @Optional
-    @OnClick(R.id.advertiseButton)
-    public void advertiseButtonClicked()
-    {
-        createAdvertisementScreen();
-    }
+    private Observable<List<AdvertisementItem>> advertisementObservable;
+    private Observable<List<MethodItem>> methodObservable;
+    private Observable<List<ContactItem>> contactsObservable;
 
-    Observable<List<AdvertisementItem>> advertisementObservable;
-    Observable<List<MethodItem>> methodObservable;
-    Observable<List<ContactItem>> contactsObservable;
+    private Observable<ExchangeItem> exchangeObservable;
+    private Observable<List<Method>> methodUpdateObservable;
+    private Observable<Exchange> exchangeUpdateObservable;
+    private Observable<List<Advertisement>> advertisementUpdateObservable;
 
-    Observable<ExchangeItem> exchangeObservable;
-    //Observable<WalletItem> walletObservable;
+    private Subscription messageSubscriptions = Subscriptions.empty();
+    private CompositeSubscription subscriptions = new CompositeSubscription();
+    private CompositeSubscription updateSubscriptions = new CompositeSubscription();
     
-    Observable<List<Method>> methodUpdateObservable;
-    Observable<Exchange> exchangeUpdateObservable;
-    Observable<List<Advertisement>> advertisementUpdateObservable;
-
-    Subscription messageSubscriptions = Subscriptions.empty();
-    CompositeSubscription subscriptions;
-    CompositeSubscription updateSubscriptions;
+    private ItemAdapter itemAdapter;
+    private ContentResolver contentResolver;
+    private SqlBriteContentProvider sqlBriteContentProvider;
     
-    private DashboardContactAdapter contactAdapter;
-    private DashboardAdvertisementAdapter advertisementAdapter;
-
-    ContentResolver contentResolver;
-    SqlBriteContentProvider sqlBriteContentProvider;
-    
-    private class AdvertisementData {
+    private class DataItem {
         public List<AdvertisementItem> advertisements;
         public List<MethodItem> methods;
+        public List<ContactItem> contacts;
+        public ExchangeItem exchange;
     }
 
     private Handler handler;
@@ -250,6 +203,22 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         exchangeUpdateObservable = bindFragment(this, dataService.getExchange());
     }
 
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState)
+    {
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void onOffsetChanged(AppBarLayout appBarLayout, int i)
+    {
+        if (i == 0) {
+            swipeLayout.setEnabled(true);
+        } else {
+            swipeLayout.setEnabled(false);
+        }
+    }
+
     private void setupFab()
     {
         fab.setOnClickListener(this);
@@ -265,6 +234,47 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         ab.setTitle("");
         ab.setDisplayHomeAsUpEnabled(true);
     }
+    
+    private void setupList(DataItem dataItem)
+    {
+        // provide combined data
+        ArrayList<Object> items = new ArrayList<>();
+        ItemAdapter itemAdapter = getAdapter();
+        
+        if(dataItem.advertisements.isEmpty() && dataItem.contacts.isEmpty()) {
+            //This is the code to provide a sectioned list
+            itemAdapter.replaceWith(items, dataItem.methods);
+            recycleView.setAdapter(itemAdapter);
+            return;
+        }
+        
+        items.addAll(dataItem.contacts);
+        items.addAll(dataItem.advertisements);
+        
+        itemAdapter.replaceWith(items, dataItem.methods);
+        
+        //This is the code to provide a sectioned list
+        List<SectionRecycleViewAdapter.Section> sections = new ArrayList<SectionRecycleViewAdapter.Section>();
+        
+        if(dataItem.contacts.size() > 0) {
+            //int start = (dataItem.exchange == null)? 0:1;
+            sections.add(new SectionRecycleViewAdapter.Section(0, getString(R.string.dashboard_active_trades_header)));
+        }
+        
+        if(dataItem.advertisements.size() > 0) {
+            //int first = (dataItem.exchange == null)? 0:1;
+            int start = (dataItem.contacts.isEmpty())? 0:dataItem.contacts.size();
+            sections.add(new SectionRecycleViewAdapter.Section(start, getString(R.string.dashboard_advertisements_header)));
+        }
+
+        //Add your adapter to the sectionAdapter
+        SectionRecycleViewAdapter.Section[] section = new SectionRecycleViewAdapter.Section[sections.size()];
+        SectionRecycleViewAdapter mSectionedAdapter = new SectionRecycleViewAdapter(getActivity(), R.layout.section, R.id.section_text, itemAdapter);
+        mSectionedAdapter.setSections(sections.toArray(section));
+
+        //Apply this adapter to the RecyclerView
+        recycleView.setAdapter(mSectionedAdapter);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -279,32 +289,38 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
-
-        contactAdapter = new DashboardContactAdapter(getActivity());
-        advertisementAdapter = new DashboardAdvertisementAdapter(getActivity());
-
-        setAdvertisementAdapter(advertisementAdapter);
-        setContactAdapter(contactAdapter);
-
-        contactsList.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        
+        recycleView.setHasFixedSize(true);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recycleView.setLayoutManager(linearLayoutManager);
+        recycleView.addOnScrollListener(new RecyclerView.OnScrollListener()
         {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy)
             {
-                ContactItem contact = (ContactItem) contactsList.getItemAtPosition(i);
-                showContact(contact);
-            }
-        });
-        advertisementList.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
-            {
-                AdvertisementItem advertisement = (AdvertisementItem) advertisementList.getItemAtPosition(i);
-                showAdvertisement(advertisement);
+                super.onScrolled(recyclerView, dx, dy);
+                int topRowVerticalPosition = (recycleView == null || recycleView.getChildCount() == 0) ? 0 : recycleView.getChildAt(0).getTop();
+                swipeLayout.setEnabled(topRowVerticalPosition >= 0);
             }
         });
 
+        ItemClickSupport.addTo(recycleView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+            @Override
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                
+                int idx = recyclerView.getChildPosition(v);
+                idx  = ((SectionRecycleViewAdapter) recyclerView.getAdapter()).sectionedPositionToPosition(idx);
+                Object item = getAdapter().getItemAt(idx);
+                if(item instanceof ContactItem) {
+                    showContact((ContactItem) item);
+                } else if (item instanceof AdvertisementItem) {
+                    showAdvertisement((AdvertisementItem) item);
+                }
+            }
+        });
+        
+        itemAdapter = new ItemAdapter(getActivity());
         setupToolbar();
         setupFab();
     }
@@ -338,6 +354,12 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             case R.id.action_send:
                 showSendScreen();
                 return true;
+            case R.id.action_trades:
+                showTradesScreen();
+                return true;
+            case R.id.action_advertise:
+                createAdvertisementScreen();
+                return true;
             case R.id.action_logout:
                 logOut();
                 return true;
@@ -353,6 +375,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         super.onResume();
 
+        appBarLayout.addOnOffsetChangedListener(this);
+
         onRefreshStart();
         subscribeData();
         updateData(false);
@@ -362,6 +386,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     public void onPause()
     {
         super.onPause();
+
+        appBarLayout.removeOnOffsetChangedListener(this);
         
         subscriptions.unsubscribe();
         updateSubscriptions.unsubscribe();
@@ -393,6 +419,19 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         if (view.getId() == R.id.fab) {
             bus.post(NavigateEvent.QRCODE);
+        } else if (view.getId() == R.id.container_list_item) {
+            int idx = recycleView.getChildPosition(view);
+
+            idx  = ((SectionRecycleViewAdapter) recycleView.getAdapter()).sectionedPositionToPosition(idx);
+            Timber.d("Position: " + idx);
+
+            Object item = getAdapter().getItemAt(idx);
+
+            if(item instanceof ContactItem) {
+                showContact((ContactItem) item);
+            } else if (item instanceof AdvertisementItem) {
+                showAdvertisement((AdvertisementItem) item);
+            }
         }
     }
 
@@ -422,7 +461,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         handler.removeCallbacks(refreshRunnable);
         swipeLayout.setRefreshing(false);
     }
-    
+
     protected void subscribeData()
     {
         subscriptions = new CompositeSubscription();
@@ -433,7 +472,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             public void call(ExchangeItem exchangeItem)
             {
                 if(exchangeItem != null) {
-                    setAppBarText(exchangeItem);
+                    setHeaderITem(exchangeItem);
                 }
             }
         }, new Action1<Throwable>()
@@ -445,42 +484,26 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             }
         }));
         
-        subscriptions.add(contactsObservable
-                .subscribe(new Action1<List<ContactItem>>()
-                {
-                    @Override
-                    public void call(List<ContactItem> contactItems)
-                    {
-                        setContacts(contactItems);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        reportError(throwable);
-                    }
-                }));
-        
-        Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache();
-        Observable<List<AdvertisementItem>> advertisementObservable = db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY).map(AdvertisementItem.MAP);
-        
-        subscriptions.add(Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, List<AdvertisementItem>, AdvertisementData>()
+        //Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache();
+        //Observable<List<AdvertisementItem>> advertisementObservable = db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY).map(AdvertisementItem.MAP);
+        subscriptions.add(Observable.zip(methodObservable, contactsObservable, advertisementObservable, new Func3<List<MethodItem>, List<ContactItem>, List<AdvertisementItem>, DataItem>()
         {
             @Override
-            public AdvertisementData call(List<MethodItem> methods, List<AdvertisementItem> advertisements)
+            public DataItem call(List<MethodItem> methodItems, List<ContactItem> contactItems, List<AdvertisementItem> advertisementItems)
             {
-                AdvertisementData advertisementData = new AdvertisementData();
-                advertisementData.methods = methods;
-                advertisementData.advertisements = advertisements;
-                return advertisementData;
+                DataItem dataItem = new DataItem();
+                dataItem.contacts = contactItems;
+                dataItem.advertisements = advertisementItems;
+                dataItem.methods = methodItems;
+                //dataItem.exchange = exchangeItem;
+                return dataItem;
             }
-        }).subscribe(new Action1<AdvertisementData>()
+        }).subscribe(new Action1<DataItem>()
         {
             @Override
-            public void call(AdvertisementData advertisementData)
+            public void call(DataItem dataItem)
             {
-                setAdvertisementList(advertisementData.advertisements, advertisementData.methods);
+                setupList(dataItem);
             }
         }, new Action1<Throwable>()
         {
@@ -559,6 +582,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     private void updateMethods(List<Method> methods) 
     {
+        Method method = new Method();
+        method.code = "all";
+        method.name = "All";
+        methods.add(0, method);
+      
         dbManager.updateMethods(methods);
     }
     
@@ -572,40 +600,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         dbManager.updateAdvertisements(advertisements);
     }
     
-    protected void setContacts(List<ContactItem> data)
+    protected ItemAdapter getAdapter()
     {
-        if(emptyTradesLayout != null) {
-            emptyTradesLayout.setVisibility((data.size() == 0) ? View.VISIBLE : View.GONE);
-            getContactAdapter().replaceWith(data);
-        }  
-    }
-
-    protected void setAdvertisementList(List<AdvertisementItem> advertisements, List<MethodItem> methods)
-    {
-        if(emptyAdvertisementsLayout != null) {
-            emptyAdvertisementsLayout.setVisibility((advertisements.size() == 0) ? View.VISIBLE : View.GONE);
-            getAdvertisementAdapter().replaceWith(advertisements, methods);
-        }
-    }
-    
-    protected void setContactAdapter(DashboardContactAdapter adapter)
-    {
-        contactsList.setAdapter(adapter);
-    }
-
-    protected void setAdvertisementAdapter(DashboardAdvertisementAdapter adapter)
-    {
-        advertisementList.setAdapter(adapter);
-    }
-
-    protected DashboardContactAdapter getContactAdapter()
-    {
-        return contactAdapter;
-    }
-
-    protected AdvertisementAdapter getAdvertisementAdapter()
-    {
-        return advertisementAdapter;
+        return itemAdapter;
     }
 
     protected void showSendScreen()
@@ -651,7 +648,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         getActivity().startActivityForResult(intent, EditActivity.REQUEST_CODE);
     }
     
-    protected void setAppBarText(ExchangeItem exchange)
+    protected void setHeaderITem(ExchangeItem exchange)
     {
         String value = Calculations.calculateAverageBidAskFormatted(exchange.bid(), exchange.ask());
         bitcoinTitle.setText("MARKET PRICE");

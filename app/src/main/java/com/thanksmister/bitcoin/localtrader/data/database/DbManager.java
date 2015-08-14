@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
+import android.app.DownloadManager;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -41,6 +42,7 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;

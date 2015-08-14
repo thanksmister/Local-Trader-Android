@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
+import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -24,6 +25,7 @@ public class WalletData implements Parcelable
     private String address;
     private String balance;
     private String rate;
+    private Bitmap image;
 
     public String getBalance()
     {
@@ -40,6 +42,11 @@ public class WalletData implements Parcelable
         return rate;
     }
 
+    public Bitmap getImage()
+    {
+        return image;
+    }
+
     public void setRate(String rate)
     {
         this.rate = rate;
@@ -54,6 +61,11 @@ public class WalletData implements Parcelable
     {
         this.address = address;
     }
+
+    public void setImage(Bitmap image)
+    {
+        this.image = image;
+    }
     
     public WalletData()
     {
@@ -65,6 +77,7 @@ public class WalletData implements Parcelable
         address = parcel.readString();
         balance = parcel.readString();
         rate = parcel.readString();
+        image= parcel.readParcelable(Bitmap.class.getClassLoader());
     }
     
     @Override
@@ -79,6 +92,7 @@ public class WalletData implements Parcelable
         parcel.writeString(address);
         parcel.writeString(balance);
         parcel.writeString(rate);
+        parcel.writeValue(image);
     }
     
     public static Creator<WalletData> CREATOR = new Creator<WalletData>()

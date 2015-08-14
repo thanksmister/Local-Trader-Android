@@ -232,11 +232,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
         public ImageView icon;
         @InjectView(R.id.advertisementDetails)
         public TextView advertisementDetails;
-
-        @Optional
-        @InjectView(R.id.advertiseButton)
-        public Button advertiseButton;
-
+        
         public ViewHolder(View view)
         {
             ButterKnife.inject(this, view);

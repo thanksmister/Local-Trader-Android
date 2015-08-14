@@ -33,6 +33,11 @@
         <item
                 android:id="@+id/navigationItemSend"
                 android:icon="@drawable/send_small"
+                android:title="@string/view_title_send"/>
+
+        <item
+                android:id="@+id/navigationItemReceive"
+                android:icon="@drawable/receive_small"
                 android:title="@string/view_title_request"/>
 
         <item

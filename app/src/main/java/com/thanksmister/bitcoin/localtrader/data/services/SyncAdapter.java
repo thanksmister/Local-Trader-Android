@@ -451,7 +451,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void getDeletedContactsInfo(List<String> contacts)
     {
-        Timber.e("deleted contacts: " + contacts.size());
+        Timber.e("Get Deleted Contacts: " + contacts.size());
         
         getContactInfo(contacts)
                 .onErrorResumeNext(getContactInfo(contacts))
@@ -463,6 +463,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                         Timber.e("List of Deleted Contacts Size: " + contacts.size());
                         
                         if(!contacts.isEmpty())
+                            
                             notificationService.contactDeleteNotification(contacts);
                     }
                 }, new Action1<Throwable>()
@@ -543,7 +544,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-                        //Timber.d("Access Token: " + sessionItem.access_token());
+                       
                         return Observable.just(Observable.from(contactIds)
                                 .flatMap(new Func1<String, Observable<? extends List<Contact>>>()
                                 {
@@ -557,7 +558,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                                     @Override
                                                     public List<Contact> call(Contact contactResult)
                                                     {
-                                                        if(contactResult != null && (TradeUtils.isCanceledTrade(contactResult) || TradeUtils.isReleased(contactResult))) {
+                                                        if(contactResult != null) {
+                                                            
+                                                            Timber.d("Contact Closed At: " + contactResult.closed_at);
+                                                            Timber.d("Contact Canceled At: " + contactResult.canceled_at);
+                                                            Timber.d("Contact Released At: " + contactResult.canceled_at);
+                                                            
                                                            contactList.add(contactResult);
                                                         }
 
@@ -764,6 +770,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                         || (match.buyer.last_online != null && !match.buyer.last_online.equals(contactItem.buyer_last_online()))) {
                                     updatedContacts.add(match);
                                 }
+                                
                             } else {
 
                                 deletedContacts.add(contactItem.contact_id());
@@ -805,6 +812,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         Timber.d("Delete Contacts: " + deletedContacts.size());
         
         for (String id : deletedContacts) {
+            Timber.d("We have deleted contacts!");
             Timber.d("Delete Contact Id: " + id);
             contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{id});
             contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});

@@ -16,7 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
-import android.annotation.TargetApi;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -57,7 +56,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.bitcoin.QRCodeActivity;
-import com.thanksmister.bitcoin.localtrader.ui.misc.SpinnerAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.components.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -84,16 +83,9 @@ import static rx.android.app.AppObservable.bindFragment;
 
 public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
-    public static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
-    public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
-    public static final String EXTRA_WALLET_TYPE = "com.thanksmister.extra.EXTRA_WALLET_TYPE";
+    public static final String EXTRA_RATE = "com.thanksmister.extra.EXTRA_RATE";
     public static final String EXTRA_WALLET_DATA = "com.thanksmister.extra.EXTRA_WALLET_DATA";
-
-    public enum WalletTransactionType
-    {
-        REQUEST, SEND,
-    }
-
+  
     @Inject
     DataService dataService;
     
@@ -109,86 +101,33 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
     
-    @InjectView(R.id.tradeContent)
-    View content;
-
     @InjectView(R.id.amountText)
     TextView amountText;
 
     @InjectView(R.id.usdEditText)
     TextView usdEditText;
-
-    @InjectView(R.id.balanceText)
-    TextView balance;
     
-    @InjectView(R.id.balanceTitle)
-    TextView balanceTitle;
-
-    @InjectView(R.id.address)
-    TextView addressText;
-
-    @InjectView(R.id.addressLayout)
-    View addressLayout;
-
-    @InjectView(R.id.qrButton)
-    Button qrButton;
-
-    @InjectView(R.id.sendButton)
-    Button sendButton;
-
-    @InjectView(R.id.balanceLayout)
-    View balanceLayout;
-
-    @InjectView(R.id.spinner)
-    Spinner transactionSpinner;
-
     @OnClick(R.id.qrButton)
     public void qrButtonClicked()
     {
         validateForm();
     }
-
-    @OnClick(R.id.sendButton)
-    public void sendButtonClicked()
-    {
-        validateForm();
-    }
-
-    private String address;
-    private String amount;
+    
     private WalletData walletData;
-    private WalletTransactionType transactionType = WalletTransactionType.SEND;
-    private Menu menu;
 
     CompositeSubscription subscriptions = new CompositeSubscription();
     CompositeSubscription updateSubscriptions = new CompositeSubscription();
-    
+
     private Observable<WalletItem> walletBalanceObservable;
     private Observable<ExchangeItem> exchangeObservable;
     private Observable<Wallet> updateWalletBalanceObservable;
     private Observable<Exchange> updateExchangeObservable;
-    private Observable<Boolean> sendPinCodeMoneyObservable;
-
+    
     private Handler handler;
 
-    public static RequestFragment newInstance(String address, String amount)
+    public static RequestFragment newInstance()
     {
         RequestFragment fragment = new RequestFragment();
-        Bundle args = new Bundle();
-        args.putString(EXTRA_ADDRESS, address);
-        args.putString(EXTRA_AMOUNT, amount);
-        
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    public static RequestFragment newInstance(WalletTransactionType transactionType)
-    {
-        RequestFragment fragment = new RequestFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(EXTRA_WALLET_TYPE, transactionType);
-
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -201,58 +140,26 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     {
         super.onCreate(savedInstanceState);
 
+        if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_WALLET_DATA))
+            walletData = savedInstanceState.getParcelable(EXTRA_WALLET_DATA);
+        
         // refresh handler
         handler = new Handler();
-
-        if (getArguments() != null) {
-            
-            if (getArguments().containsKey(EXTRA_ADDRESS))
-                address = getArguments().getString(EXTRA_ADDRESS);
-
-            if (getArguments().containsKey(EXTRA_AMOUNT))
-                amount = getArguments().getString(EXTRA_AMOUNT);
-
-            if (getArguments().containsKey(EXTRA_WALLET_TYPE))
-                transactionType = (WalletTransactionType) getArguments().getSerializable(EXTRA_WALLET_TYPE);
-        } else {
-            
-            if(savedInstanceState.containsKey(EXTRA_ADDRESS))
-                address = savedInstanceState.getString(EXTRA_ADDRESS);
-
-            if(savedInstanceState.containsKey(EXTRA_AMOUNT))
-                amount = savedInstanceState.getString(EXTRA_AMOUNT);
-            
-            if(savedInstanceState.containsKey(EXTRA_WALLET_DATA))
-                walletData = savedInstanceState.getParcelable(EXTRA_WALLET_DATA);
-            
-            if(savedInstanceState.containsKey(EXTRA_WALLET_TYPE))
-                transactionType = (WalletTransactionType) savedInstanceState.getSerializable(EXTRA_WALLET_TYPE);
-        }
         
         setHasOptionsMenu(true);
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent intent)
+    public void onSaveInstanceState(@NonNull Bundle outState)
     {
-        super.onActivityResult(requestCode, resultCode, intent);
-        
-        if(requestCode == PinCodeActivity.REQUEST_CODE) {
-            if (resultCode == PinCodeActivity.RESULT_VERIFIED) {
-
-                String pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE);
-                String address = intent.getStringExtra(PinCodeActivity.EXTRA_ADDRESS);
-                String amount = intent.getStringExtra(PinCodeActivity.EXTRA_AMOUNT);
-
-                pinCodeEvent(pinCode, address, amount);
-            }
-        }
+        super.onSaveInstanceState(outState);
+        if(walletData != null)
+            outState.putParcelable(EXTRA_WALLET_DATA, walletData);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
     {
-        this.menu = menu;
         inflater.inflate(R.menu.request, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -262,11 +169,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     {
         switch (item.getItemId()) {
             case R.id.action_paste:
-                if(transactionType == WalletTransactionType.REQUEST) {
-                    setAmountFromClipboard();
-                } else {
-                    setAddressFromClipboard();
-                }
+                setAmountFromClipboard();
                 return true;
             case R.id.action_scan:
                 ((BaseActivity) getActivity()).launchScanner();
@@ -281,7 +184,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        return inflater.inflate(R.layout.view_send_request, container, false);
+        return inflater.inflate(R.layout.view_request, container, false);
     }
 
     @Override
@@ -291,7 +194,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
         exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
         walletBalanceObservable = bindFragment(this, dbManager.walletQuery());
-        
         updateWalletBalanceObservable = bindFragment(this, dataService.getWalletBalance());
         updateExchangeObservable = bindFragment(this, dataService.getExchange());
     }
@@ -337,59 +239,8 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                 }
             }
         });
-
-        transactionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
-            @Override
-            public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-                switch (arg2) {
-                    case 0:
-                        transactionType = WalletTransactionType.SEND;
-                        setLayout(transactionType);
-                        break;
-                    case 1:
-                        transactionType = WalletTransactionType.REQUEST;
-                        setLayout(transactionType);
-                        break;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0){
-            }
-        });
-
-
-        if(!Strings.isBlank(amount)) {
-            amountText.setText(amount);
-        }
-
-        if(!Strings.isBlank(address)) {
-            addressText.setText(address);
-        }
-
-        String[] spinnerTitles = getResources().getStringArray(R.array.list_transaction_types);
-        List<String> stringList = new ArrayList<>(Arrays.asList(spinnerTitles));
-        SpinnerAdapter transactionAdapter = new SpinnerAdapter(getActivity(), R.layout.spinner_layout, stringList);
-        setSpinnerAdapter(transactionAdapter);
-
-        setLayout(transactionType);
-        setupToolbar();
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState)
-    {
-        super.onSaveInstanceState(outState);
-        if(address != null)
-            outState.putString(EXTRA_ADDRESS, address);
-
-        if(amount != null)
-            outState.putString(EXTRA_AMOUNT, amount);
-
-        if(walletData != null)
-            outState.putParcelable(EXTRA_WALLET_DATA, walletData);
         
-        outState.putSerializable(EXTRA_WALLET_TYPE, transactionType);
+        setupToolbar();
     }
     
     @Override
@@ -432,6 +283,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     @Override
     public void onRefresh()
     {
+        onRefreshStart();
         updateData();
     }
 
@@ -468,8 +320,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
     protected void subscribeData()
     {
-        subscriptions = new CompositeSubscription(); 
-        
+        subscriptions = new CompositeSubscription();
         subscriptions.add(Observable.combineLatest(exchangeObservable, walletBalanceObservable, new Func2<ExchangeItem, WalletItem, WalletData>()
         {
             @Override
@@ -482,7 +333,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                     walletData.setBalance(wallet.balance());
                     walletData.setRate(Calculations.calculateAverageBidAskFormatted(exchange.ask(), exchange.bid()));
                 }
-                
                 return walletData;
             }
         }).subscribe(new Action1<WalletData>()
@@ -512,7 +362,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             public void call(Wallet wallet)
             {
                 onRefreshStop();
-                updateWallet(wallet);
+                dbManager.updateWallet(wallet);
             }
 
         }, new Action1<Throwable>()
@@ -543,63 +393,16 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         }));
     }
     
-    private void updateWallet(Wallet wallet)
-    {
-        dbManager.updateWallet(wallet);
-    }
-    
     private void updateExchange(Exchange exchange)
     {
         dbManager.updateExchange(exchange);
     }
-
-    private void promptForPin(String bitcoinAddress, String bitcoinAmount)
-    {
-        Intent intent = PinCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
-        startActivityForResult(intent, PinCodeActivity.REQUEST_CODE); // be sure to do this from fragment context
-    }
-
+    
     private void showGeneratedQrCodeActivity(String bitcoinAddress, String bitcoinAmount)
     {
         assert bitcoinAddress != null;
         Intent intent = QRCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
         startActivity(intent);
-    }
-    
-    public void setAddressFromClipboard()
-    {
-        String clipText = getClipboardText();
-        if(Strings.isBlank(clipText)) {
-            toast(R.string.toast_clipboard_empty);
-            return;
-        }
-
-        String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
-        String bitcoinAmount = WalletUtils.parseBitcoinAmount(clipText);
-
-        Timber.d("Bitcoin Address: " + bitcoinAddress);
-        Timber.d("Bitcoin Amount: " + bitcoinAmount);
-        
-        if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-            toast(getString(R.string.toast_invalid_address));
-            return;
-        }
-        
-        if(bitcoinAmount != null && !WalletUtils.validAmount(bitcoinAmount)) {
-            toast(getString(R.string.toast_invalid_btc_amount));
-            bitcoinAmount = null; // set it to null
-        }
-       
-        if (!Strings.isBlank(bitcoinAddress)) {
-            setBitcoinAddress(bitcoinAddress);
-            
-            if(!Strings.isBlank(bitcoinAmount)) {
-                setAmount(bitcoinAmount);
-            }
-            
-        } else if (!Strings.isBlank(bitcoinAmount)) {
-            setAmount(bitcoinAmount);
-        } 
     }
     
     public void setAmountFromClipboard()
@@ -635,38 +438,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         return  clipText;
     }
     
-    public void pinCodeEvent(String pinCode, String address, String amount)
-    {
-        showProgressDialog(new ProgressDialogEvent("Sending bitcoin..."));
-
-        sendPinCodeMoneyObservable = bindFragment(this, dataService.sendPinCodeMoney(pinCode, address, amount));
-        sendPinCodeMoneyObservable.subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                hideProgressDialog();
-                resetWallet();
-                toast(R.string.toast_transaction_success);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                hideProgressDialog();
-                handleError(throwable);
-            }
-        });
-    }
-    
-    public void setBitcoinAddress(String bitcoinAddress)
-    {
-        if(!Strings.isBlank(bitcoinAddress)) {
-            addressText.setText(bitcoinAddress);
-        }
-    }
-
     public void setAmount(String bitcoinAmount)
     {
         if(!Strings.isBlank(bitcoinAmount)) {
@@ -674,106 +445,25 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             calculateCurrencyAmount(bitcoinAmount);
         }
     }
-
-    public void resetWallet()
-    {
-        updateData(); // refresh wallet data
-        amountText.setText("");
-        addressText.setText("");
-        calculateCurrencyAmount("0.00");
-    }
     
     public void setWallet()
     {
-        computeBalance(0);
-
         if(Strings.isBlank(amountText.getText())) {
             calculateCurrencyAmount("0.00");
         } else {
             calculateCurrencyAmount(amountText.getText().toString());
         }
-
-        transactionSpinner.setSelection(transactionType == WalletTransactionType.SEND? 0: 1);
     }
 
     protected void validateForm()
     {
-        boolean cancel = false;
-
         if(Strings.isBlank(amountText.getText())) {
-            toast(getString(R.string.error_missing_address_amount));
+            toast(getString(R.string.error_missing_amount));
             return;
         }
 
         String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString(), Conversions.MAXIMUM_BTC_DECIMALS, Conversions.MINIMUM_BTC_DECIMALS);
-     
-        if(transactionType == WalletTransactionType.SEND) {
-
-            String bitcoinAddress = addressText.getText().toString();
-            
-            if(Strings.isBlank(addressText.getText())) {
-                toast(getString(R.string.error_missing_address_amount));
-                return;
-            }
-
-            if(bitcoinAmount == null) {
-                toast(getString(R.string.toast_invalid_btc_amount));
-                cancel = true;
-            } else if (!WalletUtils.validAmount(bitcoinAmount)) {
-                toast(getString(R.string.toast_invalid_btc_amount));
-                cancel = true;
-            } else if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-                toast(getString(R.string.toast_invalid_address));
-                cancel = true;
-            }
-
-            if (!cancel) { // There was an error
-                //String usd = Calculations.computedValueOfBitcoin(exchange.ask(), exchange.bid(), bitcoinAmount);
-                promptForPin(bitcoinAddress, bitcoinAmount);
-            }
-        } else { // we are requesting money
-            
-            showGeneratedQrCodeActivity(walletData.getAddress(), bitcoinAmount);
-        }
-    }
-
-    protected void setLayout(WalletTransactionType transactionType)
-    {
-        addressLayout.setVisibility(transactionType == WalletTransactionType.SEND?View.VISIBLE:View.GONE);
-        qrButton.setVisibility(transactionType == WalletTransactionType.SEND?View.GONE:View.VISIBLE);
-        sendButton.setVisibility(transactionType == WalletTransactionType.SEND?View.VISIBLE:View.GONE);
-        balanceLayout.setVisibility(transactionType == WalletTransactionType.SEND?View.VISIBLE:View.GONE);
-
-        if(menu != null) {
-            MenuItem item = menu.findItem(R.id.action_scan);
-            item.setVisible(transactionType == WalletTransactionType.SEND);
-        }
-    }
-
-    protected void setSpinnerAdapter(SpinnerAdapter adapter)
-    {
-        transactionSpinner.setAdapter(adapter);
-    }
-
-    protected void computeBalance(double btcAmount)
-    {
-        if(walletData == null) return;
-        
-        if(transactionType == WalletTransactionType.SEND) {
-            
-            double balanceAmount = Conversions.convertToDouble(walletData.getBalance());
-            String btcBalance = Conversions.formatBitcoinAmount(balanceAmount - btcAmount);
-            String value = Calculations.computedValueOfBitcoin(walletData.getRate(), walletData.getBalance());
-
-            if(balanceAmount < btcAmount) {
-                balance.setText(Html.fromHtml(getString(R.string.form_balance_negative, btcBalance, value)));
-            } else {
-                balance.setText(Html.fromHtml(getString(R.string.form_balance_positive, btcBalance, value)));
-            }
-
-            balanceTitle.setText(getString(R.string.form_balance_label));
-            
-        } 
+        showGeneratedQrCodeActivity(walletData.getAddress(), bitcoinAmount);
     }
 
     private void calculateBitcoinAmount(String usd)
@@ -781,7 +471,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         if(walletData == null) return;
      
         if(Doubles.convertToDouble(usd) == 0) {
-            computeBalance(0);
             amountText.setText("");
             return;
         }
@@ -791,8 +480,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         double btc = Math.abs(Doubles.convertToDouble(usd) / Doubles.convertToDouble(exchangeValue));
         String amount = Conversions.formatBitcoinAmount(btc);
         amountText.setText(amount);
-
-        computeBalance(Doubles.convertToDouble(amount));
     }
 
     private void calculateCurrencyAmount(String bitcoin)
@@ -801,11 +488,9 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
       
         if( Doubles.convertToDouble(bitcoin) == 0) {
             usdEditText.setText("");
-            computeBalance(0);
             return;
         }
-
-        computeBalance(Doubles.convertToDouble(bitcoin));
+        
         String value = Calculations.computedValueOfBitcoin(walletData.getRate(), bitcoin);
         usdEditText.setText(value);
     }

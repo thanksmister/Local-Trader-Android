@@ -41,8 +41,8 @@ public class BaseApplication extends Application
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
             ButterKnife.setDebug(BuildConfig.DEBUG);
-            LeakCanary.install(this);
-            refWatcher = LeakCanary.install(this);
+            //LeakCanary.install(this);
+            //refWatcher = LeakCanary.install(this);
         } else {
             Fabric.with(this, new Crashlytics());
             /*RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()

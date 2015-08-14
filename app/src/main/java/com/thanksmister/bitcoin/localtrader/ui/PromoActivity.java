@@ -27,7 +27,7 @@ import android.view.View;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.ui.misc.ScreenPagerAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.components.ScreenPagerAdapter;
 import com.viewpagerindicator.CirclePageIndicator;
 
 import butterknife.ButterKnife;

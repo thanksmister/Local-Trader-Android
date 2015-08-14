@@ -30,6 +30,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.domain.DomainModule;
+import com.thanksmister.bitcoin.localtrader.ui.SendFragment;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiserActivity;
 import com.thanksmister.bitcoin.localtrader.ui.bitcoin.BitcoinHandler;
@@ -56,7 +57,7 @@ import dagger.Provides;
 @Module(
         injects = {MainActivity.class, PromoActivity.class, LoginActivity.class, AdvertisementActivity.class, 
                 EditActivity.class, DashboardFragment.class, WalletFragment.class, ContactActivity.class, SearchFragment.class,
-                PinCodeActivity.class, SearchResultsActivity.class, AdvertiserActivity.class, AboutFragment.class, RequestFragment.class,
+                PinCodeActivity.class, SearchResultsActivity.class, AdvertiserActivity.class, AboutFragment.class, SendFragment.class, RequestFragment.class,
                 TradeRequestActivity.class, ContactsActivity.class, BitcoinHandler.class},
         includes = {DataModule.class, DomainModule.class, DbModule.class},
         complete = false,

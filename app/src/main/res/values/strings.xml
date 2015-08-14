@@ -64,14 +64,15 @@
     </array>
 
     <string name="view_title_advertisements">Advertisements</string>
-    <string name="view_title_search">Buy / Sell Bitcoins</string>
+    <string name="view_title_search">Search Advertisers</string>
     <string name="view_title_account">Transactions</string>
     <string name="view_title_trades">Trades</string>
     <string name="view_title_dashboard">Dashboard</string>
     <string name="view_title_wallet">My Wallet</string>
-    <string name="view_title_buy_sell">Buy / Sell Bitcoin</string>
+    <string name="view_title_buy_sell">Search Advertisers</string>
     <string name="view_title_search_results">Search Results</string>
-    <string name="view_title_request">Send / Request</string>
+    <string name="view_title_request">Request Payment</string>
+    <string name="view_title_send">Send Payment</string>
     <string name="view_title_transactions">Transactions</string>
     <string name="view_title_about">About</string>
     <string name="view_title_login">Login</string>
@@ -82,6 +83,7 @@
     <!-- BUTTONS & MENUS -->
     <string name="button_ok">OK</string>
     <string name="button_cancel">CANCEL</string>
+    <string name="button_close">Close</string>
     <string name="button_save">Save</string>
     <string name="button_order">Order</string>
     <string name="button_edit">Edit</string>
@@ -118,6 +120,7 @@
     <string name="menu_action_wallet">Wallet</string>
     <string name="menu_action_advertisement">Advertisement</string>
     <string name="menu_action_advertise">Advertise</string>
+    <string name="menu_action_trades">Trade History</string>
     <string name="menu_action_profile">Profile</string>
     <string name="menu_action_cancel">Cancel</string>
     <string name="menu_action_dispute">Dispute</string>
@@ -332,7 +335,7 @@
     <string name="send_header_text">Enter amount and bitcoin address</string>
     <string name="receive_header_text">Enter the amount to request (can be blank)</string>
     <string name="hint_bitcoin_address">Bitcoin address</string>
-    <string name="form_balance_label">Available balance</string>
+    <string name="form_balance_label">Balance:</string>
     <string name="form_market_label">Market rate</string>
     <string name="form_value_label">Value (Bitstamp)</string>
     <string name="button_qr_code">QR Code</string>
@@ -417,6 +420,7 @@
     <string name="hint_send_message">Send a message</string>
     <string name="sms_release_info">Enter the release code from the online trade page and select the number to release the trade using SMS.</string>
     <string name="button_send">SEND</string>
+    <string name="error_missing_amount">Enter a valid amount.</string>
     <string name="error_missing_address_amount">Enter address and amount.</string>
     <string name="warning_no_multiple_account_supports">This application does not support multiple accounts.</string>
     <string name="title_activity_notification">NotificationActivity</string>
@@ -459,5 +463,7 @@
     <string name="message_advertisement_changed">Advertisement changed successfully!</string>
     <string name="button_search_trades">Search Trades</string>
     <string name="dialog_send_message">Sending message...</string>
+    <string name="dashboard_active_trades_header">Active Trades</string>
+    <string name="dashboard_advertisements_header">Advertisements</string>
 
 </resources>

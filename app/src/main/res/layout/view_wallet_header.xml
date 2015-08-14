@@ -21,27 +21,10 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:layout_marginTop="32dp"
+              android:layout_marginBottom="16dp"
               android:background="@color/white">
-
-    <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/view_padding_xlarge"/>
-
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:paddingLeft="@dimen/activity_padding"
-            android:visibility="gone">
-
-        <TextView
-                style="@style/TextMedium.SmallAction"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:text="Wallet Address"/>
-
-    </FrameLayout>
-
+    
     <ImageView
             android:id="@+id/codeImage"
             android:layout_width="@dimen/barcode_width"
@@ -50,82 +33,12 @@
             android:background="@color/gray_color"
             android:clickable="true"/>
 
-    <com.thanksmister.bitcoin.localtrader.ui.misc.AutoResizeTextView
+    <com.thanksmister.bitcoin.localtrader.ui.components.AutoResizeTextView
             style="@style/TextLarge.SmallAction"
             android:id="@+id/walletAddressButton"
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:gravity="center"
             android:layout_gravity="center_vertical"/>
-
-    <LinearLayout
-            android:layout_width="@dimen/barcode_width"
-            android:layout_height="48dp"
-            android:gravity="center_vertical|center_horizontal"
-            android:layout_gravity="center_horizontal"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-        <Button
-                android:id="@+id/sendButton"
-                style="@style/ButtonGreen.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:text="Send"/>
-
-        <View
-                android:layout_width="8dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0"/>
-
-        <Button
-                android:id="@+id/requestButton"
-                style="@style/ButtonGreen.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:text="Request"/>
-
-    </LinearLayout>
-
-    <FrameLayout
-            android:id="@+id/recentActivityHeader"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:paddingLeft="@dimen/activity_padding">
-
-        <TextView
-                style="@style/TextSmall"
-                android:id="@+id/recentTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:visibility="gone"
-                tools:visibility="visible"
-                android:text="@string/wallet_recent_activity_header"/>
-
-        <LinearLayout
-                android:id="@+id/noActivityTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="@dimen/activity_padding"
-                android:paddingRight="@dimen/activity_padding"
-                android:gravity="start|center_vertical"
-                android:orientation="vertical"
-                tools:visibility="visible"
-                android:visibility="gone">
-
-            <TextView
-                    style="@style/TextLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="No transactions"/>
-            
-        </LinearLayout>
-        
-
-    </FrameLayout>
 
 </LinearLayout>

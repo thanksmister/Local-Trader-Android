@@ -110,36 +110,57 @@ public class NotificationService
 
     public void contactDeleteNotification(List<Contact> contacts)
     {
-        Timber.e("delete contacts size: " + contacts.size());
+        Timber.e("Notify Deleted Contact Size: " + contacts.size());
         
         if (contacts.size() > 1) {
 
             List<Contact> canceled = new ArrayList<Contact>();
             List<Contact> released = new ArrayList<Contact>();
+            
             for (Contact contact : contacts) {
-                if(TradeUtils.isCanceledTrade(contact)) {
-                    canceled.add(contact);
-                } else if (TradeUtils.isReleased(contact)){
+                
+                if(TradeUtils.isReleased(contact)) {
+                    
                     released.add(contact);
+                    
+                } else {
+                    
+                    canceled.add(contact);
                 }
             }
 
             if(canceled.size() > 1 && released.size() > 1) {
+                
                 NotificationUtils.createNotification(context, "Trades canceled or released", "Trades canceled or released...", "Two or more of your trades have been canceled or released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
+            
             } else if (canceled.size() > 1) {
+                
                 NotificationUtils.createNotification(context, "Trades canceled", "Trades canceled...", "Two or more of your trades have been canceled.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-            } else if (canceled.size() > 1) {
+            
+            } else if (released.size() > 1) {
+                
                 NotificationUtils.createNotification(context, "Trades released", "Trades released...", "Two or more of your trades have been released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
             }
+            
         } else if (contacts.size() == 1) {
+            
             Contact contact = contacts.get(0);
-            assert contact.contact_id != null;
+
+            Timber.d("Trade Released: " + TradeUtils.isReleased(contact));
+            Timber.d("Trade Closed: " + TradeUtils.isClosedTrade(contact));
+            Timber.d("Trade Cancelled: " + TradeUtils.isCanceledTrade(contact));
+            
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
-            if (TradeUtils.isCanceledTrade(contact)) {
-                NotificationUtils.createNotification(context, "Trade Canceled", ("Trade with" + contactName + " canceled."), ("Trade #" + contact.contact_id + saleType + contactName + " has been canceled."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-            } else if (TradeUtils.isReleased(contact)) {
+            
+            if (TradeUtils.isReleased(contact)) {
+                
                 NotificationUtils.createNotification(context, "Trade Released", ("Trade with" + contactName + " released."), ("Trade #" + contact.contact_id + saleType + contactName + " has been released."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
+            
+            } else {
+                
+                NotificationUtils.createNotification(context, "Trade Canceled", ("Trade with" + contactName + " canceled."), ("Trade #" + contact.contact_id + saleType + contactName + " has been canceled."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
+
             }
         }
     }

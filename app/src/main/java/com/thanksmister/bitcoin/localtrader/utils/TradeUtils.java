@@ -325,7 +325,7 @@ public class TradeUtils
                 return method.key();
             }
         }
-        return "all";
+        return code;
     }
 
     public static String getPaymentMethodFromItems(Advertisement advertisement, List<MethodItem> methodItems)

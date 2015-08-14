@@ -30,14 +30,18 @@
           android:icon="@drawable/ic_action_content_send"
           thanksmister:showAsAction="ifRoom"/>
 
-    <!--<item android:id="@+id/action_advertise"
+    <item android:id="@+id/action_advertise"
           android:title="@string/menu_action_advertise"
           android:icon="@drawable/ic_action_news_add"
-          thanksmister:showAsAction="ifRoom"/>-->
+          thanksmister:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/action_trades"
+          android:title="@string/menu_action_trades"
+          android:orderInCategory="50"
+          thanksmister:showAsAction="never"/>
     
     <item android:id="@+id/action_logout"
           android:title="@string/menu_action_logout"
-          android:icon="@drawable/ic_action_content_clear"
           android:orderInCategory="100"
           thanksmister:showAsAction="never"/>
 </menu>

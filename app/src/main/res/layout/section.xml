@@ -1,0 +1,13 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          style="@style/TextMedium.SmallAction"
+          android:layout_width="match_parent"
+          android:layout_height="36dp"
+          android:gravity="center_vertical"
+          android:paddingLeft="16dp"
+          android:paddingRight="16dp"
+          android:singleLine="true"
+          android:textAllCaps="true"
+          android:background="@color/gray_color"
+          tools:text="Advertisements"
+          android:id="@+id/section_text"/>

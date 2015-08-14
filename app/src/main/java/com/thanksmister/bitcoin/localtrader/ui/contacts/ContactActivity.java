@@ -36,7 +36,6 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -61,7 +60,7 @@ import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
-import com.thanksmister.bitcoin.localtrader.ui.misc.MessageAdapter;
+import com.thanksmister.bitcoin.localtrader.ui.components.MessageAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -527,8 +526,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             @Override
             public void onQueryComplete()
             {
-                if(messageScroll) {
-                    list.smoothScrollToPosition(0); 
+                if(messageScroll && list.getCount() > 1) {
+                    list.smoothScrollToPosition(1); 
                     messageScroll = false;
                 }
              
@@ -625,8 +624,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         messageScroll = true; // tells our system to scroll when loading new messages
 
         // hide keyboard and notify
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        //InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        //imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        
         toast(R.string.toast_message_sent);
 
         onRefreshStart();
@@ -801,6 +801,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     public void showProfile()
     {
+        if (contact == null) {
+            return;
+        }
+        
         String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying()) ? contact.seller_username() : contact.buyer_username()) + "/";
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(browserIntent);
