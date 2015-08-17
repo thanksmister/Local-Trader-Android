@@ -28,6 +28,7 @@ import android.support.v7.app.ActionBar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
@@ -279,6 +280,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     private void setContentFragment(int position)
     {
         this.position = position;
+
+        try{
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        } catch (NullPointerException e) {
+            Timber.e("Error closing keyboard");
+        }
         
         if (position == DRAWER_WALLET) {
             fragment = WalletFragment.newInstance();

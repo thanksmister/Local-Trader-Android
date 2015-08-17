@@ -21,6 +21,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Build;
+import android.os.Parcelable;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -36,12 +37,15 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TransactionType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.data.api.model.WalletAdapter;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletData;
+import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -54,7 +58,7 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     private static final int TYPE_TRANSACTION = R.layout.adapter_transaction_list;
     private static final int TYPE_WALLET = R.layout.view_wallet_header;
     private static final int TYPE_PROGRESS = R.layout.view_progress_dashboard;
-
+    
     private List items = Collections.emptyList();
     private Context context;
   
@@ -63,12 +67,15 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         this.context = context;
     }
 
+    public void replaceWith(List data)
+    {
+        this.items = data;
+        notifyDataSetChanged();
+    }
+    
     @Override
     public int getItemCount() {
-
-        if (items == null)
-            return -1;
-
+        
         return items.size() > 0 ? items.size() : 1;
     }
 
@@ -99,7 +106,7 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     @Override
     public int getItemViewType(int position) {
         
-        if (items == null) {
+        if (items.size() == 0) {
             return TYPE_PROGRESS;
         }
         
@@ -114,12 +121,7 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     {
         return position == 0;
     }
-
-    public void replaceWith(List data)
-    {
-        this.items = data;
-        notifyDataSetChanged();
-    }
+    
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position)
@@ -127,59 +129,58 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         if(items == null) return;
         
         if(viewHolder instanceof WalletViewHolder) {
+
+            WalletAdapter item = (WalletAdapter) items.get(position);
+            ((WalletViewHolder) viewHolder).addressButton.setText(item.address);
+            ((WalletViewHolder) viewHolder).qrCodeImage.setImageBitmap(item.qrImage);
             
-            WalletData item = (WalletData) items.get(position);
-            if(item != null) {
-                ((WalletViewHolder) viewHolder).addressButton.setText(item.getAddress());
-                ((WalletViewHolder) viewHolder).qrCodeImage.setImageBitmap(item.getImage());
-            }
         } else if (viewHolder instanceof TransactionViewHolder) {
 
-            Transaction transaction = (Transaction) items.get(position);
+            TransactionItem transaction = (TransactionItem) items.get(position);
             
-            String amount = Conversions.formatBitcoinAmount(Doubles.convertToDouble(transaction.amount));
+            String amount = Conversions.formatBitcoinAmount(Doubles.convertToDouble(transaction.amount()));
 
-            if(transaction.type == TransactionType.RECEIVED) {
-                String blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description);
+            if(transaction.tx_type() == TransactionType.RECEIVED) {
+                String blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description());
                 String blockUrl = Constants.BLOCKCHAIN_INFO_ADDRESS + blockAddress;
                 ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_received_description, blockUrl, blockAddress)));
                 ((TransactionViewHolder) viewHolder).descriptionText.setMovementMethod(LinkMovementMethod.getInstance());
                 ((TransactionViewHolder) viewHolder).btcText.setText(Html.fromHtml(context.getString(R.string.transaction_received_btc_amount, amount)));
                 ((TransactionViewHolder) viewHolder).transactionIcon.setImageResource(R.drawable.ic_action_arrow_right_bottom);
-            } else if(transaction.type == TransactionType.SENT) {
-                String blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description);
+            } else if(transaction.tx_type() == TransactionType.SENT) {
+                String blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description());
                 String blockUrl = Constants.BLOCKCHAIN_INFO_ADDRESS + blockAddress;
                 ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_sent_description, blockUrl, blockAddress)));
                 ((TransactionViewHolder) viewHolder).descriptionText.setMovementMethod(LinkMovementMethod.getInstance());
                 ((TransactionViewHolder) viewHolder).btcText.setText(Html.fromHtml(context.getString(R.string.transaction_sent_btc_amount, amount)));
                 ((TransactionViewHolder) viewHolder).transactionIcon.setImageResource(R.drawable.ic_action_arrow_left_top);
-            } else if ((transaction.type == TransactionType.FEE)) {
+            } else if ((transaction.tx_type() == TransactionType.FEE)) {
                 ((TransactionViewHolder) viewHolder).descriptionText.setText(context.getString(R.string.transaction_fee_description, amount));
                 ((TransactionViewHolder) viewHolder).btcText.setText(Html.fromHtml(context.getString(R.string.transaction_sent_btc_amount, amount)));
                 ((TransactionViewHolder) viewHolder).transactionIcon.setImageResource(R.drawable.ic_action_arrow_left_top);
-            } else if ((transaction.type == TransactionType.CONTACT_SENT)) {
+            } else if ((transaction.tx_type() == TransactionType.CONTACT_SENT)) {
                 //String contactId = Constants.BLOCKCHAIN_INFO_ADDRESS + WalletUtils.parseContactIdFromTransaction(transaction);
-                ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_contact_sent, transaction.description)));
+                ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_contact_sent, transaction.description())));
                 ((TransactionViewHolder) viewHolder).btcText.setText(Html.fromHtml(context.getString(R.string.transaction_sent_btc_amount, amount)));
                 ((TransactionViewHolder) viewHolder).transactionIcon.setImageResource(R.drawable.ic_action_arrow_left_top);
-            } else if ((transaction.type == TransactionType.CONTACT_RECEIVE)) {
-                ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_contact_received, transaction.description)));
+            } else if ((transaction.tx_type() == TransactionType.CONTACT_RECEIVE)) {
+                ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_contact_received, transaction.description())));
                 ((TransactionViewHolder) viewHolder).btcText.setText(Html.fromHtml(context.getString(R.string.transaction_received_btc_amount, amount)));
                 ((TransactionViewHolder) viewHolder).transactionIcon.setImageResource(R.drawable.ic_action_arrow_right_bottom);
-            } else if ((transaction.type == TransactionType.AFFILIATE)) {
-                ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_affiliate, transaction.description)));
+            } else if ((transaction.tx_type() == TransactionType.AFFILIATE)) {
+                ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_affiliate, transaction.description())));
                 ((TransactionViewHolder) viewHolder).btcText.setText(Html.fromHtml(context.getString(R.string.transaction_received_btc_amount, amount)));
                 ((TransactionViewHolder) viewHolder).transactionIcon.setImageResource(R.drawable.ic_action_arrow_right_bottom);
-            } else if ((transaction.type == TransactionType.INTERNAL)) {
-                String blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description);
+            } else if ((transaction.tx_type() == TransactionType.INTERNAL)) {
+                String blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description());
                 String blockUrl = Constants.BLOCKCHAIN_INFO_ADDRESS + blockAddress;
                 ((TransactionViewHolder) viewHolder).descriptionText.setText(Html.fromHtml(context.getString(R.string.transaction_internal, blockUrl, blockAddress)));
                 ((TransactionViewHolder) viewHolder).btcText.setText(Html.fromHtml(context.getString(R.string.transaction_received_btc_amount, amount)));
                 ((TransactionViewHolder) viewHolder).transactionIcon.setImageResource(R.drawable.ic_action_arrow_right_bottom);
             }
 
-            if(transaction.created_at != null) {
-                ((TransactionViewHolder) viewHolder).dateText.setText(Dates.parseLocalDateStringShort(transaction.created_at));
+            if(transaction.created_at() != null) {
+                ((TransactionViewHolder) viewHolder).dateText.setText(Dates.parseLocalDateStringShort(transaction.created_at()));
             }
             
         } else if (viewHolder instanceof ProgressViewHolder) {

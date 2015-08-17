@@ -24,7 +24,7 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 28;
+    private static final int DATABASE_VERSION = 29;
     private static final int DATABASE_VERSION_MESSAGES = 25;
     private static final int CONTACT_VERSION_MESSAGES = 27;
     private static final String TYPE_TEXT = " TEXT";
@@ -37,7 +37,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
             "CREATE TABLE IF NOT EXISTS " + SessionItem.TABLE + " (" +
                     SessionItem.ID + " INTEGER PRIMARY KEY," +
                     SessionItem.ACCESS_TOKEN + TYPE_TEXT + COMMA_SEP +
-                    SessionItem.REFRESH_TOKEN + TYPE_TEXT  + ")";
+                    SessionItem.REFRESH_TOKEN + TYPE_TEXT + ")";
 
     private static final String CREATE_WALLET =
             "CREATE TABLE IF NOT EXISTS " + WalletItem.TABLE + " (" +
@@ -48,7 +48,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     WalletItem.RECEIVABLE + TYPE_TEXT + COMMA_SEP +
                     WalletItem.MESSAGE + TYPE_TEXT + COMMA_SEP +
                     WalletItem.QRCODE + TYPE_TEXT + ")";
-    
+
     private static final String CREATE_METHOD = ""
             + "CREATE TABLE " + MethodItem.TABLE + "("
             + MethodItem.ID + " INTEGER NOT NULL PRIMARY KEY,"
@@ -60,86 +60,86 @@ public class DbOpenHelper extends SQLiteOpenHelper
             + ")";
 
     private static final String CREATE_CONTACTS =
-            "CREATE TABLE " + ContactItem.TABLE + " (" 
-            + ContactItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
-            + ContactItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISEMENT_TRADE_TYPE + TYPE_TEXT + COMMA_SEP
-            + ContactItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.PAYMENT_COMPLETED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.DISPUTED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.FUNDED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ESCROWED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.RELEASED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.EXCHANGE_RATE_UPDATED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.CANCELED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.CLOSED_AT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.REFERENCE_CODE + TYPE_TEXT + COMMA_SEP
-            + ContactItem.CURRENCY + TYPE_TEXT + COMMA_SEP
-            + ContactItem.AMOUNT + TYPE_TEXT + COMMA_SEP
-            + ContactItem.AMOUNT_BTC + TYPE_TEXT + COMMA_SEP
-            + ContactItem.BUYER_USERNAME + TYPE_TEXT + COMMA_SEP
-            + ContactItem.BUYER_TRADES + TYPE_TEXT + COMMA_SEP
-            + ContactItem.BUYER_FEEDBACK + TYPE_TEXT + COMMA_SEP
-            + ContactItem.BUYER_NAME + TYPE_TEXT + COMMA_SEP
-            + ContactItem.BUYER_LAST_SEEN + TYPE_TEXT + COMMA_SEP
-            + ContactItem.SELLER_USERNAME + TYPE_TEXT + COMMA_SEP
-            + ContactItem.SELLER_TRADES + TYPE_TEXT + COMMA_SEP
-            + ContactItem.SELLER_FEEDBACK + TYPE_TEXT + COMMA_SEP
-            + ContactItem.SELLER_NAME + TYPE_TEXT + COMMA_SEP
-            + ContactItem.SELLER_LAST_SEEN + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISER_USERNAME + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISER_TRADES + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISER_FEEDBACK + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISER_NAME + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISER_LAST_SEEN + TYPE_TEXT + COMMA_SEP
-            + ContactItem.RECEIVER + TYPE_TEXT + COMMA_SEP
-            + ContactItem.IBAN + TYPE_TEXT + COMMA_SEP
-            + ContactItem.SWIFT_BIC + TYPE_TEXT + COMMA_SEP
-            + ContactItem.REFERENCE + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISEMENT_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.RELEASE_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.MESSAGE_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.MESSAGE_POST_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.MARK_PAID_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.DISPUTE_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.CANCEL_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.FUND_URL + TYPE_TEXT + COMMA_SEP
-            + ContactItem.IS_FUNDED + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
-            + ContactItem.IS_SELLING + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
-            + ContactItem.IS_BUYING + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
-            + ContactItem.ADVERTISEMENT_PAYMENT_METHOD + TYPE_TEXT + COMMA_SEP
-            + ContactItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP
-            + ContactItem.RECEIVER_EMAIL + TYPE_TEXT  + COMMA_SEP
-            + ContactItem.MESSAGE_COUNT + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
-            + ContactItem.UNSEEN_MESSAGES + " INTEGER NOT NULL DEFAULT 0"
-            + ")";
+            "CREATE TABLE " + ContactItem.TABLE + " ("
+                    + ContactItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
+                    + ContactItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISEMENT_TRADE_TYPE + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.PAYMENT_COMPLETED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.DISPUTED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.FUNDED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ESCROWED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.RELEASED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.EXCHANGE_RATE_UPDATED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.CANCELED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.CLOSED_AT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.REFERENCE_CODE + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.CURRENCY + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.AMOUNT + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.AMOUNT_BTC + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.BUYER_USERNAME + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.BUYER_TRADES + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.BUYER_FEEDBACK + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.BUYER_NAME + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.BUYER_LAST_SEEN + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.SELLER_USERNAME + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.SELLER_TRADES + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.SELLER_FEEDBACK + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.SELLER_NAME + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.SELLER_LAST_SEEN + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISER_USERNAME + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISER_TRADES + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISER_FEEDBACK + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISER_NAME + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISER_LAST_SEEN + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.RECEIVER + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.IBAN + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.SWIFT_BIC + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.REFERENCE + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISEMENT_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.RELEASE_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.MESSAGE_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.MESSAGE_POST_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.MARK_PAID_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.DISPUTE_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.CANCEL_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.FUND_URL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.IS_FUNDED + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
+                    + ContactItem.IS_SELLING + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
+                    + ContactItem.IS_BUYING + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
+                    + ContactItem.ADVERTISEMENT_PAYMENT_METHOD + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.RECEIVER_EMAIL + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.MESSAGE_COUNT + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
+                    + ContactItem.UNSEEN_MESSAGES + " INTEGER NOT NULL DEFAULT 0"
+                    + ")";
 
     private static final String CREATE_MESSAGES =
-            "CREATE TABLE " + MessageItem.TABLE + " (" 
-            + MessageItem.ID + " INTEGER NOT NULL PRIMARY KEY"  + COMMA_SEP
-            + MessageItem.CONTACT_LIST_ID + " INTEGER NOT NULL REFERENCES " + ContactItem.TABLE + "(" + ContactItem.ID + "),"
-            + MessageItem.MESSAGE + TYPE_TEXT + COMMA_SEP
-            + MessageItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
-            + MessageItem.SENDER_ID + TYPE_TEXT + COMMA_SEP
-            + MessageItem.SENDER_NAME + TYPE_TEXT + COMMA_SEP
-            + MessageItem.SENDER_USERNAME + TYPE_TEXT + COMMA_SEP
-            + MessageItem.SENDER_TRADE_COUNT + TYPE_TEXT + COMMA_SEP
-            + MessageItem.SENDER_LAST_ONLINE + TYPE_TEXT + COMMA_SEP
-            + MessageItem.IS_ADMIN + TYPE_INTEGER + COMMA_SEP
-            + MessageItem.ATTACHMENT_NAME + TYPE_TEXT + COMMA_SEP
-            + MessageItem.ATTACHMENT_URL + TYPE_TEXT + COMMA_SEP
-            + MessageItem.ATTACHMENT_TYPE + TYPE_TEXT + COMMA_SEP
-            + MessageItem.SEEN + " INTEGER NOT NULL DEFAULT 0"
-            + ")";
+            "CREATE TABLE " + MessageItem.TABLE + " ("
+                    + MessageItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
+                    + MessageItem.CONTACT_LIST_ID + " INTEGER NOT NULL REFERENCES " + ContactItem.TABLE + "(" + ContactItem.ID + "),"
+                    + MessageItem.MESSAGE + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.SENDER_ID + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.SENDER_NAME + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.SENDER_USERNAME + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.SENDER_TRADE_COUNT + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.SENDER_LAST_ONLINE + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.IS_ADMIN + TYPE_INTEGER + COMMA_SEP
+                    + MessageItem.ATTACHMENT_NAME + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.ATTACHMENT_URL + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.ATTACHMENT_TYPE + TYPE_TEXT + COMMA_SEP
+                    + MessageItem.SEEN + " INTEGER NOT NULL DEFAULT 0"
+                    + ")";
 
     private static final String CREATE_EXCHANGES =
             "CREATE TABLE IF NOT EXISTS " + ExchangeItem.TABLE + " (" +
-            ExchangeItem.ID + " INTEGER PRIMARY KEY," +
-            ExchangeItem.EXCHANGE + TYPE_TEXT + COMMA_SEP +
-            ExchangeItem.BID + TYPE_TEXT + COMMA_SEP +
-            ExchangeItem.ASK + TYPE_TEXT + COMMA_SEP +
-            ExchangeItem.LAST + TYPE_TEXT +
-            ")";
+                    ExchangeItem.ID + " INTEGER PRIMARY KEY," +
+                    ExchangeItem.EXCHANGE + TYPE_TEXT + COMMA_SEP +
+                    ExchangeItem.BID + TYPE_TEXT + COMMA_SEP +
+                    ExchangeItem.ASK + TYPE_TEXT + COMMA_SEP +
+                    ExchangeItem.LAST + TYPE_TEXT +
+                    ")";
 
     private static final String CREATE_ADVERTISEMENTS =
             "CREATE TABLE IF NOT EXISTS " + AdvertisementItem.TABLE + " (" +
@@ -177,12 +177,20 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     AdvertisementItem.TRUSTED_REQUIRED + TYPE_INTEGER + COMMA_SEP +
                     AdvertisementItem.MESSAGE + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.TRACK_MAX_AMOUNT + TYPE_INTEGER + COMMA_SEP +
-                    AdvertisementItem.BANK_NAME + TYPE_TEXT +")";
+                    AdvertisementItem.BANK_NAME + TYPE_TEXT + ")";
 
+    private static final String CREATE_TRANSACTIONS = ""
+            + "CREATE TABLE " + TransactionItem.TABLE + "("
+            + TransactionItem.ID + " INTEGER NOT NULL PRIMARY KEY,"
+            + TransactionItem.TRANSACTION_ID + TYPE_TEXT_NOT_NULL + COMMA_SEP
+            + TransactionItem.AMOUNT + TYPE_TEXT_NOT_NULL + COMMA_SEP
+            + TransactionItem.DESCRIPTION + TYPE_TEXT_NOT_NULL + COMMA_SEP
+            + TransactionItem.TRANSACTION_TYPE + TYPE_TEXT_NOT_NULL + COMMA_SEP
+            + TransactionItem.CREATED_AT + TYPE_TEXT_NOT_NULL + ")";
 
     private static final String CREATE_CONTACT_LIST_ID_INDEX =
             "CREATE INDEX contact_list_id ON " + MessageItem.TABLE + " (" + MessageItem.CONTACT_LIST_ID + ")";
-    
+
     public DbOpenHelper(Context context)
     {
         super(context, DATABASE_NAME, null /* factory */, DATABASE_VERSION);
@@ -198,6 +206,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
         db.execSQL(CREATE_SESSION);
         db.execSQL(CREATE_WALLET);
         db.execSQL(CREATE_ADVERTISEMENTS);
+        db.execSQL(CREATE_TRANSACTIONS);
         db.execSQL(CREATE_CONTACT_LIST_ID_INDEX);
         
         /*
@@ -228,16 +237,20 @@ public class DbOpenHelper extends SQLiteOpenHelper
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
+        if (oldVersion < newVersion) {
+            db.execSQL(CREATE_TRANSACTIONS);
+        }
+
         // check versions for upgrade
-        if(oldVersion < DATABASE_VERSION_MESSAGES) {
+        if (oldVersion < DATABASE_VERSION_MESSAGES) {
 
             //db.execSQL(CREATE_CONTACTS);
             //db.execSQL(CREATE_MESSAGES);
-            
+
             final String ALTER_TBL =
                     "ALTER TABLE " + MessageItem.TABLE +
                             " ADD COLUMN " + MessageItem.ATTACHMENT_NAME + TYPE_TEXT;
-            
+
             db.execSQL(ALTER_TBL);
 
             final String ALTER_TBL1 =
@@ -251,11 +264,11 @@ public class DbOpenHelper extends SQLiteOpenHelper
                             " ADD COLUMN " + MessageItem.ATTACHMENT_URL + TYPE_TEXT;
 
             db.execSQL(ALTER_TBL2);
-            
+
         }
 
         if (oldVersion < CONTACT_VERSION_MESSAGES) {
-            
+
             final String ALTER_TBL =
                     "ALTER TABLE " + ContactItem.TABLE +
                             " ADD COLUMN " + ContactItem.MESSAGE_COUNT + TYPE_INTEGER;

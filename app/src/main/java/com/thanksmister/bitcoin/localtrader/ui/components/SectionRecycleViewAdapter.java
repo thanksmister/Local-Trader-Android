@@ -141,6 +141,17 @@ public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView
         }
     }
     
+    public void updateBaseAdapter(RecyclerView.Adapter baseAdapter)
+    {
+        mBaseAdapter = baseAdapter;
+        notifyDataSetChanged();
+    }
+    
+    public boolean hasSections()
+    {
+        return (mSections!= null && mSections.size() > 0);
+    }
+    
     public void setSections(Section[] sections)
     {
         mSections.clear();

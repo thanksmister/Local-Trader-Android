@@ -34,6 +34,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -87,6 +88,12 @@ public class DbManager
         db.delete(ContactItem.TABLE, null);
         db.delete(MessageItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
+        db.delete(TransactionItem.TABLE, null);
+    }
+    
+    public void clearTransactions()
+    {
+        db.delete(TransactionItem.TABLE, null);
     }
 
     public Observable<Boolean> isLoggedIn()
@@ -397,6 +404,54 @@ public class DbManager
                 });
     }
 
+    public Observable<List<TransactionItem>> transactionsQuery()
+    {
+        return db.createQuery(TransactionItem.TABLE, TransactionItem.QUERY)
+                .map(TransactionItem.MAP);
+    }
+    
+    public void updateTransactions(final List<Transaction> transactions)
+    {
+        HashMap<String, Transaction> entryMap = new HashMap<String, Transaction>();
+
+        for (Transaction item : transactions) {
+            entryMap.put(item.txid, item);
+        }
+
+        db.beginTransaction();
+       
+        // Get list of all items
+        Cursor cursor = db.query(TransactionItem.QUERY);
+
+        try {
+            while (cursor.moveToNext()) {
+                
+                long id = Db.getLong(cursor, TransactionItem.ID);
+                String tx_id = Db.getString(cursor, TransactionItem.TRANSACTION_ID);
+                
+                Transaction match = entryMap.get(tx_id);
+                if (match != null) {
+                    // Entry exists. Remove from entry map to prevent insert later. Do not update
+                    entryMap.remove(tx_id);
+                } else {
+                    // Entry doesn't exist. Remove it from the database.
+                    db.delete(TransactionItem.TABLE, TransactionItem.ID + " = ?", String.valueOf(id));
+                }
+            }
+
+            // Add new items
+            for (Transaction item : entryMap.values()) {
+                db.insert(TransactionItem.TABLE, TransactionItem.createBuilder(item).build());
+            }
+
+            db.setTransactionSuccessful();
+
+        } finally {
+            db.endTransaction();
+            cursor.close();
+        }
+    }
+
     public void updateMessages(final String contactId, List<Message> messages, final ContentResolverAsyncHandler.AsyncQueryListener listener)
     {
         final ArrayList<Message> newMessages = new ArrayList<Message>();
@@ -449,7 +504,6 @@ public class DbManager
 
         subscription.unsubscribe();
     }
-   
     
     public Observable<List<MethodItem>> methodQuery()
     {
@@ -627,7 +681,7 @@ public class DbManager
             entryMap.put(item.ad_id, item);
         }
 
-        //db.beginTransaction();
+        db.beginTransaction();
 
         // Get list of all items
         Cursor cursor = db.query(AdvertisementItem.QUERY);
@@ -761,10 +815,10 @@ public class DbManager
                 db.insert(AdvertisementItem.TABLE, builder.build());
             }
 
-            //db.setTransactionSuccessful();
+            db.setTransactionSuccessful();
 
         } finally {
-            //db.endTransaction();
+            db.endTransaction();
             cursor.close();
         }
         

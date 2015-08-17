@@ -54,6 +54,7 @@ import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -93,6 +94,28 @@ public class GeoLocationService
     {
         this.application = application;
         this.localBitcoins = localBitcoins;
+    }
+    
+    public Observable<Address> getLastKnownLocation()
+    {
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(application.getApplicationContext());
+        return locationProvider.getLastKnownLocation()
+                .flatMap(new Func1<Location, Observable<List<Address>>>()
+                {
+                    @Override
+                    public Observable<List<Address>> call(Location location)
+                    {
+                        return locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1);
+                    }
+                })
+                .map(new Func1<List<Address>, Address>()
+                {
+                    @Override
+                    public Address call(List<Address> addresses)
+                    {
+                        return addresses != null && !addresses.isEmpty() ? addresses.get(0) : null;
+                    }
+                });
     }
     
     public Observable<Address> getUpdatedLocation()
@@ -154,25 +177,32 @@ public class GeoLocationService
             url = "sell-bitcoins-online";
         }
 
+        String countryNameFix = countryName.replace(" ", "-");
         if(paymentMethod.equals("all")) {
-            return localBitcoins.searchOnlineAds(url, countryCode, countryName)
+            return localBitcoins.searchOnlineAds(url, countryCode, countryNameFix)
                     .map(new ResponseToAds())
                     .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
                     {
                         @Override
                         public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
                         {
+                            if(advertisements == null)
+                                advertisements = Collections.emptyList();
+                            
                             return Observable.just(advertisements);
                         }
                     });
         } else {
-            return localBitcoins.searchOnlineAds(url, countryCode, countryName, paymentMethod)
+            return localBitcoins.searchOnlineAds(url, countryCode, countryNameFix, paymentMethod)
                     .map(new ResponseToAds())
                     .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
                     {
                         @Override
                         public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
                         {
+                            if(advertisements == null)
+                                advertisements = Collections.emptyList();
+                            
                             return Observable.just(advertisements);
                         }
                     });

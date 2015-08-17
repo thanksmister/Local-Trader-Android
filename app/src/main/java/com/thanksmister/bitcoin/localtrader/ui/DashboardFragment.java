@@ -148,7 +148,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     private Observable<List<Advertisement>> advertisementUpdateObservable;
 
     private Subscription messageSubscriptions = Subscriptions.empty();
-    private CompositeSubscription subscriptions = new CompositeSubscription();
+    private Subscription exchangeSubscription = Subscriptions.empty();
+    private Subscription databaseSubscriptions = Subscriptions.empty();
+    
     private CompositeSubscription updateSubscriptions = new CompositeSubscription();
     
     private ItemAdapter itemAdapter;
@@ -201,6 +203,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         // update data
         methodUpdateObservable = bindFragment(this, dataService.getMethods().cache());
         exchangeUpdateObservable = bindFragment(this, dataService.getExchange());
+        
     }
 
     @Override
@@ -237,6 +240,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     
     private void setupList(DataItem dataItem)
     {
+        Timber.d("Setup Advertisements: " + dataItem.advertisements.size());
+        
         // provide combined data
         ArrayList<Object> items = new ArrayList<>();
         ItemAdapter itemAdapter = getAdapter();
@@ -250,7 +255,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         
         items.addAll(dataItem.contacts);
         items.addAll(dataItem.advertisements);
-        
         itemAdapter.replaceWith(items, dataItem.methods);
         
         //This is the code to provide a sectioned list
@@ -377,9 +381,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
         appBarLayout.addOnOffsetChangedListener(this);
 
-        onRefreshStart();
         subscribeData();
-        updateData(false);
+        
+        onRefreshStart();
     }
 
     @Override
@@ -388,8 +392,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         super.onPause();
 
         appBarLayout.removeOnOffsetChangedListener(this);
-        
-        subscriptions.unsubscribe();
+
+        exchangeSubscription.unsubscribe();
+        databaseSubscriptions.unsubscribe();
         updateSubscriptions.unsubscribe();
         messageSubscriptions.unsubscribe();
         handler.removeCallbacks(refreshRunnable);
@@ -438,8 +443,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public void onRefresh()
     {
-        updateData(true);
         SyncUtils.TriggerRefresh(getActivity().getApplicationContext());
+        updateData(true);
     }
     
     public void onRefreshStart()
@@ -453,20 +458,22 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         @Override
         public void run() {
             swipeLayout.setRefreshing(true);
+            updateData(false);
         }
     };
     
     protected void onRefreshStop()
     {
+        Timber.d("onRefreshStop");
         handler.removeCallbacks(refreshRunnable);
         swipeLayout.setRefreshing(false);
     }
 
     protected void subscribeData()
     {
-        subscriptions = new CompositeSubscription();
-        
-        subscriptions.add(exchangeObservable.subscribe(new Action1<ExchangeItem>()
+        //dbManager.clearTransactions();
+                
+        exchangeSubscription = exchangeObservable.subscribe(new Action1<ExchangeItem>()
         {
             @Override
             public void call(ExchangeItem exchangeItem)
@@ -482,11 +489,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             {
                 reportError(throwable);
             }
-        }));
+        });
         
-        //Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache();
+        //Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP);
         //Observable<List<AdvertisementItem>> advertisementObservable = db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY).map(AdvertisementItem.MAP);
-        subscriptions.add(Observable.zip(methodObservable, contactsObservable, advertisementObservable, new Func3<List<MethodItem>, List<ContactItem>, List<AdvertisementItem>, DataItem>()
+        databaseSubscriptions = Observable.zip(methodObservable, contactsObservable, advertisementObservable, new Func3<List<MethodItem>, List<ContactItem>, List<AdvertisementItem>, DataItem>()
         {
             @Override
             public DataItem call(List<MethodItem> methodItems, List<ContactItem> contactItems, List<AdvertisementItem> advertisementItems)
@@ -495,7 +502,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 dataItem.contacts = contactItems;
                 dataItem.advertisements = advertisementItems;
                 dataItem.methods = methodItems;
-                //dataItem.exchange = exchangeItem;
                 return dataItem;
             }
         }).subscribe(new Action1<DataItem>()
@@ -512,17 +518,21 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             {
                 reportError(throwable);
             }
-        }));
+        });
     }
     
-    protected void updateData(Boolean force)
+    protected void updateData(final Boolean force)
     {
+        Timber.d("UpdateData");
+        
         updateSubscriptions = new CompositeSubscription();
+        
         updateSubscriptions.add(methodUpdateObservable.subscribe(new Action1<List<Method>>()
         {
             @Override
             public void call(List<Method> methods)
             {
+                Timber.d("methodUpdateObservable");
                 updateMethods(methods);
             }
         }, new Action1<Throwable>()
@@ -535,11 +545,13 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             }
         }));
 
+        advertisementUpdateObservable = bindFragment(this, dataService.getAdvertisements(force));
         updateSubscriptions.add(exchangeUpdateObservable.subscribe(new Action1<Exchange>()
         {
             @Override
             public void call(Exchange exchange)
             {
+                Timber.d("exchangeUpdateObservable");
                 updateExchange(exchange);
             }
         }, new Action1<Throwable>()
@@ -551,16 +563,16 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 handleError(throwable, true);
             }
         }));
-
-        advertisementUpdateObservable = bindFragment(this, dataService.getAdvertisements(force));
         
         updateSubscriptions.add(advertisementUpdateObservable.subscribe(new Action1<List<Advertisement>>()
         {
             @Override
             public void call(List<Advertisement> advertisements)
             {
+                Timber.d("advertisementUpdateObservable");
                 onRefreshStop();
-                updateAdvertisements(advertisements);
+                dbManager.updateAdvertisements(advertisements);
+                subscribeData(); // TODO this seems stupid to have so subscribe again
             }
         }, new Action1<Throwable>()
         {
@@ -595,10 +607,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         dbManager.updateExchange(exchange);
     }
     
-    private void updateAdvertisements(List<Advertisement> advertisements)
-    {
-        dbManager.updateAdvertisements(advertisements);
-    }
     
     protected ItemAdapter getAdapter()
     {

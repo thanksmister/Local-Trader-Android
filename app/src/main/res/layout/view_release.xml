@@ -14,168 +14,495 @@
   ~ See the License for the specific language governing permissions and 
   ~ limitations under the License.
   -->
-<FrameLayout
+<LinearLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:background="@color/colorPrimary">
+        android:background="@color/colorPrimaryDark"
+        android:orientation="vertical">
+   
+    <android.support.design.widget.AppBarLayout
+            android:id="@+id/appBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
+
+    <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/Theme.AppCompat.Light"/>
+        
+    </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
-            android:id="@+id/releaseContent"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="1">
+
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:id="@+id/pinCode1"
+                android:src="@drawable/ic_pin_code_off"/>
+
+        <View
+                android:layout_width="4dp"
+                android:layout_height="match_parent"/>
+
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:id="@+id/pinCode2"
+                android:src="@drawable/ic_pin_code_off"/>
+
+        <View
+                android:layout_width="4dp"
+                android:layout_height="match_parent"/>
+
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:id="@+id/pinCode3"
+                android:src="@drawable/ic_pin_code_off"/>
+
+        <View
+                android:layout_width="4dp"
+                android:layout_height="match_parent"/>
+
+
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:id="@+id/pinCode4"
+                android:src="@drawable/ic_pin_code_off"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center_vertical">
-
-        <TextView
-                android:layout_width="match_parent"
-                style="@style/TextLarge.White"
-                android:text="Enter PIN Code"
-                android:layout_height="48dp"
-                android:gravity="center"/>
+            android:background="@color/colorPrimary">
 
         <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:focusable="true"
-                android:focusableInTouchMode="true">
+                android:orientation="horizontal">
 
-            <EditText
-                    android:id="@+id/pinCode1"
-                    style="@style/Text.Headline.Black"
-                    android:layout_width="wrap_content"
+            <LinearLayout
+                    android:id="@+id/button1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLength="1"
-                    android:inputType="numberPassword"
+                    android:padding="8dp"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:imeOptions="actionNone"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="4dp"
-                    android:minWidth="48dp"
-                    tools:text="9"
-                    android:background="@color/white"/>
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1"/>
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""/>
+
+            </LinearLayout>
 
             <View
-                    android:layout_width="4dp"
-                    android:layout_height="match_parent"/>
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
 
-            <EditText
-                    android:id="@+id/pinCode2"
-                    style="@style/Text.Headline.Black"
-                    android:layout_width="wrap_content"
+            <LinearLayout
+                    android:id="@+id/button2"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLength="1"
+                    android:padding="8dp"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:inputType="numberPassword"
-                    android:imeOptions="actionNone"
-                    android:clickable="false"
-                    android:cursorVisible="false"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="4dp"
-                    android:minWidth="48dp"
-                    android:background="@color/white"
-                    tools:text="9"/>
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2"
+                        />
+
+                <TextView
+
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ABC"/>
+
+            </LinearLayout>
 
             <View
-                    android:layout_width="4dp"
-                    android:layout_height="match_parent"/>
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
 
-            <EditText
-                    android:id="@+id/pinCode3"
-                    style="@style/Text.Headline.Black"
-                    android:clickable="false"
-                    android:cursorVisible="false"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:layout_width="wrap_content"
+            <LinearLayout
+                    android:id="@+id/button3"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberPassword"
-                    android:maxLength="1"
+                    android:padding="8dp"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:imeOptions="actionNone"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="4dp"
-                    android:minWidth="48dp"
-                    android:background="@color/white"
-                    tools:text="9"/>
+                    android:layout_weight="1">
 
-            <View
-                    android:layout_width="4dp"
-                    android:layout_height="match_parent"/>
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3"/>
 
-            <EditText
-                    android:id="@+id/pinCode4"
-                    style="@style/Text.Headline.Black"
-                    android:clickable="false"
-                    android:cursorVisible="false"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberPassword"
-                    android:maxLength="1"
-                    android:gravity="center"
-                    android:imeOptions="actionNone"
-                    android:minWidth="48dp"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="4dp"
-                    android:background="@color/white"
-                    tools:text="9"/>
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/light_gray"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DEF"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 
         <View
                 android:layout_width="match_parent"
-                android:layout_height="16dp"/>
+                android:layout_height="2dp"
+                android:background="@color/colorPrimaryDark"
+                android:layout_weight="0"/>
 
-        <TextView
-                android:layout_width="wrap_content"
+        <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/TextSmall.White"
-                android:text="@string/pin_code_send"
-                android:textColorLink="@color/white"
-                android:autoLink="web"/>
+                android:orientation="horizontal">
+
+            <LinearLayout
+                    android:id="@+id/button4"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4"/>
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="GHI"/>
+
+            </LinearLayout>
+
+            <View
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
+
+            <LinearLayout
+                    android:id="@+id/button5"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5"
+                        />
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="JKL"/>
+
+            </LinearLayout>
+
+
+            <View
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
+
+            <LinearLayout
+                    android:id="@+id/button6"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="6"/>
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MNO"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/colorPrimaryDark"
+                android:layout_weight="0"/>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <LinearLayout
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        android:id="@+id/button7"
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="7"/>
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PQRS"/>
+
+            </LinearLayout>
+            
+            <View
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
+
+            <LinearLayout
+                    android:id="@+id/button8"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="8"
+                        />
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TUV"/>
+
+            </LinearLayout>
+            
+            <View
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
+
+            <LinearLayout
+                    android:id="@+id/button9"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="9"/>
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/list_gray_color"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="WXYZ"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/colorPrimaryDark"
+                android:layout_weight="0"/>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""/>
+
+                <TextView
+                        style="?android:textAppearanceSmall"
+                        android:textColor="@color/list_gray_color"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""/>
+
+            </LinearLayout>
+            
+            <View
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
+
+            <LinearLayout
+                    android:id="@+id/button0"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <TextView
+                        style="?android:textAppearanceLarge"
+                        android:textSize="@dimen/text_size_login"
+                        android:layout_gravity="center"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"/>
+
+            </LinearLayout>
+            
+            <View
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimaryDark"
+                    android:layout_weight="0"/>
+
+            <LinearLayout
+                    android:id="@+id/buttonDel"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:orientation="vertical"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:layout_weight="1">
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:src="@drawable/deletekey"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 
-    <!--<LinearLayout
-            android:id="@+id/releaseProgress"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            tools:visibility="visible"
-            android:visibility="gone"
-            android:gravity="center"
-            android:layout_gravity="center">
-
-        <ProgressBar
-                style="?android:attr/progressBarStyle"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:indeterminate="true"
-                android:layout_gravity="center"/>
-
-        <View
-                android:layout_width="@dimen/view_padding_small"
-                android:layout_height="match_parent"/>
-
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                style="@style/TextLarge"
-                android:text="@string/progress_sending_transaction"
-                android:layout_gravity="left|center_vertical"/>
-
-    </LinearLayout>-->
-
-</FrameLayout>
+</LinearLayout>

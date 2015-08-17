@@ -95,9 +95,7 @@ public class SearchFragment extends BaseFragment
     
     @Inject
     LocationManager locationManager;
-
-   
-
+    
     @Inject
     GeoLocationService geoLocationService;
 
@@ -168,18 +166,11 @@ public class SearchFragment extends BaseFragment
 
     private Subscription locationSubscription = Subscriptions.empty();
     private Subscription geoLocationSubscription = Subscriptions.empty();
-    private Subscription geoDecodeSubscription = Subscriptions.empty();
     private Subscription methodUpdateSubscription = Subscriptions.empty();
     private Subscription methodSubscription = Subscriptions.empty();
 
     private Handler handler;
-
-    private class LocationData
-    {
-        public Address address;
-        public List<Method> methods;
-    }
-
+    
     public static SearchFragment newInstance()
     {
         return new SearchFragment();
@@ -241,9 +232,9 @@ public class SearchFragment extends BaseFragment
 
         handler.removeCallbacks(locationRunnable);
 
+        methodSubscription.unsubscribe();
         methodUpdateSubscription.unsubscribe();
         geoLocationSubscription.unsubscribe();
-        geoDecodeSubscription.unsubscribe();
         locationSubscription.unsubscribe();
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
@@ -308,10 +299,6 @@ public class SearchFragment extends BaseFragment
                 }
 
                 paymentMethodLayout.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
-
-                if (position == 1 && address != null) {
-                    //getMethods(address.getCountryCode());
-                }
             }
 
             @Override
@@ -367,13 +354,11 @@ public class SearchFragment extends BaseFragment
 
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
-
-        //methodObservable = bindFragment(this, dbManager.methodQuery().cache());
         
         addressObservable = bindFragment(this,
-                geoLocationService.getUpdatedLocation()
+                geoLocationService.getLastKnownLocation()
                         .observeOn(Schedulers.io())
-                        .subscribeOn(AndroidSchedulers.mainThread()));
+                        .subscribeOn(Schedulers.newThread()));
 
         setupToolbar();
     }
@@ -490,6 +475,8 @@ public class SearchFragment extends BaseFragment
 
     public void startLocationCheck()
     {
+        Timber.d("startLocationCheck");
+        
         if (!geoLocationService.isGooglePlayServicesAvailable()) {
             hideProgress();
             missingGooglePlayServices();
@@ -502,22 +489,39 @@ public class SearchFragment extends BaseFragment
         }
 
         if (hasLocationServices()) {
+
+            Timber.d("hasLocationServices");
             
             locationSubscription = addressObservable.subscribe(new Action1<Address>()
             {
                 @Override
-                public void call(Address address)
+                public void call(final Address address)
                 {
-                    setAddress(address);
-                    hideProgress();
+                    getActivity().runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            setAddress(address);
+                            hideProgress();
+                        }
+                    });
+                    
                 }
             }, new Action1<Throwable>()
             {
                 @Override
                 public void call(Throwable throwable)
                 {
-                    hideProgress();
-                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                    getActivity().runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            hideProgress();
+                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                        }
+                    });
                 }
             });
 
@@ -528,6 +532,8 @@ public class SearchFragment extends BaseFragment
     
     private void updateData()
     {
+        Timber.d("UpdateData");
+        
         methodUpdateObservable = bindFragment(this, dataService.getMethods());
         methodUpdateSubscription = methodUpdateObservable.subscribe(new Action1<List<Method>>()
         {
@@ -617,21 +623,34 @@ public class SearchFragment extends BaseFragment
     {
         geoLocationObservable = bindFragment(this, geoLocationService.geoGetLocationFromName(locationName));
         geoLocationSubscription = geoLocationObservable
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .subscribe(new Action1<List<Address>>()
                 {
                     @Override
-                    public void call(List<Address> addresses)
+                    public void call(final List<Address> addresses)
                     {
                         if (!addresses.isEmpty()) {
-                            getEditLocationAdapter().replaceWith(addresses);
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    getEditLocationAdapter().replaceWith(addresses);
+                                }
+                            });
                         }
+                        
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(Throwable throwable)
                     {
-                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                            }
+                        });
                     }
                 });
     }

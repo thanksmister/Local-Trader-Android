@@ -36,13 +36,11 @@ import butterknife.InjectView;
 public class PredictAdapter extends ArrayAdapter<Address> implements Filterable
 {
     private List<Address> data = Collections.emptyList();
-    private Context context;
     private final LayoutInflater inflater;
 
     public PredictAdapter(Context context, List<Address> data)
     {
         super(context, 0, data);
-        this.context = context;
         this.inflater = LayoutInflater.from(context);
         this.data = data;
     }

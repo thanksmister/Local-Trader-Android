@@ -483,22 +483,24 @@ public class Parser
 
                 Transaction transaction = new Transaction();
                 transaction.type = (TransactionType.SENT);
+                transaction.created_at = (object.getString("created_at"));
 
                 if (object.has("tx_type") && !object.isNull("tx_type"))
                     transaction.tx_type = object.getString("tx_type");
 
-                if (object.has("txid") && !object.isNull("txid"))
+                if (object.has("txid") && !object.isNull("txid")) {
                     transaction.txid = (object.getString("txid"));
-
+                } else {
+                    transaction.txid = transaction.created_at;
+                }
+                
                 if (object.has("amount"))
                     transaction.amount = (object.getString("amount"));
 
                 if (object.has("description"))
                     transaction.description = (object.getString("description"));
 
-                if (object.has("created_at"))
-                    transaction.created_at = (object.getString("created_at"));
-
+                
                 if (transaction.description != null && transaction.description.toLowerCase().contains("fee")) {
                     transaction.type = (TransactionType.FEE);
                 } else if (transaction.description != null && (transaction.description.toLowerCase().contains("contact")
@@ -524,22 +526,25 @@ public class Parser
 
                 Transaction transaction = new Transaction();
                 transaction.type = (TransactionType.RECEIVED);
+                transaction.created_at = (object.getString("created_at"));
 
+                
                 if (object.has("tx_type") && !object.isNull("tx_type"))
                     transaction.tx_type = object.getString("tx_type");
 
-                if (object.has("txid") && !object.isNull("txid"))
+                
+                if (object.has("txid") && !object.isNull("txid")) {
                     transaction.txid = (object.getString("txid"));
-
+                } else {
+                    transaction.txid = transaction.created_at;
+                }
+                
                 if (object.has("amount"))
                     transaction.amount = (object.getString("amount"));
 
                 if (object.has("description"))
                     transaction.description = (object.getString("description"));
-
-                if (object.has("created_at"))
-                    transaction.created_at = (object.getString("created_at"));
-
+                
                 if (transaction.description != null && transaction.description.toLowerCase().contains("contact")) {
                     transaction.type = (TransactionType.CONTACT_RECEIVE);
                 } else if (transaction.description != null && transaction.description.toLowerCase().contains("internal")) {

@@ -104,6 +104,13 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     public static Intent createStartIntent(Context context, @NonNull TradeType tradeType, @NonNull Address address, @Nullable String paymentMethod)
     {
+        Timber.d("TradeType: " + tradeType.name());
+        Timber.d("Payment Method: " + paymentMethod);
+        Timber.d("Address Latitude: " + address.getLatitude());
+        Timber.d("Address Longitude: " + address.getLongitude());
+        Timber.d("Address Country Code: " + address.getCountryCode());
+        Timber.d("Address Country Name: " + address.getCountryName());
+        
         Intent intent = new Intent(context, SearchResultsActivity.class);
         intent.putExtra(EXTRA_TRADE_TYPE, tradeType);
         intent.putExtra(EXTRA_ADDRESS, address);
@@ -252,7 +259,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     protected void updateData()
     {
-        if(address == null) return;
+        Timber.d("Update Data");
         
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
 
@@ -271,6 +278,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                 @Override
                 public void call(Throwable throwable)
                 {
+                   
                     hideProgress();
                     onRefreshStop();
                     handleError(throwable);
@@ -283,13 +291,20 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                 @Override
                 public void call(final List<MethodItem> methodItems)
                 {
+                    Timber.d("Payment Methods: " + methodItems);
+                    
                     String method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
+                    
+                    Timber.d("Payment Method Util: " + method);
+                    
                     advertisementsObservable = bindActivity(SearchResultsActivity.this, geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method));
                     advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
                     {
                         @Override
                         public void call(List<Advertisement> advertisements)
                         {
+                            Timber.d("Advertisement: " + advertisements.size());
+                            
                             hideProgress();
                             onRefreshStop();
                             setData(advertisements, methodItems);
@@ -301,8 +316,8 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                         {
                             hideProgress();
                             onRefreshStop();
-                            
-                            handleError(throwable);
+                            Timber.e("Error: " + throwable.getMessage());
+                            handleError(throwable, true);
                         }
                     });
                 }
@@ -312,8 +327,12 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     public void setData(List<Advertisement> advertisements, List<MethodItem> methods)
     {
+        Timber.d("setData");
+    
         if(advertisements.isEmpty()) {
             showError("No advertisers located.");
+        } else if ( (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && methods.isEmpty()) {
+            showError("Unable to load online advertisers.");
         } else {
             hideProgress();
             getAdapter().replaceWith(advertisements, methods);

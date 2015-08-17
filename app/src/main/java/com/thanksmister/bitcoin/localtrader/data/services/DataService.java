@@ -81,13 +81,15 @@ public class DataService
     private static final String PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire";
     public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
     public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
+    public static final String PREFS_WALLET_EXPIRE_TIME = "pref_wallet_expire";
     public static final String PREFS_CONTACTS_EXPIRE_TIME = "pref_ads_expire";
     public static final String PREFS_USER = "pref_user";
 
     public static final int CHECK_EXCHANGE_DATA = 3 * 60 * 1000;// 3 minutes
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
-    public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 mintues
-    public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 15 mintues
+    public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 minutes
+    public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
+    public static final int CHECK_WALLET_DATA = 3 * 5 * 60 * 1000;// 15 minutes
     
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
@@ -639,8 +641,11 @@ public class DataService
         }
         
         if(!needToRefreshAdvertisements() && !force) {
+            Timber.d("!needToRefreshAdvertisements");
             return Observable.empty();
         }
+        
+        Timber.d("getAdvertisements");
 
         return getAdvertisementsObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()));
@@ -712,8 +717,6 @@ public class DataService
 
     public Observable<Wallet> getWallet()
     {
-        Timber.d("Get Wallet");
-
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Wallet>>()
                 {
@@ -939,6 +942,32 @@ public class DataService
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
             long expire = System.currentTimeMillis() + CHECK_ADVERTISEMENT_DATA; // 1 hours
+            preference.set(expire);
+        }
+    }
+
+    private boolean needToRefreshWallet()
+    {
+        synchronized (this) {
+            LongPreference preference = new LongPreference(sharedPreferences, PREFS_WALLET_EXPIRE_TIME, -1);
+            return System.currentTimeMillis() >= preference.get();
+        }
+    }
+
+    private void resetWalletExpireTime()
+    {
+        synchronized (this) {
+            LongPreference preference = new LongPreference(sharedPreferences, PREFS_WALLET_EXPIRE_TIME);
+            preference.delete();
+        }
+    }
+
+
+    private void setWalletExpireTime()
+    {
+        synchronized (this) {
+            LongPreference preference = new LongPreference(sharedPreferences, PREFS_WALLET_EXPIRE_TIME, -1);
+            long expire = System.currentTimeMillis() + CHECK_WALLET_DATA; // 1 hours
             preference.set(expire);
         }
     }

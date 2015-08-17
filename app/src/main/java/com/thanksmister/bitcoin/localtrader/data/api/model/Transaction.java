@@ -15,7 +15,10 @@
  */
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-public class Transaction
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Transaction implements Parcelable
 {
     public String txid;
     public String amount;
@@ -23,4 +26,45 @@ public class Transaction
     public String tx_type;
     public TransactionType type;
     public String created_at;
+
+    public Transaction()
+    {
+    }
+
+    public Transaction(Parcel parcel)
+    {
+        this();
+        txid = parcel.readString();
+        amount = parcel.readString();
+        description = parcel.readString();
+        type = TransactionType.valueOf(parcel.readString());
+        created_at = parcel.readString();
+    }
+
+    @Override
+    public int describeContents()
+    {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i)
+    {
+        parcel.writeString(txid);
+        parcel.writeString(amount);
+        parcel.writeString(description);
+        parcel.writeString(type.name());
+        parcel.writeString(created_at);
+    }
+
+    public static Creator<Transaction> CREATOR = new Creator<Transaction>()
+    {
+        public Transaction createFromParcel(Parcel parcel) {
+            return new Transaction(parcel);
+        }
+
+        public Transaction[] newArray(int size) {
+            return new Transaction[size];
+        }
+    };
 }

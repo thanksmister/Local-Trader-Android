@@ -19,16 +19,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.WindowManager;
-import android.widget.TextView;
+import android.widget.ImageView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.utils.Strings;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +37,7 @@ import org.json.JSONObject;
 import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -51,32 +53,97 @@ public class PinCodeActivity extends BaseActivity
     public static final String EXTRA_ADDRESS = "EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "EXTRA_AMOUNT";
     
+    public static final int MAX_PINCODE_LENGTH = 4;
     public static final int REQUEST_CODE = 648;
-    
     public static final int RESULT_VERIFIED = 7652;
     public static final int RESULT_CANCELED = 7653;
 
     @Inject
     DataService dataService;
-    
+
+    @InjectView(R.id.toolbar)
+    Toolbar toolbar;
+
     @InjectView(R.id.pinCode1)
-    TextView pinCode1;
+    ImageView pinCode1;
 
     @InjectView(R.id.pinCode2)
-    TextView pinCode2;
+    ImageView pinCode2;
 
     @InjectView(R.id.pinCode3)
-    TextView pinCode3;
+    ImageView pinCode3;
 
     @InjectView(R.id.pinCode4)
-    TextView pinCode4;
-    
-    private boolean pinComplete;
-    private String pinTxt1;
-    private String pinTxt2;
-    private String pinTxt3;
-    private String pinTxt4;
-    
+    ImageView pinCode4;
+
+    @OnClick(R.id.button0)
+    public void button0Clicked()
+    {
+        addPinCode("0");
+    }
+
+    @OnClick(R.id.button1)
+    public void button1Clicked()
+    {
+        addPinCode("1");
+    }
+
+    @OnClick(R.id.button2)
+    public void button2Clicked()
+    {
+        addPinCode("2");
+    }
+
+    @OnClick(R.id.button3)
+    public void button3Clicked()
+    {
+        addPinCode("3");
+    }
+
+    @OnClick(R.id.button4)
+    public void button4Clicked()
+    {
+        addPinCode("4");
+    }
+
+    @OnClick(R.id.button5)
+    public void button5Clicked()
+    {
+        addPinCode("5");
+    }
+
+    @OnClick(R.id.button6)
+    public void button6Clicked()
+    {
+        addPinCode("6");
+    }
+
+    @OnClick(R.id.button7)
+    public void button7Clicked()
+    {
+        addPinCode("7");
+    }
+
+    @OnClick(R.id.button8)
+    public void button8Clicked()
+    {
+        addPinCode("8");
+    }
+
+    @OnClick(R.id.button9)
+    public void button9Clicked()
+    {
+        addPinCode("9");
+    }
+
+    @OnClick(R.id.buttonDel)
+    public void buttonDelClicked()
+    {
+        removePinCode();
+    }
+
+    private boolean pinComplete = false;
+    private String pinCode = "";
     private String address;
     private String amount;
     private boolean sendingInProgress;
@@ -86,8 +153,7 @@ public class PinCodeActivity extends BaseActivity
 
     public static Intent createStartIntent(Context context)
     {
-        Intent intent = new Intent(context, PinCodeActivity.class);
-        return intent;
+        return new Intent(context, PinCodeActivity.class);
     }
 
     public static Intent createStartIntent(Context context, String address, String amount)
@@ -107,7 +173,7 @@ public class PinCodeActivity extends BaseActivity
 
         ButterKnife.inject(this);
 
-        getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE); // show keyboard
+        getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); // show keyboard
  
         if (savedInstanceState != null) {
             
@@ -118,6 +184,10 @@ public class PinCodeActivity extends BaseActivity
 
             if(savedInstanceState.containsKey(EXTRA_ADDRESS))
                 address = savedInstanceState.getString(EXTRA_ADDRESS);
+            
+            if(savedInstanceState.containsKey(EXTRA_PIN_CODE))
+                pinCode = savedInstanceState.getString(EXTRA_PIN_CODE);
+            
         } else {
             
             if(getIntent().hasExtra(EXTRA_AMOUNT))
@@ -127,152 +197,7 @@ public class PinCodeActivity extends BaseActivity
                 address = getIntent().getStringExtra(EXTRA_ADDRESS);
         }
 
-        pinCode4.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-            @Override
-            public void afterTextChanged(Editable editable)
-            {
-                pinTxt4 = editable.toString();
-                if(!pinTxt4.trim().isEmpty() && !pinTxt4.equals("") && pinComplete) {
-                    String pinCode = pinTxt1;
-                    pinCode += pinTxt2;
-                    pinCode += pinTxt3;
-                    pinCode += pinTxt4;
-                    if(pinCode.length() > 0) {
-                        onSetPinCodeClick(pinCode);
-                    } else {
-                        pinComplete = false;
-                    }
-                } else {
-                    
-                    pinCode4.setCursorVisible(true);
-                    pinCode4.setFocusable(true);
-                    pinCode4.setFocusableInTouchMode(true);
-                    pinCode4.requestFocus();
-                    pinComplete = false;
-                }
-            }
-        });
-
-        pinCode3.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-            @Override
-            public void afterTextChanged(Editable editable)
-            {
-                pinTxt3 = editable.toString();
-                if(!pinTxt3.trim().isEmpty() && !pinTxt3.equals("")) {
-                    pinCode3.setCursorVisible(false);
-                    pinCode3.setFocusable(false);
-                    pinCode3.setFocusableInTouchMode(false);
-
-                    pinCode4.setCursorVisible(true);
-                    pinCode4.setFocusableInTouchMode(true);
-                    pinCode4.setFocusable(true);
-                    pinCode4.requestFocus();
-                    
-                    pinComplete = true;
-                } else {
-                    
-                    pinCode3.setCursorVisible(true);
-                    pinCode3.setFocusable(true);
-                    pinCode3.setFocusableInTouchMode(true);
-                    pinCode3.requestFocus();
-                    pinComplete = false;
-                }
-            }
-        });
-
-        pinCode2.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-            @Override
-            public void afterTextChanged(Editable editable)
-            {
-                pinTxt2 = editable.toString();
-                if(!pinTxt2.trim().isEmpty() && !pinTxt2.equals("")) {
-                    pinCode2.setCursorVisible(false);
-                    pinCode2.setFocusable(false);
-                    pinCode2.setFocusableInTouchMode(false);
-
-                    pinCode3.setCursorVisible(true);
-                    pinCode3.setFocusableInTouchMode(true);
-                    pinCode3.setFocusable(true);
-                    pinCode3.requestFocus();
-
-                    pinComplete = true;
-                } else {
-                    
-                    pinCode2.setCursorVisible(true);
-                    pinCode2.setFocusable(true);
-                    pinCode2.setFocusableInTouchMode(true);
-                    pinCode2.requestFocus();
-                    pinComplete = false;
-                }
-            }
-        });
-    
-        pinCode1.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable)
-            {
-                pinTxt1 = editable.toString();
-                if (!pinTxt1.trim().isEmpty() && !pinTxt1.equals("")) {
-                    pinCode1.setCursorVisible(false);
-                    pinCode1.setFocusable(false);
-                    pinCode1.setFocusableInTouchMode(false);
-
-                    pinCode2.setCursorVisible(true);
-                    pinCode2.setFocusableInTouchMode(true);
-                    pinCode2.setFocusable(true);
-                    pinCode2.requestFocus();
-
-                    pinComplete = true;
-                } else {
-
-                    pinCode1.setCursorVisible(true);
-                    pinCode1.setFocusable(true);
-                    pinCode1.setFocusableInTouchMode(true);
-                    pinCode1.requestFocus();
-                    pinComplete = false;
-                }
-            }
-        });
-
-        pinCode1.requestFocus();
+        setupToolbar();
     }
     
     @Override
@@ -295,14 +220,107 @@ public class PinCodeActivity extends BaseActivity
         
         if(amount != null)
             outState.putString(EXTRA_AMOUNT, amount);
+        
+        if(pinCode != null)
+            outState.putString(EXTRA_PIN_CODE, pinCode);
+    }
+
+    private void setupToolbar()
+    {
+        // Show menu icon
+        setSupportActionBar(toolbar);
+        final ActionBar ab = getSupportActionBar();
+        ab.setDisplayHomeAsUpEnabled(true);
+        ab.setTitle("Enter PIN Code");
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        if (item.getItemId() == android.R.id.home && !sendingInProgress) {
+            toast(R.string.toast_pin_code_canceled);
+            setResult(PinCodeActivity.RESULT_CANCELED);
+            finish();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+    
+    private void invalidatePinCode()
+    {
+        pinCode = "";
+        pinComplete = false;
+        showFilledPins(0);
+        toast(R.string.toast_pin_code_invalid);
+    }
+    
+    private void addPinCode(String code)
+    {
+        if(pinComplete) return;
+        
+        pinCode += code;
+        
+        showFilledPins (pinCode.length());
+
+        if(pinCode.length() == MAX_PINCODE_LENGTH) {
+            pinComplete = true;
+            onSetPinCodeClick(pinCode);
+        }
+    }
+    
+    private void removePinCode()
+    {
+        if(pinComplete) return;
+        
+        if(!Strings.isBlank(pinCode)) {
+            pinCode = pinCode.substring(0, pinCode.length() - 1);
+            showFilledPins (pinCode.length());
+        }
     }
 
     private void onSetPinCodeClick(String pinCode)
     {
         validatePinCode(pinCode, address, amount);
     }
+    
+    private void showFilledPins(int pinsShown)
+    {
+        switch(pinsShown) {
+            case 1:
+                pinCode1.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode2.setImageResource(R.drawable.ic_pin_code_off);
+                pinCode3.setImageResource(R.drawable.ic_pin_code_off);
+                pinCode4.setImageResource(R.drawable.ic_pin_code_off);
+                break;
+            case 2:
+                pinCode1.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode2.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode3.setImageResource(R.drawable.ic_pin_code_off);
+                pinCode4.setImageResource(R.drawable.ic_pin_code_off);
+                break;
+            case 3:
+                pinCode1.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode2.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode3.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode4.setImageResource(R.drawable.ic_pin_code_off);
+                break;
+            case 4:
+                pinCode1.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode2.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode3.setImageResource(R.drawable.ic_pin_code_on);
+                pinCode4.setImageResource(R.drawable.ic_pin_code_on);
+                break;
+            default:
+                pinCode1.setImageResource(R.drawable.ic_pin_code_off);
+                pinCode2.setImageResource(R.drawable.ic_pin_code_off);
+                pinCode3.setImageResource(R.drawable.ic_pin_code_off);
+                pinCode4.setImageResource(R.drawable.ic_pin_code_off);
+                break;
+        }
+    }
 
-    @Override
+    /*Override
     public boolean onKeyDown(int keyCode, KeyEvent event) 
     {
         // block back button while in progress
@@ -314,7 +332,7 @@ public class PinCodeActivity extends BaseActivity
         }
 
         return super.onKeyDown(keyCode, event);
-    }
+    }*/
 
     private void validatePinCode(final String pinCode, final String address, final String amount)
     {
@@ -334,19 +352,16 @@ public class PinCodeActivity extends BaseActivity
                         intent.putExtra(PinCodeActivity.EXTRA_PIN_CODE, pinCode);
                         intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, address);
                         intent.putExtra(PinCodeActivity.EXTRA_AMOUNT, amount);
-
                         setResult(PinCodeActivity.RESULT_VERIFIED, intent);
                         finish();
 
                     } else {
                         Timber.d(object.toString());
-                        toast(R.string.toast_pin_code_invalid);
-                        finish();
+                        invalidatePinCode();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    toast(R.string.toast_pin_code_invalid);
-                    finish();
+                    invalidatePinCode();
                 }
             }
         }, new Action1<Throwable>()
@@ -354,8 +369,7 @@ public class PinCodeActivity extends BaseActivity
             @Override
             public void call(Throwable throwable)
             {
-                toast(R.string.toast_pin_code_invalid);
-                finish();
+                invalidatePinCode();
             }
         });
     }

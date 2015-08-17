@@ -322,6 +322,9 @@ public class TradeUtils
     {
         for (MethodItem method : methods) {
             if(method.code().equals(code)) {
+                if(Strings.isBlank(method.key()))
+                    return code;
+                
                 return method.key();
             }
         }

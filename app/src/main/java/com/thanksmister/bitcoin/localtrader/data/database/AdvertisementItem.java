@@ -76,7 +76,10 @@ public abstract class AdvertisementItem
 //34
     
     public static final String QUERY = "SELECT * FROM " 
-            + AdvertisementItem.TABLE;
+            + AdvertisementItem.TABLE
+            + " ORDER BY "
+            + AdvertisementItem.VISIBLE
+            + " DESC";
 
     public static final String QUERY_ITEM = "SELECT * FROM "
             + AdvertisementItem.TABLE
