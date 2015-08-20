@@ -21,9 +21,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -133,7 +135,7 @@ public abstract class BaseActivity extends AppCompatActivity
         }
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View dialogView = inflater.inflate(R.layout.dialog_progress, null);
+        View dialogView = inflater.inflate(R.layout.dialog_progress, null, false);
         TextView progressDialogMessage = (TextView) dialogView.findViewById(R.id.progressDialogMessage);
         progressDialogMessage.setText(event.message);
 
@@ -203,6 +205,12 @@ public abstract class BaseActivity extends AppCompatActivity
     private void  onLoggedOut()
     {
         dbManager.clearDbManager();
+        
+        // clear preferences
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        SharedPreferences.Editor editor = settings.edit();
+        editor.clear();
+        editor.apply();
         
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);

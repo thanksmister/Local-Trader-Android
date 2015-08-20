@@ -53,10 +53,10 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindActivity;
 
 public class SearchResultsActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -99,9 +99,6 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     private TradeType tradeType;
     private Address address;
     
-    private Observable<List<MethodItem>> methodObservable;
-    private Observable<List<Advertisement>> advertisementsObservable;
-
     public static Intent createStartIntent(Context context, @NonNull TradeType tradeType, @NonNull Address address, @Nullable String paymentMethod)
     {
         Timber.d("TradeType: " + tradeType.name());
@@ -173,7 +170,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
         adapter = new AdvertiseAdapter(this);
         setAdapter(adapter);
 
-        methodObservable = bindActivity(this, dbManager.methodQuery().cache());
+       
     }
 
     @Override
@@ -260,68 +257,75 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     protected void updateData()
     {
         Timber.d("Update Data");
-        
+     
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
 
-            advertisementsObservable = bindActivity(this, geoLocationService.getLocalAdvertisements(address.getLatitude(), address.getLongitude(), tradeType));
-            advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
-            {
-                @Override
-                public void call(List<Advertisement> advertisements)
-                {
-                    hideProgress();
-                    onRefreshStop();
-                    setData(advertisements, null);
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                   
-                    hideProgress();
-                    onRefreshStop();
-                    handleError(throwable);
-                }
-            });
-        } else {
-            
-            methodObservable.subscribe(new Action1<List<MethodItem>>()
-            {
-                @Override
-                public void call(final List<MethodItem> methodItems)
-                {
-                    Timber.d("Payment Methods: " + methodItems);
-                    
-                    String method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
-                    
-                    Timber.d("Payment Method Util: " + method);
-                    
-                    advertisementsObservable = bindActivity(SearchResultsActivity.this, geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method));
-                    advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
+            Observable<List<Advertisement>> advertisementsObservable = geoLocationService.getLocalAdvertisements(address.getLatitude(), address.getLongitude(), tradeType);
+            advertisementsObservable
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<List<Advertisement>>()
                     {
                         @Override
                         public void call(List<Advertisement> advertisements)
                         {
-                            Timber.d("Advertisement: " + advertisements.size());
-                            
                             hideProgress();
                             onRefreshStop();
-                            setData(advertisements, methodItems);
+                            setData(advertisements, null);
                         }
                     }, new Action1<Throwable>()
                     {
                         @Override
                         public void call(Throwable throwable)
                         {
+
                             hideProgress();
                             onRefreshStop();
-                            Timber.e("Error: " + throwable.getMessage());
-                            handleError(throwable, true);
+                            handleError(throwable);
                         }
                     });
-                }
-            });
+        } else {
+
+            Observable<List<MethodItem>> methodObservable = dbManager.methodQuery().cache();
+            methodObservable
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<List<MethodItem>>()
+                    {
+                        @Override
+                        public void call(final List<MethodItem> methodItems)
+                        {
+                            Timber.d("Payment Methods: " + methodItems);
+
+                            String method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
+
+                            Timber.d("Payment Method Util: " + method);
+
+                            Observable<List<Advertisement>> advertisementsObservable = geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method);
+                            advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
+                            {
+                                @Override
+                                public void call(List<Advertisement> advertisements)
+                                {
+                                    Timber.d("Advertisement: " + advertisements.size());
+
+                                    hideProgress();
+                                    onRefreshStop();
+                                    setData(advertisements, methodItems);
+                                }
+                            }, new Action1<Throwable>()
+                            {
+                                @Override
+                                public void call(Throwable throwable)
+                                {
+                                    hideProgress();
+                                    onRefreshStop();
+                                    Timber.e("Error: " + throwable.getMessage());
+                                    handleError(throwable, true);
+                                }
+                            });
+                        }
+                    });
         }
     }
 

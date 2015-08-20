@@ -597,12 +597,12 @@ public class DbManager
     public void updateExchange(final Exchange exchange)
     {
         ExchangeItem.Builder builder = new ExchangeItem.Builder()
-                .ask(exchange.ask)
-                .bid(exchange.bid)
-                .last(exchange.last)
-                .exchange(exchange.name);
+                .ask(exchange.getAsk())
+                .bid(exchange.getBid())
+                .last(exchange.getLast())
+                .exchange(exchange.getDisplay_name());
 
-        //db.beginTransaction();
+        db.beginTransaction();
         Cursor cursor = db.query(ExchangeItem.QUERY);
         try {
             if (cursor.getCount() > 0) {
@@ -612,10 +612,10 @@ public class DbManager
             } else {
                 db.insert(ExchangeItem.TABLE, builder.build());
             }
-            //db.setTransactionSuccessful();
+            db.setTransactionSuccessful();
 
         } finally {
-           // db.endTransaction();
+            db.endTransaction();
             cursor.close();
         }
     }

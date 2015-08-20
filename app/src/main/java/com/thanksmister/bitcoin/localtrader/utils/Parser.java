@@ -24,6 +24,8 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Place;
@@ -934,4 +936,59 @@ public class Parser
         }
     }
 
+    public static List<ExchangeCurrency> parseExchangeCurrencies(String response)
+    {
+        JSONObject jsonObject;
+        ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
+
+        try {
+            jsonObject = new JSONObject(response);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        Iterator<?> keys = jsonObject.keys();
+        while( keys.hasNext() ){
+            String key = (String) keys.next();
+            try {
+                if(!key.equals("all")) {
+                    ExchangeCurrency currency = new ExchangeCurrency(key, jsonObject.get(key).toString());
+                    currencies.add(currency);
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return currencies;
+    }
+
+    public static Exchange parseMarket(String response)
+    {
+        JSONObject jsonObject;
+
+        try {
+            jsonObject = new JSONObject(response);
+
+            String ask = "";
+            String bid = "";
+            String last = "";
+            String display_name = "BitcoinAverage";
+            String source = "http://www.bitcoinaverage.com";
+            String created_at = "";
+
+            ask = jsonObject.getString("ask");
+            bid = jsonObject.getString("bid");
+            last = jsonObject.getString("last");
+            created_at = jsonObject.getString("timestamp");
+
+            return new Exchange(display_name, ask, bid, last, source, created_at);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

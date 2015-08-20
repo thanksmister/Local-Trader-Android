@@ -28,24 +28,6 @@ public class ResponseBitstampToExchange implements Func1<Bitstamp, Exchange>
     @Override
     public Exchange call(Bitstamp bitstamp)
     {
-        Exchange exchange = new Exchange();
-        
-        try {
-            exchange.name = "Bitstamp";
-            exchange.ask = bitstamp.ask;
-            exchange.bid = bitstamp.bid;
-            exchange.high = bitstamp.high;
-            exchange.low = bitstamp.low;
-            exchange.volume = bitstamp.volume;
-            exchange.last = bitstamp.last;
-            exchange.timestamp = bitstamp.timestamp;
-
-        } catch (NullPointerException e) {
-            Timber.d("ResponseBitstampToExchange e: " + e.getMessage()); 
-        }
-        
-        Timber.d("ResponseBitstampToExchange");
-        
-        return exchange;
+        return new Exchange("Bitstamp", bitstamp.ask, bitstamp.bid, bitstamp.last, "http://www.bitstamp.com", bitstamp.timestamp);
     }
 }

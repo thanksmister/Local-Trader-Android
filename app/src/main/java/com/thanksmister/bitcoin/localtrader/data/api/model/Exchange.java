@@ -13,18 +13,71 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.
  */
-
 package com.thanksmister.bitcoin.localtrader.data.api.model;
+
 
 public class Exchange
 {
-    public String name;
-    public String mid;
-    public String high;
-    public String last;
-    public String bid;
-    public String ask;
-    public String low;
-    public String volume;
-    public String timestamp;
+    //private long _id;
+    private String display_name;
+    private String ask;
+    private String bid;
+    private String last;
+    private String source;
+    private String created_at;
+
+    /*public Exchange(long id, String name, String ask, String bid, String last, String source, String date) {
+        this._id = id;
+        this.display_name = name;
+        this.ask = ask;
+        this.bid = bid;
+        this.last = last;
+        this.source = source;
+        this.created_at = date;
+    }*/
+
+    public Exchange(String name, String ask, String bid, String last, String source, String date) {
+        this.display_name = name;
+        this.ask = ask;
+        this.bid = bid;
+        this.last = last;
+        this.source = source;
+        this.created_at = date;
+    }
+    
+    /*public long get_id()
+    {
+        return _id;
+    }*/
+
+    public String getDisplay_name()
+    {
+        return display_name;
+    }
+
+    public String getAsk()
+    {
+        return ask;
+    }
+
+    public String getBid()
+    {
+        return bid;
+    }
+
+    public String getLast()
+    {
+        return last;
+    }
+
+    public String getSource()
+    {
+        return source;
+    }
+    
+    public String getCreated_at()
+    {
+        return created_at;
+    }
+
 }

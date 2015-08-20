@@ -466,4 +466,8 @@
     <string name="dashboard_active_trades_header">Active Trades</string>
     <string name="dashboard_advertisements_header">Advertisements</string>
 
+    <!-- SETTINGS -->
+    
+    <string name="title_activity_settings">Settings</string>
+
 </resources>

@@ -43,9 +43,9 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-
-import static rx.android.app.AppObservable.bindActivity;
+import rx.schedulers.Schedulers;
 
 public class TradeRequestActivity extends BaseActivity
 {
@@ -92,8 +92,6 @@ public class TradeRequestActivity extends BaseActivity
     private String adMax;
     private String currency;
     private String profileName;
-    
-    private Observable<ContactRequest> contactRequestObservable;
 
     public static Intent createStartIntent(Context context, String adId, String adPrice, String adMin, String adMax, String currency, String profileName)
     {
@@ -240,23 +238,26 @@ public class TradeRequestActivity extends BaseActivity
 
     public void sendTradeRequest(String adId, String amount, String message)
     {
-        contactRequestObservable = bindActivity(this, dataService.createContact(adId, amount, message));
-        contactRequestObservable.subscribe(new Action1<ContactRequest>()
-        {
-            @Override
-            public void call(ContactRequest contactRequest)
-            {
-                snack("Contact request sent to " + profileName + "!", false);
-                finish();
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                handleError(new Throwable("Unable to send trade request."), false);
-            }
-        });
+        Observable<ContactRequest> contactRequestObservable = dataService.createContact(adId, amount, message);
+        contactRequestObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<ContactRequest>()
+                {
+                    @Override
+                    public void call(ContactRequest contactRequest)
+                    {
+                        snack("Contact request sent to " + profileName + "!", false);
+                        finish();
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        handleError(new Throwable("Unable to send trade request."), false);
+                    }
+                });
     }
 
     private void calculateBitcoinAmount(String amount)

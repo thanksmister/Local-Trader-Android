@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader;
 
 import android.os.Bundle;
+import android.os.HandlerThread;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
@@ -25,6 +26,8 @@ import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import butterknife.ButterKnife;
+
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 /**
  * Base fragment which performs injection using the activity object graph of its parent.
@@ -109,5 +112,12 @@ public abstract class BaseFragment extends Fragment
     public void hideProgressDialog()
     {
         ((BaseActivity) getActivity()).hideProgressDialog();
+    }
+
+    public static class BackgroundThread extends HandlerThread
+    {
+        BackgroundThread() {
+            super("SchedulerSample-BackgroundThread", THREAD_PRIORITY_BACKGROUND);
+        }
     }
 }

@@ -45,7 +45,7 @@ public class BaseApplication extends Application
             //refWatcher = LeakCanary.install(this);
         } else {
             Fabric.with(this, new Crashlytics());
-            RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()
+            /*RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()
             {
                 @Override
                 public void handleError(Throwable e)
@@ -54,7 +54,7 @@ public class BaseApplication extends Application
                     Crashlytics.logException(e);
                 }
             });
-            
+            */
             Timber.plant(new CrashlyticsTree());
         }
         

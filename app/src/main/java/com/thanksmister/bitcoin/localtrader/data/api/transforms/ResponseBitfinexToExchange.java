@@ -27,15 +27,6 @@ public class ResponseBitfinexToExchange implements Func1<Bitfinex, Exchange>
     @Override
     public Exchange call(Bitfinex bitfinex)
     {
-        Exchange exchange = new Exchange();
-        exchange.name = "Bitfinex";
-        exchange.ask = bitfinex.ask;
-        exchange.bid = bitfinex.bid;
-        exchange.high = bitfinex.high;
-        exchange.low = bitfinex.low;
-        exchange.volume = bitfinex.volume;
-        exchange.last = bitfinex.last_price;
-                
-        return exchange;
+        return new Exchange("Bitfinex", bitfinex.ask, bitfinex.bid, bitfinex.last_price, "http://www.bitfinex.com", bitfinex.timestamp);
     }
 }

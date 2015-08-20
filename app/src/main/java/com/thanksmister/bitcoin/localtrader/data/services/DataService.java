@@ -89,7 +89,7 @@ public class DataService
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
     public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 minutes
     public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
-    public static final int CHECK_WALLET_DATA = 3 * 5 * 60 * 1000;// 15 minutes
+    public static final int CHECK_WALLET_DATA = 5 * 60 * 1000;// 15 minutes
     
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
@@ -129,6 +129,7 @@ public class DataService
                 });
     }
 
+    @Deprecated
     public Observable<Exchange> getExchange()
     {
         Timber.d("Get Exchange");
@@ -320,14 +321,13 @@ public class DataService
             return Observable.just(currencies);
         }
 
-        return bitcoinAverage.tickers()
+        return bitcoinAverage.marketTickers()
                 .map(new ResponseToCurrencyList())
                 .doOnNext(new Action1<List<Currency>>()
                 {
                     @Override
                     public void call(List<Currency> results)
                     {
-                        Timber.d("Cash Currencies.");
                         currencies = results;
                     }
                 });
@@ -640,13 +640,15 @@ public class DataService
             return Observable.just(Parser.parseAdvertisements(MockData.ADVERTISEMENT_LIST_SUCCESS));
         }
         
+        Timber.d("Dashboard force: " + force);
+        Timber.d("Dashboard needToRefreshAdvertisements: " + needToRefreshAdvertisements());
+        
         if(!needToRefreshAdvertisements() && !force) {
-            Timber.d("!needToRefreshAdvertisements");
             return Observable.empty();
         }
-        
-        Timber.d("getAdvertisements");
 
+        Timber.d("Dashboard Get Advertisements");
+        
         return getAdvertisementsObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()));
     }
@@ -715,8 +717,12 @@ public class DataService
                 });
     }
 
-    public Observable<Wallet> getWallet()
+    public Observable<Wallet> getWallet(boolean force)
     {
+        if(!needToRefreshWallet() && !force) {
+            return Observable.empty();
+        }
+        
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Wallet>>()
                 {
@@ -731,6 +737,8 @@ public class DataService
                                     @Override
                                     public Observable<Wallet> call(final Wallet wallet)
                                     {
+                                        setWalletExpireTime();
+                                        
                                         return generateBitmap(wallet.address)
                                                 .map(new Func1<Bitmap, Wallet>()
                                                 {
@@ -750,7 +758,6 @@ public class DataService
                                                 });
                                     }
                                 });
-
                     }
                 });
     }

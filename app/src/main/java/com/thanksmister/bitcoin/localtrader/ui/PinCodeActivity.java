@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
-import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -35,6 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.inject.Inject;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -43,8 +43,6 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindActivity;
 
 public class PinCodeActivity extends BaseActivity
 {
@@ -149,7 +147,6 @@ public class PinCodeActivity extends BaseActivity
     private boolean sendingInProgress;
     
     private Subscription subscription = Subscriptions.empty();
-    private Observable<JSONObject> validateObservable;
 
     public static Intent createStartIntent(Context context)
     {
@@ -337,7 +334,7 @@ public class PinCodeActivity extends BaseActivity
     private void validatePinCode(final String pinCode, final String address, final String amount)
     {
         sendingInProgress = true; // we are sending pin
-        validateObservable = bindActivity(this, dataService.validatePinCode(pinCode));
+        Observable<JSONObject> validateObservable = dataService.validatePinCode(pinCode);
         subscription = validateObservable.subscribe(new Action1<JSONObject>()
         {
             @Override
@@ -347,7 +344,7 @@ public class PinCodeActivity extends BaseActivity
                     JSONObject object = jsonObject.getJSONObject("data");
                     Boolean valid = (object.getString("pincode_ok").equals("true"));
                     if (valid) {
-                        
+
                         Intent intent = getIntent();
                         intent.putExtra(PinCodeActivity.EXTRA_PIN_CODE, pinCode);
                         intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, address);

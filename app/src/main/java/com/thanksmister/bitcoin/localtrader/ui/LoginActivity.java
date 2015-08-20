@@ -47,10 +47,10 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
-
-import static rx.android.app.AppObservable.bindActivity;
 
 public class LoginActivity extends BaseActivity
 {
@@ -177,45 +177,51 @@ public class LoginActivity extends BaseActivity
 
     public void setAuthorizationCode(final String code)
     {
-        Observable<Authorization> tokenObservable = bindActivity(this, dataService.getAuthorization(code));
-        tokenObservable.subscribe(new Action1<Authorization>()
-        {
-            @Override
-            public void call(Authorization authorization)
-            {
-                db.insert(SessionItem.TABLE, new SessionItem.Builder().access_token(authorization.access_token).refresh_token(authorization.refresh_token).build());
-                getUser(authorization.access_token);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                toast(getString(R.string.error_authentication));
-            }
-        });
+        Observable<Authorization> tokenObservable = dataService.getAuthorization(code);
+        tokenObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Authorization>()
+                {
+                    @Override
+                    public void call(Authorization authorization)
+                    {
+                        db.insert(SessionItem.TABLE, new SessionItem.Builder().access_token(authorization.access_token).refresh_token(authorization.refresh_token).build());
+                        getUser(authorization.access_token);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        toast(getString(R.string.error_authentication));
+                    }
+                });
     }
 
     public void getUser(String token)
     {
-        Observable<User> userObservable = bindActivity(this, dataService.getMyself(token));
-        subscription = userObservable.subscribe(new Action1<User>()
-        {
-            @Override
-            public void call(User user)
-            {
-                StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
-                stringPreference.set(user.username);
-                toast("Login successful for " + user.username);
-                showMain();
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                toast("Login error");
-            }
-        });
+        Observable<User> userObservable = dataService.getMyself(token);
+        subscription = userObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<User>()
+                {
+                    @Override
+                    public void call(User user)
+                    {
+                        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
+                        stringPreference.set(user.username);
+                        toast("Login successful for " + user.username);
+                        showMain();
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        toast("Login error");
+                    }
+                });
     }
 }

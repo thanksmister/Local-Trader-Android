@@ -49,6 +49,11 @@
                 android:id="@+id/navigationItemAbout"
                 android:icon="@drawable/info_small"
                 android:title="@string/view_title_about"/>
+
+        <item
+                android:id="@+id/navigationItemSettings"
+                android:icon="@drawable/settings_small"
+                android:title="@string/view_title_settings"/>
     </group>
     
 </menu>

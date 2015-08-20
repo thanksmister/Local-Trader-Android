@@ -18,13 +18,11 @@ package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,6 +43,7 @@ import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment;
+import com.thanksmister.bitcoin.localtrader.ui.settings.SettingsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
@@ -59,8 +58,6 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindActivity;
 
 @BaseActivity.RequiresAuthentication
 public class MainActivity extends BaseActivity implements View.OnClickListener
@@ -100,12 +97,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
 
     @InjectView(R.id.navigation)
     NavigationView navigationView;
-    
-    Fragment fragment;
-    int position = DRAWER_DASHBOARD;
-    Observable<Boolean> loginObserver;
-    Subscription loginSubscription = Subscriptions.unsubscribed();
-    boolean activityCreated;
+
+    private Fragment fragment;
+    private int position = DRAWER_DASHBOARD;
+    private int lastMenuItemId = R.id.navigationItemDashboard;
+    private Observable<Boolean> loginObserver;
+    private Subscription loginSubscription = Subscriptions.unsubscribed();
     
     public static Intent createStartIntent(Context context, String bitcoinUri)
     {
@@ -131,10 +128,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
 
         setupNavigationView();
         
-        loginObserver = bindActivity(this, dbManager.isLoggedIn());
-
+        loginObserver = dbManager.isLoggedIn();
         loginSubscription = loginObserver
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>()
                 {
@@ -161,6 +157,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                         Timber.e("Error thrown during login verification");
                     }
                 });
+        
     }
 
     @Override
@@ -180,7 +177,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             if(loginSubscription.isUnsubscribed()) {
                 
                 loginSubscription = dbManager.isLoggedIn()
-                        .subscribeOn(Schedulers.io())
+                        .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new Action1<Boolean>()
                         {
@@ -194,6 +191,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                         });
             }
         }
+
+        navigationView.getMenu().findItem(lastMenuItemId).setChecked(true);
     }
 
     @Override
@@ -240,25 +239,32 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     public void selectDrawerItem(MenuItem menuItem) 
     {
         switch(menuItem.getItemId()) {
-            case R.id.navigationItemDashboard:
-                setContentFragment(DRAWER_DASHBOARD);
-                break;
-            case R.id.navigationItemSearch:
+           case R.id.navigationItemSearch:
+                lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_SEARCH);
                 break;
             case R.id.navigationItemSend:
+                lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_SEND);
                 break;
             case R.id.navigationItemReceive:
+                lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_RECEIVE);
                 break;
             case R.id.navigationItemWallet:
+                lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_WALLET);
                 break;
             case R.id.navigationItemAbout:
+                lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_ABOUT);
                 break;
+            case R.id.navigationItemSettings:
+                Intent intent = SettingsActivity.createStartIntent(this);
+                startActivity(intent);
+                break;
             default:
+                lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_DASHBOARD);
         }
 
@@ -336,14 +342,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     @Subscribe
     public void onRefreshEvent(RefreshEvent event)
     {
-        if (fragment.getTag().equals(DASHBOARD_FRAGMENT)) {
-            ((DashboardFragment) fragment).onRefresh();
-        } else if (fragment.getTag().equals(WALLET_FRAGMENT)){
-            ((WalletFragment) fragment).onRefresh();
-        } else if (fragment.getTag().equals(SEARCH_FRAGMENT)){
-            ((SearchFragment) fragment).onRefresh();
-        } else if (fragment.getTag().equals(SEND_FRAGMENT)){
-            ((RequestFragment) fragment).onRefresh();
+        switch (fragment.getTag()) {
+            case DASHBOARD_FRAGMENT:
+                ((DashboardFragment) fragment).onRefresh();
+                break;
+            case WALLET_FRAGMENT:
+                ((WalletFragment) fragment).onRefresh();
+                break;
+            case SEARCH_FRAGMENT:
+                ((SearchFragment) fragment).onRefresh();
+                break;
+            case SEND_FRAGMENT:
+                ((RequestFragment) fragment).onRefresh();
+                break;
         }
     }
     

@@ -48,6 +48,8 @@ import com.thanksmister.bitcoin.localtrader.ui.search.SearchResultsActivity;
 import com.thanksmister.bitcoin.localtrader.ui.AboutFragment;
 import com.thanksmister.bitcoin.localtrader.ui.RequestFragment;
 import com.thanksmister.bitcoin.localtrader.ui.search.TradeRequestActivity;
+import com.thanksmister.bitcoin.localtrader.ui.settings.SettingsActivity;
+import com.thanksmister.bitcoin.localtrader.ui.settings.SettingsFragment;
 
 import javax.inject.Singleton;
 
@@ -58,7 +60,7 @@ import dagger.Provides;
         injects = {MainActivity.class, PromoActivity.class, LoginActivity.class, AdvertisementActivity.class, 
                 EditActivity.class, DashboardFragment.class, WalletFragment.class, ContactActivity.class, SearchFragment.class,
                 PinCodeActivity.class, SearchResultsActivity.class, AdvertiserActivity.class, AboutFragment.class, SendFragment.class, RequestFragment.class,
-                TradeRequestActivity.class, ContactsActivity.class, BitcoinHandler.class},
+                TradeRequestActivity.class, ContactsActivity.class, BitcoinHandler.class, SettingsActivity.class, SettingsFragment.class},
         includes = {DataModule.class, DomainModule.class, DbModule.class},
         complete = false,
         library = true

@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.data.api;
+package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-import retrofit.client.Response;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import rx.Observable;
-
-public interface BitcoinAverage
+public class ExchangeCurrency
 {
-    @GET("/ticker/{currency}")
-    Observable<Response> market(@Path("currency") String currency);
+    private String name;
+    private String link;
 
-    @GET("/ticker/global/")
-    Observable<Response> globalTickers();
+    public ExchangeCurrency(String name, String link) {
+        this.name = name;
+        this.link = link;
+    }
 
-    @GET("/ticker/")
-    Observable<Response> marketTickers();
+    public String getName()
+    {
+        return name;
+    }
+
+    public String getLink()
+    {
+        return link;
+    }
 }

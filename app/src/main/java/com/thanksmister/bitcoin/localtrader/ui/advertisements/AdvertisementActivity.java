@@ -33,7 +33,6 @@ import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -45,9 +44,6 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
-import com.thanksmister.bitcoin.localtrader.ui.DashboardFragment;
-import com.thanksmister.bitcoin.localtrader.ui.RequestFragment;
-import com.thanksmister.bitcoin.localtrader.ui.WalletFragment;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -70,7 +66,6 @@ import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
-import static rx.android.app.AppObservable.bindActivity;
 
 public class AdvertisementActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -81,10 +76,10 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     @Inject
     DbManager dbManager;
-    
+
     @Inject
     BriteDatabase db;
-    
+
     @InjectView(R.id.tradePrice)
     TextView tradePrice;
 
@@ -130,30 +125,28 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     private String adId;
     private Menu menu;
     private AdvertisementData advertisementData;
-    
-    private class AdvertisementData {
-       public AdvertisementItem advertisement;
-       public MethodItem method;
+
+    private class AdvertisementData
+    {
+        public AdvertisementItem advertisement;
+        public MethodItem method;
     }
 
     private Subscription subscription = Subscriptions.empty();
     private Subscription updateSubscription = Subscriptions.empty();
-    
-    private Observable<Advertisement> updateAdvertisementObservable;
-    private Observable<Boolean> deleteObservable;
-   
+
     public static Intent createStartIntent(Context context, String adId)
     {
         Intent intent = new Intent(context, AdvertisementActivity.class);
         intent.putExtra(EXTRA_AD_ID, adId);
         return intent;
     }
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
+
         setContentView(R.layout.view_advertisement);
 
         ButterKnife.inject(this);
@@ -163,8 +156,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         } else if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_AD_ID)) {
             adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
-        
-        if(toolbar != null) {
+
+        if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
@@ -173,10 +166,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
-        
-        updateAdvertisementObservable = bindActivity(this, dataService.getAdvertisement(adId));
     }
-    
+
     @Override
     public void onSaveInstanceState(Bundle outState)
     {
@@ -186,7 +177,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
-        if(requestCode == EditActivity.REQUEST_CODE) {
+        if (requestCode == EditActivity.REQUEST_CODE) {
             if (resultCode == EditActivity.RESULT_UPDATED) {
                 this.adId = intent.getStringExtra(EXTRA_AD_ID);
             }
@@ -196,12 +187,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        if(toolbar != null)
+        if (toolbar != null)
             toolbar.inflateMenu(R.menu.advertisement);
 
         this.menu = menu;
-        
-        if(advertisementData != null) {
+
+        if (advertisementData != null) {
             setMenuVisibilityIcon(advertisementData.advertisement.visible());
         }
 
@@ -229,7 +220,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     {
         hideProgress();
 
-        if(swipeLayout != null)
+        if (swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
 
@@ -237,7 +228,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     {
         hideProgress();
 
-        if(swipeLayout != null)
+        if (swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
 
@@ -268,7 +259,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             updateData();
         }
     }
-    
+
     public void setToolBarMenu(Toolbar toolbar)
     {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener()
@@ -300,13 +291,13 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             }
         });
     }
-    
+
     public void showError()
     {
         progress.setVisibility(View.GONE);
         content.setVisibility(View.GONE);
     }
-    
+
     public void hideProgress()
     {
         progress.setVisibility(View.GONE);
@@ -317,7 +308,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     {
         Observable<List<MethodItem>> methodObservable = dbManager.methodQuery();
         Observable<AdvertisementItem> advertisementObservable = dbManager.advertisementItemQuery(adId);
-        
+
         subscription = Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, AdvertisementItem, AdvertisementData>()
         {
             @Override
@@ -329,54 +320,58 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                 return advertisementData;
             }
         })
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<AdvertisementData>()
-        {
-            @Override
-            public void call(AdvertisementData advertisementData)
-            {
-                setAdvertisement(advertisementData.advertisement, advertisementData.method);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                showError();
-                reportError(throwable);
-                toast("Unable to retrieve advertisement data.");
-            }
-        });
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<AdvertisementData>()
+                {
+                    @Override
+                    public void call(AdvertisementData advertisementData)
+                    {
+                        setAdvertisement(advertisementData.advertisement, advertisementData.method);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        showError();
+                        reportError(throwable);
+                        toast("Unable to retrieve advertisement data.");
+                    }
+                });
     }
-    
+
     protected void updateData()
     {
-        updateSubscription = updateAdvertisementObservable.subscribe(new Action1<Advertisement>()
-        {
-            @Override
-            public void call(Advertisement advertisement)
-            {
-                onRefreshStop();
+        Observable<Advertisement> updateAdvertisementObservable = dataService.getAdvertisement(adId);
+        updateSubscription = updateAdvertisementObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Advertisement>()
+                {
+                    @Override
+                    public void call(Advertisement advertisement)
+                    {
+                        onRefreshStop();
 
-                dbManager.updateAdvertisement(advertisement);
+                        dbManager.updateAdvertisement(advertisement);
 
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                onRefreshStop();
-                
-                handleError(throwable, true);
-            }
-        });
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        onRefreshStop();
+
+                        handleError(throwable, true);
+                    }
+                });
     }
-    
+
     public void setAdvertisement(AdvertisementItem advertisement, @Nullable MethodItem method)
     {
-        
+
         tradePrice.setText(getString(R.string.trade_price, advertisement.temp_price(), advertisement.currency()));
 
         String price = advertisement.currency();
@@ -407,15 +402,15 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, advertisement.location_string())));
         }
 
-        if(TradeUtils.isLocalTrade(advertisement)) {
+        if (TradeUtils.isLocalTrade(advertisement)) {
             onlinePaymentLayout.setVisibility(View.GONE);
         }
 
-        if(advertisement.atm_model() != null) {
+        if (advertisement.atm_model() != null) {
             tradeLimit.setText("");
-        } else if(advertisement.min_amount() == null) {
+        } else if (advertisement.min_amount() == null) {
             tradeLimit.setText("");
-        } else if(advertisement.max_amount() == null) {
+        } else if (advertisement.max_amount() == null) {
             tradeLimit.setText(getString(R.string.trade_limit_min, advertisement.min_amount(), advertisement.currency()));
         } else { // no maximum set
             tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount(), advertisement.max_amount(), advertisement.currency()));
@@ -438,12 +433,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
         }
 */
-        if(!Strings.isBlank(advertisement.message())){
+        if (!Strings.isBlank(advertisement.message())) {
             tradeTerms.setText(advertisement.message().trim());
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
         }
 
-        if(tradeType == TradeType.ONLINE_SELL) {
+        if (tradeType == TradeType.ONLINE_SELL) {
             String paymentMethod = TradeUtils.getPaymentMethodName(advertisement, method);
             onlineProvider.setText(paymentMethod);
             paymentDetails.setText(advertisement.account_info());
@@ -451,34 +446,35 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         updateAdvertisement(advertisement);
     }
-    
+
     public void updateAdvertisement(AdvertisementItem advertisement)
     {
         noteLayout.setVisibility(advertisement.visible() ? View.GONE : View.VISIBLE);
-        
+
         noteText.setText(getString(R.string.advertisement_invisible_warning));
-        
+
         setMenuVisibilityIcon(advertisement.visible());
     }
 
     private void setMenuVisibilityIcon(boolean show)
     {
         int icon;
-        if(show) {
+        if (show) {
             icon = R.drawable.ic_action_visibility;
         } else {
             icon = R.drawable.ic_action_visibility_off;
         }
 
-        if(menu != null)
+        if (menu != null)
             menu.getItem(0).setIcon(icon);
-        
+
         onRefreshStop();
     }
 
     private void viewOnlineAdvertisement()
     {
-        if(advertisementData == null) return;;
+        if (advertisementData == null) return;
+        ;
         AdvertisementItem advertisement = advertisementData.advertisement;
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.action_public_view()));
         startActivity(intent);
@@ -489,9 +485,11 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         ConfirmationDialogEvent event = new ConfirmationDialogEvent("Delete Advertisement",
                 getString(R.string.advertisement_delete_confirm),
                 getString(R.string.button_delete),
-                getString(R.string.button_cancel), new Action0() {
+                getString(R.string.button_cancel), new Action0()
+        {
             @Override
-            public void call() {
+            public void call()
+            {
                 deleteAdvertisementConfirmed(adId);
             }
         });
@@ -501,18 +499,18 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     private void deleteAdvertisementConfirmed(final String adId)
     {
-        deleteObservable = bindActivity(this, dataService.deleteAdvertisement(adId));
+        Observable<Boolean> deleteObservable = dataService.deleteAdvertisement(adId);
         deleteObservable.subscribe(new Action1<Boolean>()
         {
             @Override
             public void call(Boolean deleted)
             {
-                if(deleted) {
+                if (deleted) {
                     db.delete(AdvertisementItem.TABLE, AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
 
                     toast("Advertisement deleted!");
 
-                    finish(); 
+                    finish();
                 } else {
                     toast("Error deleting advertisement!");
                 }
@@ -530,34 +528,34 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     private void updateAdvertisementVisibility()
     {
         showProgressDialog(new ProgressDialogEvent("Updating visibility..."));
-        
-        if(advertisementData == null) return;
-        
+
+        if (advertisementData == null) return;
+
         Advertisement advertisement = new Advertisement();
         advertisement = advertisement.convertAdvertisementItemToAdvertisement(advertisementData.advertisement);
-        
+
         final String adId = advertisement.ad_id;
         final boolean visible = !advertisement.visible;
 
         Timber.d("Update Advertisement Id: " + adId);
         Timber.d("Update Advertisement Visibility: " + visible);
 
-        Observable<JSONObject> updateObservable = bindActivity(this, dataService.updateAdvertisementVisibility(advertisement, visible));
+        Observable<JSONObject> updateObservable = dataService.updateAdvertisementVisibility(advertisement, visible);
         updateObservable.subscribe(new Action1<JSONObject>()
         {
             @Override
             public void call(JSONObject jsonObject)
             {
                 hideProgressDialog();
-                
+
                 Timber.d("Updated JSON: " + jsonObject.toString());
 
                 if (Parser.containsError(jsonObject)) {
-                    
+
                     toast("Error updating advertisement visibility");
-                    
+
                 } else {
-                    
+
                     dbManager.updateAdvertisementVisibility(adId, visible);
                     //db.update(AdvertisementItem.TABLE, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
 
@@ -570,18 +568,19 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             public void call(Throwable throwable)
             {
                 reportError(throwable);
-                
+
                 toast("Error updating visibility!");
             }
         });
     }
-    
+
     private void showAdvertisementOnMap()
     {
-        if(advertisementData == null) return;;
+        if (advertisementData == null) return;
+        ;
         AdvertisementItem advertisement = advertisementData.advertisement;
         String geoUri = "";
-        if(TradeUtils.isLocalTrade(advertisement)) {
+        if (TradeUtils.isLocalTrade(advertisement)) {
             geoUri = "http://maps.google.com/maps?q=loc:" + advertisement.lat() + "," + advertisement.lon() + " (" + advertisement.location_string() + ")";
         } else {
             geoUri = "geo:0,0?q=" + advertisement.location_string();
@@ -596,22 +595,23 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     private void shareAdvertisement()
     {
-        if(advertisementData == null) return;;
+        if (advertisementData == null) return;
+        ;
         AdvertisementItem advertisement = advertisementData.advertisement;
-        
+
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
 
         String message = "";
-        String buyOrSell = (TradeUtils.isBuyTrade(advertisement))? "Buy":"Sell";
-        String prep = (TradeUtils.isSellTrade(advertisement))? " from ":" to ";
-        String onlineOrLocal = (TradeUtils.isLocalTrade(advertisement))? "locally":"online";
+        String buyOrSell = (TradeUtils.isBuyTrade(advertisement)) ? "Buy" : "Sell";
+        String prep = (TradeUtils.isSellTrade(advertisement)) ? " from " : " to ";
+        String onlineOrLocal = (TradeUtils.isLocalTrade(advertisement)) ? "locally" : "online";
 
-        if(TradeUtils.isLocalTrade(advertisement)) {
-            message = buyOrSell + " bitcoins " + onlineOrLocal + " in " + advertisement.location_string() + prep + advertisement.profile_username()  + ": " + advertisement.action_public_view();
+        if (TradeUtils.isLocalTrade(advertisement)) {
+            message = buyOrSell + " bitcoins " + onlineOrLocal + " in " + advertisement.location_string() + prep + advertisement.profile_username() + ": " + advertisement.action_public_view();
         } else {
             String provider = TradeUtils.parsePaymentServiceTitle(advertisement.online_provider());
-            message = buyOrSell + " bitcoins " + onlineOrLocal + " in " + advertisement.location_string() + prep + advertisement.profile_username() + " via "  + provider + ": " + advertisement.action_public_view();
+            message = buyOrSell + " bitcoins " + onlineOrLocal + " in " + advertisement.location_string() + prep + advertisement.profile_username() + " via " + provider + ": " + advertisement.action_public_view();
         }
 
         shareIntent.putExtra(Intent.EXTRA_TEXT, message);

@@ -50,11 +50,11 @@ import butterknife.OnClick;
 import butterknife.Optional;
 import rx.Observable;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
-
-import static rx.android.app.AppObservable.bindActivity;
 
 public class AdvertiserActivity extends BaseActivity
 {
@@ -128,9 +128,7 @@ public class AdvertiserActivity extends BaseActivity
     }
     
     private String adId;
-    
-    private Observable<List<MethodItem>> methodObservable;
-    private Observable<Advertisement> advertisementObservable;
+
     private Subscription subscription = Subscriptions.empty();
     private AdvertisementData advertisementData;
 
@@ -167,9 +165,6 @@ public class AdvertiserActivity extends BaseActivity
             getSupportActionBar().setTitle("");
             setToolBarMenu(toolbar);
         }
-    
-        methodObservable = bindActivity(this, dbManager.methodQuery().cache());
-        advertisementObservable = bindActivity(this, dataService.getAdvertisement(adId).cache());
     }
 
     @Override
@@ -261,6 +256,9 @@ public class AdvertiserActivity extends BaseActivity
 
     protected void subscribeData()
     {
+        Observable<List<MethodItem>> methodObservable = dbManager.methodQuery().cache();
+        Observable<Advertisement> advertisementObservable = dataService.getAdvertisement(adId).cache();
+        
         subscription = Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, Advertisement, AdvertisementData>()
         {
             @Override
@@ -274,29 +272,32 @@ public class AdvertiserActivity extends BaseActivity
 
                 return advertisementData;
             }
-        }).subscribe(new Action1<AdvertisementData>()
-        {
-            @Override
-            public void call(AdvertisementData advertisementData)
-            {
-                hideProgress();
+        })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<AdvertisementData>()
+                {
+                    @Override
+                    public void call(AdvertisementData advertisementData)
+                    {
+                        hideProgress();
 
-                if(TradeUtils.isOnlineTrade(advertisementData.advertisement)) {
-                    setAdvertisement(advertisementData.advertisement, advertisementData.method);
-                } else {
-                    setAdvertisement(advertisementData.advertisement, null);
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                hideProgress();
-                handleError(throwable);
-                showError("No advertisement data.");
-            }
-        });
+                        if (TradeUtils.isOnlineTrade(advertisementData.advertisement)) {
+                            setAdvertisement(advertisementData.advertisement, advertisementData.method);
+                        } else {
+                            setAdvertisement(advertisementData.advertisement, null);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        hideProgress();
+                        handleError(throwable);
+                        showError("No advertisement data.");
+                    }
+                });
     }
 
     public void setAdvertisement(Advertisement advertisement, MethodItem method)

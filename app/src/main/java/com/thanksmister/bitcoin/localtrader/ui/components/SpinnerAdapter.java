@@ -45,7 +45,7 @@ public class SpinnerAdapter extends ArrayAdapter<String>
     {
         if (convertView == null) {
             LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            convertView = mInflater.inflate(R.layout.spinner_transactions_header_layout, null);
+            convertView = mInflater.inflate(R.layout.spinner_transactions_header_layout, null, false);
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
@@ -59,7 +59,7 @@ public class SpinnerAdapter extends ArrayAdapter<String>
     {
         if (convertView == null) {
             LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            convertView = mInflater.inflate(R.layout.spinner_layout, null);
+            convertView = mInflater.inflate(R.layout.spinner_layout, null, false);
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);

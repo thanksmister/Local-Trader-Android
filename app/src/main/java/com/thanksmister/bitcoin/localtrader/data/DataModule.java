@@ -22,6 +22,9 @@ import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
+import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
+import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -47,6 +50,13 @@ public final class DataModule
     SharedPreferences provideSharedPreferences(BaseApplication app)
     {
         return app.getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
+    }
+
+    @Provides
+    @Singleton
+    ExchangeService provideExchangeService(SharedPreferences preferences, BitcoinAverage average)
+    {
+        return new ExchangeService(preferences, average);
     }
     
     @Provides

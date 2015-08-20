@@ -30,7 +30,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
@@ -39,7 +38,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
@@ -79,8 +77,6 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindFragment;
 
 public class SearchFragment extends BaseFragment
 {
@@ -158,11 +154,8 @@ public class SearchFragment extends BaseFragment
     private Address address;
     private PredictAdapter predictAdapter;
     private TradeType tradeType;
-    
-    private Observable<List<Method>> methodUpdateObservable;
-    private Observable<List<Address>> geoLocationObservable;
-    Observable<List<MethodItem>> methodObservable;
-    private Observable<Address> addressObservable;
+
+   
 
     private Subscription locationSubscription = Subscriptions.empty();
     private Subscription geoLocationSubscription = Subscriptions.empty();
@@ -193,9 +186,6 @@ public class SearchFragment extends BaseFragment
                 tradeType = (TradeType) savedInstanceState.getSerializable(EXTRA_TRADE_TYPE);
             }
         }
-        
-        methodUpdateObservable = bindFragment(this, dataService.getMethods().cache());
-        methodObservable = bindFragment(this, dbManager.methodQuery().cache());
     }
 
     @Override
@@ -308,13 +298,13 @@ public class SearchFragment extends BaseFragment
         });
 
         String[] locationTitles = getResources().getStringArray(R.array.list_location_spinner);
-        List<String> locationList = new ArrayList<String>(Arrays.asList(locationTitles));
+        List<String> locationList = new ArrayList<>(Arrays.asList(locationTitles));
 
         SpinnerAdapter locationAdapter = new SpinnerAdapter(getActivity(), R.layout.spinner_layout, locationList);
         locationSpinner.setAdapter(locationAdapter);
 
         String[] typeTitles = getResources().getStringArray(R.array.list_types_spinner);
-        List<String> typeList = new ArrayList<String>(Arrays.asList(typeTitles));
+        List<String> typeList = new ArrayList<>(Arrays.asList(typeTitles));
 
         SpinnerAdapter typeAdapter = new SpinnerAdapter(getActivity(), R.layout.spinner_layout, typeList);
         typeSpinner.setAdapter(typeAdapter);
@@ -354,12 +344,7 @@ public class SearchFragment extends BaseFragment
 
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
-        
-        addressObservable = bindFragment(this,
-                geoLocationService.getLastKnownLocation()
-                        .observeOn(Schedulers.io())
-                        .subscribeOn(Schedulers.newThread()));
-
+    
         setupToolbar();
     }
 
@@ -415,21 +400,25 @@ public class SearchFragment extends BaseFragment
     
     private void subscribeData()
     {
-        methodSubscription = methodObservable.subscribe(new Action1<List<MethodItem>>()
-        {
-            @Override
-            public void call(List<MethodItem> methodItems)
-            {
-                setMethods(methodItems);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                handleError(new Throwable("Unable to load online payment methods."));
-            }
-        });
+        Observable<List<MethodItem>> methodObservable = dbManager.methodQuery().cache();
+        methodSubscription = methodObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<MethodItem>>()
+                {
+                    @Override
+                    public void call(List<MethodItem> methodItems)
+                    {
+                        setMethods(methodItems);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        handleError(new Throwable("Unable to load online payment methods."));
+                    }
+                });
     }
 
     private void updateMethods(List<Method> methods)
@@ -491,6 +480,9 @@ public class SearchFragment extends BaseFragment
         if (hasLocationServices()) {
 
             Timber.d("hasLocationServices");
+            Observable<Address> addressObservable = geoLocationService.getLastKnownLocation()
+                    .observeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.newThread());
             
             locationSubscription = addressObservable.subscribe(new Action1<Address>()
             {
@@ -506,7 +498,7 @@ public class SearchFragment extends BaseFragment
                             hideProgress();
                         }
                     });
-                    
+
                 }
             }, new Action1<Throwable>()
             {
@@ -533,29 +525,32 @@ public class SearchFragment extends BaseFragment
     private void updateData()
     {
         Timber.d("UpdateData");
-        
-        methodUpdateObservable = bindFragment(this, dataService.getMethods());
-        methodUpdateSubscription = methodUpdateObservable.subscribe(new Action1<List<Method>>()
-        {
-            @Override
-            public void call(List<Method> methods)
-            {
-                if(!methods.isEmpty()) {
-                    Method method = new Method();
-                    method.code = "all";
-                    method.name = "All";
-                    methods.add(0, method);
-                    updateMethods(methods);
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                reportError(throwable);
-            }
-        });
+
+        Observable<List<Method>> methodUpdateObservable = dataService.getMethods();
+        methodUpdateSubscription = methodUpdateObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<Method>>()
+                {
+                    @Override
+                    public void call(List<Method> methods)
+                    {
+                        if (!methods.isEmpty()) {
+                            Method method = new Method();
+                            method.code = "all";
+                            method.name = "All";
+                            methods.add(0, method);
+                            updateMethods(methods);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
     }
 
     private void showEnableLocation()
@@ -621,7 +616,7 @@ public class SearchFragment extends BaseFragment
 
     private void doAddressLookup(String locationName)
     {
-        geoLocationObservable = bindFragment(this, geoLocationService.geoGetLocationFromName(locationName));
+        Observable<List<Address>> geoLocationObservable = geoLocationService.geoGetLocationFromName(locationName);
         geoLocationSubscription = geoLocationObservable
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())

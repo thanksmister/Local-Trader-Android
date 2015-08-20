@@ -38,7 +38,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +49,11 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindActivity;
 
 public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -96,9 +95,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     private DashboardType dashboardType;
     private boolean hasActiveTrades;
     private ContactAdapter adapter;
-    
-    private Observable<List<ContactItem>> contactItemObservable;
-  
+
     private Subscription updateSubscription = Subscriptions.empty();
     private Subscription subscription = Subscriptions.empty();
     
@@ -165,8 +162,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
      
         adapter = new ContactAdapter(this);
         setAdapter(getAdapter());
-        
-        contactItemObservable = bindActivity(this, dbManager.contactsQuery());
     }
 
     @Override
@@ -312,27 +307,31 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     
     public void subscribeData()
     {
-        subscription = contactItemObservable.subscribe(new Action1<List<ContactItem>>()
-        {
-            @Override
-            public void call(List<ContactItem> contacts)
-            {
-                if(dashboardType == DashboardType.ACTIVE) {
+        Observable<List<ContactItem>> contactItemObservable = dbManager.contactsQuery();
+        subscription = contactItemObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<ContactItem>>()
+                {
+                    @Override
+                    public void call(List<ContactItem> contacts)
+                    {
+                        if (dashboardType == DashboardType.ACTIVE) {
                     /*ArrayList<Contact> contacts = new ArrayList<Contact>();
                     for (ContactItem item : contactItems) {
                         Contact contact = new Contact();
                         contacts.add(contact.convertContentItemToContact(item));
                     }*/
-                    
-                    if(contacts.isEmpty()) {
-                        showError(getString(R.string.error_no_trade_data));
-                    } else {
-                        setContacts(contacts); 
+
+                            if (contacts.isEmpty()) {
+                                showError(getString(R.string.error_no_trade_data));
+                            } else {
+                                setContacts(contacts);
+                            }
+
+                        }
                     }
-                    
-                }
-            }
-        });
+                });
     }
 
     public void updateData(final DashboardType type)
@@ -343,38 +342,41 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
         setTitle(dashboardType);
         
-        Observable<List<Contact>> contactsObservable = bindActivity(this, dataService.getContacts(dashboardType, true));
-        updateSubscription = contactsObservable.subscribe(new Action1<List<Contact>>()
-        {
-            @Override
-            public void call(List<Contact> contacts)
-            {
-                Timber.d("Update Data Contacts: " + contacts.size());
-                
-                onRefreshStop();
-         
-                if(contacts.isEmpty()) {
-                    showError(getString(R.string.error_no_trade_data));
-                } else {
-                    ArrayList<ContactItem> contactItems = new ArrayList<ContactItem>();
-                    for (Contact contact : contacts) {
-                        contactItems.add(ContactItem.convertContact(contact));
-                    }
-                    setContacts(contactItems);
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                handleError(throwable, true);
-                
-                onRefreshStop();
+        Observable<List<Contact>> contactsObservable = dataService.getContacts(dashboardType, true);
+        updateSubscription = contactsObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<Contact>>()
+                {
+                    @Override
+                    public void call(List<Contact> contacts)
+                    {
+                        Timber.d("Update Data Contacts: " + contacts.size());
 
-                showError(getString(R.string.error_no_trade_data));
-            }
-        });
+                        onRefreshStop();
+
+                        if (contacts.isEmpty()) {
+                            showError(getString(R.string.error_no_trade_data));
+                        } else {
+                            ArrayList<ContactItem> contactItems = new ArrayList<ContactItem>();
+                            for (Contact contact : contacts) {
+                                contactItems.add(ContactItem.convertContact(contact));
+                            }
+                            setContacts(contactItems);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        handleError(throwable, true);
+
+                        onRefreshStop();
+
+                        showError(getString(R.string.error_no_trade_data));
+                    }
+                });
     }
   
     private void getContact(final ContactItem contact)

@@ -88,8 +88,6 @@ import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
-import static rx.android.app.AppObservable.bindActivity;
-
 public class EditActivity extends BaseActivity
 {
     public static final String EXTRA_ADDRESS = "com.thanksmister.extras.EXTRA_ADDRESS";
@@ -231,15 +229,6 @@ public class EditActivity extends BaseActivity
     private Address address;
     private String adId;
 
-    private Observable<List<MethodItem>> methodObservable;
-    private Observable<List<Address>> geoLocationObservable;
-    private Observable<AdvertisementItem> advertisementItemObservable;
-    private Observable<JSONObject> createAdvertisementObservable;
-    private Observable<JSONObject> updateAdvertisementObservable;
-    private Observable<List<Currency>> currencyObservable;
-
-    private Observable<Address> addressObservable;
-
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription geoLocalSubscription = Subscriptions.empty();
     private Subscription geoDecodeSubscription = Subscriptions.empty();
@@ -288,7 +277,7 @@ public class EditActivity extends BaseActivity
         }
 
         String[] typeTitles = getResources().getStringArray(R.array.list_advertisement_type_spinner);
-        List<String> typeList = new ArrayList<String>(Arrays.asList(typeTitles));
+        List<String> typeList = new ArrayList<>(Arrays.asList(typeTitles));
 
         SpinnerAdapter typeAdapter = new SpinnerAdapter(this, R.layout.spinner_layout, typeList);
         typeSpinner.setAdapter(typeAdapter);
@@ -380,15 +369,7 @@ public class EditActivity extends BaseActivity
 
         predictAdapter = new PredictAdapter(EditActivity.this, new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
-
-        currencyObservable = bindActivity(this, dataService.getCurrencies().cache());
-        methodObservable = bindActivity(this, db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache());
-        advertisementItemObservable = bindActivity(this, db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId).map(AdvertisementItem.MAP_SINGLE));
-        addressObservable = bindActivity(this, geoLocationService.getUpdatedLocation()
-                .cache()
-                .observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread()));
-
+        
         swipeLayout.setEnabled(false);
         showProgress();
     }
@@ -476,6 +457,10 @@ public class EditActivity extends BaseActivity
     {
         subscriptions = new CompositeSubscription();
 
+        Observable<List<Currency>> currencyObservable = dataService.getCurrencies().cache();
+        Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache();
+        Observable<AdvertisementItem> advertisementItemObservable = db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId).map(AdvertisementItem.MAP_SINGLE);
+        
         subscriptions.add(methodObservable.subscribe(new Action1<List<MethodItem>>()
         {
             @Override
@@ -819,21 +804,26 @@ public class EditActivity extends BaseActivity
 
         if (hasLocationServices()) {
 
-            geoLocalSubscription = addressObservable.subscribe(new Action1<Address>()
-            {
-                @Override
-                public void call(Address address)
-                {
-                    setAddress(address);
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    showEnableLocationDialog();
-                }
-            });
+            Observable<Address> addressObservable = geoLocationService.getLastKnownLocation()
+                    .observeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.newThread());
+
+            geoLocalSubscription = addressObservable
+                        .subscribe(new Action1<Address>()
+                        {
+                            @Override
+                            public void call(Address address)
+                            {
+                                setAddress(address);
+                            }
+                        }, new Action1<Throwable>()
+                        {
+                            @Override
+                            public void call(Throwable throwable)
+                            {
+                                showEnableLocationDialog();
+                            }
+                        });
 
         } else {
             showEnableLocationDialog();
@@ -911,7 +901,7 @@ public class EditActivity extends BaseActivity
 
             showProgressDialog(new ProgressDialogEvent("Posting advertisement..."));
 
-            createAdvertisementObservable = bindActivity(this, dataService.createAdvertisement(advertisement));
+            Observable<JSONObject> createAdvertisementObservable = dataService.createAdvertisement(advertisement);
             advertisementSubscription = createAdvertisementObservable.subscribe(new Observer<JSONObject>()
             {
                 @Override
@@ -944,7 +934,7 @@ public class EditActivity extends BaseActivity
 
             showProgressDialog(new ProgressDialogEvent("Saving changes..."));
 
-            updateAdvertisementObservable = bindActivity(this, dataService.updateAdvertisement(advertisement));
+            Observable<JSONObject> updateAdvertisementObservable = dataService.updateAdvertisement(advertisement);
             advertisementSubscription = updateAdvertisementObservable.subscribe(new Observer<JSONObject>()
             {
                 @Override
@@ -998,7 +988,7 @@ public class EditActivity extends BaseActivity
 
     public void doAddressLookup(String locationName)
     {
-        geoLocationObservable = bindActivity(this, geoLocationService.geoGetLocationFromName(locationName));
+        Observable<List<Address>> geoLocationObservable = geoLocationService.geoGetLocationFromName(locationName);
         geoLocalSubscription = geoLocationObservable.subscribe(new Action1<List<Address>>()
         {
             @Override

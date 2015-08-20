@@ -40,8 +40,4 @@
           android:orderInCategory="50"
           thanksmister:showAsAction="never"/>
     
-    <item android:id="@+id/action_logout"
-          android:title="@string/menu_action_logout"
-          android:orderInCategory="100"
-          thanksmister:showAsAction="never"/>
 </menu>

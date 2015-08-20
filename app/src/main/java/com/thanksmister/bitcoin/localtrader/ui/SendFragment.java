@@ -38,9 +38,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
@@ -53,9 +50,9 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.bitcoin.QRCodeActivity;
-import com.thanksmister.bitcoin.localtrader.ui.components.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -63,9 +60,6 @@ import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -73,12 +67,12 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindFragment;
 
 public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -88,6 +82,9 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     
     @Inject
     DataService dataService;
+
+    @Inject
+    ExchangeService exchangeService;
     
     @Inject
     DbManager dbManager;
@@ -125,12 +122,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
    
     CompositeSubscription subscriptions = new CompositeSubscription();
     CompositeSubscription updateSubscriptions = new CompositeSubscription();
-    
-    private Observable<WalletItem> walletBalanceObservable;
-    private Observable<ExchangeItem> exchangeObservable;
-    private Observable<Wallet> updateWalletBalanceObservable;
-    private Observable<Exchange> updateExchangeObservable;
-    private Observable<Boolean> sendPinCodeMoneyObservable;
 
     private Handler handler;
 
@@ -237,12 +228,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-
-        exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
-        walletBalanceObservable = bindFragment(this, dbManager.walletQuery());
-        
-        updateWalletBalanceObservable = bindFragment(this, dataService.getWalletBalance());
-        updateExchangeObservable = bindFragment(this, dataService.getExchange());
     }
 
     @Override
@@ -389,7 +374,10 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
 
     protected void subscribeData()
     {
-        subscriptions = new CompositeSubscription(); 
+        subscriptions = new CompositeSubscription();
+
+        Observable<ExchangeItem> exchangeObservable = dbManager.exchangeQuery();
+        Observable<WalletItem> walletBalanceObservable = dbManager.walletQuery();
         
         subscriptions.add(Observable.combineLatest(exchangeObservable, walletBalanceObservable, new Func2<ExchangeItem, WalletItem, WalletData>()
         {
@@ -406,62 +394,73 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 
                 return walletData;
             }
-        }).subscribe(new Action1<WalletData>()
-        {
-            @Override
-            public void call(WalletData results)
-            {
-                walletData = results;
-                setWallet();
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                reportError(throwable);
-            }
-        }));
+        })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<WalletData>()
+                {
+                    @Override
+                    public void call(WalletData results)
+                    {
+                        walletData = results;
+                        setWallet();
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                }));
     }
     
     private void updateData()
     {
         updateSubscriptions = new CompositeSubscription();
-        updateSubscriptions.add(updateWalletBalanceObservable.subscribe(new Action1<Wallet>()
-        {
-            @Override
-            public void call(Wallet wallet)
-            {
-                onRefreshStop();
-                updateWallet(wallet);
-            }
+        Observable<Wallet> updateWalletBalanceObservable = dataService.getWalletBalance();
+        updateSubscriptions.add(updateWalletBalanceObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Wallet>()
+                {
+                    @Override
+                    public void call(Wallet wallet)
+                    {
+                        onRefreshStop();
+                        updateWallet(wallet);
+                    }
 
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                onRefreshStop();
-                handleError(throwable, true);
-            }
-        }));
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        onRefreshStop();
+                        handleError(throwable, true);
+                    }
+                }));
 
-        updateSubscriptions.add(updateExchangeObservable.subscribe(new Action1<Exchange>()
-        {
-            @Override
-            public void call(Exchange exchange)
-            {
-                updateExchange(exchange);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                onRefreshStop();
-                reportError(throwable);
-            }
-        }));
+        Observable<Exchange> updateExchangeObservable = exchangeService.getMarket(true);
+        updateSubscriptions.add(updateExchangeObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Exchange>()
+                {
+                    @Override
+                    public void call(Exchange exchange)
+                    {
+                        updateExchange(exchange);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        onRefreshStop();
+                        reportError(throwable);
+                    }
+                }));
     }
     
     private void updateWallet(Wallet wallet)
@@ -560,25 +559,28 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     {
         showProgressDialog(new ProgressDialogEvent("Sending bitcoin..."));
 
-        sendPinCodeMoneyObservable = bindFragment(this, dataService.sendPinCodeMoney(pinCode, address, amount));
-        sendPinCodeMoneyObservable.subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(Boolean aBoolean)
-            {
-                hideProgressDialog();
-                resetWallet();
-                toast(R.string.toast_transaction_success);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                hideProgressDialog();
-                handleError(throwable);
-            }
-        });
+        Observable<Boolean> sendPinCodeMoneyObservable = dataService.sendPinCodeMoney(pinCode, address, amount);
+        sendPinCodeMoneyObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>()
+                {
+                    @Override
+                    public void call(Boolean aBoolean)
+                    {
+                        hideProgressDialog();
+                        resetWallet();
+                        toast(R.string.toast_transaction_success);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        hideProgressDialog();
+                        handleError(throwable);
+                    }
+                });
     }
     
     public void setBitcoinAddress(String bitcoinAddress)

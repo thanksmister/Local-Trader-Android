@@ -30,7 +30,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
-import android.text.Html;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,9 +37,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
@@ -54,9 +50,8 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.ui.bitcoin.QRCodeActivity;
-import com.thanksmister.bitcoin.localtrader.ui.components.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -64,9 +59,6 @@ import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -74,12 +66,11 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
-
-import static rx.android.app.AppObservable.bindFragment;
 
 public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -88,6 +79,9 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
   
     @Inject
     DataService dataService;
+
+    @Inject
+    ExchangeService exchangeService;
     
     @Inject
     DbManager dbManager;
@@ -118,17 +112,11 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     CompositeSubscription subscriptions = new CompositeSubscription();
     CompositeSubscription updateSubscriptions = new CompositeSubscription();
 
-    private Observable<WalletItem> walletBalanceObservable;
-    private Observable<ExchangeItem> exchangeObservable;
-    private Observable<Wallet> updateWalletBalanceObservable;
-    private Observable<Exchange> updateExchangeObservable;
-    
     private Handler handler;
 
     public static RequestFragment newInstance()
     {
-        RequestFragment fragment = new RequestFragment();
-        return fragment;
+        return new RequestFragment();
     }
 
     public RequestFragment()
@@ -191,11 +179,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-
-        exchangeObservable = bindFragment(this, dbManager.exchangeQuery());
-        walletBalanceObservable = bindFragment(this, dbManager.walletQuery());
-        updateWalletBalanceObservable = bindFragment(this, dataService.getWalletBalance());
-        updateExchangeObservable = bindFragment(this, dataService.getExchange());
     }
 
     @Override
@@ -320,6 +303,8 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
     protected void subscribeData()
     {
+        Observable<ExchangeItem> exchangeObservable = dbManager.exchangeQuery();
+        Observable<WalletItem> walletBalanceObservable = dbManager.walletQuery();
         subscriptions = new CompositeSubscription();
         subscriptions.add(Observable.combineLatest(exchangeObservable, walletBalanceObservable, new Func2<ExchangeItem, WalletItem, WalletData>()
         {
@@ -335,62 +320,73 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                 }
                 return walletData;
             }
-        }).subscribe(new Action1<WalletData>()
-        {
-            @Override
-            public void call(WalletData results)
-            {
-                walletData = results;
-                setWallet();
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                reportError(throwable);
-            }
-        }));
+        })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<WalletData>()
+                {
+                    @Override
+                    public void call(WalletData results)
+                    {
+                        walletData = results;
+                        setWallet();
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                }));
     }
     
     private void updateData()
     {
+        Observable<Wallet> updateWalletBalanceObservable = dataService.getWalletBalance();
+        Observable<Exchange> updateExchangeObservable = exchangeService.getMarket(true);
         updateSubscriptions = new CompositeSubscription();
-        updateSubscriptions.add(updateWalletBalanceObservable.subscribe(new Action1<Wallet>()
-        {
-            @Override
-            public void call(Wallet wallet)
-            {
-                onRefreshStop();
-                dbManager.updateWallet(wallet);
-            }
+        updateSubscriptions.add(updateWalletBalanceObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Wallet>()
+                {
+                    @Override
+                    public void call(Wallet wallet)
+                    {
+                        onRefreshStop();
+                        dbManager.updateWallet(wallet);
+                    }
 
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                onRefreshStop();
-                handleError(throwable, true);
-            }
-        }));
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        onRefreshStop();
+                        handleError(throwable, true);
+                    }
+                }));
 
-        updateSubscriptions.add(updateExchangeObservable.subscribe(new Action1<Exchange>()
-        {
-            @Override
-            public void call(Exchange exchange)
-            {
-                updateExchange(exchange);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                onRefreshStop();
-                reportError(throwable);
-            }
-        }));
+        updateSubscriptions.add(updateExchangeObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Exchange>()
+                {
+                    @Override
+                    public void call(Exchange exchange)
+                    {
+                        updateExchange(exchange);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        onRefreshStop();
+                        reportError(throwable);
+                    }
+                }));
     }
     
     private void updateExchange(Exchange exchange)
