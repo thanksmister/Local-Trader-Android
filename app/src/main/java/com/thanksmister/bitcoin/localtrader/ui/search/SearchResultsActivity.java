@@ -267,36 +267,47 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                     .subscribe(new Action1<List<Advertisement>>()
                     {
                         @Override
-                        public void call(List<Advertisement> advertisements)
+                        public void call(final List<Advertisement> advertisements)
                         {
-                            hideProgress();
-                            onRefreshStop();
-                            setData(advertisements, null);
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgress();
+                                    onRefreshStop();
+                                    setData(advertisements, null);
+                                }
+                            });
                         }
                     }, new Action1<Throwable>()
                     {
                         @Override
-                        public void call(Throwable throwable)
+                        public void call(final Throwable throwable)
                         {
-
-                            hideProgress();
-                            onRefreshStop();
-                            handleError(throwable);
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgress();
+                                    onRefreshStop();
+                                    handleError(throwable);
+                                }
+                            });
                         }
                     });
         } else {
 
             Observable<List<MethodItem>> methodObservable = dbManager.methodQuery().cache();
             methodObservable
-                    .subscribeOn(Schedulers.newThread())
+                    .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<MethodItem>>()
                     {
                         @Override
                         public void call(final List<MethodItem> methodItems)
                         {
-                            Timber.d("Payment Methods: " + methodItems);
-
                             String method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
 
                             Timber.d("Payment Method Util: " + method);
@@ -305,23 +316,36 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                             advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
                             {
                                 @Override
-                                public void call(List<Advertisement> advertisements)
+                                public void call(final List<Advertisement> advertisements)
                                 {
-                                    Timber.d("Advertisement: " + advertisements.size());
-
-                                    hideProgress();
-                                    onRefreshStop();
-                                    setData(advertisements, methodItems);
+                                    Timber.d("Payment Methods: " + methodItems.size());
+                                    runOnUiThread(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            onRefreshStop();
+                                            hideProgress();
+                                            setData(advertisements, methodItems);
+                                        }
+                                    });
                                 }
                             }, new Action1<Throwable>()
                             {
                                 @Override
-                                public void call(Throwable throwable)
+                                public void call(final Throwable throwable)
                                 {
-                                    hideProgress();
-                                    onRefreshStop();
-                                    Timber.e("Error: " + throwable.getMessage());
-                                    handleError(throwable, true);
+                                    runOnUiThread(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            hideProgress();
+                                            onRefreshStop();
+                                            Timber.e("Error: " + throwable.getMessage());
+                                            handleError(throwable, true);
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -329,17 +353,22 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
         }
     }
 
-    public void setData(List<Advertisement> advertisements, List<MethodItem> methods)
+    private void setData(List<Advertisement> advertisements, List<MethodItem> methodItems)
     {
         Timber.d("setData");
+        Timber.d("setData Payment Methods: " + methodItems);
+        
+        if(methodItems != null)
+            Timber.d("setData Payment Methods: " + methodItems.size());
+        
+        Timber.d("setData Advertisement: " + advertisements.size());
     
         if(advertisements.isEmpty()) {
             showError("No advertisers located.");
-        } else if ( (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && methods.isEmpty()) {
+        } else if ( (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && methodItems == null ) {
             showError("Unable to load online advertisers.");
         } else {
-            hideProgress();
-            getAdapter().replaceWith(advertisements, methods);
+            getAdapter().replaceWith(advertisements, methodItems);
         }
     }
 

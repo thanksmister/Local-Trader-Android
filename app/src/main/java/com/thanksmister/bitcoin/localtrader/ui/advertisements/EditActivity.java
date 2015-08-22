@@ -812,16 +812,30 @@ public class EditActivity extends BaseActivity
                         .subscribe(new Action1<Address>()
                         {
                             @Override
-                            public void call(Address address)
+                            public void call(final Address address)
                             {
-                                setAddress(address);
+                                runOnUiThread(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        setAddress(address);
+                                    }
+                                });
                             }
                         }, new Action1<Throwable>()
                         {
                             @Override
                             public void call(Throwable throwable)
                             {
-                                showEnableLocationDialog();
+                                runOnUiThread(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        showEnableLocationDialog();
+                                    }
+                                });
                             }
                         });
 
@@ -902,69 +916,100 @@ public class EditActivity extends BaseActivity
             showProgressDialog(new ProgressDialogEvent("Posting advertisement..."));
 
             Observable<JSONObject> createAdvertisementObservable = dataService.createAdvertisement(advertisement);
-            advertisementSubscription = createAdvertisementObservable.subscribe(new Observer<JSONObject>()
-            {
-                @Override
-                public void onCompleted()
-                {
-                    hideProgressDialog();
-                }
+            advertisementSubscription = createAdvertisementObservable
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<JSONObject>()
+                    {
+                        @Override
+                        public void onCompleted()
+                        {
+                            hideProgressDialog();
+                        }
 
-                @Override
-                public void onError(Throwable e)
-                {
-                    hideProgressDialog();
-                    handleError(e);
-                }
+                        @Override
+                        public void onError(final Throwable e)
+                        {
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgressDialog();
+                                    handleError(e);
+                                }
+                            });
+                        }
 
-                @Override
-                public void onNext(JSONObject jsonObject)
-                {
-                    toast("New advertisement posted!");
+                        @Override
+                        public void onNext(final JSONObject jsonObject)
+                        {
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    toast("New advertisement posted!");
 
-                    // TODO have to refresh main view after creating new advertisement
-                    //db.insert(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build());
+                                    // TODO have to refresh main view after creating new advertisement
+                                    //db.insert(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build());
 
-                    setResult(RESULT_CREATED);
-                    finish();
-                }
-            });
+                                    setResult(RESULT_CREATED);
+                                    finish();
+                                }
+                            });
+                        }
+                    });
 
         } else {
 
             showProgressDialog(new ProgressDialogEvent("Saving changes..."));
 
             Observable<JSONObject> updateAdvertisementObservable = dataService.updateAdvertisement(advertisement);
-            advertisementSubscription = updateAdvertisementObservable.subscribe(new Observer<JSONObject>()
-            {
-                @Override
-                public void onCompleted()
-                {
-                    hideProgressDialog();
-                }
+            advertisementSubscription = updateAdvertisementObservable
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<JSONObject>()
+                    {
+                        @Override
+                        public void onCompleted()
+                        {
+                            hideProgressDialog();
+                        }
 
-                @Override
-                public void onError(Throwable e)
-                {
-                    hideProgressDialog();
-                    handleError(e);
-                }
+                        @Override
+                        public void onError(final Throwable e)
+                        {
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgressDialog();
+                                    handleError(e);
+                                }
+                            });
+                        }
 
-                @Override
-                public void onNext(JSONObject jsonObject)
-                {
-                    Timber.d("Updated JSON: " + jsonObject.toString());
+                        @Override
+                        public void onNext(final JSONObject jsonObject)
+                        {
+                            Timber.d("Updated JSON: " + jsonObject.toString());
 
-                    if (Parser.containsError(jsonObject)) {
-
-                        toast("Error updating advertisement visibility");
-
-                    } else {
-
-                        updateAdvertisement(advertisement);
-                    }
-                }
-            });
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    if (Parser.containsError(jsonObject)) {
+                                        toast("Error updating advertisement visibility");
+                                    } else {
+                                        updateAdvertisement(advertisement);
+                                    }
+                                }
+                            });
+                        }
+                    });
         }
     }
 
@@ -989,23 +1034,40 @@ public class EditActivity extends BaseActivity
     public void doAddressLookup(String locationName)
     {
         Observable<List<Address>> geoLocationObservable = geoLocationService.geoGetLocationFromName(locationName);
-        geoLocalSubscription = geoLocationObservable.subscribe(new Action1<List<Address>>()
-        {
-            @Override
-            public void call(List<Address> addresses)
-            {
-                if (!addresses.isEmpty()) {
-                    getEditLocationAdapter().replaceWith(addresses);
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                Timber.d(throwable.getLocalizedMessage());
-                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-            }
-        });
+        geoLocalSubscription = geoLocationObservable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<Address>>()
+                {
+                    @Override
+                    public void call(final List<Address> addresses)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                if (!addresses.isEmpty()) {
+                                    getEditLocationAdapter().replaceWith(addresses);
+                                }
+                            }
+                        });
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                Timber.d(throwable.getLocalizedMessage());
+                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                            }
+                        });
+                    }
+                });
     }
 }

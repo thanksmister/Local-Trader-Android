@@ -389,23 +389,37 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 .subscribe(new Action1<WalletData>()
                 {
                     @Override
-                    public void call(WalletData dataItem)
+                    public void call(final WalletData dataItem)
                     {
                         // setup our bar 
                         Timber.d("walletObservable");
                         Timber.d("Exchange Bid: " + dataItem.exchangeItem.bid());
                         Timber.d("Exchange Bid: " + dataItem.exchangeItem.ask());
-                        
-                        setAppBarText(dataItem.exchangeItem.bid(), dataItem.exchangeItem.ask(), dataItem.walletItem.balance(), dataItem.exchangeItem.exchange());
-                        setWallet(dataItem);
+
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                setAppBarText(dataItem.exchangeItem.bid(), dataItem.exchangeItem.ask(), dataItem.walletItem.balance(), dataItem.exchangeItem.exchange());
+                                setWallet(dataItem);
+                            }
+                        });
                     }
 
                 }, new Action1<Throwable>()
                 {
                     @Override
-                    public void call(Throwable throwable)
+                    public void call(final Throwable throwable)
                     {
-                        reportError(throwable);
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                reportError(throwable);
+                            }
+                        });
                     }
                 });
     }
@@ -433,10 +447,17 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 }, new Action1<Throwable>()
                 {
                     @Override
-                    public void call(Throwable throwable)
+                    public void call(final Throwable throwable)
                     {
-                        onRefreshStop();
-                        handleError(throwable, true);
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                onRefreshStop();
+                                handleError(throwable, true);
+                            }
+                        });
                     }
                 });
 
@@ -447,26 +468,47 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 .subscribe(new Action1<Wallet>()
                 {
                     @Override
-                    public void call(Wallet wallet)
+                    public void call(final Wallet wallet)
                     {
                         dbManager.updateTransactions(wallet.getTransactions());
-                        updateWalletBalance(wallet);
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                updateWalletBalance(wallet);
+                            }
+                        });
                     }
 
                 }, new Action1<Throwable>()
                 {
                     @Override
-                    public void call(Throwable throwable)
+                    public void call(final Throwable throwable)
                     {
-                        onRefreshStop();
-                        handleError(throwable, true);
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                onRefreshStop();
+                                handleError(throwable, true);
+                            }
+                        });
                     }
                 }, new Action0()
                 {
                     @Override
                     public void call()
                     {
-                        onRefreshStop();
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                onRefreshStop();
+                            }
+                        });
                     }
                 });
     }
@@ -482,7 +524,14 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(WalletItem walletItem)
                     {
-                        onRefreshStop();
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                onRefreshStop();
+                            }
+                        });
 
                         if (walletItem != null) {
 
@@ -501,10 +550,17 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 }, new Action1<Throwable>()
                 {
                     @Override
-                    public void call(Throwable throwable)
+                    public void call(final Throwable throwable)
                     {
-                        onRefreshStop();
-                        reportError(throwable);
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                onRefreshStop();
+                                reportError(throwable);
+                            }
+                        });
                     }
                 });
     }
@@ -548,10 +604,17 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 }, new Action1<Throwable>()
                 {
                     @Override
-                    public void call(Throwable throwable)
+                    public void call(final Throwable throwable)
                     {
-                        toast("Unable to generate QRCode");
-                        reportError(throwable);
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                toast("Unable to generate QRCode");
+                                reportError(throwable);
+                            }
+                        });
                     }
                 });
     }

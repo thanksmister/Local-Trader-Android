@@ -36,6 +36,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -130,6 +131,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private DashboardType dashboardType;
 
     private DownloadManager downloadManager;
+    private MenuItem cancelItem;
+    private MenuItem disputeItem;
   
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription subscription = Subscriptions.empty();
@@ -326,6 +329,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         if (toolbar != null)
             toolbar.inflateMenu(R.menu.contact);
         
+        cancelItem = menu.findItem(R.id.action_cancel);
+        disputeItem = menu.findItem(R.id.action_dispute);
+
         return true;
     }
 
@@ -587,13 +593,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         noteText.setMovementMethod(LinkMovementMethod.getInstance());
         contactHeaderLayout.setVisibility((description == null) ? View.GONE : View.VISIBLE);
 
-        /*if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
-            //disputeItem.setVisible(buttonTag != R.string.button_dispute);
+        if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
+            disputeItem.setVisible(buttonTag != R.string.button_dispute);
         }
           
         if(TradeUtils.canCancelTrade(contact)) {
-            //cancelItem.setVisible(buttonTag != R.string.button_cancel);
-        }*/
+            cancelItem.setVisible(buttonTag != R.string.button_cancel);
+        }
     }
 
     private MessageAdapter getAdapter()
@@ -622,8 +628,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         messageScroll = true; // tells our system to scroll when loading new messages
 
         // hide keyboard and notify
-        //InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        //imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        try{
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        } catch (NullPointerException e) {
+            Timber.e("Error closing keyboard");
+        }
         
         toast(R.string.toast_message_sent);
 
@@ -671,23 +681,40 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_send_message)));
 
         Observable<JSONObject> messageObservable =  dataService.postMessage(contactId, message);
-        postSubscription = messageObservable.subscribe(new Action1<JSONObject>()
-        {
-            @Override
-            public void call(JSONObject jsonObject)
-            {
-                hideProgressDialog();
-                resetMessageAndRefresh();
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                hideProgressDialog();
-                toast(R.string.toast_error_message);
-            }
-        });
+        postSubscription = messageObservable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<JSONObject>()
+                {
+                    @Override
+                    public void call(JSONObject jsonObject)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                hideProgressDialog();
+                                resetMessageAndRefresh();
+                            }
+                        });
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                hideProgressDialog();
+                                toast(R.string.toast_error_message);
+                            }
+                        });
+                    }
+                });
     }
 
     public void disputeContact()
