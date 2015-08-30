@@ -132,13 +132,12 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @InjectView(R.id.bitcoinLayout)
     View bitcoinLayout;
 
-    private Subscription databaseSubscription;
+    private Subscription databaseSubscription = Subscriptions.empty();
     private Subscription subscription = Subscriptions.empty();
     private Subscription walletUpdateSubscription = Subscriptions.empty();
     private Subscription updateExchangeSubscription = Subscriptions.empty();
     private Subscription updateSubscription = Subscriptions.empty();
     private Subscription bitmapSubscription = Subscriptions.empty();
-
     private TransactionsAdapter transactionsAdapter;
 
     private Handler handler;
@@ -294,6 +293,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         walletUpdateSubscription.unsubscribe();
         updateExchangeSubscription.unsubscribe();
         updateSubscription.unsubscribe();
+        
         handler.removeCallbacks(refreshRunnable);
     }
 
@@ -372,7 +372,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         Timber.d("SubscribeData");
 
         databaseSubscription = Subscriptions.unsubscribed();
-        databaseSubscription = Observable.zip(dbManager.walletQuery(), dbManager.transactionsQuery(), dbManager.exchangeQuery(), new Func3<WalletItem, List<TransactionItem>, ExchangeItem, WalletData>()
+        databaseSubscription = Observable.combineLatest(dbManager.walletQuery(), dbManager.transactionsQuery(), dbManager.exchangeQuery(), new Func3<WalletItem, List<TransactionItem>, ExchangeItem, WalletData>()
         {
             @Override
             public WalletData call(WalletItem walletItem, List<TransactionItem> transactions, ExchangeItem exchangeItem)
@@ -384,7 +384,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 return walletData;
             }
         })
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<WalletData>()
                 {
@@ -396,15 +396,11 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                         Timber.d("Exchange Bid: " + dataItem.exchangeItem.bid());
                         Timber.d("Exchange Bid: " + dataItem.exchangeItem.ask());
 
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                setAppBarText(dataItem.exchangeItem.bid(), dataItem.exchangeItem.ask(), dataItem.walletItem.balance(), dataItem.exchangeItem.exchange());
-                                setWallet(dataItem);
-                            }
-                        });
+                        if(dataItem.exchangeItem != null)
+                            setAppBarText(dataItem.exchangeItem.bid(), dataItem.exchangeItem.ask(), dataItem.walletItem.balance(), dataItem.exchangeItem.exchange());
+
+                        if(dataItem.walletItem != null)
+                            setWallet(dataItem);
                     }
 
                 }, new Action1<Throwable>()
@@ -412,14 +408,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                reportError(throwable);
-                            }
-                        });
+                        reportError(throwable);
                     }
                 });
     }
@@ -427,10 +416,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     protected void updateData(final boolean force)
     {
         Timber.d("updateData");
-
-        updateExchangeSubscription = Subscriptions.unsubscribed();
+        
         updateExchangeSubscription = exchangeService.getMarket(true)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()
                 {
@@ -442,28 +430,20 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                         Timber.d("Exchange Bid: " + exchange.getAsk());
 
                         dbManager.updateExchange(exchange);
-                        //subscribeData();
+                      
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                onRefreshStop();
-                                handleError(throwable, true);
-                            }
-                        });
+                        onRefreshStop();
+                        handleError(throwable, true);
                     }
                 });
-
-        walletUpdateSubscription = Subscriptions.unsubscribed();
+        
         walletUpdateSubscription = dataService.getWallet(force)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Wallet>()
                 {
@@ -471,14 +451,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     public void call(final Wallet wallet)
                     {
                         dbManager.updateTransactions(wallet.getTransactions());
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                updateWalletBalance(wallet);
-                            }
-                        });
+                        updateWalletBalance(wallet);
                     }
 
                 }, new Action1<Throwable>()
@@ -486,55 +459,32 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                onRefreshStop();
-                                handleError(throwable, true);
-                            }
-                        });
+                        onRefreshStop();
+                        handleError(throwable, true);
                     }
                 }, new Action0()
                 {
                     @Override
                     public void call()
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                onRefreshStop();
-                            }
-                        });
+                        onRefreshStop();
                     }
                 });
     }
 
     private void updateWalletBalance(final Wallet wallet)
     {
-        updateSubscription = Subscriptions.unsubscribed();
         updateSubscription = dbManager.walletQuery()
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<WalletItem>()
                 {
                     @Override
                     public void call(WalletItem walletItem)
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                onRefreshStop();
-                            }
-                        });
-
+                        onRefreshStop();
+                        
                         if (walletItem != null) {
-
                             double oldBalance = Doubles.convertToDouble(walletItem.balance());
                             double newBalance = Doubles.convertToDouble(wallet.balance);
 
@@ -544,7 +494,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                             }
 
                             dbManager.updateWallet(wallet);
-                            //subscribeData();
                         }
                     }
                 }, new Action1<Throwable>()
@@ -552,15 +501,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                onRefreshStop();
-                                reportError(throwable);
-                            }
-                        });
+                        onRefreshStop();
+                        reportError(throwable);
                     }
                 });
     }
@@ -581,8 +523,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 }
             }
         });
-
-        bitmapSubscription = Subscriptions.unsubscribed();
+        
         bitmapSubscription = bitmapObservable
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())

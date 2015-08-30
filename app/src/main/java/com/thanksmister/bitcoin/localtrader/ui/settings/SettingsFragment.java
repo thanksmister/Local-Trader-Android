@@ -97,6 +97,12 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         marketCurrencyPreference = (ListPreference) findPreference("exchange_currency");
         marketCurrencyPreference.setTitle("Market currency (" + currency + ")");
         
+        String[] currencyList = {"USD"};
+        String[] currencyValues= {"0"};
+        marketCurrencyPreference.setEntries(currencyList);
+        marketCurrencyPreference.setDefaultValue("0");
+        marketCurrencyPreference.setEntryValues(currencyValues);
+      
         currencyObservable = exchangeService.getMarketTickers().cache();
     }
 
@@ -199,11 +205,10 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         String[] stringValues = new String[currencyValues.size()];
         stringValues = currencyValues.toArray(stringValues);
 
-        ListPreference exchangeCurrencyPreference = (ListPreference) findPreference("exchange_currency");
-        exchangeCurrencyPreference.setEntries(stringExchanges);
-        exchangeCurrencyPreference.setDefaultValue("0");
-        exchangeCurrencyPreference.setEntryValues(stringValues);
-        exchangeCurrencyPreference.setValue(String.valueOf(selectedValue));
+        marketCurrencyPreference.setEntries(stringExchanges);
+        marketCurrencyPreference.setDefaultValue("0");
+        marketCurrencyPreference.setEntryValues(stringValues);
+        marketCurrencyPreference.setValue(String.valueOf(selectedValue));
     }
     
     private void logOut()

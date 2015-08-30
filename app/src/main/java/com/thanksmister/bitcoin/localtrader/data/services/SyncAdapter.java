@@ -27,6 +27,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.BriteContentResolver;
@@ -52,10 +53,11 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
+import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -69,13 +71,12 @@ import retrofit.client.OkClient;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
@@ -93,6 +94,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     private SharedPreferences sharedPreferences;
 
     private Handler handler;
+    private Handler backgroundHandler;
     
     public SyncAdapter(Context context, boolean autoInitialize)
     {
@@ -115,6 +117,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         dbManager = new DbManager(db, briteContentResolver, contentResolver);
 
         handler = new Handler();
+
+        BackgroundThread backgroundThread = new BackgroundThread();
+        backgroundThread.start();
+        backgroundHandler = new Handler(backgroundThread.getLooper());
     }
 
     @Override
@@ -205,8 +211,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         Timber.d("UpdateAdvertisements");
 
         advertisementsSubscription = getAdvertisementObservable()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Advertisement>>()
                 {
                     @Override
@@ -236,8 +240,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         Timber.d("UpdateWalletBalance");
         
         walletSubscription = getWalletBalance()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Wallet>()
                 {
                     @Override
@@ -267,8 +269,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         Timber.d("RefreshAccessTokens");
         
         tokensSubscription = refreshTokens()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Authorization>() {
                     @Override
                     public void call(Authorization authorization)
@@ -451,19 +451,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void getDeletedContactsInfo(List<String> contacts)
     {
-        Timber.e("Get Deleted Contacts: " + contacts.size());
-        
+        Timber.e("Get Deleted Contacts: " + contacts.toString());
+        //.onErrorResumeNext(getContactInfo(contacts))
         getContactInfo(contacts)
-                .onErrorResumeNext(getContactInfo(contacts))
                 .subscribe(new Action1<List<Contact>>()
                 {
                     @Override
                     public void call(List<Contact> contacts)
                     {
                         Timber.e("List of Deleted Contacts Size: " + contacts.size());
-                        
-                        if(!contacts.isEmpty())
-                            
+                        if (!contacts.isEmpty())
                             notificationService.contactDeleteNotification(contacts);
                     }
                 }, new Action1<Throwable>()
@@ -471,6 +468,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
+                        Timber.e("Get Contact Info Error");
                         reportError(throwable);
                     }
                 });
@@ -544,7 +542,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-                       
+
+                        Timber.e("Get Contact Info: " + contactIds.toString());
+                        
                         return Observable.just(Observable.from(contactIds)
                                 .flatMap(new Func1<String, Observable<? extends List<Contact>>>()
                                 {
@@ -571,7 +571,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                                     }
                                                 });
                                     }
-                                }).toBlocking().lastOrDefault(contactList));
+                                }).toBlocking().last());
                     }
                 });
     }
@@ -595,14 +595,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private Observable<List<Contact>> getContactsObservable()
     {
-        /*List<Message> messages = Parser.parseMessages(MockData.MESSAGES);
-        List<Contact> contacts = Parser.parseContacts(MockData.DASHBOARD);
-        
-        Contact contact = contacts.get(0);
-        contact.messages = messages;
-        
-        return Observable.just(contacts);*/
-        
+        Timber.d("getContactsObservable");
+
+        if(Constants.USE_MOCK_DATA) {
+            //List<Message> messages = Parser.parseMessages(MockData.MESSAGES);
+            List<Contact> contacts = Parser.parseContacts(MockData.DASHBOARD);
+            //List<Contact> contacts = Collections.emptyList();
+            //List<Message> messages = Collections.emptyList();
+            //Contact contact = contacts.get(0);
+            //contact.messages = messages;
+            return Observable.just(contacts);
+        }
+
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<List<Contact>>>()
                 {
@@ -610,7 +614,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public Observable<List<Contact>> call(final SessionItem sessionItem)
                     {
                         if (sessionItem == null) return null;
-                        Timber.d("Access Token: " + sessionItem.access_token());
                         return localBitcoins.getDashboard(sessionItem.access_token())
                                 .map(new ResponseToContacts())
                                 .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
@@ -618,10 +621,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                     @Override
                                     public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                                     {
-                                        if (contacts.isEmpty()) {
-                                            return Observable.just(contacts);
-                                        }
-                                        return getContactsMessageObservable(contacts, sessionItem.access_token());
+                                        return Observable.just(contacts);
+                                        //return getContactsMessageObservable(contacts, sessionItem.access_token());
                                     }
                                 });
                     }
@@ -734,62 +735,63 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         final ArrayList<String> deletedContacts = new ArrayList<String>();
         final ArrayList<Contact> updatedNotifyContacts = new ArrayList<Contact>();
         final ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
-        
+
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
                 .map(ContactItem.MAP)
-                .subscribe(new Action1<List<ContactItem>>()
-                {
-                    @Override
-                    public void call(List<ContactItem> contactItems)
-                    {
-                        Timber.d("Contact Items in Database: " + contactItems.size());
-                        for (ContactItem contactItem : contactItems) {
+                        .subscribe(new Action1<List<ContactItem>>()
+                        {
+                            @Override
+                            public void call(List<ContactItem> contactItems)
+                            {
+                                Timber.d("Contact Items in Database: " + contactItems.size());
 
-                            Contact match = entryMap.get(contactItem.contact_id());
+                                for (ContactItem contactItem : contactItems) {
 
-                            if (match != null) {
+                                    Contact match = entryMap.get(contactItem.contact_id());
 
-                                entryMap.remove(contactItem.contact_id());
+                                    if (match != null) {
 
-                                if ((match.payment_completed_at != null && !match.payment_completed_at.equals(contactItem.payment_completed_at()))
-                                        || (match.closed_at != null && !match.closed_at.equals(contactItem.closed_at()))
-                                        || (match.disputed_at != null && !match.disputed_at.equals(contactItem.disputed_at()))
-                                        || (match.escrowed_at != null && !match.escrowed_at.equals(contactItem.escrowed_at()))
-                                        || (match.funded_at != null && !match.funded_at.equals(contactItem.funded_at()))
-                                        || (match.released_at != null && !match.released_at.equals(contactItem.released_at()))
-                                        || (match.canceled_at != null && !match.canceled_at.equals(contactItem.canceled_at()))
-                                        || (match.actions.fund_url != null && !match.actions.fund_url.equals(contactItem.funded_at()))
-                                        || (match.is_funded != contactItem.is_funded())) {
+                                        entryMap.remove(contactItem.contact_id());
 
-                                    updatedNotifyContacts.add(match);
-                                    updatedContacts.add(match);
+                                        if ((match.payment_completed_at != null && !match.payment_completed_at.equals(contactItem.payment_completed_at()))
+                                                || (match.closed_at != null && !match.closed_at.equals(contactItem.closed_at()))
+                                                || (match.disputed_at != null && !match.disputed_at.equals(contactItem.disputed_at()))
+                                                || (match.escrowed_at != null && !match.escrowed_at.equals(contactItem.escrowed_at()))
+                                                || (match.funded_at != null && !match.funded_at.equals(contactItem.funded_at()))
+                                                || (match.released_at != null && !match.released_at.equals(contactItem.released_at()))
+                                                || (match.canceled_at != null && !match.canceled_at.equals(contactItem.canceled_at()))
+                                                || (match.actions.fund_url != null && !match.actions.fund_url.equals(contactItem.funded_at()))
+                                                || (match.is_funded != contactItem.is_funded())) {
 
-                                } else if ((match.seller.last_online != null && !match.seller.last_online.equals(contactItem.seller_last_online()))
-                                        || (match.hasUnseenMessages != contactItem.hasUnseenMessages())
-                                        || (match.messageCount != contactItem.messageCount())
-                                        || (match.buyer.last_online != null && !match.buyer.last_online.equals(contactItem.buyer_last_online()))) {
-                                    updatedContacts.add(match);
+                                            updatedNotifyContacts.add(match);
+                                            updatedContacts.add(match);
+
+                                        } else if ((match.seller.last_online != null && !match.seller.last_online.equals(contactItem.seller_last_online()))
+                                                || (match.hasUnseenMessages != contactItem.hasUnseenMessages())
+                                                || (match.messageCount != contactItem.messageCount())
+                                                || (match.buyer.last_online != null && !match.buyer.last_online.equals(contactItem.buyer_last_online()))) {
+                                            updatedContacts.add(match);
+                                        }
+
+                                    } else {
+
+                                        deletedContacts.add(contactItem.contact_id());
+                                    }
                                 }
-                                
-                            } else {
 
-                                deletedContacts.add(contactItem.contact_id());
+                                for (Contact contact : entryMap.values()) {
+                                    newContacts.add(contact);
+                                }
+
                             }
-                        }
-
-                        for (Contact contact : entryMap.values()) {
-                            newContacts.add(contact);
-                        }
-                        
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        reportError(throwable);
-                    }
-                });
+                        }, new Action1<Throwable>()
+                        {
+                            @Override
+                            public void call(Throwable throwable)
+                            {
+                                reportError(throwable);
+                            }
+                        });
 
         subscription.unsubscribe();
         
@@ -910,5 +912,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
         
         updateContactsData(contactMap); // let's update contacts now
+    }
+
+    static class BackgroundThread extends HandlerThread
+    {
+        BackgroundThread() {
+            super("SchedulerSample-BackgroundThread", THREAD_PRIORITY_BACKGROUND);
+        }
     }
 }

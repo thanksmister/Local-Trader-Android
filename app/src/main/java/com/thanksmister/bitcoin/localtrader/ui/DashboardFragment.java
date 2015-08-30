@@ -36,6 +36,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
+import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -64,6 +65,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -76,7 +78,7 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func3;
+import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
@@ -86,7 +88,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 {
     @Inject
     DataService dataService;
-
+    
     @Inject
     ExchangeService exchangeService;
 
@@ -140,7 +142,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     }*/
     
     private Subscription exchangeSubscription = Subscriptions.empty();
-    private Subscription databaseSubscriptions = Subscriptions.empty();
+    private Subscription contactsSubscription = Subscriptions.empty();
+    private Subscription advertisementsSubscriptions = Subscriptions.empty();
     private CompositeSubscription updateSubscriptions = new CompositeSubscription();
     
     private ItemAdapter itemAdapter;
@@ -153,6 +156,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     }
 
     private Handler handler;
+    private List<ContactItem> contacts = Collections.emptyList();
+    private List<AdvertisementItem> advertisements = Collections.emptyList();;
+    private List<MethodItem> methods = Collections.emptyList();
 
     /**
      * Returns a new instance of this fragment for the given section
@@ -209,36 +215,40 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         ab.setDisplayHomeAsUpEnabled(true);
     }
     
-    private void setupList(DataItem dataItem)
+    private void setupList(List<ContactItem> contactItems, List<AdvertisementItem> advertisementItems, List<MethodItem> methodItems)
     {
-        Timber.d("Setup Advertisements: " + dataItem.advertisements.size());
+       Timber.d("setupList");
         
         // provide combined data
         ArrayList<Object> items = new ArrayList<>();
         ItemAdapter itemAdapter = getAdapter();
         
-        if(dataItem.advertisements.isEmpty() && dataItem.contacts.isEmpty()) {
+        if(contactItems.isEmpty() && advertisementItems.isEmpty()) {
             //This is the code to provide a sectioned list
-            itemAdapter.replaceWith(items, dataItem.methods);
+            itemAdapter.replaceWith(items, methodItems);
             recycleView.setAdapter(itemAdapter);
             return;
         }
         
-        items.addAll(dataItem.contacts);
-        items.addAll(dataItem.advertisements);
-        itemAdapter.replaceWith(items, dataItem.methods);
+        if(!contactItems.isEmpty())
+            items.addAll(contactItems);
+
+        if(!advertisementItems.isEmpty())
+            items.addAll(advertisementItems);
+        
+        itemAdapter.replaceWith(items, methodItems);
         
         //This is the code to provide a sectioned list
         List<SectionRecycleViewAdapter.Section> sections = new ArrayList<>();
         
-        if(dataItem.contacts.size() > 0) {
+        if(contactItems.size() > 0) {
             //int start = (dataItem.exchange == null)? 0:1;
             sections.add(new SectionRecycleViewAdapter.Section(0, getString(R.string.dashboard_active_trades_header)));
         }
         
-        if(dataItem.advertisements.size() > 0) {
+        if(advertisementItems.size() > 0) {
             //int first = (dataItem.exchange == null)? 0:1;
-            int start = (dataItem.contacts.isEmpty())? 0:dataItem.contacts.size();
+            int start = (contactItems.isEmpty())? 0:contactItems.size();
             sections.add(new SectionRecycleViewAdapter.Section(start, getString(R.string.dashboard_advertisements_header)));
         }
 
@@ -366,8 +376,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         appBarLayout.removeOnOffsetChangedListener(this);
 
         exchangeSubscription.unsubscribe();
-        databaseSubscriptions.unsubscribe();
+        advertisementsSubscriptions.unsubscribe();
         updateSubscriptions.unsubscribe();
+        contactsSubscription.unsubscribe();
         
         handler.removeCallbacks(refreshRunnable);
     }
@@ -445,7 +456,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         Timber.d("subscribeData");
 
         //dbManager.clearTransactions();
-        exchangeSubscription = Subscriptions.unsubscribed();
+      
         exchangeSubscription = dbManager.exchangeQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -467,17 +478,42 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     }
                 });
 
+
+        contactsSubscription = dbManager.contactsQuery()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<List<ContactItem>>()
+                        {
+                            @Override
+                            public void call(final List<ContactItem> contactItems)
+                            {
+                                Timber.d("ContactItems: " + contactItems.size());
+                                getActivity().runOnUiThread(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        contacts = contactItems;
+                                        setupList(contacts, advertisements, methods);
+                                    }
+                                });
+                            }
+                        }, new Action1<Throwable>()
+                        {
+                            @Override
+                            public void call(Throwable throwable)
+                            {
+                                reportError(throwable);
+                            }
+                        });
+
         
-        //Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP);
-        //Observable<List<AdvertisementItem>> advertisementObservable = db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY).map(AdvertisementItem.MAP);
-        databaseSubscriptions = Subscriptions.unsubscribed();
-        databaseSubscriptions = Observable.zip(dbManager.methodQuery().cache(), dbManager.contactsQuery(), dbManager.advertisementsQuery(), new Func3<List<MethodItem>, List<ContactItem>, List<AdvertisementItem>, DataItem>()
+        advertisementsSubscriptions = Observable.combineLatest(dbManager.methodQuery(), dbManager.advertisementsQuery(), new Func2<List<MethodItem>, List<AdvertisementItem>, DataItem>()
         {
             @Override
-            public DataItem call(List<MethodItem> methodItems, List<ContactItem> contactItems, List<AdvertisementItem> advertisementItems)
+            public DataItem call(List<MethodItem> methodItems, List<AdvertisementItem> advertisementItems)
             {
                 DataItem dataItem = new DataItem();
-                dataItem.contacts = contactItems;
                 dataItem.advertisements = advertisementItems;
                 dataItem.methods = methodItems;
                 return dataItem;
@@ -488,9 +524,18 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 .subscribe(new Action1<DataItem>()
                 {
                     @Override
-                    public void call(DataItem dataItem)
+                    public void call(final DataItem dataItem)
                     {
-                        setupList(dataItem);
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                advertisements = dataItem.advertisements;
+                                methods = dataItem.methods;
+                                setupList(contacts, advertisements, methods);
+                            }
+                        });
                     }
                 }, new Action1<Throwable>()
                 {
@@ -501,7 +546,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     }
                 });
     }
-    
+
     protected void updateData(final Boolean force)
     {
         Timber.d("UpdateData");
@@ -602,31 +647,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                         dbManager.updateAdvertisements(advertisements);
                     }
                 }));
-                /*.subscribe(new Action1<List<Advertisement>>()
-                {
-                    @Override
-                    public void call(List<Advertisement> advertisements)
-                    {
-                        onRefreshStop();
-                        Timber.d("advertisementUpdateObservable");
-                        dbManager.updateAdvertisements(advertisements);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        onRefreshStop();
-                        handleError(throwable, true);
-                    }
-                }, new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        onRefreshStop();
-                    }
-                }));*/
     }
     
     protected ItemAdapter getAdapter()

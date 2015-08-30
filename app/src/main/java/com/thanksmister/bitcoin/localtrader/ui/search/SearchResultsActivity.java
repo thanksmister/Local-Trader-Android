@@ -101,13 +101,6 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     
     public static Intent createStartIntent(Context context, @NonNull TradeType tradeType, @NonNull Address address, @Nullable String paymentMethod)
     {
-        Timber.d("TradeType: " + tradeType.name());
-        Timber.d("Payment Method: " + paymentMethod);
-        Timber.d("Address Latitude: " + address.getLatitude());
-        Timber.d("Address Longitude: " + address.getLongitude());
-        Timber.d("Address Country Code: " + address.getCountryCode());
-        Timber.d("Address Country Name: " + address.getCountryName());
-        
         Intent intent = new Intent(context, SearchResultsActivity.class);
         intent.putExtra(EXTRA_TRADE_TYPE, tradeType);
         intent.putExtra(EXTRA_ADDRESS, address);

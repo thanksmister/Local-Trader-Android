@@ -155,8 +155,6 @@ public class SearchFragment extends BaseFragment
     private PredictAdapter predictAdapter;
     private TradeType tradeType;
 
-   
-
     private Subscription locationSubscription = Subscriptions.empty();
     private Subscription geoLocationSubscription = Subscriptions.empty();
     private Subscription methodUpdateSubscription = Subscriptions.empty();
@@ -344,7 +342,9 @@ public class SearchFragment extends BaseFragment
 
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
-    
+
+        searchButton.setEnabled(false); // not enabled until we have valid address
+        
         setupToolbar();
     }
 
@@ -435,9 +435,8 @@ public class SearchFragment extends BaseFragment
     public void setAddress(Address address)
     {
         this.address = address;
-
-        if (address != null)
-            currentLocation.setText(TradeUtils.getAddressShort(address));
+        searchButton.setEnabled(true);
+        currentLocation.setText(TradeUtils.getAddressShort(address));
     }
 
     protected void showSearchLayout()
@@ -511,6 +510,7 @@ public class SearchFragment extends BaseFragment
                         public void run()
                         {
                             hideProgress();
+                            searchButton.setEnabled(false); // no way to search
                             handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                         }
                     });
@@ -663,6 +663,11 @@ public class SearchFragment extends BaseFragment
     
     private void showSearchResultsScreen()
     {
+        if(address == null) {
+            showEnableLocation();
+            return;
+        }
+        
         if (!geoLocationService.isGooglePlayServicesAvailable()) {
             missingGooglePlayServices();
             return;

@@ -48,11 +48,13 @@ public final class DbModule
     @Provides 
     @Singleton SqlBrite provideSqlBrite() 
     {
-        return SqlBrite.create(new SqlBrite.Logger() {
+        /*return SqlBrite.create(new SqlBrite.Logger() {
             @Override public void log(String message) {
                 Timber.tag("Database").v(message);
             }
-        });
+        });*/
+
+        return SqlBrite.create();
     }
     
     @Provides

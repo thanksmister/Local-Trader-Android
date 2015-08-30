@@ -74,59 +74,59 @@ public class MockData
             "                    \"advertisement_public_view\": \"https://localbitcoins.com/ad/120042\"\n" +
             "                }\n" +
             "            },\n" +
-            "            {\n" +
-            "                \"data\": {\n" +
-            "                    \"exchange_rate_updated_at\": \"2014-09-18T21:22:02+00:00\",\n" +
-            "                    \"advertisement\": {\n" +
-            "                        \"payment_method\": \"CASH_DEPOSIT\",\n" +
-            "                        \"advertiser\": {\n" +
-            "                            \"username\": \"thanksmister\",\n" +
-            "                            \"feedback_score\": 100,\n" +
-            "                            \"trade_count\": \"100+\",\n" +
-            "                            \"last_online\": \"2014-09-16T17:44:09+00:00\",\n" +
-            "                            \"name\": \"thanksmister (100+; 100%)\"\n" +
-            "                        },\n" +
-            "                        \"trade_type\": \"ONLINE_SELL\",\n" +
-            "                        \"id\": 120042\n" +
-            "                    },\n" +
-            "                    \"is_buying\": false,\n" +
-            "                    \"payment_completed_at\": null,\n" +
-            "                    \"released_at\": null,\n" +
-            "                    \"created_at\": \"2014-09-18T21:22:02+00:00\",\n" +
-            "                    \"contact_id\": 1099950,\n" +
-            "                    \"seller\": {\n" +
-            "                        \"username\": \"thanksmister\",\n" +
-            "                        \"feedback_score\": 100,\n" +
-            "                        \"trade_count\": \"100+\",\n" +
-            "                        \"last_online\": \"2014-09-16T17:44:09+00:00\",\n" +
-            "                        \"name\": \"thanksmister (100+; 100%)\"\n" +
-            "                    },\n" +
-            "                    \"currency\": \"ARS\",\n" +
-            "                    \"amount\": \"500.00\",\n" +
-            "                    \"is_selling\": true,\n" +
-            "                    \"escrowed_at\": \"2014-09-18T21:22:02+00:00\",\n" +
-            "                    \"amount_btc\": \"0.07640000\",\n" +
-            "                    \"reference_code\": \"L1099950BNKQ6\",\n" +
-            "                    \"buyer\": {\n" +
-            "                        \"username\": \"pepett2010\",\n" +
-            "                        \"feedback_score\": 0,\n" +
-            "                        \"trade_count\": \"0\",\n" +
-            "                        \"last_online\": \"2014-09-18T12:57:50+00:00\",\n" +
-            "                        \"name\": \"pepett2010 (0)\"\n" +
-            "                    },\n" +
-            "                    \"closed_at\": null,\n" +
-            "                    \"disputed_at\": null,\n" +
-            "                    \"funded_at\": \"2014-09-18T21:22:02+00:00\",\n" +
-            "                    \"canceled_at\": null\n" +
-            "                },\n" +
-            "                \"actions\": {\n" +
-            "                    \"message_post_url\": \"https://localbitcoins.com/api/contact_message_post/1099950/\",\n" +
-            "                    \"advertisement_url\": \"https://localbitcoins.com/api/ad-get/120042/\",\n" +
-            "                    \"messages_url\": \"https://localbitcoins.com/api/contact_messages/1099950/\",\n" +
-            "                    \"release_url\": \"https://localbitcoins.com/api/escrow_release/1099950/\",\n" +
-            "                    \"advertisement_public_view\": \"https://localbitcoins.com/ad/120042\"\n" +
-            "                }\n" +
-            "            }\n" +
+            "{\n" +
+            "   \"data\":{\n" +
+            "      \"exchange_rate_updated_at\":\"2014-10-08T18:11:49+00:00\",\n" +
+            "      \"advertisement\":{\n" +
+            "         \"advertiser\":{\n" +
+            "            \"username\":\"miguelbtc\",\n" +
+            "            \"feedback_score\":100,\n" +
+            "            \"trade_count\":\"5\",\n" +
+            "            \"last_online\":\"2014-10-30T15:07:30+00:00\",\n" +
+            "            \"name\":\"miguelbtc (5; 100%)\"\n" +
+            "         },\n" +
+            "         \"trade_type\":\"LOCAL_SELL\",\n" +
+            "         \"id\":77701\n" +
+            "      },\n" +
+            "      \"is_buying\":false,\n" +
+            "      \"payment_completed_at\":null,\n" +
+            "      \"released_at\":null,\n" +
+            "      \"created_at\":\"2014-10-08T18:11:49+00:00\",\n" +
+            "      \"contact_id\":1180671,\n" +
+            "      \"seller\":{\n" +
+            "         \"username\":\"miguelbtc\",\n" +
+            "         \"feedback_score\":100,\n" +
+            "         \"trade_count\":\"5\",\n" +
+            "         \"last_online\":\"2014-10-30T15:07:30+00:00\",\n" +
+            "         \"name\":\"miguelbtc (5; 100%)\"\n" +
+            "      },\n" +
+            "      \"currency\":\"ARS\",\n" +
+            "      \"amount\":\"3000.00\",\n" +
+            "      \"is_selling\":true,\n" +
+            "      \"escrowed_at\":null,\n" +
+            "      \"amount_btc\":\"0.58610000\",\n" +
+            "      \"reference_code\":\"L1180671BPB0F\",\n" +
+            "      \"buyer\":{\n" +
+            "         \"username\":\"thanksmister\",\n" +
+            "         \"feedback_score\":100,\n" +
+            "         \"trade_count\":\"100+\",\n" +
+            "         \"last_online\":\"2014-10-30T14:32:30+00:00\",\n" +
+            "         \"name\":\"thanksmister (100+; 100%)\"\n" +
+            "      },\n" +
+            "      \"closed_at\":null,\n" +
+            "      \"disputed_at\":null,\n" +
+            "      \"funded_at\":null,\n" +
+            "      \"canceled_at\":null\n" +
+            "   },\n" +
+            "   \"actions\":{\n" +
+            "      \"message_post_url\":\"https://localbitcoins.com/api/contact_message_post/1180671/\",\n" +
+            "      \"dispute_url\":\"https://localbitcoins.com/api/contact_dispute/1180671/\",\n" +
+            "      \"messages_url\":\"https://localbitcoins.com/api/contact_messages/1180671/\",\n" +
+            "      \"advertisement_url\":\"https://localbitcoins.com/api/ad-get/77701/\",\n" +
+            "      \"cancel_url\":\"https://localbitcoins.com/api/contact_cancel/1180671/\",\n" +
+            "      \"advertisement_public_view\":\"https://localbitcoins.com/ad/77701\"\n" +
+            "   }\n" +
+            "            },\n" +
             "        ],\n" +
             "        \"contact_count\": 2\n" +
             "    }\n" +

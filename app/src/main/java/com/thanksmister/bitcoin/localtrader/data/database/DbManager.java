@@ -681,7 +681,7 @@ public class DbManager
             entryMap.put(item.ad_id, item);
         }
 
-        db.beginTransaction();
+        //db.beginTransaction();
 
         // Get list of all items
         Cursor cursor = db.query(AdvertisementItem.QUERY);
@@ -815,10 +815,10 @@ public class DbManager
                 db.insert(AdvertisementItem.TABLE, builder.build());
             }
 
-            db.setTransactionSuccessful();
+            //db.setTransactionSuccessful();
 
         } finally {
-            db.endTransaction();
+            //db.endTransaction();
             cursor.close();
         }
         

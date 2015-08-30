@@ -32,13 +32,13 @@
     <item android:id="@+id/action_cancel"
           android:title="@string/menu_action_cancel"
           android:icon="@drawable/ic_action_navigation_cancel"
-          thanksmister:showAsAction="ifRoom"
+          thanksmister:showAsAction="never"
           android:visible="false"/>
 
     <item android:id="@+id/action_dispute"
           android:title="@string/menu_action_dispute"
           android:icon="@drawable/ic_action_gavel"
-          thanksmister:showAsAction="ifRoom"
+          thanksmister:showAsAction="never"
           android:visible="false"/>
 
 </menu>

@@ -266,7 +266,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             }
         });
 
-
         adapter = new MessageAdapter(this);
         setAdapter(adapter);
     }
@@ -326,12 +325,16 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
+        Timber.d("onCreateOptionsMenu");
+        
         if (toolbar != null)
             toolbar.inflateMenu(R.menu.contact);
         
         cancelItem = menu.findItem(R.id.action_cancel);
         disputeItem = menu.findItem(R.id.action_dispute);
 
+        setMenuOptions();
+        
         return true;
     }
 
@@ -339,6 +342,20 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     public void onRefresh()
     {
         updateData();
+    }
+    
+    private void setMenuOptions()
+    {
+        if(contact != null) {
+            int buttonTag = TradeUtils.getTradeActionButtonLabel(contact);
+            if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
+                disputeItem.setVisible(buttonTag != R.string.button_dispute);
+            }
+
+            if(TradeUtils.canCancelTrade(contact)) {
+                cancelItem.setVisible(buttonTag != R.string.button_cancel);
+            }
+        }
     }
 
     public void onRefreshStop()
@@ -593,13 +610,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         noteText.setMovementMethod(LinkMovementMethod.getInstance());
         contactHeaderLayout.setVisibility((description == null) ? View.GONE : View.VISIBLE);
 
-        if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
-            disputeItem.setVisible(buttonTag != R.string.button_dispute);
-        }
-          
-        if(TradeUtils.canCancelTrade(contact)) {
-            cancelItem.setVisible(buttonTag != R.string.button_cancel);
-        }
+        setMenuOptions();
     }
 
     private MessageAdapter getAdapter()
