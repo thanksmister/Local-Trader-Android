@@ -90,8 +90,7 @@
         </activity>
 
         <activity
-                android:name=".ui.contacts.ContactActivity"
-                android:windowSoftInputMode="adjustResize">
+                android:name=".ui.contacts.ContactActivity">
         </activity>
 
         <activity
@@ -108,8 +107,7 @@
         </activity>
 
         <activity
-                android:name=".ui.search.TradeRequestActivity"
-                android:windowSoftInputMode="adjustResize">
+                android:name=".ui.search.TradeRequestActivity">
         </activity>
 
         <activity
@@ -117,8 +115,7 @@
         </activity>
 
         <activity
-                android:name=".ui.advertisements.EditActivity"
-                android:windowSoftInputMode="adjustResize">
+                android:name=".ui.advertisements.EditActivity">
         </activity>
 
         <activity

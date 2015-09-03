@@ -255,10 +255,8 @@ public abstract class BaseActivity extends AppCompatActivity
 
     protected void reportError(Throwable throwable)
     {
-        if(throwable != null && throwable.getLocalizedMessage() != null) {
-            Timber.e("Data Error: " + throwable.getLocalizedMessage());
-        } else {
-            Timber.e("Null Error");
+        if (throwable != null) {
+            throwable.printStackTrace();
         }
     }
     
@@ -269,12 +267,23 @@ public abstract class BaseActivity extends AppCompatActivity
     
     protected void handleError(Throwable throwable, boolean retry)
     {
-        if(DataServiceUtils.isNetworkError(throwable)) {
+        Timber.d("handleError");
+        
+        if(DataServiceUtils.isConnectionError(throwable)) {
+            Timber.e("Connection Error");
+            snack(getString(R.string.error_service_unreachable_error), retry);
+        } else if(DataServiceUtils.isTimeoutError(throwable)) {
+            Timber.e("Timeout Error");
+            snack(getString(R.string.error_service_timeout_error), retry);
+        } else if(DataServiceUtils.isNetworkError(throwable)) {
             Timber.e("Data Error: " + "Code 503");
             snack(getString(R.string.error_no_internet), retry);
         } else if(DataServiceUtils.isHttp502Error(throwable)) {
             Timber.e("Data Error: " + "Code 502");
             snack(getString(R.string.error_service_error), retry);
+        } else if(DataServiceUtils.isConnectionError(throwable)) {
+            Timber.e("Connection Error: " + "Code ???");
+            snack(getString(R.string.error_service_timeout_error), retry);
         } else if(DataServiceUtils.isHttp403Error(throwable)) {
             Timber.e("Data Error: " + "Code 403");
             toast(getString(R.string.error_authentication));
@@ -300,11 +309,33 @@ public abstract class BaseActivity extends AppCompatActivity
         } else {
             snack(R.string.error_unknown_error, retry);
         }
+        
+        reportError(throwable);
     }
 
     protected void snack(int message, boolean retry)
     {
         snack(getString(message), retry);
+    }
+
+    protected void snackError(String message)
+    {
+        try {
+            View view = findViewById(R.id.coordinatorLayout);
+            Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
+                        .setAction("Close", new View.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(View view)
+                            {
+                                //
+                            }
+                        })
+                        .show();
+            
+        } catch (NullPointerException e) {
+            // nothing
+        }
     }
     
     // TODO add action to this
@@ -323,8 +354,7 @@ public abstract class BaseActivity extends AppCompatActivity
                             })
                             .show();
                 } else {
-                    Snackbar.make(view, getString(R.string.error_no_internet), Snackbar.LENGTH_LONG)
-                            .show();
+                    Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
                 }
             } catch (NullPointerException e) {
                 // nothing

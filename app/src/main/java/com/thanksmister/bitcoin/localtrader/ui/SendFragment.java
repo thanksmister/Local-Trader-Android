@@ -52,7 +52,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.ui.bitcoin.QRCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -60,6 +59,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -72,7 +72,6 @@ import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
 
 public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -110,6 +109,9 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     @InjectView(R.id.address)
     TextView addressText;
     
+    @InjectView(R.id.currencyText)
+    TextView currencyText;
+    
     @OnClick(R.id.sendButton)
     public void sendButtonClicked()
     {
@@ -120,8 +122,9 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     private String amount;
     private WalletData walletData;
    
-    CompositeSubscription subscriptions = new CompositeSubscription();
+    CompositeSubscription dataSubscriptions = new CompositeSubscription();
     CompositeSubscription updateSubscriptions = new CompositeSubscription();
+    
 
     private Handler handler;
 
@@ -279,7 +282,8 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         if(!Strings.isBlank(address)) {
             addressText.setText(address);
         }
-        
+
+        setCurrency();
         setupToolbar();
     }
 
@@ -311,7 +315,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         super.onPause();
 
         handler.removeCallbacks(refreshRunnable);
-        subscriptions.unsubscribe();
+        dataSubscriptions.unsubscribe();
         updateSubscriptions.unsubscribe();
     }
 
@@ -371,27 +375,32 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         ab.setTitle(getString(R.string.view_title_send));
         ab.setDisplayHomeAsUpEnabled(true);
     }
+    
+    private void setCurrency()
+    {
+        String currency = exchangeService.getExchangeCurrency();
+        
+        if(currencyText != null)
+            currencyText.setText(currency);
+    }
 
     protected void subscribeData()
     {
-        subscriptions = new CompositeSubscription();
-
-        Observable<ExchangeItem> exchangeObservable = dbManager.exchangeQuery();
-        Observable<WalletItem> walletBalanceObservable = dbManager.walletQuery();
-        
-        subscriptions.add(Observable.combineLatest(exchangeObservable, walletBalanceObservable, new Func2<ExchangeItem, WalletItem, WalletData>()
+        // this must be set each time
+        dataSubscriptions = new CompositeSubscription();
+        dataSubscriptions.add(Observable.combineLatest(dbManager.exchangeQuery(), dbManager.walletQuery(), new Func2<ExchangeItem, WalletItem, WalletData>()
         {
             @Override
             public WalletData call(ExchangeItem exchange, WalletItem wallet)
             {
                 WalletData walletData = null;
-                if(exchange != null && wallet != null) {
+                if (exchange != null && wallet != null) {
                     walletData = new WalletData();
                     walletData.setAddress(wallet.address());
                     walletData.setBalance(wallet.balance());
                     walletData.setRate(Calculations.calculateAverageBidAskFormatted(exchange.ask(), exchange.bid()));
                 }
-                
+
                 return walletData;
             }
         })
@@ -418,8 +427,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     private void updateData()
     {
         updateSubscriptions = new CompositeSubscription();
-        Observable<Wallet> updateWalletBalanceObservable = dataService.getWalletBalance();
-        updateSubscriptions.add(updateWalletBalanceObservable
+        updateSubscriptions.add(dataService.getWalletBalance()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Wallet>()
@@ -428,7 +436,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     public void call(Wallet wallet)
                     {
                         onRefreshStop();
-                        updateWallet(wallet);
+                        dbManager.updateWallet(wallet);
                     }
 
                 }, new Action1<Throwable>()
@@ -441,8 +449,8 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     }
                 }));
 
-        Observable<Exchange> updateExchangeObservable = exchangeService.getMarket(true);
-        updateSubscriptions.add(updateExchangeObservable
+        updateSubscriptions.add(exchangeService.getMarket(true)
+                .timeout(30, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()
@@ -450,40 +458,22 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     @Override
                     public void call(Exchange exchange)
                     {
-                        updateExchange(exchange);
+                        dbManager.updateExchange(exchange);
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(Throwable throwable)
                     {
-                        onRefreshStop();
-                        reportError(throwable);
+                        snackError("Unable to update exchange data, the calculated value is inaccurate...");
                     }
                 }));
     }
     
-    private void updateWallet(Wallet wallet)
-    {
-        dbManager.updateWallet(wallet);
-    }
-    
-    private void updateExchange(Exchange exchange)
-    {
-        dbManager.updateExchange(exchange);
-    }
-
     private void promptForPin(String bitcoinAddress, String bitcoinAmount)
     {
         Intent intent = PinCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
         startActivityForResult(intent, PinCodeActivity.REQUEST_CODE); // be sure to do this from fragment context
-    }
-
-    private void showGeneratedQrCodeActivity(String bitcoinAddress, String bitcoinAmount)
-    {
-        assert bitcoinAddress != null;
-        Intent intent = QRCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
-        startActivity(intent);
     }
     
     public void setAddressFromClipboard()
@@ -497,9 +487,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
         String bitcoinAmount = WalletUtils.parseBitcoinAmount(clipText);
 
-        Timber.d("Bitcoin Address: " + bitcoinAddress);
-        Timber.d("Bitcoin Amount: " + bitcoinAmount);
-        
         if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
             toast(getString(R.string.toast_invalid_address));
             return;
@@ -522,21 +509,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         } 
     }
     
-    public void setAmountFromClipboard()
-    {
-        String clipText = getClipboardText();
-        if(Strings.isBlank(clipText)) {
-            toast(R.string.toast_clipboard_empty);
-            return;
-        }
-
-        if(WalletUtils.validAmount(clipText)) {
-            setAmount(WalletUtils.parseBitcoinAmount(clipText));
-        } else {
-            toast(R.string.toast_invalid_amount);
-        }
-    }
-
     private String getClipboardText()
     {
         String clipText = "";
@@ -609,6 +581,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     public void setWallet()
     {
         computeBalance(0);
+        setCurrency(); // update currency if there were any changes
 
         if(Strings.isBlank(amountText.getText())) {
             calculateCurrencyAmount("0.00");

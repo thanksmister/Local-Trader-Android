@@ -26,15 +26,16 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 
 import java.util.List;
 
 public class CurrencyAdapter extends ArrayAdapter
 {
     private Context context;
-    private List<Currency> items;
+    private List<ExchangeCurrency> items;
 
-    public CurrencyAdapter(Context _context, int _resource, List<Currency> _items)
+    public CurrencyAdapter(Context _context, int _resource, List<ExchangeCurrency> _items)
     {
         super(_context, _resource, _items);
         context = _context;
@@ -42,7 +43,7 @@ public class CurrencyAdapter extends ArrayAdapter
     }
 
     @Override
-    public Currency getItem(int position)
+    public ExchangeCurrency getItem(int position)
     {
         return items.get(position);
     }
@@ -56,7 +57,7 @@ public class CurrencyAdapter extends ArrayAdapter
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).ticker);
+        spinnerTarget.setText(items.get(position).getName());
 
         return convertView;
     }
@@ -70,7 +71,7 @@ public class CurrencyAdapter extends ArrayAdapter
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).ticker);
+        spinnerTarget.setText(items.get(position).getName());
 
         return convertView;
     }

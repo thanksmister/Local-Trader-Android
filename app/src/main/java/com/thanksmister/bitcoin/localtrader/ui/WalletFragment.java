@@ -188,10 +188,12 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @Override
     public void onOffsetChanged(AppBarLayout appBarLayout, int i)
     {
-        if (i == 0) {
-            swipeLayout.setEnabled(true);
-        } else {
-            swipeLayout.setEnabled(false);
+        if(swipeLayout != null) {
+            if (i == 0) {
+                swipeLayout.setEnabled(true);
+            } else {
+                swipeLayout.setEnabled(false);
+            }  
         }
     }
 
@@ -357,14 +359,18 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         public void run()
         {
             updateData(false);
-            swipeLayout.setRefreshing(true);
+            
+            if(swipeLayout != null)
+                swipeLayout.setRefreshing(true);
         }
     };
 
     public void onRefreshStop()
     {
         handler.removeCallbacks(refreshRunnable);
-        swipeLayout.setRefreshing(false);
+        
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
     }
 
     protected void subscribeData()
@@ -418,6 +424,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         Timber.d("updateData");
         
         updateExchangeSubscription = exchangeService.getMarket(true)
+                .timeout(20, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()
@@ -425,20 +432,14 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(Exchange exchange)
                     {
-                        Timber.d("exchangeUpdateObservable");
-                        Timber.d("Exchange Bid: " + exchange.getBid());
-                        Timber.d("Exchange Bid: " + exchange.getAsk());
-
                         dbManager.updateExchange(exchange);
-                      
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        onRefreshStop();
-                        handleError(throwable, true);
+                        snackError("Unable to update exchange date, the calculated value is inaccurate...");
                     }
                 });
         

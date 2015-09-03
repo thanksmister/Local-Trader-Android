@@ -96,7 +96,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     private AdvertiseAdapter adapter;
     private String paymentMethod;
-    private TradeType tradeType;
+    private TradeType tradeType = TradeType.NONE;
     private Address address;
     
     public static Intent createStartIntent(Context context, @NonNull TradeType tradeType, @NonNull Address address, @Nullable String paymentMethod)
@@ -127,6 +127,11 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             tradeType = (TradeType) savedInstanceState.getSerializable(EXTRA_TRADE_TYPE);
             address = savedInstanceState.getParcelable(EXTRA_ADDRESS);
             paymentMethod = savedInstanceState.getString(EXTRA_METHOD);
+        }
+        
+        if(tradeType == null) { // this is funky but maybe 
+            Timber.e("Trade type null");
+            tradeType = TradeType.NONE;
         }
         
         if(toolbar != null) {
@@ -377,7 +382,10 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     private String getHeader(TradeType tradeType)
     {
-        String header = "";
+        String header = ""; 
+        if(tradeType == null || tradeType == TradeType.NONE) {
+            return header;
+        }
         switch (tradeType) {
             case LOCAL_BUY:
                 header = getString(R.string.search_local_sellers_header);

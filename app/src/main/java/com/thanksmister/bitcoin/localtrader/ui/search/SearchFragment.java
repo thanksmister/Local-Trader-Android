@@ -64,6 +64,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -153,7 +154,7 @@ public class SearchFragment extends BaseFragment
 
     private Address address;
     private PredictAdapter predictAdapter;
-    private TradeType tradeType;
+    private TradeType tradeType = TradeType.NONE;
 
     private Subscription locationSubscription = Subscriptions.empty();
     private Subscription geoLocationSubscription = Subscriptions.empty();
@@ -263,6 +264,8 @@ public class SearchFragment extends BaseFragment
                     case 1:
                         tradeType = (locationSpinner.getSelectedItemPosition() == 0 ? TradeType.LOCAL_SELL : TradeType.ONLINE_SELL);
                         break;
+                    default:
+                        tradeType = TradeType.NONE;
                 }
             }
 
@@ -284,6 +287,8 @@ public class SearchFragment extends BaseFragment
                     case 1:
                         tradeType = (typeSpinner.getSelectedItemPosition() == 0 ? TradeType.ONLINE_BUY : TradeType.ONLINE_SELL);
                         break;
+                    default:
+                        tradeType = TradeType.NONE;
                 }
 
                 paymentMethodLayout.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
@@ -464,7 +469,6 @@ public class SearchFragment extends BaseFragment
     public void startLocationCheck()
     {
         Timber.d("startLocationCheck");
-        
         if (!geoLocationService.isGooglePlayServicesAvailable()) {
             hideProgress();
             missingGooglePlayServices();
@@ -477,49 +481,93 @@ public class SearchFragment extends BaseFragment
         }
 
         if (hasLocationServices()) {
-
             Timber.d("hasLocationServices");
-            Observable<Address> addressObservable = geoLocationService.getLastKnownLocation()
-                    .observeOn(Schedulers.io())
-                    .subscribeOn(Schedulers.newThread());
-            
-            locationSubscription = addressObservable.subscribe(new Action1<Address>()
-            {
-                @Override
-                public void call(final Address address)
-                {
-                    getActivity().runOnUiThread(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            setAddress(address);
-                            hideProgress();
-                        }
-                    });
-
-                }
-            }, new Action1<Throwable>()
-            {
-                @Override
-                public void call(Throwable throwable)
-                {
-                    getActivity().runOnUiThread(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            hideProgress();
-                            searchButton.setEnabled(false); // no way to search
-                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                        }
-                    });
-                }
-            });
-
+            getLastKnownLocation();
         } else {
             showEnableLocation();
         }
+    }
+    
+    private void getLastKnownLocation()
+    {
+        Observable<Address> addressObservable = geoLocationService.getLastKnownLocation()
+                .timeout(10, TimeUnit.SECONDS)
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread());
+
+        locationSubscription = addressObservable.subscribe(new Action1<Address>()
+        {
+            @Override
+            public void call(final Address address)
+            {
+                getActivity().runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        setAddress(address);
+                        hideProgress();
+                    }
+                });
+
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                getActivity().runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        getCurrentLocation(); // back up plan is to get current location
+                    }
+                });
+            }
+        });
+    }
+    
+    private void getCurrentLocation()
+    {
+        Observable<Address> addressObservable = geoLocationService.getUpdatedLocation()
+                .timeout(45, TimeUnit.SECONDS)
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread());
+        
+        locationSubscription = addressObservable.subscribe(new Action1<Address>()
+        {
+            @Override
+            public void call(final Address address)
+            {
+                getActivity().runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        setAddress(address);
+                        hideProgress();
+                    }
+                });
+
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                getActivity().runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        hideProgress();
+                        searchButton.setEnabled(false); // no way to search
+                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                    }
+                });
+            }
+        });
     }
     
     private void updateData()

@@ -31,6 +31,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -177,7 +178,9 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                     @Override
                     public void call(Throwable throwable)
                     {
+                        // TODO default to USD always
                         Timber.e(throwable.getLocalizedMessage());
+                        Toast.makeText(getActivity(), "Unable to load currencies...", Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -187,6 +190,11 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         ArrayList<String> currencyList = new ArrayList<>();
         ArrayList<String> currencyValues = new ArrayList<>();
         String exchangeCurrency = exchangeService.getExchangeCurrency();
+
+        if(currencies.isEmpty()) {
+            ExchangeCurrency tempCurrency = new ExchangeCurrency(exchangeCurrency, "https://api.bitcoinaverage.com/ticker/USD");
+            currencies.add(tempCurrency); // just revert back to USD if we can
+        }
 
         int value = 0;
         int selectedValue = 0;

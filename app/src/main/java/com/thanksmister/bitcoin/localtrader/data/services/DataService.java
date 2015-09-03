@@ -317,20 +317,18 @@ public class DataService
 
     public Observable<List<Currency>> getCurrencies()
     {
-        if(currencies != null){
-            return Observable.just(currencies);
-        }
-
+        Timber.d("getCurrencies");
+        
         return bitcoinAverage.marketTickers()
-                .map(new ResponseToCurrencyList())
-                .doOnNext(new Action1<List<Currency>>()
+                .map(new ResponseToCurrencyList());
+                /*.doOnNext(new Action1<List<Currency>>()
                 {
                     @Override
                     public void call(List<Currency> results)
                     {
                         currencies = results;
                     }
-                });
+                });*/
     }
     
     public Observable<JSONObject> updateAdvertisement(final Advertisement advertisement)

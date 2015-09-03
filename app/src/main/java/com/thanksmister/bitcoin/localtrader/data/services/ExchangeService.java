@@ -109,15 +109,15 @@ public class ExchangeService
         Timber.d("WalletFragment Currency: " + currency);
         
         return bitcoinAverage.market(currency)
-                .map(new ResponseToExchange())
-                .doOnNext(new Action1<Exchange>()
+                .map(new ResponseToExchange());
+                /*.doOnNext(new Action1<Exchange>()
                 {
                     @Override
                     public void call(Exchange exchange)
                     {
                         setExchangeExpireTime();
                     }
-                });
+                });*/
     }
     
     /*public Observable<List<Exchange>> getExchangesObservable(boolean force)

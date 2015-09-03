@@ -94,6 +94,11 @@ public abstract class BaseFragment extends Fragment
         ((MainActivity) getActivity()).snack(message, false);
     }
 
+    protected void snackError(String message)
+    {
+        ((MainActivity) getActivity()).snackError(message);
+    }
+
     protected void snack(String message, boolean retry)
     {
         ((MainActivity) getActivity()).snack(message, retry);

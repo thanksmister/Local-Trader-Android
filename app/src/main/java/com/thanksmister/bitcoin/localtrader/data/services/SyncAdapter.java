@@ -94,8 +94,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     private SharedPreferences sharedPreferences;
 
     private Handler handler;
-    private Handler backgroundHandler;
-    
+  
     public SyncAdapter(Context context, boolean autoInitialize)
     {
         super(context, autoInitialize);
@@ -117,10 +116,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         dbManager = new DbManager(db, briteContentResolver, contentResolver);
 
         handler = new Handler();
-
-        BackgroundThread backgroundThread = new BackgroundThread();
-        backgroundThread.start();
-        backgroundHandler = new Handler(backgroundThread.getLooper());
     }
 
     @Override
@@ -190,7 +185,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public void call(List<Contact> contacts)
                     {
                         contactsSubscription = null;
-                        updateMessages(contacts);
+                        if(!contacts.isEmpty())
+                            updateMessages(contacts);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -290,8 +286,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     protected void reportError(Throwable throwable)
     {
-        if(throwable != null && throwable.getLocalizedMessage() != null)
+        if(throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.e("Sync Data Error: " + throwable.getLocalizedMessage());
+            throwable.printStackTrace();
+        }
+            
     }
 
     protected void handleError(Throwable throwable)
@@ -621,8 +620,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                     @Override
                                     public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                                     {
-                                        return Observable.just(contacts);
-                                        //return getContactsMessageObservable(contacts, sessionItem.access_token());
+                                        if(contacts.isEmpty()) {
+                                            return Observable.just(contacts);  
+                                        } else {
+                                            return getContactsMessageObservable(contacts, sessionItem.access_token()); 
+                                        }
                                     }
                                 });
                     }
@@ -857,58 +859,65 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 entryMap.put(message.id, message);
             }
         }
-
-        // get all the current messages
-        Subscription subscription = briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
-                .map(MessageItem.MAP)
-                .subscribe(new Action1<List<MessageItem>>()
-                {
-                    @Override
-                    public void call(List<MessageItem> messageItems)
-                    {
-                        for (MessageItem messageItem : messageItems) {
-                            String id = messageItem.contact_id() + "_" + messageItem.create_at();
-                            Message match = entryMap.get(id);
-                            if (match != null) {
-                                entryMap.remove(id);
-                            } else {
-                                deletedMessages.add(String.valueOf(messageItem.contact_id()));
-                            }
-                        }
-
-                        for (Message message : entryMap.values()) {
-                            newMessages.add(message);
-                        }
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        reportError(throwable);
-                    }
-                });
-
-        subscription.unsubscribe();
-
-        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
-        String username = stringPreference.get();
         
-        for (Message item : newMessages) {
+        if(!entryMap.isEmpty()) {
             
-            contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(item).build());
-            Contact contact = contactMap.get(item.contact_id);
-            
-            if(!item.sender.username.equals(username)) {
-                contact.hasUnseenMessages = true; 
+            // get all the current messages
+            Subscription subscription = briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
+                    .map(MessageItem.MAP)
+                    .subscribe(new Action1<List<MessageItem>>()
+                    {
+                        @Override
+                        public void call(List<MessageItem> messageItems)
+                        {
+                            for (MessageItem messageItem : messageItems) {
+
+                                String id = messageItem.contact_id() + "_" + messageItem.create_at();
+
+                                Message match = entryMap.get(id);
+
+                                if (match != null) {
+                                    entryMap.remove(id);
+                                } else {
+                                    deletedMessages.add(String.valueOf(messageItem.contact_id()));
+                                }
+                            }
+
+                            for (Message message : entryMap.values()) {
+                                newMessages.add(message);
+                            }
+
+                        }
+                    }, new Action1<Throwable>()
+                    {
+                        @Override
+                        public void call(Throwable throwable)
+                        {
+                            reportError(throwable);
+                        }
+                    });
+
+            subscription.unsubscribe();
+
+            StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
+            String username = stringPreference.get();
+
+            for (Message item : newMessages) {
+
+                contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(item).build());
+                Contact contact = contactMap.get(item.contact_id);
+
+                if(!item.sender.username.equals(username)) {
+                    contact.hasUnseenMessages = true;
+                }
             }
-        }
 
-        if(!newMessages.isEmpty())
-            notificationService.messageNotifications(newMessages);
+            if(!newMessages.isEmpty())
+                notificationService.messageNotifications(newMessages);
 
-        for (String id : deletedMessages) {
-            contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
+            for (String id : deletedMessages) {
+                contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
+            }
         }
         
         updateContactsData(contactMap); // let's update contacts now

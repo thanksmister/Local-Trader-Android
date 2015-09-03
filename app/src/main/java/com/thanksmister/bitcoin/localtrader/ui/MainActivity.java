@@ -353,7 +353,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                 ((SearchFragment) fragment).onRefresh();
                 break;
             case SEND_FRAGMENT:
-                ((RequestFragment) fragment).onRefresh();
+                ((SendFragment) fragment).onRefresh();
                 break;
         }
     }

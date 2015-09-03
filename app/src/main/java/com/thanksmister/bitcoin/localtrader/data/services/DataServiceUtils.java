@@ -21,7 +21,9 @@ import android.content.Context;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 
+import java.net.ConnectException;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeoutException;
 
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -38,6 +40,24 @@ public class DataServiceUtils
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 503);
         }
+
+        return false;
+    }
+
+    public static boolean isTimeoutError(Throwable throwable)
+    {
+        if(throwable instanceof TimeoutException) {
+            return true;
+        } 
+
+        return false;
+    }
+
+    public static boolean isConnectionError(Throwable throwable)
+    {
+        if(throwable instanceof ConnectException) {
+            return true;
+        } 
 
         return false;
     }
@@ -134,6 +154,12 @@ public class DataServiceUtils
 
     public static int getStatusCode(RetrofitError error) 
     {
+        try {
+            Timber.e("Status Code: " + error.getKind());
+        } catch(Throwable e){
+            //Timber.e("Error Status: " + e.getMessage());
+        }
+        
         try {
             if (error.getKind() == RetrofitError.Kind.NETWORK) {
                 return 503; // Use another code if you'd prefer

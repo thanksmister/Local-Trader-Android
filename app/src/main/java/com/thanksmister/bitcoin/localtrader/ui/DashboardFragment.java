@@ -67,6 +67,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -294,13 +295,15 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                 
-                int idx = recyclerView.getChildPosition(v);
-                idx  = ((SectionRecycleViewAdapter) recyclerView.getAdapter()).sectionedPositionToPosition(idx);
-                Object item = getAdapter().getItemAt(idx);
-                if(item instanceof ContactItem) {
-                    showContact((ContactItem) item);
-                } else if (item instanceof AdvertisementItem) {
-                    showAdvertisement((AdvertisementItem) item);
+                if(recyclerView.getAdapter() instanceof SectionRecycleViewAdapter) {
+                    int idx = recyclerView.getChildPosition(v);
+                    idx  = ((SectionRecycleViewAdapter) recyclerView.getAdapter()).sectionedPositionToPosition(idx);
+                    Object item = getAdapter().getItemAt(idx);
+                    if(item instanceof ContactItem) {
+                        showContact((ContactItem) item);
+                    } else if (item instanceof AdvertisementItem) {
+                        showAdvertisement((AdvertisementItem) item);
+                    } 
                 }
             }
         });
@@ -565,7 +568,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                         method.code = "all";
                         method.name = "All";
                         methods.add(0, method);
-
                         dbManager.updateMethods(methods);
                     }
                 }, new Action1<Throwable>()
@@ -573,37 +575,15 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call(Throwable throwable)
                     {
-                        onRefreshStop();
                         handleError(throwable, true);
                     }
                 }));
-
-
+        
         updateSubscriptions.add(exchangeService.getMarket(force)
+                .timeout(20, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Exchange>()
-                {
-                    @Override
-                    public void onCompleted()
-                    {
-                        onRefreshStop();
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable)
-                    {
-                        onRefreshStop();
-                        handleError(throwable, true);
-                    }
-
-                    @Override
-                    public void onNext(Exchange exchange)
-                    {
-                        dbManager.updateExchange(exchange);
-                    }
-                }));
-                /*.subscribe(new Action1<Exchange>()
+                .subscribe(new Action1<Exchange>()
                 {
                     @Override
                     public void call(Exchange exchange)
@@ -616,10 +596,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call(Throwable throwable)
                     {
-                        onRefreshStop();
-                        handleError(throwable, true);
+                        snackError("Unable to update the exchange data, the market price is out date....");
                     }
-                }));*/
+                }));
 
         updateSubscriptions.add(dataService.getAdvertisements(force)
                 .subscribeOn(Schedulers.io())
@@ -644,6 +623,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     public void onNext(List<Advertisement> advertisements)
                     {
                         Timber.d("onNext");
+                        onRefreshStop();
                         dbManager.updateAdvertisements(advertisements);
                     }
                 }));

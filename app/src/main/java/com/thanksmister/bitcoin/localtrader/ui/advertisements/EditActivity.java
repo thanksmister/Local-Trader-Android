@@ -48,12 +48,13 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.components.CurrencyAdapter;
@@ -70,6 +71,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -100,6 +102,9 @@ public class EditActivity extends BaseActivity
 
     @Inject
     DataService dataService;
+
+    @Inject
+    ExchangeService exchangeService;
 
     @Inject
     DbManager dbManager;
@@ -140,6 +145,9 @@ public class EditActivity extends BaseActivity
 
     @InjectView(R.id.searchLayout)
     View searchLayout;
+    
+    @InjectView(R.id.currencyLayout)
+    View currencyLayout;
 
     @InjectView(R.id.editLocation)
     AutoCompleteTextView editLocation;
@@ -233,11 +241,12 @@ public class EditActivity extends BaseActivity
     private Subscription geoLocalSubscription = Subscriptions.empty();
     private Subscription geoDecodeSubscription = Subscriptions.empty();
     private Subscription advertisementSubscription = Subscriptions.empty();
-
+    private Observable<List<ExchangeCurrency>> currencyObservable;
+    
     private class AdvertisementData
     {
         public AdvertisementItem advertisement;
-        public List<Currency> currencies;
+        public List<ExchangeCurrency> currencies;
     }
 
     private AdvertisementData advertisementData;
@@ -301,9 +310,9 @@ public class EditActivity extends BaseActivity
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
-                Currency exchange = (Currency) currencySpinner.getAdapter().getItem(i);
-                editMinimumAmountCurrency.setText(exchange.ticker);
-                editMaximumAmountCurrency.setText(exchange.ticker);
+                ExchangeCurrency exchange = (ExchangeCurrency) currencySpinner.getAdapter().getItem(i);
+                editMinimumAmountCurrency.setText(exchange.getName());
+                editMaximumAmountCurrency.setText(exchange.getName());
                 if (create)
                     setPriceEquation();
             }
@@ -370,7 +379,10 @@ public class EditActivity extends BaseActivity
         predictAdapter = new PredictAdapter(EditActivity.this, new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
         
-        swipeLayout.setEnabled(false);
+        swipeLayout.setEnabled(false); // freeze swipe ability
+
+        currencyObservable = exchangeService.getMarketTickers().cache();
+        
         showProgress();
     }
 
@@ -427,17 +439,13 @@ public class EditActivity extends BaseActivity
     public void onResume()
     {
         super.onResume();
-
+        
         if (create) {
-
             if (geoLocationService.isGooglePlayServicesAvailable()) {
                 subScribeData();
             }
-
             startLocationCheck();
-
         } else {
-
             subScribeData();
         }
     }
@@ -455,13 +463,9 @@ public class EditActivity extends BaseActivity
 
     public void subScribeData()
     {
-        subscriptions = new CompositeSubscription();
-
-        Observable<List<Currency>> currencyObservable = dataService.getCurrencies().cache();
-        Observable<List<MethodItem>> methodObservable = db.createQuery(MethodItem.TABLE, MethodItem.QUERY).map(MethodItem.MAP).cache();
-        Observable<AdvertisementItem> advertisementItemObservable = db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId).map(AdvertisementItem.MAP_SINGLE);
-        
-        subscriptions.add(methodObservable.subscribe(new Action1<List<MethodItem>>()
+        subscriptions = new CompositeSubscription(); // must initiate each time
+      
+        subscriptions.add(dbManager.methodQuery().subscribe(new Action1<List<MethodItem>>()
         {
             @Override
             public void call(List<MethodItem> methodItems)
@@ -472,16 +476,17 @@ public class EditActivity extends BaseActivity
 
         if (create) {
             subscriptions.add(currencyObservable
-                    .subscribeOn(Schedulers.io())
+                    .timeout(20, TimeUnit.SECONDS)
+                    .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<List<Currency>>()
+                    .subscribe(new Action1<List<ExchangeCurrency>>()
                     {
                         @Override
-                        public void call(List<Currency> currencies)
+                        public void call(List<ExchangeCurrency> currencies)
                         {
                             hideProgress();
-                            setCurrencies(currencies, null);
                             createAdvertisement();
+                            setCurrencies(currencies, null);
                         }
                     }, new Action1<Throwable>()
                     {
@@ -489,16 +494,37 @@ public class EditActivity extends BaseActivity
                         public void call(Throwable throwable)
                         {
                             hideProgress();
-                            showError("No advertisement data.");
-                            handleError(throwable);
+                            snack("Unable to load currencies, using default...", false);
+                            createAdvertisement();
+                            setCurrencies(new ArrayList<ExchangeCurrency>(), null);
                         }
                     }));
+            
         } else {
 
-            subscriptions.add(Observable.combineLatest(currencyObservable, advertisementItemObservable, new Func2<List<Currency>, AdvertisementItem, AdvertisementData>()
+            subscriptions.add(dbManager.advertisementItemQuery(adId).subscribe(new Action1<AdvertisementItem>()
             {
                 @Override
-                public AdvertisementData call(List<Currency> currencies, AdvertisementItem advertisementItem)
+                public void call(AdvertisementItem advertisementItem)
+                {
+                    hideProgress();
+                    setAdvertisement(advertisementItem);
+                }
+            }, new Action1<Throwable>()
+            {
+                @Override
+                public void call(Throwable throwable)
+                {
+                    hideProgress();
+                    showError("No advertisement data.");
+                    handleError(throwable);
+                }
+            }));
+            /*subscriptions.add(Observable.combineLatest(exchangeService.getMarketTickers().cache(), dbManager.advertisementItemQuery(adId), 
+                    new Func2<List<ExchangeCurrency>, AdvertisementItem, AdvertisementData>()
+            {
+                @Override
+                public AdvertisementData call(List<ExchangeCurrency> currencies, AdvertisementItem advertisementItem)
                 {
                     AdvertisementData advertisementData = new AdvertisementData();
                     advertisementData.currencies = currencies;
@@ -527,7 +553,7 @@ public class EditActivity extends BaseActivity
                             showError("No advertisement data.");
                             handleError(throwable);
                         }
-                    }));
+                    }));*/
         }
     }
 
@@ -564,22 +590,38 @@ public class EditActivity extends BaseActivity
         paymentMethodSpinner.setAdapter(typeAdapter);
     }
 
-    private void setCurrencies(List<Currency> currencies, AdvertisementItem advertisement)
+    /**
+     * Set the currencies to be used for a new advertisement
+     * @param currencies
+     * @param advertisement
+     */
+    private void setCurrencies(List<ExchangeCurrency> currencies, AdvertisementItem advertisement)
     {
-        CurrencyAdapter typeAdapter = new CurrencyAdapter(this, R.layout.spinner_layout, currencies);
-        currencySpinner.setAdapter(typeAdapter);
+        // handle error case
+        String currencyPreference = exchangeService.getExchangeCurrency();
+        String defaultCurrency = (create) ? currencyPreference : (advertisement != null) ? advertisement.currency() : this.getString(R.string.usd);
+
+        if(currencies.isEmpty()) {
+            ExchangeCurrency exchangeCurrency = new ExchangeCurrency(currencyPreference, "https://api.bitcoinaverage.com/ticker/" + defaultCurrency);
+            currencies.add(exchangeCurrency); // just revert back to USD if we can
+        }
 
         int i = 0;
-        String defaultCurrency = (create) ? this.getString(R.string.usd) : (advertisement != null) ? advertisement.currency() : this.getString(R.string.usd);
-        for (Currency currency : currencies) {
-            if (currency.ticker.equals(defaultCurrency)) {
+        for (ExchangeCurrency currency : currencies) {
+            if (currency.getName().equals(defaultCurrency)) {
                 currencySpinner.setSelection(i);
                 break;
             }
             i++;
         }
+        
+        CurrencyAdapter typeAdapter = new CurrencyAdapter(this, R.layout.spinner_layout, currencies);
+        currencySpinner.setAdapter(typeAdapter);
     }
 
+    /**
+     * Show the view for new advertisement
+     */
     private void createAdvertisement()
     {
         liquidityCheckBox.setChecked(false);
@@ -588,7 +630,8 @@ public class EditActivity extends BaseActivity
         activeCheckBox.setChecked(true);
 
         advertisementTypeLayout.setVisibility(View.VISIBLE);
-
+        currencyLayout.setVisibility(View.VISIBLE);
+        
         setAdvertisementType(TradeType.LOCAL_SELL);
 
         editMinimumAmountCurrency.setText(this.getString(R.string.usd));
@@ -596,6 +639,10 @@ public class EditActivity extends BaseActivity
         activeLayout.setVisibility(View.GONE);
     }
 
+    /**
+     * Set the advertisement from the database
+     * @param advertisement
+     */
     private void setAdvertisement(AdvertisementItem advertisement)
     {
         currentLocation.setText(advertisement.location_string());
@@ -610,7 +657,9 @@ public class EditActivity extends BaseActivity
         editMinimumAmount.setText(advertisement.min_amount());
         editMaximumAmount.setText(advertisement.max_amount());
         editPaymentDetails.setText(advertisement.account_info());
-        advertisementTypeLayout.setVisibility(create ? View.VISIBLE : View.GONE);
+        
+        advertisementTypeLayout.setVisibility(View.GONE);
+        currencyLayout.setVisibility(View.GONE);
 
         TradeType tradeType = TradeType.valueOf(advertisement.trade_type());
 
@@ -620,8 +669,8 @@ public class EditActivity extends BaseActivity
             paymentMethodLayout.setVisibility(View.GONE);
         } else {
             editPaymentDetailsLayout.setVisibility(View.VISIBLE);
-            paymentMethodLayout.setVisibility(create ? View.VISIBLE : View.GONE);
-            bankNameLayout.setVisibility(create ? View.VISIBLE : View.GONE);
+            paymentMethodLayout.setVisibility(View.GONE);
+            bankNameLayout.setVisibility(View.GONE);
         }
 
         editMinimumAmountCurrency.setText(advertisement.currency());
@@ -649,11 +698,11 @@ public class EditActivity extends BaseActivity
         TradeType tradeType = TradeType.values()[typeSpinner.getSelectedItemPosition()];
 
         String equation = Constants.DEFAULT_PRICE_EQUATION;
-        Currency currency = (Currency) currencySpinner.getSelectedItem();
+        ExchangeCurrency currency = (ExchangeCurrency) currencySpinner.getSelectedItem();
         if (currency == null) return; // currency values may not yet be set
 
-        if (!currency.ticker.equals(Constants.DEFAULT_CURRENCY)) {
-            equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency.ticker;
+        if (!currency.getName().equals(Constants.DEFAULT_CURRENCY)) {
+            equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency.getName();
         }
 
         String margin = marginText.getText().toString();
@@ -708,7 +757,7 @@ public class EditActivity extends BaseActivity
             }
 
             advertisement.visible = true;
-            advertisement.currency =  ((Currency) currencySpinner.getSelectedItem()).ticker;
+            advertisement.currency =  ((ExchangeCurrency) currencySpinner.getSelectedItem()).getName();
             advertisement.trade_type = TradeType.values()[typeSpinner.getSelectedItemPosition()];
             advertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code(); 
 
@@ -858,10 +907,6 @@ public class EditActivity extends BaseActivity
 
     private void missingGooglePlayServices()
     {
-        /*if(create){
-            showError(getString(R.string.error_no_play_services));
-        }
-        */
         createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
     }
 

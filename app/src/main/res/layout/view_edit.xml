@@ -41,803 +41,811 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-    
-    <!-- Your Scrollable View -->
-    <android.support.v4.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="true">
 
-        <FrameLayout
+        <!-- Your Scrollable View -->
+        <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:fillViewport="true">
 
-            <LinearLayout
-                    android:id="@+id/editContent"
+            <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingTop="@dimen/activity_padding"
-                    android:paddingBottom="@dimen/activity_padding"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    tools:visibility="visible">
+                    android:layout_height="match_parent">
 
                 <LinearLayout
-                        android:id="@+id/advertisementTypeLayout"
+                        android:id="@+id/editContent"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="I want to..."
-                            android:gravity="left"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <Spinner
-                            android:id="@+id/typeSpinner"
-                            android:theme="@style/SpinnerTheme"
-                            android:layout_width="match_parent"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:layout_height="match_parent"/>
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/activeLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Status"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <CheckBox
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/activeCheckBox"
-                            android:gravity="center_vertical"
-                            android:layout_gravity="center_vertical"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:paddingLeft="2dp"
-                            android:theme="@style/EditTextTheme"
-                            android:text="@string/ad_status_edit_description"/>
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Location"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
+                        android:layout_height="match_parent"
+                        android:paddingTop="@dimen/activity_padding"
+                        android:paddingBottom="@dimen/activity_padding"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
 
                     <LinearLayout
+                            android:id="@+id/advertisementTypeLayout"
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:orientation="horizontal">
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
-                        <FrameLayout
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="I want to..."
+                                android:gravity="left"/>
+
+                        <View
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1">
+                                android:layout_height="@dimen/view_padding_small"/>
 
-                            <LinearLayout
-                                    android:id="@+id/searchLayout"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:orientation="horizontal"
-                                    android:layout_gravity="center_vertical"
-                                    android:visibility="gone">
+                        <Spinner
+                                android:id="@+id/typeSpinner"
+                                android:theme="@style/SpinnerTheme"
+                                android:layout_width="match_parent"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:layout_height="match_parent"/>
 
-                                <AutoCompleteTextView
-                                        style="@style/TextMedium.Secondary"
-                                        android:theme="@style/EditTextTheme"
-                                        android:id="@+id/editLocation"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_gravity="center"
-                                        android:hint="Enter address or use current location"
-                                        android:layout_weight="1"/>
-
-                                <ImageButton
-                                        android:id="@+id/mapButton"
-                                        style="@style/BorderlessButtonStyle"
-                                        android:contentDescription="@string/desc"
-                                        android:layout_height="match_parent"
-                                        android:layout_width="48dp"
-                                        android:src="@drawable/ic_action_location_2"
-                                        android:layout_gravity="center"
-                                        android:layout_weight="0"/>
-
-                            </LinearLayout>
-
-                            <LinearLayout
-                                    android:id="@+id/mapLayout"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:orientation="horizontal"
-                                    android:visibility="visible">
-
-                                <TextView
-                                        style="@style/TextLarge.SmallAction"
-                                        android:id="@+id/currentLocation"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:maxLines="2"
-                                        android:ellipsize="end"
-                                        android:text="- - - -"
-                                        android:layout_gravity="center_vertical"
-                                        android:textIsSelectable="true"
-                                        android:layout_weight="1"/>
-
-
-                                <ImageButton
-                                        style="@style/BorderlessButtonStyle"
-                                        android:id="@+id/clearButton"
-                                        android:contentDescription="@string/desc"
-                                        android:layout_height="match_parent"
-                                        android:layout_width="48dp"
-                                        android:layout_gravity="center_vertical"
-                                        android:src="@drawable/ic_action_content_clear"
-                                        android:layout_weight="0"/>
-
-                            </LinearLayout>
-
-                        </FrameLayout>
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
 
                     </LinearLayout>
 
-                </LinearLayout>
-
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_marginBottom="@dimen/activity_padding"
-                        android:layout_marginTop="@dimen/activity_padding"/>
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:layout_marginRight="@dimen/activity_padding"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Currency"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <Spinner
-                            android:id="@+id/currencySpinner"
-                            android:theme="@style/SpinnerTheme"
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"/>
-
-                    <TextView
-                            style="@style/TextSmall.Light"
-                            android:layout_marginTop="4dp"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:text="Changes displayed advertisement price to selected currency and updates price equation."/>
-
-                </LinearLayout>
-
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_marginBottom="@dimen/activity_padding"
-                        android:layout_marginTop="@dimen/activity_padding"/>
-
-                <LinearLayout
-                        android:id="@+id/marginLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:layout_marginRight="@dimen/activity_padding"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Margin Value"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
                     <LinearLayout
+                            android:id="@+id/activeLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                        <EditText
-                                android:id="@+id/marginText"
-                                style="@style/TextLarge.SmallAction"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="numberDecimal"
-                                android:maxLength="8"
-                                android:layout_weight="1"
-                                android:theme="@style/EditTextTheme"
-                                android:text="1"/>
+                            android:orientation="vertical">
 
                         <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Status"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <CheckBox
                                 style="@style/TextLarge.SmallAction"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="%"
-                                android:layout_weight="0"/>
+                                android:id="@+id/activeCheckBox"
+                                android:gravity="center_vertical"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:paddingLeft="2dp"
+                                android:theme="@style/EditTextTheme"
+                                android:text="@string/ad_status_edit_description"/>
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
 
                     </LinearLayout>
 
-                    <TextView
-                            style="@style/TextSmall.Light"
-                            android:layout_height="wrap_content"
+                    <LinearLayout
                             android:layout_width="match_parent"
-                            android:text="@string/advertisement_edit_margin_description"/>
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:orientation="vertical">
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Location"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:orientation="horizontal">
+
+                            <FrameLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1">
+
+                                <LinearLayout
+                                        android:id="@+id/searchLayout"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:orientation="horizontal"
+                                        android:layout_gravity="center_vertical"
+                                        android:visibility="gone">
+
+                                    <AutoCompleteTextView
+                                            style="@style/TextMedium.Secondary"
+                                            android:theme="@style/EditTextTheme"
+                                            android:id="@+id/editLocation"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center"
+                                            android:hint="Enter address or use current location"
+                                            android:layout_weight="1"/>
+
+                                    <ImageButton
+                                            android:id="@+id/mapButton"
+                                            style="@style/BorderlessButtonStyle"
+                                            android:contentDescription="@string/desc"
+                                            android:layout_height="match_parent"
+                                            android:layout_width="48dp"
+                                            android:src="@drawable/ic_action_location_2"
+                                            android:layout_gravity="center"
+                                            android:layout_weight="0"/>
+
+                                </LinearLayout>
+
+                                <LinearLayout
+                                        android:id="@+id/mapLayout"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:orientation="horizontal"
+                                        android:visibility="visible">
+
+                                    <TextView
+                                            style="@style/TextLarge.SmallAction"
+                                            android:id="@+id/currentLocation"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:maxLines="2"
+                                            android:ellipsize="end"
+                                            android:text="- - - -"
+                                            android:layout_gravity="center_vertical"
+                                            android:textIsSelectable="true"
+                                            android:layout_weight="1"/>
+
+
+                                    <ImageButton
+                                            style="@style/BorderlessButtonStyle"
+                                            android:id="@+id/clearButton"
+                                            android:contentDescription="@string/desc"
+                                            android:layout_height="match_parent"
+                                            android:layout_width="48dp"
+                                            android:layout_gravity="center_vertical"
+                                            android:src="@drawable/ic_action_content_clear"
+                                            android:layout_weight="0"/>
+
+                                </LinearLayout>
+
+                            </FrameLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/currencyLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:orientation="vertical">
+
+                            <TextView
+                                    style="@style/TextSmall"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Currency"/>
+
+                            <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/view_padding_small"/>
+
+                            <Spinner
+                                    android:id="@+id/currencySpinner"
+                                    android:theme="@style/SpinnerTheme"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"/>
+
+                            <TextView
+                                    style="@style/TextSmall.Light"
+                                    android:layout_marginTop="4dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_width="match_parent"
+                                    android:text="Changes displayed advertisement price to selected currency and updates price equation."/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                     <View
                             style="@style/DividerHorizontal"
                             android:layout_marginBottom="@dimen/activity_padding"
                             android:layout_marginTop="@dimen/activity_padding"/>
 
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/editPriceEquationLayout"
-
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:layout_marginRight="@dimen/activity_padding"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Price Equation"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <EditText
-                            android:id="@+id/editPriceEquation"
-                            style="@style/TextLarge.SmallAction"
+                    <LinearLayout
+                            android:id="@+id/marginLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="textMultiLine|textNoSuggestions"
-                            android:lines="2"
-                            android:minLines="1"
-                            android:theme="@style/EditTextTheme"
-                            android:gravity="left|bottom"/>
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:orientation="vertical">
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Margin Value"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                            <EditText
+                                    android:id="@+id/marginText"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="numberDecimal"
+                                    android:maxLength="8"
+                                    android:layout_weight="1"
+                                    android:theme="@style/EditTextTheme"
+                                    android:text="1"/>
+
+                            <TextView
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="%"
+                                    android:layout_weight="0"/>
+
+                        </LinearLayout>
+
+                        <TextView
+                                style="@style/TextSmall.Light"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:text="@string/advertisement_edit_margin_description"/>
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/editPriceEquationLayout"
+
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Price Equation"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <EditText
+                                android:id="@+id/editPriceEquation"
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textMultiLine|textNoSuggestions"
+                                android:lines="2"
+                                android:minLines="1"
+                                android:theme="@style/EditTextTheme"
+                                android:gravity="left|bottom"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="4dp"/>
+
+                        <TextView
+                                style="@style/TextSmall.Light"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:text="@string/price_equation_edit_description"
+                                android:linksClickable="true"
+                                android:autoLink="web"
+                                android:textColorLink="@color/body_text_blue_1"/>
+
+                    </LinearLayout>
 
                     <View
+                            style="@style/DividerHorizontal"
+                            android:layout_marginTop="@dimen/activity_padding"
+                            android:layout_marginBottom="@dimen/activity_padding"/>
+
+                    <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="4dp"/>
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:orientation="vertical">
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Message"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <EditText
+                                android:id="@+id/messageText"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:minLines="3"/>
+
+                    </LinearLayout>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_marginBottom="@dimen/activity_padding"
+                            android:layout_marginTop="@dimen/activity_padding"/>
+
+                    <LinearLayout
+                            android:id="@+id/editMaximumAmountLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Minimum amount to trade"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:orientation="horizontal">
+
+                            <EditText
+                                    android:id="@+id/editMinimumAmount"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="0.00"
+                                    android:inputType="numberDecimal"
+                                    android:theme="@style/EditTextTheme"
+                                    android:layout_weight="1"/>
+
+                            <View
+                                    android:layout_width="8dp"
+                                    android:layout_height="match_parent"/>
+
+                            <TextView
+                                    android:id="@+id/editMinimumAmountCurrency"
+                                    style="@style/TextMedium.SmallAction.White"
+                                    android:minWidth="50dp"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:background="@drawable/button_blue_selector"
+                                    android:clickable="true"
+                                    android:text="@string/usd"
+                                    android:layout_gravity="center"
+                                    android:gravity="center"
+                                    android:layout_weight="0"
+                                    android:layout_marginBottom="2dp"/>
+
+                        </LinearLayout>
+
+                        <!--<TextView
+                                style="@style/TextSmall.Light"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:text="@string/min_description_edit_text"
+                                android:linksClickable="true"
+                                android:autoLink="web"
+                                android:textColorLink="@color/body_text_blue_1"/>-->
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/editMinimumAmountLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                        <TextView
+                                android:id="@+id/tradeAmountTitle"
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Maximum amount to trade"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:orientation="horizontal">
+
+                            <EditText
+                                    android:id="@+id/editMaximumAmount"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="0.00"
+                                    android:inputType="numberDecimal"
+                                    android:theme="@style/EditTextTheme"
+                                    android:layout_weight="1"/>
+
+                            <View
+                                    android:layout_width="8dp"
+                                    android:layout_height="match_parent"/>
+
+                            <TextView
+                                    android:id="@+id/editMaximumAmountCurrency"
+                                    style="@style/TextMedium.SmallAction.White"
+                                    android:minWidth="50dp"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:background="@drawable/button_blue_selector"
+                                    android:clickable="true"
+                                    android:text="@string/usd"
+                                    android:layout_gravity="center"
+                                    android:gravity="center"
+                                    android:layout_weight="0"
+                                    android:layout_marginBottom="2dp"/>
+
+                        </LinearLayout>
+
+                        <!--<TextView
+                                style="@style/TextSmall.Light"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:singleLine="false"
+                                android:text="@string/max_description_edit_text"/>-->
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/paymentMethodLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Payment method"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <Spinner
+                                android:id="@+id/paymentMethodSpinner"
+                                android:theme="@style/SpinnerTheme"
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <TextView
+                                style="@style/TextSmall.Light"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:text="@string/advertisement_payment_method"
+                                android:linksClickable="true"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:autoLink="web"
+                                android:textColorLink="@color/body_text_blue_1"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/bankNameLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Bank name (optional)"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <EditText
+                                android:id="@+id/editBankNameText"
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="Enter Bank name"/>
+
+                        <TextView
+                                style="@style/TextSmall.Light"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:singleLine="false"
+                                android:text="@string/advertisement_bank"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/editPaymentDetailsLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Payment details (optional)"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <EditText
+                                android:id="@+id/editPaymentDetails"
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="Enter payment details"/>
+
+                        <TextView
+                                style="@style/TextSmall.Light"
+                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:singleLine="false"
+                                android:text="@string/advertisement_payment_details"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/smsVerifiedLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="SMS verification required"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <CheckBox
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:id="@+id/smsVerifiedCheckBox"
+                                android:gravity="center_vertical"
+                                android:layout_gravity="center_vertical"
+                                android:paddingLeft="2dp"
+                                android:theme="@style/EditTextTheme"
+                                android:text="@string/advertisement_sms_verified"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/trustedOnlyLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Trusted people only"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <CheckBox
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:id="@+id/trustedCheckBox"
+                                android:gravity="center_vertical"
+                                android:layout_gravity="center_vertical"
+                                android:paddingLeft="2dp"
+                                android:linksClickable="true"
+                                android:autoLink="web"
+                                android:textColorLink="@color/body_text_blue_1"
+                                android:theme="@style/EditTextTheme"
+                                android:text="@string/advertisement_trusted_only"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/trackLiquidityLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <View
+                                style="@style/DividerHorizontal"
+                                android:layout_marginBottom="@dimen/activity_padding"
+                                android:layout_marginTop="@dimen/activity_padding"/>
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:text="Track liquidity"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <CheckBox
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_marginRight="@dimen/activity_padding"
+                                android:id="@+id/liquidityCheckBox"
+                                android:gravity="center_vertical"
+                                android:layout_gravity="center_vertical"
+                                android:paddingLeft="2dp"
+                                android:theme="@style/EditTextTheme"
+                                android:text="@string/advertisement_track_liquidity"/>
+
+                    </LinearLayout>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_marginBottom="@dimen/activity_padding"
+                            android:layout_marginTop="@dimen/activity_padding"/>
 
                     <TextView
                             style="@style/TextSmall.Light"
                             android:layout_height="wrap_content"
                             android:layout_width="match_parent"
-                            android:text="@string/price_equation_edit_description"
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:singleLine="false"
+                            android:text="@string/edit_options_disclaimer"
                             android:linksClickable="true"
                             android:autoLink="web"
                             android:textColorLink="@color/body_text_blue_1"/>
 
                 </LinearLayout>
 
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_marginTop="@dimen/activity_padding"
-                        android:layout_marginBottom="@dimen/activity_padding"/>
+                <include
+                        android:id="@+id/editProgress"
+                        layout="@layout/view_progress"
+                        android:visibility="visible"
+                        tools:visibility="visible"/>
 
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:layout_marginRight="@dimen/activity_padding"
-                        android:orientation="vertical">
+                <include
+                        android:id="@+id/editEmpty"
+                        layout="@layout/view_empty"
+                        tools:visibility="visible"
+                        android:visibility="gone"/>
 
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Message"/>
+            </FrameLayout>
 
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
+        </android.support.v4.widget.NestedScrollView>
 
-                    <EditText
-                            android:id="@+id/messageText"
-                            style="@style/TextMedium.SmallAction"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:minLines="3"/>
-
-                </LinearLayout>
-
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_marginBottom="@dimen/activity_padding"
-                        android:layout_marginTop="@dimen/activity_padding"/>
-
-                <LinearLayout
-                        android:id="@+id/editMaximumAmountLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Minimum amount to trade"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:orientation="horizontal">
-
-                        <EditText
-                                android:id="@+id/editMinimumAmount"
-                                style="@style/TextLarge.SmallAction"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="0.00"
-                                android:inputType="numberDecimal"
-                                android:theme="@style/EditTextTheme"
-                                android:layout_weight="1"/>
-
-                        <View
-                                android:layout_width="8dp"
-                                android:layout_height="match_parent"/>
-
-                        <TextView
-                                android:id="@+id/editMinimumAmountCurrency"
-                                style="@style/TextMedium.SmallAction.White"
-                                android:minWidth="50dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:background="@drawable/button_blue_selector"
-                                android:clickable="true"
-                                android:text="@string/usd"
-                                android:layout_gravity="center"
-                                android:gravity="center"
-                                android:layout_weight="0"
-                                android:layout_marginBottom="2dp"/>
-
-                    </LinearLayout>
-
-                    <!--<TextView
-                            style="@style/TextSmall.Light"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:text="@string/min_description_edit_text"
-                            android:linksClickable="true"
-                            android:autoLink="web"
-                            android:textColorLink="@color/body_text_blue_1"/>-->
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/editMinimumAmountLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                    <TextView
-                            android:id="@+id/tradeAmountTitle"
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Maximum amount to trade"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:orientation="horizontal">
-
-                        <EditText
-                                android:id="@+id/editMaximumAmount"
-                                style="@style/TextLarge.SmallAction"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="0.00"
-                                android:inputType="numberDecimal"
-                                android:theme="@style/EditTextTheme"
-                                android:layout_weight="1"/>
-
-                        <View
-                                android:layout_width="8dp"
-                                android:layout_height="match_parent"/>
-
-                        <TextView
-                                android:id="@+id/editMaximumAmountCurrency"
-                                style="@style/TextMedium.SmallAction.White"
-                                android:minWidth="50dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:background="@drawable/button_blue_selector"
-                                android:clickable="true"
-                                android:text="@string/usd"
-                                android:layout_gravity="center"
-                                android:gravity="center"
-                                android:layout_weight="0"
-                                android:layout_marginBottom="2dp"/>
-
-                    </LinearLayout>
-
-                    <!--<TextView
-                            style="@style/TextSmall.Light"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:singleLine="false"
-                            android:text="@string/max_description_edit_text"/>-->
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/paymentMethodLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Payment method"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <Spinner
-                            android:id="@+id/paymentMethodSpinner"
-                            android:theme="@style/SpinnerTheme"
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <TextView
-                            style="@style/TextSmall.Light"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:text="@string/advertisement_payment_method"
-                            android:linksClickable="true"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:autoLink="web"
-                            android:textColorLink="@color/body_text_blue_1"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/bankNameLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Bank name (optional)"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <EditText
-                            android:id="@+id/editBankNameText"
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="Enter Bank name"/>
-
-                    <TextView
-                            style="@style/TextSmall.Light"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:singleLine="false"
-                            android:text="@string/advertisement_bank"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/editPaymentDetailsLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Payment details (optional)"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <EditText
-                            android:id="@+id/editPaymentDetails"
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="Enter payment details"/>
-
-                    <TextView
-                            style="@style/TextSmall.Light"
-                            android:layout_height="wrap_content"
-                            android:layout_width="match_parent"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:singleLine="false"
-                            android:text="@string/advertisement_payment_details"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/smsVerifiedLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="SMS verification required"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <CheckBox
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:id="@+id/smsVerifiedCheckBox"
-                            android:gravity="center_vertical"
-                            android:layout_gravity="center_vertical"
-                            android:paddingLeft="2dp"
-                            android:theme="@style/EditTextTheme"
-                            android:text="@string/advertisement_sms_verified"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/trustedOnlyLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Trusted people only"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <CheckBox
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:id="@+id/trustedCheckBox"
-                            android:gravity="center_vertical"
-                            android:layout_gravity="center_vertical"
-                            android:paddingLeft="2dp"
-                            android:linksClickable="true"
-                            android:autoLink="web"
-                            android:textColorLink="@color/body_text_blue_1"
-                            android:theme="@style/EditTextTheme"
-                            android:text="@string/advertisement_trusted_only"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/trackLiquidityLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"
-                            android:layout_marginTop="@dimen/activity_padding"/>
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:text="Track liquidity"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
-
-                    <CheckBox
-                            style="@style/TextLarge.SmallAction"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/activity_padding"
-                            android:layout_marginRight="@dimen/activity_padding"
-                            android:id="@+id/liquidityCheckBox"
-                            android:gravity="center_vertical"
-                            android:layout_gravity="center_vertical"
-                            android:paddingLeft="2dp"
-                            android:theme="@style/EditTextTheme"
-                            android:text="@string/advertisement_track_liquidity"/>
-
-                </LinearLayout>
-
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_marginBottom="@dimen/activity_padding"
-                        android:layout_marginTop="@dimen/activity_padding"/>
-
-                <TextView
-                        style="@style/TextSmall.Light"
-                        android:layout_height="wrap_content"
-                        android:layout_width="match_parent"
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:layout_marginRight="@dimen/activity_padding"
-                        android:singleLine="false"
-                        android:text="@string/edit_options_disclaimer"
-                        android:linksClickable="true"
-                        android:autoLink="web"
-                        android:textColorLink="@color/body_text_blue_1"/>
-
-            </LinearLayout>
-
-            <include
-                    android:id="@+id/editProgress"
-                    layout="@layout/view_progress"
-                    android:visibility="visible"
-                    tools:visibility="visible"/>
-
-            <include
-                    android:id="@+id/editEmpty"
-                    layout="@layout/view_empty"
-                    tools:visibility="visible"
-                    android:visibility="gone"/>
-
-        </FrameLayout>
-
-    </android.support.v4.widget.NestedScrollView>
-    
     </android.support.v4.widget.SwipeRefreshLayout>
 
 </android.support.design.widget.CoordinatorLayout>

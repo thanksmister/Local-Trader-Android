@@ -163,6 +163,7 @@
 
                             <TextView
                                     style="@style/TextLarge.SmallAction.White"
+                                    android:id="@+id/currencyText"
                                     android:minWidth="50dp"
                                     android:layout_width="wrap_content"
                                     android:layout_height="28dp"
