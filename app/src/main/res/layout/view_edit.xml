@@ -836,12 +836,6 @@
                         android:visibility="visible"
                         tools:visibility="visible"/>
 
-                <include
-                        android:id="@+id/editEmpty"
-                        layout="@layout/view_empty"
-                        tools:visibility="visible"
-                        android:visibility="gone"/>
-
             </FrameLayout>
 
         </android.support.v4.widget.NestedScrollView>

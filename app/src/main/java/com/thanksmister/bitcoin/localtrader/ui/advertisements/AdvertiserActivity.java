@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.advertisements;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -71,9 +73,6 @@ public class AdvertiserActivity extends BaseActivity
 
     @InjectView(R.id.advertiserContent)
     View content;
-
-    @InjectView(R.id.advertiserEmpty)
-    View empty;
     
     @InjectView(R.id.buttonLayout)
     View buttonLayout;
@@ -86,10 +85,7 @@ public class AdvertiserActivity extends BaseActivity
 
     @InjectView(R.id.priceLayoutDivider)
     View priceLayoutDivider;
-
-    @InjectView(R.id.retryTextView)
-    TextView emptyTextView;
-
+    
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
 
@@ -234,42 +230,44 @@ public class AdvertiserActivity extends BaseActivity
             }
         });
     }
-
-    public void showError(String message)
-    {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        emptyTextView.setText(message);
-    }
     
-    public void showProgress()
+    public void showContent(final boolean show)
     {
-        progress.setVisibility(View.VISIBLE);
-        content.setVisibility(View.GONE);
-    }
-    public void hideProgress()
-    {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
+        if (progress == null || content == null)
+            return;
+
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        progress.setVisibility(show ? View.GONE : View.VISIBLE);
+        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        content.setVisibility(show ? View.VISIBLE : View.GONE);
+        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter()
+        {
+            @Override
+            public void onAnimationEnd(Animator animation)
+            {
+                content.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     protected void subscribeData()
     {
-        Observable<List<MethodItem>> methodObservable = dbManager.methodQuery().cache();
-        Observable<Advertisement> advertisementObservable = dataService.getAdvertisement(adId).cache();
-        
-        subscription = Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, Advertisement, AdvertisementData>()
+        subscription = Observable.combineLatest(dbManager.methodQuery().cache(), dataService.getAdvertisement(adId).cache(), new Func2<List<MethodItem>, Advertisement, AdvertisementData>()
         {
             @Override
             public AdvertisementData call(List<MethodItem> methods, Advertisement advertisement)
             {
                 MethodItem method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
-
                 advertisementData = new AdvertisementData();
                 advertisementData.method = method;
                 advertisementData.advertisement = advertisement;
-
                 return advertisementData;
             }
         })
@@ -280,7 +278,7 @@ public class AdvertiserActivity extends BaseActivity
                     @Override
                     public void call(AdvertisementData advertisementData)
                     {
-                        hideProgress();
+                        showContent(true);
 
                         if (TradeUtils.isOnlineTrade(advertisementData.advertisement)) {
                             setAdvertisement(advertisementData.advertisement, advertisementData.method);
@@ -293,9 +291,8 @@ public class AdvertiserActivity extends BaseActivity
                     @Override
                     public void call(Throwable throwable)
                     {
-                        hideProgress();
-                        handleError(throwable);
-                        showError("No advertisement data.");
+                        reportError(throwable);
+                        snackError("Unable to retrieve advertisement.");
                     }
                 });
     }

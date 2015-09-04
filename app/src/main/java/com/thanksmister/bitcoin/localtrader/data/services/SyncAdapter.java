@@ -33,6 +33,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -723,7 +724,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                             return null;
                         
                         Timber.d("Refresh Token: " + sessionItem.refresh_token());
-                        return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
+                        return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(),  getContext().getString(R.string.lbc_access_key), getContext().getString(R.string.lbc_access_secret))
                                 .map(new ResponseToAuthorize());
                     }
                 });

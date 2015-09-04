@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.search;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
@@ -71,29 +73,17 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     GeoLocationService geoLocationService;
     
     @InjectView(R.id.resultsList)
-    ListView list;
+    ListView content;
 
     @InjectView(R.id.resultsProgress)
     View progress;
     
-    @InjectView(R.id.resultsEmpty)
-    View empty;
-
-    @InjectView(R.id.emptyTextView)
-    TextView emptyTextView;
-
     @InjectView(R.id.searchResultsToolBar)
     Toolbar toolbar;
 
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
-
-    @OnClick(R.id.emptyRetryButton)
-    public void emptyButtonClicked()
-    {
-        updateData();
-    }
-
+    
     private AdvertiseAdapter adapter;
     private String paymentMethod;
     private TradeType tradeType = TradeType.NONE;
@@ -140,7 +130,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             getSupportActionBar().setTitle(getHeader(tradeType));
         }
 
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        content.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
@@ -150,7 +140,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             }
         });
 
-        list.setOnScrollListener(new AbsListView.OnScrollListener()
+        content.setOnScrollListener(new AbsListView.OnScrollListener()
         {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState)
@@ -160,15 +150,13 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
             {
-                int topRowVerticalPosition = (list == null || list.getChildCount() == 0) ? 0 : list.getChildAt(0).getTop();
+                int topRowVerticalPosition = (content == null || content.getChildCount() == 0) ? 0 : content.getChildAt(0).getTop();
                 swipeLayout.setEnabled(firstVisibleItem == 0 && topRowVerticalPosition >= 0);
             }
         });
   
         adapter = new AdvertiseAdapter(this);
         setAdapter(adapter);
-
-       
     }
 
     @Override
@@ -227,29 +215,33 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
         if(swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
-    
-    public void showError(String message)
-    {
-        try {
-            progress.setVisibility(View.GONE);
-            list.setVisibility(View.GONE);
 
-            empty.setVisibility(View.VISIBLE);
-            emptyTextView.setText(message); 
-        } catch (NullPointerException e){
-            Timber.e(e.toString());
-        }
-    }
-    
-    public void hideProgress()
+    public void showContent(final boolean show)
     {
-        try {
-            empty.setVisibility(View.GONE);
-            progress.setVisibility(View.GONE);
-            list.setVisibility(View.VISIBLE);
-        } catch (NullPointerException e){
-            Timber.e(e.toString());
-        }
+        if (progress == null || content == null)
+            return;
+
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        progress.setVisibility(show ? View.GONE : View.VISIBLE);
+        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
+        {
+            @Override
+            public void onAnimationEnd(Animator animation)
+            {
+                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        content.setVisibility(show ? View.VISIBLE : View.GONE);
+        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter()
+        {
+            @Override
+            public void onAnimationEnd(Animator animation)
+            {
+                content.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     protected void updateData()
@@ -272,8 +264,8 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                                 @Override
                                 public void run()
                                 {
-                                    hideProgress();
                                     onRefreshStop();
+                                    showContent(true);
                                     setData(advertisements, null);
                                 }
                             });
@@ -288,9 +280,9 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                                 @Override
                                 public void run()
                                 {
-                                    hideProgress();
                                     onRefreshStop();
-                                    handleError(throwable);
+                                    reportError(throwable);
+                                    handleError(throwable, true);
                                 }
                             });
                         }
@@ -323,7 +315,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                                         public void run()
                                         {
                                             onRefreshStop();
-                                            hideProgress();
+                                            showContent(true);
                                             setData(advertisements, methodItems);
                                         }
                                     });
@@ -338,9 +330,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                                         @Override
                                         public void run()
                                         {
-                                            hideProgress();
                                             onRefreshStop();
-                                            Timber.e("Error: " + throwable.getMessage());
                                             handleError(throwable, true);
                                         }
                                     });
@@ -362,9 +352,9 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
         Timber.d("setData Advertisement: " + advertisements.size());
     
         if(advertisements.isEmpty()) {
-            showError("No advertisers located.");
+            snackError("No advertisers located.");
         } else if ( (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && methodItems == null ) {
-            showError("Unable to load online advertisers.");
+            snackError("Unable to load online advertisers.");
         } else {
             getAdapter().replaceWith(advertisements, methodItems);
         }
@@ -372,7 +362,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     private void setAdapter(AdvertiseAdapter adapter)
     {
-        list.setAdapter(adapter);
+        content.setAdapter(adapter);
     }
 
     private AdvertiseAdapter getAdapter()

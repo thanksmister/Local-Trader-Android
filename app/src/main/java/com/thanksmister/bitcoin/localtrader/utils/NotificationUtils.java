@@ -70,7 +70,7 @@ public class NotificationUtils
             Resources res = context.getResources();
             int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
             int width = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
-            bm = Bitmap.createScaledBitmap(bm, width, height, false);
+            //bm = Bitmap.createScaledBitmap(bm, width, height, false);
             //builder.setLargeIcon(bm);
         }
         
@@ -94,7 +94,7 @@ public class NotificationUtils
         notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 
         notificationIntent.putExtra(MainActivity.EXTRA_TYPE, type);
-        if(type == NOTIFICATION_TYPE_CONTACT && contact_id != null) {
+        if(type == NOTIFICATION_TYPE_BALANCE && contact_id != null) {
             notificationIntent.putExtra(MainActivity.EXTRA_CONTACT, contact_id);
         }
 
@@ -113,7 +113,7 @@ public class NotificationUtils
             Resources res = context.getResources();
             int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
             int width = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
-            bm = Bitmap.createScaledBitmap(bm, width, height, false);
+            // bm = Bitmap.createScaledBitmap(bm, width, height, false);
             //builder.setLargeIcon(bm);
         }
 
@@ -157,8 +157,7 @@ public class NotificationUtils
             Resources res = context.getResources();
             int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
             int width = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
-            bm = Bitmap.createScaledBitmap(bm, width, height, false);
-            
+            //bm = Bitmap.createScaledBitmap(bm, width, height, false);
             //builder.setLargeIcon(bm);
         }
         

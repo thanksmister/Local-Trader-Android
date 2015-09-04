@@ -37,7 +37,6 @@ import java.util.List;
 
 import timber.log.Timber;
 
-
 public class TradeUtils
 {
     public static String getContactDescription(ContactItem contact, Context context)
@@ -600,9 +599,8 @@ public class TradeUtils
                 sb.append(Character.toUpperCase(words[i].charAt(0)) + words[i].subSequence(1, words[i].length()).toString().toLowerCase());
             }
         }
-        String titleCaseValue = sb.toString();
 
-        return titleCaseValue;
+        return sb.toString();
     }
 
     public static String parsePaymentServiceTitle(String value)
@@ -620,32 +618,5 @@ public class TradeUtils
         }
         String titleCaseValue = sb.toString();
         return titleCaseValue;
-    }
-
-    public static boolean hasFroyo() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
-    }
-
-    public static boolean hasGingerbread() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD;
-    }
-
-    public static boolean hasHoneycomb() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
-    }
-
-    public static boolean hasHoneycombMR1() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1;
-    }
-
-    public static boolean hasJellyBean() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
-    }
-
-    public static boolean isTablet(Context context)
-    {
-        return (context.getResources().getConfiguration().screenLayout
-                & Configuration.SCREENLAYOUT_SIZE_MASK)
-                >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 }

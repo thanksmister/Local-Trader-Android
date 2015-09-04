@@ -17,12 +17,9 @@
 package com.thanksmister.bitcoin.localtrader;
 
 import android.content.SharedPreferences;
-import android.location.LocationManager;
 
-import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.data.DataModule;
 import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbModule;
@@ -69,9 +66,9 @@ public final class ActivityModule
 {
     @Provides
     @Singleton
-    DataService provideDataService(DbManager db, BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
+    DataService provideDataService(DbManager db, BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage)
     {
-        return new DataService(db, app, preferences, localBitcoins, bitcoinAverage, bitfinexExchange);
+        return new DataService(db, app, preferences, localBitcoins, bitcoinAverage);
     }
 
     @Provides

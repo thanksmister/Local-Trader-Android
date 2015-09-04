@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.advertisements;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -211,13 +213,7 @@ public class EditActivity extends BaseActivity
 
     @InjectView(R.id.editContent)
     View content;
-
-    @InjectView(R.id.editEmpty)
-    View empty;
-
-    @InjectView(R.id.emptyTextView)
-    TextView emptyTextView;
-
+    
     @OnClick(R.id.clearButton)
     public void clearButtonClicked()
     {
@@ -382,8 +378,6 @@ public class EditActivity extends BaseActivity
         swipeLayout.setEnabled(false); // freeze swipe ability
 
         currencyObservable = exchangeService.getMarketTickers().cache();
-        
-        showProgress();
     }
 
     @Override
@@ -484,7 +478,7 @@ public class EditActivity extends BaseActivity
                         @Override
                         public void call(List<ExchangeCurrency> currencies)
                         {
-                            hideProgress();
+                            showContent(true);
                             createAdvertisement();
                             setCurrencies(currencies, null);
                         }
@@ -493,8 +487,7 @@ public class EditActivity extends BaseActivity
                         @Override
                         public void call(Throwable throwable)
                         {
-                            hideProgress();
-                            snack("Unable to load currencies, using default...", false);
+                            snackError("Unable to load currencies, using default...");
                             createAdvertisement();
                             setCurrencies(new ArrayList<ExchangeCurrency>(), null);
                         }
@@ -507,7 +500,7 @@ public class EditActivity extends BaseActivity
                 @Override
                 public void call(AdvertisementItem advertisementItem)
                 {
-                    hideProgress();
+                    showContent(true);
                     setAdvertisement(advertisementItem);
                 }
             }, new Action1<Throwable>()
@@ -515,9 +508,8 @@ public class EditActivity extends BaseActivity
                 @Override
                 public void call(Throwable throwable)
                 {
-                    hideProgress();
-                    showError("No advertisement data.");
-                    handleError(throwable);
+                    snackError("No advertisement data.");
+                    reportError(throwable);
                 }
             }));
             /*subscriptions.add(Observable.combineLatest(exchangeService.getMarketTickers().cache(), dbManager.advertisementItemQuery(adId), 
@@ -557,26 +549,32 @@ public class EditActivity extends BaseActivity
         }
     }
 
-    private void showError(String message)
+    public void showContent(final boolean show)
     {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.GONE);
-        empty.setVisibility(View.VISIBLE);
-        emptyTextView.setText(message);
-    }
+        if (progress == null || content == null)
+            return;
 
-    private void showProgress()
-    {
-        empty.setVisibility(View.GONE);
-        progress.setVisibility(View.VISIBLE);
-        content.setVisibility(View.GONE);
-    }
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-    private void hideProgress()
-    {
-        empty.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
-        progress.setVisibility(View.GONE);
+        progress.setVisibility(show ? View.GONE : View.VISIBLE);
+        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
+        {
+            @Override
+            public void onAnimationEnd(Animator animation)
+            {
+                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        content.setVisibility(show ? View.VISIBLE : View.GONE);
+        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter()
+        {
+            @Override
+            public void onAnimationEnd(Animator animation)
+            {
+                content.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     private void setTradeType(TradeType tradeType)

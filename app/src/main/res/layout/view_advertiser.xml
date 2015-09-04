@@ -328,12 +328,6 @@
                         android:visibility="visible"
                         tools:visibility="visible"/>
 
-                <include
-                        android:id="@+id/advertiserEmpty"
-                        layout="@layout/view_retry"
-                        android:visibility="gone"
-                        tools:visibility="visible"/>
-
             </FrameLayout>
 
         </android.support.v4.widget.NestedScrollView>

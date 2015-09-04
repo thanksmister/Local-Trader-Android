@@ -17,24 +17,17 @@
 package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentResolver;
-import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.data.services.SqlBriteContentProvider;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import timber.log.Timber;
 
 @Module(complete = false, library = true)
 public final class DbModule

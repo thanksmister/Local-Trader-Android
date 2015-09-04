@@ -22,8 +22,6 @@ import java.text.NumberFormat;
 
 public class Conversions
 {
-    private static final String CLASS_NAME = " " + Conversions.class.getSimpleName() + " ";
-
     public static int MAXIMUM_BTC_DECIMALS = 8;
     public static int MINIMUM_BTC_DECIMALS = 1;
 
@@ -96,15 +94,13 @@ public class Conversions
     public static String formatBitcoinAmount(Double amount)
     {
         NumberFormat formatter = new DecimalFormat("###.########");
-        String f = formatter.format(amount);
-        return f;
+        return formatter.format(amount);
     }
 
     public static String formatWholeNumber(Double amount)
     {
         NumberFormat formatter = new DecimalFormat("###");
-        String f = formatter.format(amount);
-        return f;
+        return formatter.format(amount);
     }
 
     public static String formatCurrencyAmount(Double amount)
@@ -179,7 +175,6 @@ public class Conversions
         
         return defaultValue;
     }
-
     
     public static float convertToFloat (String value)
     {
@@ -232,6 +227,4 @@ public class Conversions
 
         return formatCurrencyAmount(fiatAmount/btcAmount);
     }
-
-
 }

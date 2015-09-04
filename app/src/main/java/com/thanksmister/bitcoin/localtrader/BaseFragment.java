@@ -16,8 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader;
 
+import android.content.Context;
 import android.os.Bundle;
-import android.os.HandlerThread;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
@@ -27,13 +27,13 @@ import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import butterknife.ButterKnife;
 
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
-
 /**
  * Base fragment which performs injection using the activity object graph of its parent.
  */
 public abstract class BaseFragment extends Fragment
 {
+    private BaseActivity parentActivity;
+    
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -47,82 +47,91 @@ public abstract class BaseFragment extends Fragment
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.inject(this, view);
     }
+    
+    @Override 
+    public void onAttach(Context context)
+    {
+        super.onAttach(context);
+        
+        parentActivity = (MainActivity) getActivity();
+    }
 
+    @Override
+    public void onDetach()
+    {
+        super.onDetach();
+
+        parentActivity = (MainActivity) getActivity();
+    }
+    
     @Override 
     public void onDestroy() 
     {
         super.onDestroy();
         
         if (BuildConfig.DEBUG) {
-            //RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
-            //refWatcher.watch(this);
+            RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
+            refWatcher.watch(this);
         }
-    }
-
-    public void launchScanner()
-    {
-        ((MainActivity) getActivity()).launchScanner();
     }
     
     protected void reportError(Throwable throwable)
     {
-        ((MainActivity) getActivity()).reportError(throwable);
+        if(parentActivity != null)
+            parentActivity.reportError(throwable);
     }
 
     protected void handleError(Throwable throwable, boolean retry)
     {
-        ((MainActivity) getActivity()).handleError(throwable, retry);
+        if(parentActivity != null)
+            parentActivity.handleError(throwable, retry);
     }
 
     protected void handleError(Throwable throwable)
     {
-        ((MainActivity) getActivity()).handleError(throwable, false);
+        if(parentActivity != null)
+            parentActivity.handleError(throwable, false);
     }
 
     protected void toast(int messageId)
     {
-        ((MainActivity) getActivity()).toast(messageId);
+        if(parentActivity != null)
+            parentActivity.toast(messageId);
     }
 
     protected void toast(String message)
     {
-        ((MainActivity) getActivity()).toast(message);
+        if(parentActivity != null)
+            parentActivity.toast(message);
     }
 
     protected void snack(String message)
     {
-        ((MainActivity) getActivity()).snack(message, false);
+        if(parentActivity != null)
+            parentActivity.snack(message, false);
     }
 
     protected void snackError(String message)
     {
-        ((MainActivity) getActivity()).snackError(message);
+        if(parentActivity != null)
+            parentActivity.snackError(message);
     }
 
     protected void snack(String message, boolean retry)
     {
-        ((MainActivity) getActivity()).snack(message, retry);
-    }
-
-    protected int getColor(int colorRes)
-    {
-        return getResources().getColor(colorRes);
+        if(parentActivity != null)
+            parentActivity.snack(message, retry);
     }
     
     public void showProgressDialog(ProgressDialogEvent event)
     {
-        ((BaseActivity) getActivity()).showProgressDialog(event);
+        if(parentActivity != null)
+            parentActivity.showProgressDialog(event);
     }
 
     public void hideProgressDialog()
     {
-        ((BaseActivity) getActivity()).hideProgressDialog();
-    }
-
-    public static class BackgroundThread extends HandlerThread
-    {
-        BackgroundThread() {
-            super("SchedulerSample-BackgroundThread", THREAD_PRIORITY_BACKGROUND);
-        }
+        if(parentActivity != null)
+            parentActivity.hideProgressDialog();
     }
 }

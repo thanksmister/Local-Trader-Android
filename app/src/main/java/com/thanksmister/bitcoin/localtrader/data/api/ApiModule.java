@@ -33,7 +33,6 @@ import retrofit.client.OkClient;
 public final class ApiModule 
 {
     private static final String BITSTAMP_API_ENDPOINT = "https://www.bitstamp.net";
-    private static final String BITFINEX_API_ENDPOINT = "https://api.bitfinex.com/v1";
     private static final String BITCOIN_AVERAGE_ENDPOINT = "https://api.bitcoinaverage.com";
     public static final String BASE_URL = "https://localbitcoins.com/";
 
@@ -65,18 +64,6 @@ public final class ApiModule
                 .setEndpoint(BITSTAMP_API_ENDPOINT)
                 .build();
         return restAdapter.create(BitstampExchange.class);
-    }
-
-    @Provides
-    @Singleton
-    BitfinexExchange provideBitfinexExchange(Client client)
-    {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
-                .setEndpoint(BITFINEX_API_ENDPOINT)
-                .build();
-        return restAdapter.create(BitfinexExchange.class);
     }
     
     @Provides

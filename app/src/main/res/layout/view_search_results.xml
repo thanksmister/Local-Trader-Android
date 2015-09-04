@@ -61,12 +61,6 @@
                     android:visibility="visible"
                     tools:visibility="visible"/>
 
-            <include
-                    android:id="@+id/resultsEmpty"
-                    layout="@layout/view_empty"
-                    android:visibility="gone"
-                    tools:visibility="visible"/>
-
         </FrameLayout>
 
     </android.support.v4.widget.SwipeRefreshLayout>

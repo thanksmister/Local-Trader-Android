@@ -54,10 +54,10 @@ public class AboutFragment extends BaseFragment
        feedback();
     }
 
-    @OnClick(R.id.donateBitcoinButton)
-    public void donateButtonClicked()
+    @OnClick(R.id.tipBitcoinButton)
+    public void tipButtonClicked()
     {
-        changeTipMe();
+        tipMe();
     }
 
     @OnClick(R.id.rateApplicationButton)
@@ -164,27 +164,27 @@ public class AboutFragment extends BaseFragment
         }
     }
 
-    protected void donate()
+    protected void tipMe()
     {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("bitcoin:" + Constants.BITCOIN_ADDRESS + "?amount=" + ".01")));
         } catch (android.content.ActivityNotFoundException ex) {
-            changeTipMe();
+            blockchainTipMe();
         } catch (Exception e) {
             Timber.e(e.getLocalizedMessage());
         }
     }
 
-    protected void changeTipMe()
+    protected void blockchainTipMe()
     {
         try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.CHANGE_TIP_ADDRESS)));
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BITCOIN_URL)));
         } catch (android.content.ActivityNotFoundException ex) {
-            Intent sendEmail = new Intent(Intent.ACTION_SEND);
-            sendEmail.setType("text/plain");
-            sendEmail.putExtra(Intent.EXTRA_SUBJECT, "Change Tip Address");
-            sendEmail.putExtra(Intent.EXTRA_TEXT, Constants.CHANGE_TIP_ADDRESS);
-            startActivity(Intent.createChooser(sendEmail, "Share using:"));
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_SUBJECT, "Local Trader Address");
+            send.putExtra(Intent.EXTRA_TEXT, Constants.BITCOIN_URL);
+            startActivity(Intent.createChooser(send, "Share using:"));
         }
     }
 

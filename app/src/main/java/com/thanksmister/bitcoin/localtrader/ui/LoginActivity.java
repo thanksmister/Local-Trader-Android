@@ -54,6 +54,9 @@ import rx.subscriptions.Subscriptions;
 
 public class LoginActivity extends BaseActivity
 {
+    public final String OAUTH_URL = "https://localbitcoins.com/oauth2/authorize/?ch=2hbo&client_id=" 
+            + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
+
     @Inject
     DataService dataService;
     
@@ -68,12 +71,6 @@ public class LoginActivity extends BaseActivity
 
     @InjectView(R.id.loginProgress)
     View progress;
-
-    @InjectView(R.id.loginEmpty)
-    View empty;
-
-    @InjectView(R.id.retryTextView)
-    TextView errorTextView;
 
     @InjectView(R.id.webView)
     WebView webView;
@@ -137,7 +134,7 @@ public class LoginActivity extends BaseActivity
         //activates JavaScript (just in case)
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        webView.loadUrl(Constants.OAUTH_URL);
+        webView.loadUrl(OAUTH_URL);
     }
 
     private class OauthWebViewClient extends WebViewClient
@@ -165,7 +162,7 @@ public class LoginActivity extends BaseActivity
                 hideProgress();
                 return false;
             } else if (url.contains("ads")) { // hack to get past 3 factor screen
-                webView.loadUrl(Constants.OAUTH_URL); // reload authentication page
+                webView.loadUrl(OAUTH_URL); // reload authentication page
             } else if (url.contains("error=access_denied")) {
                 handleError(new Throwable(getString(R.string.error_invalid_credentials)));
                 return false;
@@ -178,7 +175,7 @@ public class LoginActivity extends BaseActivity
     public void setAuthorizationCode(final String code)
     {
         Observable<Authorization> tokenObservable = dataService.getAuthorization(code);
-        tokenObservable
+        subscription = tokenObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Authorization>()

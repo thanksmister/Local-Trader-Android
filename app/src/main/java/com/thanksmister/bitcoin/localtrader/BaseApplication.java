@@ -42,7 +42,7 @@ public class BaseApplication extends Application
             Timber.plant(new Timber.DebugTree());
             //ButterKnife.setDebug(BuildConfig.DEBUG);
             LeakCanary.install(this);
-            //refWatcher = LeakCanary.install(this);
+            refWatcher = LeakCanary.install(this);
         } else {
             Fabric.with(this, new Crashlytics());
             /*RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()

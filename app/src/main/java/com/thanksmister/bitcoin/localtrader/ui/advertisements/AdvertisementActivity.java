@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.advertisements;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -218,16 +220,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     public void onRefreshStart()
     {
-        hideProgress();
-
         if (swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
 
     public void onRefreshStop()
     {
-        hideProgress();
-
         if (swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
@@ -291,17 +289,29 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             }
         });
     }
-
-    public void showError()
+    
+    public void showContent(final boolean show)
     {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.GONE);
-    }
+        if (progress == null || content == null)
+            return;
+        
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-    public void hideProgress()
-    {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
+        progress.setVisibility(show ? View.GONE : View.VISIBLE);
+        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        content.setVisibility(show ? View.VISIBLE : View.GONE);
+        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                content.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     protected void subscribeData()
@@ -327,6 +337,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     @Override
                     public void call(AdvertisementData advertisementData)
                     {
+                        showContent(true);
                         setAdvertisement(advertisementData.advertisement, advertisementData.method);
                     }
                 }, new Action1<Throwable>()
@@ -334,9 +345,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     @Override
                     public void call(Throwable throwable)
                     {
-                        showError();
                         reportError(throwable);
-                        toast("Unable to retrieve advertisement data.");
+                        snackError("Unable to retrieve advertisement data.");
                     }
                 });
     }

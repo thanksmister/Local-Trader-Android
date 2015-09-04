@@ -49,12 +49,12 @@ import rx.schedulers.Schedulers;
 
 public class TradeRequestActivity extends BaseActivity
 {
-    public static final String EXTRA_AD_ID = "EXTRA_AD_ID";
-    public static final String EXTRA_AD_PRICE = "EXTRA_AD_PRICE";
-    public static final String EXTRA_AD_MIN_AMOUNT = "EXTRA_AD_MIN_AMOUNT";
-    public static final String EXTRA_AD_MAX_AMOUNT = "EXTRA_AD_MAX_AMOUNT";
-    public static final String EXTRA_AD_CURRENCY = "EXTRA_AD_CURRENCY";
-    public static final String EXTRA_AD_PROFILE_NAME = "EXTRA_AD_PROFILE_NAME";
+    public static final String EXTRA_AD_ID = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ID";
+    public static final String EXTRA_AD_PRICE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PRICE";
+    public static final String EXTRA_AD_MIN_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MIN_AMOUNT";
+    public static final String EXTRA_AD_MAX_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MAX_AMOUNT";
+    public static final String EXTRA_AD_CURRENCY = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_CURRENCY";
+    public static final String EXTRA_AD_PROFILE_NAME = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PROFILE_NAME";
 
     @Inject
     DataService dataService;

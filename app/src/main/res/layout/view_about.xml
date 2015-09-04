@@ -127,7 +127,7 @@
             <View style="@style/DividerHorizontal"/>
 
             <LinearLayout
-                    android:id="@+id/donateBitcoinButton"
+                    android:id="@+id/tipBitcoinButton"
                     style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -450,7 +450,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 }));
 
         updateSubscriptions.add(exchangeService.getMarket(true)
-                .timeout(30, TimeUnit.SECONDS)
+                .timeout(10, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()
@@ -465,7 +465,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     @Override
                     public void call(Throwable throwable)
                     {
-                        snackError("Unable to update exchange data, the calculated value is inaccurate...");
+                        snackError("Unable to update exchange data...");
                     }
                 }));
     }

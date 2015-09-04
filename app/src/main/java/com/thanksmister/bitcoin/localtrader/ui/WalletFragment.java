@@ -78,6 +78,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
+import rx.Observer;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -87,7 +88,6 @@ import rx.functions.Func3;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
-
 
 public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, AppBarLayout.OnOffsetChangedListener
 {
@@ -439,7 +439,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        snackError("Unable to update exchange date, the calculated value is inaccurate...");
+                        snackError("Unable to update exchange data...");
                     }
                 });
         
@@ -528,10 +528,29 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         bitmapSubscription = bitmapObservable
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
-                .subscribe(new Action1<Bitmap>()
+                .subscribe(new Observer<Bitmap>()
                 {
                     @Override
-                    public void call(final Bitmap bitmap)
+                    public void onCompleted()
+                    {
+                    }
+
+                    @Override
+                    public void onError(final Throwable e)
+                    {
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                toast("Unable to generate QRCode");
+                                reportError(e);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onNext(final Bitmap bitmap)
                     {
                         getActivity().runOnUiThread(new Runnable()
                         {
@@ -540,21 +559,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                             {
                                 walletData.image = bitmap;
                                 setupList(walletData);
-                            }
-                        });
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(final Throwable throwable)
-                    {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                toast("Unable to generate QRCode");
-                                reportError(throwable);
                             }
                         });
                     }
@@ -659,13 +663,10 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         Timber.d("setAppBarText: " + bid);
         Timber.d("setAppBarText: " + ask);
-
         Timber.d("Balance: " + balance);
 
         String currency = exchangeService.getExchangeCurrency();
-
-        Timber.d("Currency: " + currency);
-
+        
         String btcValue = Calculations.computedValueOfBitcoin(bid, ask, balance);
         String btcAmount = Conversions.formatBitcoinAmount(balance) + " " + getString(R.string.btc);
         bitcoinPrice.setText(btcAmount);

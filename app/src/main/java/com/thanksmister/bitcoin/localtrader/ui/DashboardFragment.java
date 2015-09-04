@@ -596,7 +596,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call(Throwable throwable)
                     {
-                        snackError("Unable to update the exchange data, the market price is out date....");
+                        snackError("Unable to update exchange data...");
                     }
                 }));
 

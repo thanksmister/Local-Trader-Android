@@ -56,7 +56,6 @@ import timber.log.Timber;
 
 public class Parser
 {
-
     public static Authorization parseAuthorization(String response)
     {
         JSONObject jsonObject;

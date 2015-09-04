@@ -20,9 +20,9 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
@@ -31,13 +31,11 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseBitfinexToExchange;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAd;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
@@ -94,20 +92,18 @@ public class DataService
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
     private final BitcoinAverage bitcoinAverage;
-    private final BitfinexExchange bitfinexExchange;
     private final BaseApplication baseApplication;
     private final DbManager dbManager;
 
     private List<Currency> currencies;
     
     @Inject
-    public DataService(DbManager dbManager, BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage, BitfinexExchange bitfinexExchange)
+    public DataService(DbManager dbManager, BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage)
     {
         this.baseApplication = baseApplication;
         this.localBitcoins = localBitcoins;
         this.sharedPreferences = sharedPreferences;
         this.bitcoinAverage = bitcoinAverage;
-        this.bitfinexExchange = bitfinexExchange;
         this.dbManager = dbManager;
     }
     
@@ -125,27 +121,6 @@ public class DataService
                         
                         return localBitcoins.logOut(sessionItem.access_token())
                                 .map(new ResponseToJSONObject());
-                    }
-                });
-    }
-
-    @Deprecated
-    public Observable<Exchange> getExchange()
-    {
-        Timber.d("Get Exchange");
-        
-        /*if (!needToRefreshExchanges()) {
-            return Observable.empty();
-        }
-*/
-        return bitfinexExchange.ticker()
-                .map(new ResponseBitfinexToExchange())
-                .doOnNext(new Action1<Exchange>()
-                {
-                    @Override
-                    public void call(Exchange exchange)
-                    {
-                        setExchangeExpireTime();
                     }
                 });
     }
@@ -797,7 +772,7 @@ public class DataService
 
     public Observable<Authorization> getAuthorization(String code)
     {
-        return localBitcoins.getAuthorization("authorization_code", code, Constants.CLIENT_ID, Constants.CLIENT_SECRET)
+        return localBitcoins.getAuthorization("authorization_code", code, baseApplication.getString(R.string.lbc_access_key), baseApplication.getString(R.string.lbc_access_secret))
                 .map(new ResponseToAuthorize());
     }
 
@@ -835,7 +810,7 @@ public class DataService
                     {
                         Timber.d("Refreshing Token Using: " + sessionItem.refresh_token());
 
-                        return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), Constants.CLIENT_ID, Constants.CLIENT_SECRET)
+                        return localBitcoins.refreshToken("refresh_token", sessionItem.refresh_token(), baseApplication.getString(R.string.lbc_access_key), baseApplication.getString(R.string.lbc_access_secret))
                                 .map(new ResponseToAuthorize())
                                 .flatMap(new Func1<Authorization, Observable<? extends String>>()
                                 {
