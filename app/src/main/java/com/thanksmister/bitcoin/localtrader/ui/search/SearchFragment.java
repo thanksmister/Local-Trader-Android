@@ -439,6 +439,11 @@ public class SearchFragment extends BaseFragment
 
     public void setAddress(Address address)
     {
+        if(address == null) {
+            snackError(getString(R.string.error_unable_load_address));
+            return;
+        }
+        
         this.address = address;
         searchButton.setEnabled(true);
         currentLocation.setText(TradeUtils.getAddressShort(address));

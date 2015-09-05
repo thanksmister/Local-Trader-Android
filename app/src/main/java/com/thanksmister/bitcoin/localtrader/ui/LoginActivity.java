@@ -54,8 +54,7 @@ import rx.subscriptions.Subscriptions;
 
 public class LoginActivity extends BaseActivity
 {
-    public final String OAUTH_URL = "https://localbitcoins.com/oauth2/authorize/?ch=2hbo&client_id=" 
-            + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
+    public String OAUTH_URL = "";
 
     @Inject
     DataService dataService;
@@ -90,6 +89,9 @@ public class LoginActivity extends BaseActivity
         setContentView(R.layout.view_login);
 
         ButterKnife.inject(this);
+
+        OAUTH_URL = "https://localbitcoins.com/oauth2/authorize/?ch=2hbo&client_id="
+                + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
 
         initWebView();
     }

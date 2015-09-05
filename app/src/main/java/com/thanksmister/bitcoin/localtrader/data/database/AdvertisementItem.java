@@ -17,6 +17,7 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -33,7 +34,7 @@ import static com.squareup.sqlbrite.SqlBrite.Query;
  * https://github.com/square/sqlbrite/
  */
 @AutoParcel
-public abstract class AdvertisementItem
+public abstract class AdvertisementItem implements Parcelable
 {
     public static final String TABLE = "advertisement_item";
 

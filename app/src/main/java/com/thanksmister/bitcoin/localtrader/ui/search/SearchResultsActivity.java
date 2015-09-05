@@ -218,8 +218,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     public void showContent(final boolean show)
     {
-        if (progress == null || content == null)
-            return;
+        if (progress == null || content == null) return;
 
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
@@ -229,7 +228,8 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             @Override
             public void onAnimationEnd(Animator animation)
             {
-                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+                if(progress != null)
+                    progress.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 
@@ -239,7 +239,8 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
             @Override
             public void onAnimationEnd(Animator animation)
             {
-                content.setVisibility(show ? View.VISIBLE : View.GONE);
+                if(content != null)
+                    content.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
     }

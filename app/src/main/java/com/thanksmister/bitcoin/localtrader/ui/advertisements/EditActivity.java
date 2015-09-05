@@ -97,6 +97,7 @@ public class EditActivity extends BaseActivity
     public static final String EXTRA_ADDRESS = "com.thanksmister.extras.EXTRA_ADDRESS";
     public static final String EXTRA_CREATE = "com.thanksmister.extras.EXTRA_CREATE";
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
+    public static final String EXTRA_ADVERTISEMENT = "com.thanksmister.extras.EXTRA_ADVERTISEMENT";
 
     public static final int REQUEST_CODE = 10937;
     public static final int RESULT_UPDATED = 72322;
@@ -232,6 +233,7 @@ public class EditActivity extends BaseActivity
     private PredictAdapter predictAdapter;
     private Address address;
     private String adId;
+    private AdvertisementItem advertisementItem;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription geoLocalSubscription = Subscriptions.empty();
@@ -239,20 +241,11 @@ public class EditActivity extends BaseActivity
     private Subscription advertisementSubscription = Subscriptions.empty();
     private Observable<List<ExchangeCurrency>> currencyObservable;
     
-    private class AdvertisementData
-    {
-        public AdvertisementItem advertisement;
-        public List<ExchangeCurrency> currencies;
-    }
-
-    private AdvertisementData advertisementData;
-
     public static Intent createStartIntent(Context context, Boolean create, String adId)
     {
         Intent intent = new Intent(context, EditActivity.class);
         intent.putExtra(EXTRA_CREATE, create);
         intent.putExtra(EXTRA_AD_ID, adId);
-
         return intent;
     }
 
@@ -272,6 +265,8 @@ public class EditActivity extends BaseActivity
             address = savedInstanceState.getParcelable(EXTRA_ADDRESS);
             create = savedInstanceState.getBoolean(EXTRA_CREATE);
             adId = savedInstanceState.getString(EXTRA_AD_ID);
+            if(savedInstanceState.containsKey(EXTRA_ADVERTISEMENT))
+                advertisementItem = savedInstanceState.getParcelable(EXTRA_ADVERTISEMENT);
         }
 
         if (toolbar != null) {
@@ -387,6 +382,10 @@ public class EditActivity extends BaseActivity
         outState.putParcelable(EXTRA_ADDRESS, address);
         outState.putBoolean(EXTRA_CREATE, create);
         outState.putString(EXTRA_AD_ID, adId);
+        
+        if(advertisementItem != null) {
+            outState.putParcelable(EXTRA_ADVERTISEMENT, advertisementItem); 
+        }
     }
 
     @Override
@@ -498,9 +497,10 @@ public class EditActivity extends BaseActivity
             subscriptions.add(dbManager.advertisementItemQuery(adId).subscribe(new Action1<AdvertisementItem>()
             {
                 @Override
-                public void call(AdvertisementItem advertisementItem)
+                public void call(AdvertisementItem advertisement)
                 {
                     showContent(true);
+                    advertisementItem = advertisement; // save reference
                     setAdvertisement(advertisementItem);
                 }
             }, new Action1<Throwable>()
@@ -512,40 +512,6 @@ public class EditActivity extends BaseActivity
                     reportError(throwable);
                 }
             }));
-            /*subscriptions.add(Observable.combineLatest(exchangeService.getMarketTickers().cache(), dbManager.advertisementItemQuery(adId), 
-                    new Func2<List<ExchangeCurrency>, AdvertisementItem, AdvertisementData>()
-            {
-                @Override
-                public AdvertisementData call(List<ExchangeCurrency> currencies, AdvertisementItem advertisementItem)
-                {
-                    AdvertisementData advertisementData = new AdvertisementData();
-                    advertisementData.currencies = currencies;
-                    advertisementData.advertisement = advertisementItem;
-                    return advertisementData;
-                }
-            })
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<AdvertisementData>()
-                    {
-                        @Override
-                        public void call(AdvertisementData data)
-                        {
-                            advertisementData = data;
-                            setAdvertisement(advertisementData.advertisement);
-                            setCurrencies(advertisementData.currencies, advertisementData.advertisement);
-                            hideProgress();
-                        }
-                    }, new Action1<Throwable>()
-                    {
-                        @Override
-                        public void call(Throwable throwable)
-                        {
-                            hideProgress();
-                            showError("No advertisement data.");
-                            handleError(throwable);
-                        }
-                    }));*/
         }
     }
 
@@ -723,7 +689,7 @@ public class EditActivity extends BaseActivity
     public void validateChangesAndSend()
     {
         if (create && !geoLocationService.isGooglePlayServicesAvailable()) {
-            toast(getString(R.string.error_no_play_services));
+            snackError(getString(R.string.error_no_play_services));
             return;
         }
 
@@ -745,53 +711,54 @@ public class EditActivity extends BaseActivity
             return;
         }
 
-        Advertisement advertisement = new Advertisement(); // used to store values for service call
+        // used to store values for service call
+        Advertisement editedAdvertisement = new Advertisement(); 
 
         if (create) {
 
             if (address == null) {
-                toast("Unable to save changes, please try again");
+                snackError("Unable to save changes.");
                 return;
             }
 
-            advertisement.visible = true;
-            advertisement.currency =  ((ExchangeCurrency) currencySpinner.getSelectedItem()).getName();
-            advertisement.trade_type = TradeType.values()[typeSpinner.getSelectedItemPosition()];
-            advertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code(); 
+            editedAdvertisement.visible = true;
+            editedAdvertisement.currency =  ((ExchangeCurrency) currencySpinner.getSelectedItem()).getName();
+            editedAdvertisement.trade_type = TradeType.values()[typeSpinner.getSelectedItemPosition()];
+            editedAdvertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code(); 
 
         } else {
 
-            if (advertisementData == null) {
-                toast("Unable to save changes, please try again");
+            if (advertisementItem == null) {
+                snackError("Unable to save changes.");
                 return;
             }
-
+            
             // convert data to editable advertisement if not creating new advertisement
-            advertisement = advertisement.convertAdvertisementItemToAdvertisement(advertisementData.advertisement);
-            advertisement.ad_id = adId;
-            advertisement.visible = activeCheckBox.isChecked();
+            editedAdvertisement = editedAdvertisement.convertAdvertisementItemToAdvertisement(advertisementItem);
+            editedAdvertisement.ad_id = adId;
+            editedAdvertisement.visible = activeCheckBox.isChecked();
         }
 
-        advertisement.price_equation = equation;
-        advertisement.min_amount = min;
-        advertisement.max_amount = max;
-        advertisement.bank_name = bankName;
-        advertisement.message = msg;
-        advertisement.account_info = accountInfo;
+        editedAdvertisement.price_equation = equation;
+        editedAdvertisement.min_amount = min;
+        editedAdvertisement.max_amount = max;
+        editedAdvertisement.bank_name = bankName;
+        editedAdvertisement.message = msg;
+        editedAdvertisement.account_info = accountInfo;
 
-        advertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
-        advertisement.track_max_amount = liquidityCheckBox.isChecked();
-        advertisement.trusted_required = trustedCheckBox.isChecked();
+        editedAdvertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
+        editedAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
+        editedAdvertisement.trusted_required = trustedCheckBox.isChecked();
 
         if (address != null) {
-            advertisement.location = TradeUtils.getAddressShort(address);
-            advertisement.city = address.getLocality();
-            advertisement.country_code = address.getCountryCode();
-            advertisement.lon = address.getLongitude();
-            advertisement.lat = address.getLatitude();
+            editedAdvertisement.location = TradeUtils.getAddressShort(address);
+            editedAdvertisement.city = address.getLocality();
+            editedAdvertisement.country_code = address.getCountryCode();
+            editedAdvertisement.lon = address.getLongitude();
+            editedAdvertisement.lat = address.getLatitude();
         }
 
-        updateAdvertisement(advertisement, create);
+        updateAdvertisement(editedAdvertisement, create);
     }
 
     public void setAddress(Address address)

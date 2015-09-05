@@ -16,6 +16,6 @@
   -->
 
 <resources>
-    <string name="lbc_access_key">[key]</string>
-    <string name="lbc_access_secret">[secret]</string>
+    <string name="lbc_access_key">c37c50b0b7f4e7ad40c2</string>
+    <string name="lbc_access_secret">ba99c41345eb1a34e5501ae482ccdec2c462a83c</string>
 </resources>
