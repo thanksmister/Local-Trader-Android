@@ -29,6 +29,8 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatCallback;
+import android.support.v7.view.ActionMode;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,7 +65,7 @@ import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 /** Base activity which sets up a per-activity object graph and performs injection. */
-public abstract class BaseActivity extends AppCompatActivity 
+public abstract class BaseActivity extends AppCompatActivity
 {
     /** This activity requires authentication */
     @Retention(RetentionPolicy.RUNTIME)

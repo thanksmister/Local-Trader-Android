@@ -305,6 +305,10 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         super.onDetach();
 
         ButterKnife.reset(this);
+        
+        if(!bitmapSubscription.isUnsubscribed()) {
+            bitmapSubscription.unsubscribe();
+        }
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
@@ -376,8 +380,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     protected void subscribeData()
     {
         Timber.d("SubscribeData");
-
-        databaseSubscription = Subscriptions.unsubscribed();
+        
         databaseSubscription = Observable.combineLatest(dbManager.walletQuery(), dbManager.transactionsQuery(), dbManager.exchangeQuery(), new Func3<WalletItem, List<TransactionItem>, ExchangeItem, WalletData>()
         {
             @Override
@@ -484,18 +487,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     public void call(WalletItem walletItem)
                     {
                         onRefreshStop();
-                        
-                        if (walletItem != null) {
-                            double oldBalance = Doubles.convertToDouble(walletItem.balance());
-                            double newBalance = Doubles.convertToDouble(wallet.balance);
-
-                            if (newBalance > oldBalance) {
-                                String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
-                                snack("Received " + diff + " BTC");
-                            }
-
-                            dbManager.updateWallet(wallet);
-                        }
+                        dbManager.updateWallet(wallet);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -600,9 +592,13 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     private void addAdapterSection(List<SectionRecycleViewAdapter.Section> sections)
     {
-        SectionRecycleViewAdapter.Section[] section = new SectionRecycleViewAdapter.Section[sections.size()];
-        sectionRecycleViewAdapter.setSections(sections.toArray(section));
-        sectionRecycleViewAdapter.notifyDataSetChanged();
+        try {
+            SectionRecycleViewAdapter.Section[] section = new SectionRecycleViewAdapter.Section[sections.size()];
+            sectionRecycleViewAdapter.setSections(sections.toArray(section));
+            sectionRecycleViewAdapter.notifyDataSetChanged();
+        } catch (IllegalStateException e) {
+            Timber.e(e.getLocalizedMessage());
+        }
     }
 
     private SectionRecycleViewAdapter createAdapter()

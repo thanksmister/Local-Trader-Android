@@ -194,7 +194,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         this.menu = menu;
 
-        if (advertisementData != null) {
+        if (advertisementData != null &&  advertisementData.advertisement != null) {
             setMenuVisibilityIcon(advertisementData.advertisement.visible());
         }
 
@@ -338,7 +338,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     public void call(AdvertisementData advertisementData)
                     {
                         showContent(true);
-                        setAdvertisement(advertisementData.advertisement, advertisementData.method);
+                        
+                        if(advertisementData.advertisement != null)
+                            setAdvertisement(advertisementData.advertisement, advertisementData.method);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -475,8 +477,11 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             icon = R.drawable.ic_action_visibility_off;
         }
 
-        if (menu != null)
-            menu.getItem(0).setIcon(icon);
+        if (menu != null && menu.hasVisibleItems()) {
+            MenuItem menuItem = menu.getItem(0);
+            if(menuItem != null)
+                menuItem.setIcon(icon);
+        }
 
         onRefreshStop();
     }

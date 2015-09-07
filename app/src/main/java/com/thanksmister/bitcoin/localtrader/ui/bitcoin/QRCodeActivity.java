@@ -41,9 +41,12 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.Observer;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class QRCodeActivity extends Activity
@@ -55,7 +58,7 @@ public class QRCodeActivity extends Activity
     private Bitmap bitmap;
     private String address;
     private String amount;
-    private Subscriber<Bitmap> subscription;
+    private Subscription subscription = Subscriptions.empty();
 
     @InjectView(R.id.headerText)
     TextView headerText;
@@ -121,6 +124,7 @@ public class QRCodeActivity extends Activity
     {
         super.onDestroy();
         ButterKnife.reset(this);
+        
         subscription.unsubscribe();
     }
 
@@ -172,29 +176,31 @@ public class QRCodeActivity extends Activity
 
     public void generateQrCodeImage(final String address, final String amount)
     {
-        subscription = new Subscriber<Bitmap>() {
-            @Override
-            public void onNext(Bitmap data) { 
-                bitmap = data;
-                image.setImageBitmap(bitmap);
-            }
-
-            @Override
-            public void onCompleted() { 
-                
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Timber.e(e.getMessage());
-                Toast.makeText(getApplicationContext(), "Error generating QR code", Toast.LENGTH_LONG).show();
-            }
-        };
-
-        generateBitmap(address, amount)
+        subscription = generateBitmap(address, amount)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(subscription);
+                .subscribe(new Observer<Bitmap>()
+                {
+                    @Override
+                    public void onCompleted()
+                    {
+                        
+                    }
+
+                    @Override
+                    public void onError(Throwable e)
+                    {
+                        Timber.e(e.getMessage());
+                        Toast.makeText(getApplicationContext(), "Error generating QR code", Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onNext(Bitmap data)
+                    {
+                        bitmap = data;
+                        image.setImageBitmap(bitmap);
+                    }
+                });
     }
 
     private Observable<Bitmap> generateBitmap(final String address, final String amount)

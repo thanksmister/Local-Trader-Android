@@ -350,11 +350,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     {
         if(contact != null) {
             int buttonTag = TradeUtils.getTradeActionButtonLabel(contact);
-            if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact)) {
+            if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact) && disputeItem != null) {
                 disputeItem.setVisible(buttonTag != R.string.button_dispute);
             }
 
-            if(TradeUtils.canCancelTrade(contact)) {
+            if(TradeUtils.canCancelTrade(contact) && cancelItem != null) {
                 cancelItem.setVisible(buttonTag != R.string.button_cancel);
             }
         }

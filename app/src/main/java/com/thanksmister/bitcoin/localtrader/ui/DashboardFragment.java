@@ -555,6 +555,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         Timber.d("UpdateData");
 
         updateSubscriptions = new CompositeSubscription();
+        
         updateSubscriptions.add(dataService.getMethods().cache()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
