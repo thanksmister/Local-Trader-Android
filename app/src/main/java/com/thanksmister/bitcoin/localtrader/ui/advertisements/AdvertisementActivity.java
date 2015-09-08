@@ -247,6 +247,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         updateSubscription.unsubscribe();
         subscription.unsubscribe();
+
+        if(progress != null)
+            progress.clearAnimation();
+
+        if(content != null)
+            content.clearAnimation();
     }
 
     @Subscribe
@@ -296,12 +302,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             return;
         
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
         progress.setVisibility(show ? View.GONE : View.VISIBLE);
         progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+                if (progress != null)
+                    progress.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 
@@ -309,17 +315,15 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                content.setVisibility(show ? View.VISIBLE : View.GONE);
+                if (content != null)
+                    content.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
     }
 
     protected void subscribeData()
     {
-        Observable<List<MethodItem>> methodObservable = dbManager.methodQuery();
-        Observable<AdvertisementItem> advertisementObservable = dbManager.advertisementItemQuery(adId);
-
-        subscription = Observable.combineLatest(methodObservable, advertisementObservable, new Func2<List<MethodItem>, AdvertisementItem, AdvertisementData>()
+       subscription = Observable.combineLatest(dbManager.methodQuery(), dbManager.advertisementItemQuery(adId), new Func2<List<MethodItem>, AdvertisementItem, AdvertisementData>()
         {
             @Override
             public AdvertisementData call(List<MethodItem> methods, AdvertisementItem advertisement)

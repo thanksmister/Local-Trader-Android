@@ -23,6 +23,7 @@ public enum DashboardType
     , CANCELED
     , CLOSED
     , NOTIFIED
+    , NONE
 }
 
 

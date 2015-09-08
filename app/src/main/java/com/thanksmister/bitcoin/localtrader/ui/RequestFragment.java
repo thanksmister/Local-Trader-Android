@@ -74,8 +74,8 @@ import rx.subscriptions.CompositeSubscription;
 
 public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
-    public static final String EXTRA_RATE = "com.thanksmister.extra.EXTRA_RATE";
-    public static final String EXTRA_WALLET_DATA = "com.thanksmister.extra.EXTRA_WALLET_DATA";
+    public static final String EXTRA_WALLET = "com.thanksmister.extra.EXTRA_WALLET";
+    public static final String EXTRA_EXCHANGE = "com.thanksmister.extra.EXTRA_EXCHANGE";
   
     @Inject
     DataService dataService;
@@ -104,10 +104,11 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     @OnClick(R.id.qrButton)
     public void qrButtonClicked()
     {
-        validateForm();
+        validateForm(walletItem);
     }
     
-    private WalletData walletData;
+    private WalletItem walletItem;
+    private ExchangeItem exchangeItem;
 
     CompositeSubscription subscriptions = new CompositeSubscription();
     CompositeSubscription updateSubscriptions = new CompositeSubscription();
@@ -128,8 +129,16 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     {
         super.onCreate(savedInstanceState);
 
-        if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_WALLET_DATA))
-            walletData = savedInstanceState.getParcelable(EXTRA_WALLET_DATA);
+        if(savedInstanceState != null) {
+            
+            if(savedInstanceState.containsKey(EXTRA_WALLET)) {
+                walletItem = savedInstanceState.getParcelable(EXTRA_WALLET);
+            }
+
+            if(savedInstanceState.containsKey(EXTRA_EXCHANGE)) {
+                exchangeItem = savedInstanceState.getParcelable(EXTRA_EXCHANGE);
+            }
+        }
         
         // refresh handler
         handler = new Handler();
@@ -141,8 +150,12 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     public void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);
-        if(walletData != null)
-            outState.putParcelable(EXTRA_WALLET_DATA, walletData);
+        
+        if(walletItem != null)
+            outState.putParcelable(EXTRA_WALLET, walletItem);
+
+        if(exchangeItem != null)
+            outState.putParcelable(EXTRA_EXCHANGE, exchangeItem);
     }
 
     @Override
@@ -201,7 +214,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
                 if (amountText.hasFocus()) {
                     String bitcoin = editable.toString();
-                    calculateCurrencyAmount(bitcoin);
+                    calculateCurrencyAmount(bitcoin, exchangeItem);
                 }
             }
         });
@@ -218,7 +231,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
                 if(usdEditText.hasFocus()) {
                     String amount = editable.toString();
-                    calculateBitcoinAmount(amount);
+                    calculateBitcoinAmount(amount, exchangeItem);
                 }
             }
         });
@@ -303,50 +316,46 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
     protected void subscribeData()
     {
-        Observable<ExchangeItem> exchangeObservable = dbManager.exchangeQuery();
-        Observable<WalletItem> walletBalanceObservable = dbManager.walletQuery();
         subscriptions = new CompositeSubscription();
-        subscriptions.add(Observable.combineLatest(exchangeObservable, walletBalanceObservable, new Func2<ExchangeItem, WalletItem, WalletData>()
+        
+        subscriptions.add(dbManager.exchangeQuery().subscribe(new Action1<ExchangeItem>()
         {
             @Override
-            public WalletData call(ExchangeItem exchange, WalletItem wallet)
+            public void call(ExchangeItem results)
             {
-                WalletData walletData = null;
-                if(exchange != null && wallet != null) {
-                    walletData = new WalletData();
-                    walletData.setAddress(wallet.address());
-                    walletData.setBalance(wallet.balance());
-                    walletData.setRate(Calculations.calculateAverageBidAskFormatted(exchange.ask(), exchange.bid()));
-                }
-                return walletData;
+                exchangeItem = results;
+                setWallet(exchangeItem);
             }
-        })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<WalletData>()
-                {
-                    @Override
-                    public void call(WalletData results)
-                    {
-                        walletData = results;
-                        setWallet();
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        reportError(throwable);
-                    }
-                }));
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                reportError(throwable);
+            }
+        }));
+        
+        subscriptions.add(dbManager.walletQuery().subscribe(new Action1<WalletItem>()
+        {
+            @Override
+            public void call(WalletItem results)
+            {
+                walletItem = results;
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(Throwable throwable)
+            {
+                reportError(throwable);
+            }
+        }));
     }
     
     private void updateData()
     {
-        Observable<Wallet> updateWalletBalanceObservable = dataService.getWalletBalance();
-        Observable<Exchange> updateExchangeObservable = exchangeService.getMarket(true);
         updateSubscriptions = new CompositeSubscription();
-        updateSubscriptions.add(updateWalletBalanceObservable
+        updateSubscriptions.add(dataService.getWalletBalance()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Wallet>()
@@ -368,7 +377,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                     }
                 }));
 
-        updateSubscriptions.add(updateExchangeObservable
+        updateSubscriptions.add(exchangeService.getMarket(true)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()
@@ -376,7 +385,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                     @Override
                     public void call(Exchange exchange)
                     {
-                        updateExchange(exchange);
+                        dbManager.updateExchange(exchange);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -387,11 +396,6 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                         reportError(throwable);
                     }
                 }));
-    }
-    
-    private void updateExchange(Exchange exchange)
-    {
-        dbManager.updateExchange(exchange);
     }
     
     private void showGeneratedQrCodeActivity(String bitcoinAddress, String bitcoinAmount)
@@ -410,7 +414,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         }
 
         if(WalletUtils.validAmount(clipText)) {
-            setAmount(WalletUtils.parseBitcoinAmount(clipText));
+            setAmount(WalletUtils.parseBitcoinAmount(clipText), exchangeItem);
         } else {
             toast(R.string.toast_invalid_amount);
         }
@@ -434,60 +438,70 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         return  clipText;
     }
     
-    public void setAmount(String bitcoinAmount)
+    public void setAmount(String bitcoinAmount, ExchangeItem exchangeItem)
     {
         if(!Strings.isBlank(bitcoinAmount)) {
             amountText.setText(bitcoinAmount);
-            calculateCurrencyAmount(bitcoinAmount);
+            calculateCurrencyAmount(bitcoinAmount, exchangeItem);
         }
     }
     
-    public void setWallet()
+    public void setWallet(ExchangeItem exchangeItem)
     {
         if(Strings.isBlank(amountText.getText())) {
-            calculateCurrencyAmount("0.00");
+            calculateCurrencyAmount("0.00", exchangeItem);
         } else {
-            calculateCurrencyAmount(amountText.getText().toString());
+            calculateCurrencyAmount(amountText.getText().toString(), exchangeItem);
         }
     }
 
-    protected void validateForm()
+    protected void validateForm(WalletItem walletItem)
     {
+        if(walletItem == null) {
+            toast("No valid address to receive bitcoin...");
+            return;
+        }
+        
         if(Strings.isBlank(amountText.getText())) {
             toast(getString(R.string.error_missing_amount));
             return;
         }
 
         String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString(), Conversions.MAXIMUM_BTC_DECIMALS, Conversions.MINIMUM_BTC_DECIMALS);
-        showGeneratedQrCodeActivity(walletData.getAddress(), bitcoinAmount);
+        showGeneratedQrCodeActivity(walletItem.address(), bitcoinAmount);
     }
 
-    private void calculateBitcoinAmount(String usd)
+    private void calculateBitcoinAmount(String usd, ExchangeItem exchangeItem)
     {
-        if(walletData == null) return;
-     
+        if(exchangeItem == null) {
+            return;
+        }
+        
         if(Doubles.convertToDouble(usd) == 0) {
             amountText.setText("");
             return;
         }
         
-        String exchangeValue = walletData.getRate();
+        String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
 
-        double btc = Math.abs(Doubles.convertToDouble(usd) / Doubles.convertToDouble(exchangeValue));
+        double btc = Math.abs(Doubles.convertToDouble(usd) / Doubles.convertToDouble(rate));
         String amount = Conversions.formatBitcoinAmount(btc);
         amountText.setText(amount);
     }
 
-    private void calculateCurrencyAmount(String bitcoin)
+    private void calculateCurrencyAmount(String bitcoin, ExchangeItem exchangeItem)
     {
-        if(walletData == null) return;
-      
+        if(exchangeItem == null) {
+            return;
+        }
+        
         if( Doubles.convertToDouble(bitcoin) == 0) {
             usdEditText.setText("");
             return;
         }
-        
-        String value = Calculations.computedValueOfBitcoin(walletData.getRate(), bitcoin);
+
+        String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
+        String value = Calculations.computedValueOfBitcoin(rate, bitcoin);
         usdEditText.setText(value);
     }
 }

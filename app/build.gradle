@@ -24,7 +24,7 @@ apply plugin: 'com.neenbedankt.android-apt'
 def versionMajor = 2
 def versionMinor = 0
 def versionPatch = 4
-def versionBuild = 17 // bump for dog food builds, public betas, etc.
+def versionBuild = 19 // bump for dog food builds, public betas, etc.
 
 android {
 

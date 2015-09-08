@@ -187,6 +187,18 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
         return true;
     }
+    
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        if(progress != null)
+            progress.clearAnimation();
+
+        if(content != null)
+            content.clearAnimation();
+    }
 
     @Override
     public void onResume()

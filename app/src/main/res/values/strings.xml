@@ -428,7 +428,6 @@
     <string name="title_activity_notification">NotificationActivity</string>
     
     <!-- ABOUT -->
-
     <string name="version_name">Version %1$s</string>
     <string name="about_contributors">Copyright 2014, %1$s</string>
     <string name="about_title">About %1$s</string>

@@ -80,7 +80,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
-    private DashboardType dashboardType;
+    private DashboardType dashboardType = DashboardType.NONE;
     private boolean hasActiveTrades;
     private ContactAdapter adapter;
 
@@ -200,6 +200,12 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         subscription.unsubscribe();
         
         updateSubscription.unsubscribe();
+        
+        if(progress != null)
+            progress.clearAnimation();
+        
+        if(content != null)
+            content.clearAnimation();
     }
 
     @Override
@@ -241,7 +247,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+                if (progress != null)
+                    progress.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 
@@ -249,7 +256,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                content.setVisibility(show ? View.VISIBLE : View.GONE);
+                if (content != null)
+                    content.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
     }
@@ -391,6 +399,9 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                 break;
             case CLOSED:
                 title = getString(R.string.list_trade_filter4);
+                break;
+            default:
+                title = "";
                 break;
         }
 

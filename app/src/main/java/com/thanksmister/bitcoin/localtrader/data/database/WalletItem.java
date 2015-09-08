@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
@@ -35,7 +36,7 @@ import static com.squareup.sqlbrite.SqlBrite.Query;
  * https://github.com/square/sqlbrite/
  */
 @AutoParcel
-public abstract class WalletItem
+public abstract class WalletItem implements Parcelable
 {
     public static final String TABLE = "wallet_item";
 

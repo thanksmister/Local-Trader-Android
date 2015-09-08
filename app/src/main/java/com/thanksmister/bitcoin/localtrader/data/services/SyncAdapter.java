@@ -186,9 +186,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public void call(List<Contact> contacts)
                     {
                         contactsSubscription = null;
-                        if(!contacts.isEmpty())
-                            updateMessages(contacts);
+                        updateMessages(contacts);
                     }
+                    
                 }, new Action1<Throwable>()
                 {
                     @Override
@@ -922,12 +922,5 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
         
         updateContactsData(contactMap); // let's update contacts now
-    }
-
-    static class BackgroundThread extends HandlerThread
-    {
-        BackgroundThread() {
-            super("SchedulerSample-BackgroundThread", THREAD_PRIORITY_BACKGROUND);
-        }
     }
 }

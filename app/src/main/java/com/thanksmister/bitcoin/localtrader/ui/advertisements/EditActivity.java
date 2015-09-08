@@ -452,6 +452,12 @@ public class EditActivity extends BaseActivity
         geoLocalSubscription.unsubscribe();
         geoDecodeSubscription.unsubscribe();
         advertisementSubscription.unsubscribe();
+
+        if(progress != null)
+            progress.clearAnimation();
+
+        if(content != null)
+            content.clearAnimation();
     }
 
     public void subScribeData()
@@ -528,7 +534,8 @@ public class EditActivity extends BaseActivity
             @Override
             public void onAnimationEnd(Animator animation)
             {
-                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+                if (progress != null)
+                    progress.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 
@@ -538,7 +545,8 @@ public class EditActivity extends BaseActivity
             @Override
             public void onAnimationEnd(Animator animation)
             {
-                content.setVisibility(show ? View.VISIBLE : View.GONE);
+                if (content != null)
+                    content.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
     }

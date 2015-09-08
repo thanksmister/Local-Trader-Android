@@ -205,6 +205,12 @@ public class AdvertiserActivity extends BaseActivity
         super.onPause();
 
         subscription.unsubscribe();
+
+        if(progress != null)
+            progress.clearAnimation();
+
+        if(content != null)
+            content.clearAnimation();
     }
     
     public void setToolBarMenu(Toolbar toolbar)
@@ -242,7 +248,8 @@ public class AdvertiserActivity extends BaseActivity
         progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                progress.setVisibility(show ? View.GONE : View.VISIBLE);
+                if (progress != null)
+                    progress.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 
@@ -252,7 +259,8 @@ public class AdvertiserActivity extends BaseActivity
             @Override
             public void onAnimationEnd(Animator animation)
             {
-                content.setVisibility(show ? View.VISIBLE : View.GONE);
+                if (content != null)
+                    content.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
     }
