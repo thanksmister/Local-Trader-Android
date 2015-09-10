@@ -306,7 +306,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         ButterKnife.reset(this);
         
-        if(!bitmapSubscription.isUnsubscribed()) {
+        if( bitmapSubscription != null && !bitmapSubscription.isUnsubscribed()) {
             bitmapSubscription.unsubscribe();
         }
 
@@ -381,7 +381,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         Timber.d("SubscribeData");
         
-        databaseSubscription = Observable.combineLatest(dbManager.walletQuery(), dbManager.transactionsQuery(), dbManager.exchangeQuery(), new Func3<WalletItem, List<TransactionItem>, ExchangeItem, WalletData>()
+        databaseSubscription = Observable.combineLatest(dbManager.walletQuery(), dbManager.transactionsQuery(), dbManager.exchangeQuery(), 
+                new Func3<WalletItem, List<TransactionItem>, ExchangeItem, WalletData>()
         {
             @Override
             public WalletData call(WalletItem walletItem, List<TransactionItem> transactions, ExchangeItem exchangeItem)
@@ -408,8 +409,10 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                         if(dataItem.exchangeItem != null)
                             setAppBarText(dataItem.exchangeItem.bid(), dataItem.exchangeItem.ask(), dataItem.walletItem.balance(), dataItem.exchangeItem.exchange());
 
-                        if(dataItem.walletItem != null)
+                        if(dataItem.walletItem != null) {
                             setWallet(dataItem);
+                            onRefreshStop();
+                        }
                     }
 
                 }, new Action1<Throwable>()
@@ -454,6 +457,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Wallet wallet)
                     {
+                        onRefreshStop();
                         dbManager.updateTransactions(wallet.getTransactions());
                         updateWalletBalance(wallet);
                     }

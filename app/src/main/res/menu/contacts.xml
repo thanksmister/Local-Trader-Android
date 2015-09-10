@@ -25,8 +25,6 @@
           thanksmister:showAsAction="ifRoom">
         
         <menu>
-            <item android:id="@+id/action_active"
-                  android:title="@string/list_trade_filter1"/>
 
             <item android:id="@+id/action_released"
                   android:title="@string/list_trade_filter2"/>

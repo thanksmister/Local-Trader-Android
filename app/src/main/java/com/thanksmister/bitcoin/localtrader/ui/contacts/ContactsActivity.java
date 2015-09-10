@@ -60,8 +60,7 @@ import timber.log.Timber;
 public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_TYPE";
-    public static final String EXTRA_HAS_ACTIVE = "com.thanksmister.extras.EXTRA_HAS_ACTIVE";
-
+   
     @Inject
     DataService dataService;
     
@@ -81,7 +80,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     SwipeRefreshLayout swipeLayout;
 
     private DashboardType dashboardType = DashboardType.NONE;
-    private boolean hasActiveTrades;
     private ContactAdapter adapter;
 
     private Subscription updateSubscription = Subscriptions.empty();
@@ -109,9 +107,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             dashboardType = (DashboardType) savedInstanceState.getSerializable(EXTRA_TYPE);
         }
         
-        if(dashboardType == DashboardType.ACTIVE) {
-            hasActiveTrades = true;
-        }
         
         if(toolbar != null) {
             setSupportActionBar(toolbar);
@@ -184,12 +179,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     {
         super.onResume();
 
-        if(dashboardType == DashboardType.ACTIVE) {
-            subscribeData();
-        } else {
-            onRefreshStart();
-            updateData(dashboardType);  
-        }
+        onRefreshStart();
+        updateData(dashboardType);
     }
     
     @Override
@@ -217,11 +208,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     @Override
     public void onRefresh()
     {
-        if(dashboardType == DashboardType.ACTIVE) {
-            subscribeData();
-        } else {
-            onRefreshStop();
-        }
+        updateData(dashboardType);
     }
 
     public void onRefreshStart()
@@ -270,15 +257,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
             public boolean onMenuItemClick(MenuItem menuItem)
             {
                 switch (menuItem.getItemId()) {
-                    case R.id.action_active:
-                        if(hasActiveTrades) {
-                            showContent(false);
-                            setContacts(new ArrayList<ContactItem>());
-                            subscribeData(); 
-                        } else {
-                            toast("There are no active trades.");
-                        }
-                        return true;
                     case R.id.action_canceled:
                         showContent(false);
                         setContacts(new ArrayList<ContactItem>());
@@ -298,28 +276,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                 return false;
             }
         });
-    }
-    
-    public void subscribeData()
-    {
-        subscription = dbManager.contactsQuery()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<ContactItem>>()
-                {
-                    @Override
-                    public void call(List<ContactItem> contacts)
-                    {
-                        if (dashboardType == DashboardType.ACTIVE) {
-                            if (contacts.isEmpty()) {
-                                snackError(getString(R.string.error_no_trade_data));
-                            } else {
-                                showContent(true);
-                                setContacts(contacts);
-                            }
-                        }
-                    }
-                });
     }
 
     public void updateData(final DashboardType type)
@@ -388,9 +344,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     {
         String title = "";
         switch (dashboardType) {
-            case ACTIVE:
-                title = getString(R.string.list_trade_filter1);
-                break;
             case RELEASED:
                 title = getString(R.string.list_trade_filter2);
                 break;
@@ -406,13 +359,5 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         }
 
         getSupportActionBar().setTitle(title);
-    }
-
-    @Subscribe
-    public void onNetworkEvent(NetworkEvent event)
-    {
-        if(event == NetworkEvent.DISCONNECTED) {
-           toast(R.string.error_no_internet);
-        } 
     }
 }

@@ -348,7 +348,8 @@ public class SearchFragment extends BaseFragment
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
-        searchButton.setEnabled(false); // not enabled until we have valid address
+        if(searchButton != null)
+            searchButton.setEnabled(false); // not enabled until we have valid address
         
         setupToolbar();
     }
@@ -445,8 +446,12 @@ public class SearchFragment extends BaseFragment
         }
         
         this.address = address;
-        searchButton.setEnabled(true);
-        currentLocation.setText(TradeUtils.getAddressShort(address));
+        
+        if(searchButton != null)
+            searchButton.setEnabled(true);
+        
+        if(currentLocation != null)
+            currentLocation.setText(TradeUtils.getAddressShort(address));
     }
 
     protected void showSearchLayout()
