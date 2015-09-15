@@ -692,10 +692,10 @@ public class DataService
 
     public Observable<Wallet> getWallet(boolean force)
     {
-        if(!needToRefreshWallet() && !force) {
+        /*if(!needToRefreshWallet() && !force) {
             return Observable.empty();
         }
-        
+        */
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Wallet>>()
                 {

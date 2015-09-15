@@ -41,7 +41,7 @@ public class CrashlyticsTree extends Timber.Tree
     @Override
     public void i(Throwable t, String message, Object... args)
     {
-        logMessage(message, args);
+        logMessage("INFO: " + message, args);
         // NOTE: We are explicitly not sending the exception to Crashlytics here.
     }
 

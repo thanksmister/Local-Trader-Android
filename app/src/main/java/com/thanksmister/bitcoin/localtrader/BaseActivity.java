@@ -40,7 +40,9 @@ import android.widget.Toast;
 import com.google.zxing.android.IntentIntegrator;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
@@ -72,14 +74,17 @@ public abstract class BaseActivity extends AppCompatActivity
     public static @interface RequiresAuthentication { }
 
     @Inject
-    Bus bus;
+    protected Bus bus;
 
     @Inject
-    DbManager dbManager;
+    protected DbManager dbManager;
     
     @Inject
-    DataService dataService;
-
+    protected DataService dataService;
+    
+    @Inject
+    protected SharedPreferences sharedPreferences;
+    
     AlertDialog progressDialog;
     
     Subscription subscription = Subscriptions.empty();
@@ -213,6 +218,10 @@ public abstract class BaseActivity extends AppCompatActivity
         SharedPreferences.Editor editor = settings.edit();
         editor.clear();
         editor.apply();
+
+        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
+        SyncUtils.CreateSyncAccount(getApplicationContext(), stringPreference.get());
+        SyncUtils.ClearSyncAccount(getApplicationContext(), stringPreference.get());
         
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);

@@ -89,6 +89,19 @@ public class AuthenticatorService extends Service
         return new Account(Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE);
     }
 
+    /**
+     * Obtain a handle to the {@link android.accounts.Account} used for sync in this application.
+     *
+     * @return Handle to application's account (not guaranteed to resolve unless CreateSyncAccount()
+     *         has been called)
+     */
+    public static Account GetAccount(String accountName)
+    {
+        // This string should *not* be localized. If the user switches locale, we would not be
+        // able to locate the old account, and may erroneously register multiple accounts.
+        return new Account(accountName, Constants.ACCOUNT_TYPE);
+    }
+    
     private static class AccountAuthenticatorImpl extends AbstractAccountAuthenticator
     {
         private Context mContext;

@@ -543,6 +543,7 @@ public class DbManager
 
     public Observable<WalletItem> walletQuery()
     {
+        //final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
         return briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP);
     }

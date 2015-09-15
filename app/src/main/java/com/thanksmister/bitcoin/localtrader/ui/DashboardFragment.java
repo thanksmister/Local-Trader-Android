@@ -429,7 +429,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public void onRefresh()
     {
-        SyncUtils.TriggerRefresh(getActivity().getApplicationContext());
         updateData(true);
     }
     

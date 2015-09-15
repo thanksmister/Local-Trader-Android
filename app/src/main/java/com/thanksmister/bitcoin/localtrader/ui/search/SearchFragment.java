@@ -202,6 +202,7 @@ public class SearchFragment extends BaseFragment
     public void onResume()
     {
         subscribeData();
+        updateData();
         
         if (address != null) {
             setAddress(address);
@@ -436,6 +437,7 @@ public class SearchFragment extends BaseFragment
     {
         MethodAdapter typeAdapter = new MethodAdapter(getActivity(), R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
+        toggleSearchButton();
     }
 
     public void setAddress(Address address)
@@ -447,11 +449,18 @@ public class SearchFragment extends BaseFragment
         
         this.address = address;
         
-        if(searchButton != null)
-            searchButton.setEnabled(true);
-        
         if(currentLocation != null)
             currentLocation.setText(TradeUtils.getAddressShort(address));
+
+        toggleSearchButton();
+    }
+    
+    private void toggleSearchButton()
+    {
+        if(searchButton == null)
+            return;
+        
+        searchButton.setEnabled(getPaymentMethod() != null && address != null);
     }
 
     protected void showSearchLayout()

@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -36,6 +37,7 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
@@ -82,15 +84,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     private static final int DRAWER_ABOUT = 5;
     
     private static final int REQUEST_SCAN = 49374;
-
-    @Inject
-    DataService dataService;
-    
-    @Inject
-    DbManager dbManager;
-
-    @Inject
-    Bus bus;
 
     @InjectView(R.id.drawer_layout)
     DrawerLayout drawerLayout;
@@ -144,8 +137,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                                 setContentFragment(position);
                             }
 
-                            SyncUtils.TriggerRefresh(getApplicationContext());
-                            SyncUtils.CreateSyncAccount(getApplicationContext());
+                            StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
+                            SyncUtils.CreateSyncAccount(MainActivity.this, stringPreference.get());
+                            SyncUtils.TriggerRefresh(getApplicationContext(), stringPreference.get());
                         } else {
                             launchPromoScreen();
                         }

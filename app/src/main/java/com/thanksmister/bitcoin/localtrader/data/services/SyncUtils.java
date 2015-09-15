@@ -32,7 +32,7 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 public class SyncUtils
 {
     private static final long SYNC_FREQUENCY = 5 * 60;  // 5 minutes in seconds
-  
+    private static final String ACCOUNT_NAME = "Contacts";
     private static final String PREF_SETUP_COMPLETE = "setup_complete";
   
  
@@ -42,13 +42,20 @@ public class SyncUtils
      * @param context Context
      * @return syncing Boolean
      */
-    public static boolean CreateSyncAccount(Context context)
+    public static boolean CreateSyncAccount(Context context, String accountName)
     {
         boolean newAccount = false;
         boolean setupComplete = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PREF_SETUP_COMPLETE, false);
 
         // Create account, if it's missing. (Either first run, or user has deleted account.)
-        Account account = AuthenticatorService.GetAccount();
+        //Account account = AuthenticatorService.GetAccount();
+        //AccountManager accountManager = (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
+
+        if(accountName == null || accountName.equals(""))
+            accountName = ACCOUNT_NAME;
+
+        // Create account, if it's missing. (Either first run, or user has deleted account.)
+        Account account = AuthenticatorService.GetAccount(accountName);
         AccountManager accountManager = (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
 
         if (accountManager.addAccountExplicitly(account, null, null)) {
@@ -66,7 +73,7 @@ public class SyncUtils
         // data has been deleted. (Note that it's possible to clear app data WITHOUT affecting
         // the account list, so wee need to check both.)
         if (newAccount || !setupComplete) {
-            TriggerRefresh(context);
+            TriggerRefresh(context, accountName);
             PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(PREF_SETUP_COMPLETE, true).commit();
             return true;
         }
@@ -74,6 +81,7 @@ public class SyncUtils
         return false;
     }
 
+    @Deprecated
     public static void ClearSyncAccount(Context context)
     {
         PreferenceManager.getDefaultSharedPreferences(context).edit().remove(PREF_SETUP_COMPLETE).commit();
@@ -82,10 +90,9 @@ public class SyncUtils
     public static void ClearSyncAccount(Context context, String accountName)
     {
         PreferenceManager.getDefaultSharedPreferences(context).edit().remove(PREF_SETUP_COMPLETE).commit();
-        Account account = AuthenticatorService.GetAccount();
+        Account account = AuthenticatorService.GetAccount(accountName);
         AccountManager accountManager = (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
         accountManager.removeAccount(account, null, null);
-        
         //ContentResolver.setIsSyncable(account, CONTENT_AUTHORITY, 0);
     }
 
@@ -100,12 +107,12 @@ public class SyncUtils
      * but the user is not actively waiting for that data, you should omit this flag; this will give
      * the OS additional freedom in scheduling your sync request.
      */
-    public static void TriggerRefresh(Context context)
+    public static void TriggerRefresh(Context context, String accountName)
     {
         Bundle b = new Bundle();
         // Disable sync backoff and ignore sync preferences. In other words...perform sync NOW!
         b.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
         b.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-        ContentResolver.requestSync(AuthenticatorService.GetAccount(), Constants.AUTHORITY, b);  
+        ContentResolver.requestSync(AuthenticatorService.GetAccount(accountName), Constants.AUTHORITY, b);  
     }
 }

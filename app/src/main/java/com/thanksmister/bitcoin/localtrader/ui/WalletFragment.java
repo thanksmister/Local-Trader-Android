@@ -54,6 +54,7 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletAdapter;
+import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
@@ -276,10 +277,10 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         super.onResume();
 
         appBarLayout.addOnOffsetChangedListener(this);
-
-        subscribeData();
         
         onRefreshStart();
+        
+        subscribeData();
     }
 
     @Override
@@ -325,7 +326,31 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @Override
     public void onRefresh()
     {
-        updateData(true);
+        updateData();
+    }
+
+    public void onRefreshStart()
+    {
+        Timber.d("onRefreshStart");
+        handler = new Handler();
+        handler.postDelayed(refreshRunnable, 1000);
+    }
+
+    private Runnable refreshRunnable = new Runnable()
+    {
+        @Override
+        public void run() {
+            Timber.d("refreshRunnable");
+            swipeLayout.setRefreshing(true);
+            updateData();
+        }
+    };
+
+    protected void onRefreshStop()
+    {
+        Timber.d("onRefreshStop");
+        handler.removeCallbacks(refreshRunnable);
+        swipeLayout.setRefreshing(false);
     }
 
     @Override
@@ -352,34 +377,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         ab.setDisplayHomeAsUpEnabled(true);
     }
 
-    public void onRefreshStart()
-    {
-        handler.postDelayed(refreshRunnable, 1000);
-    }
-
-    private Runnable refreshRunnable = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            updateData(false);
-            
-            if(swipeLayout != null)
-                swipeLayout.setRefreshing(true);
-        }
-    };
-
-    public void onRefreshStop()
-    {
-        handler.removeCallbacks(refreshRunnable);
-        
-        if(swipeLayout != null)
-            swipeLayout.setRefreshing(false);
-    }
-
     protected void subscribeData()
     {
-        Timber.d("SubscribeData");
+        Timber.d("subscribeData");
         
         databaseSubscription = Observable.combineLatest(dbManager.walletQuery(), dbManager.transactionsQuery(), dbManager.exchangeQuery(), 
                 new Func3<WalletItem, List<TransactionItem>, ExchangeItem, WalletData>()
@@ -411,7 +411,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
                         if(dataItem.walletItem != null) {
                             setWallet(dataItem);
-                            onRefreshStop();
                         }
                     }
 
@@ -425,7 +424,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 });
     }
 
-    protected void updateData(final boolean force)
+    protected void updateData()
     {
         Timber.d("updateData");
         
@@ -449,7 +448,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     }
                 });
         
-        walletUpdateSubscription = dataService.getWallet(force)
+        walletUpdateSubscription = dataService.getWallet(true)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Wallet>()
@@ -470,13 +469,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                         onRefreshStop();
                         handleError(throwable, true);
                     }
-                }, new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        onRefreshStop();
-                    }
                 });
     }
 
@@ -490,7 +482,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(WalletItem walletItem)
                     {
-                        onRefreshStop();
                         dbManager.updateWallet(wallet);
                     }
                 }, new Action1<Throwable>()
@@ -498,7 +489,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        onRefreshStop();
                         reportError(throwable);
                     }
                 });

@@ -313,7 +313,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                         {
                             String method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
 
-                            Timber.d("Payment Method Util: " + method);
+                            Timber.i("Payment Method Util: " + method);
 
                             Observable<List<Advertisement>> advertisementsObservable = geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method);
                             advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
@@ -321,7 +321,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                                 @Override
                                 public void call(final List<Advertisement> advertisements)
                                 {
-                                    Timber.d("Payment Methods: " + methodItems.size());
+                                    Timber.i("Payment Methods: " + methodItems.size());
                                     runOnUiThread(new Runnable()
                                     {
                                         @Override
