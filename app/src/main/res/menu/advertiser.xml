@@ -19,12 +19,12 @@
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
       tools:context=".MainActivity">
 
-    <item android:id="@+id/action_dispute"
+    <item android:id="@+id/action_location"
           android:title="@string/menu_action_map"
-          android:icon="@drawable/ic_maps_place"
+          android:icon="@drawable/ic_action_map"
           thanksmister:showAsAction="ifRoom"/>
 
-    <item android:id="@+id/action_advertisement"
+    <item android:id="@+id/action_website"
           android:title="@string/menu_action_advertisement"
           android:icon="@drawable/ic_action_location_web_site"
           thanksmister:showAsAction="ifRoom"/>

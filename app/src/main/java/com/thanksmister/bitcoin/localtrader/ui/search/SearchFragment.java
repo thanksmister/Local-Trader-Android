@@ -509,84 +509,86 @@ public class SearchFragment extends BaseFragment
     
     private void getLastKnownLocation()
     {
-        Observable<Address> addressObservable = geoLocationService.getLastKnownLocation()
-                .timeout(10, TimeUnit.SECONDS)
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.newThread());
-
-        locationSubscription = addressObservable.subscribe(new Action1<Address>()
-        {
-            @Override
-            public void call(final Address address)
-            {
-                getActivity().runOnUiThread(new Runnable()
+        locationSubscription = geoLocationService.getLastKnownLocation()
+                .timeout(10, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Address>()
                 {
                     @Override
-                    public void run()
+                    public void call(final Address address)
                     {
-                        setAddress(address);
-                        hideProgress();
-                    }
-                });
+                        if (!locationSubscription.isUnsubscribed()) {
 
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                getActivity().runOnUiThread(new Runnable()
+                            locationSubscription.unsubscribe();
+
+                            setAddress(address);
+                            hideProgress();
+                        }
+
+                    }
+                }, new Action1<Throwable>()
                 {
                     @Override
-                    public void run()
+                    public void call(Throwable throwable)
                     {
-                        getCurrentLocation(); // back up plan is to get current location
+                        if (!locationSubscription.isUnsubscribed()) {
+                            locationSubscription.unsubscribe();
+                            reportError(throwable);
+                            getCurrentLocation(); // back up plan is to get current location
+                        }
                     }
                 });
-            }
-        });
     }
     
     private void getCurrentLocation()
     {
-        Observable<Address> addressObservable = geoLocationService.getUpdatedLocation()
-                .timeout(45, TimeUnit.SECONDS)
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.newThread());
-        
-        locationSubscription = addressObservable.subscribe(new Action1<Address>()
-        {
-            @Override
-            public void call(final Address address)
-            {
-                getActivity().runOnUiThread(new Runnable()
+        locationSubscription = geoLocationService.getUpdatedLocation()
+                .timeout(10, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Address>()
                 {
                     @Override
-                    public void run()
+                    public void call(final Address address)
                     {
-                        setAddress(address);
-                        hideProgress();
-                    }
-                });
+                        if (!locationSubscription.isUnsubscribed()) {
 
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                getActivity().runOnUiThread(new Runnable()
+                            locationSubscription.unsubscribe();
+
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    setAddress(address);
+                                    hideProgress();
+                                }
+                            });
+
+                        }
+                    }
+                }, new Action1<Throwable>()
                 {
                     @Override
-                    public void run()
+                    public void call(Throwable throwable)
                     {
-                        hideProgress();
-                        searchButton.setEnabled(false); // no way to search
-                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                        if (!locationSubscription.isUnsubscribed()) {
+
+                            locationSubscription.unsubscribe();
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgress();
+                                    searchButton.setEnabled(false); // no way to search
+                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                }
+                            });
+                        }
                     }
                 });
-            }
-        });
     }
     
     private void updateData()

@@ -31,6 +31,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -618,5 +619,12 @@ public class TradeUtils
         }
         String titleCaseValue = sb.toString();
         return titleCaseValue;
+    }
+    
+    public static String kilometersToMiles(String km)
+    {
+        double mi = Doubles.convertToDouble(km) * .62137;
+        DecimalFormat precision = new DecimalFormat("0.00");
+        return precision.format(mi);
     }
 }

@@ -37,6 +37,8 @@ import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.prefs.IntPreference;
+import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 
 import java.util.ArrayList;
@@ -64,6 +66,9 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
     @Inject
     ExchangeService exchangeService;
+    
+    @Inject
+    SharedPreferences sharedPreferences;
 
     private Subscription subscription = Subscriptions.empty();
     private Subscription currencySubscription = Subscriptions.empty();
@@ -71,6 +76,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     private Observable<List<ExchangeCurrency>> currencyObservable;
 
     ListPreference marketCurrencyPreference;
+    ListPreference unitsPreference;
     ListPreference currencyPreference;
     
     @Override
@@ -93,6 +99,13 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         });
 
         currencyPreference = (ListPreference) findPreference("currency");
+        unitsPreference = (ListPreference) findPreference(getString(R.string.pref_key_distance));
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
+        String units = preferences.getString(getString(R.string.pref_key_distance), "0");
+        Timber.d("Units: " + units);
+        
+        unitsPreference.setTitle((units.equals("0")? "Kilometers (km)":"Miles (mi)"));
 
         String currency = exchangeService.getExchangeCurrency();
         marketCurrencyPreference = (ListPreference) findPreference("exchange_currency");
@@ -151,13 +164,15 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
     {
         if (key.equals("exchange_currency")) {
-
             String marketCurrency = marketCurrencyPreference.getEntry().toString();
             String storedMarketCurrency = exchangeService.getExchangeCurrency();
             if(!storedMarketCurrency.equals(marketCurrency)) {
                 marketCurrencyPreference.setTitle("Market currency (" + marketCurrencyPreference.getEntry() + ")");
                 exchangeService.setExchangeCurrency(marketCurrency);
             }
+        } else  if (key.equals("distance_units")) {
+            String units = unitsPreference.getValue();
+            unitsPreference.setTitle((units.equals("0")? "Kilometers (km)":"Miles (mi)"));
         }
     }
     

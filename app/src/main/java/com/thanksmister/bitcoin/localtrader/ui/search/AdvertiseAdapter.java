@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.ui.advertisements;
+package com.thanksmister.bitcoin.localtrader.ui.search;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +36,7 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import timber.log.Timber;
 
 public class AdvertiseAdapter extends BaseAdapter
 {
@@ -99,11 +102,27 @@ public class AdvertiseAdapter extends BaseAdapter
         }
 
         Advertisement advertisement = getItem(position);
-        if (TradeUtils.isOnlineTrade(advertisement)) {
+        
+        if (TradeUtils.isOnlineTrade(advertisement)) { // online trade
             String paymentMethod = TradeUtils.getPaymentMethod(advertisement, methods);
             holder.tradLocation.setText(paymentMethod);
         } else {
-            holder.tradLocation.setText(advertisement.distance + " km → " + advertisement.location);
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+            String units_prefs = preferences.getString(context.getString(R.string.pref_key_distance), "0");
+            String unit = (units_prefs.equals("0")? context.getString(R.string.list_unit_km):context.getString(R.string.list_unit_mi));
+            String distance = advertisement.distance;
+            
+            if(units_prefs.equals("1")) {
+                Timber.d("Distance KM: " + advertisement.distance);
+                
+                distance = TradeUtils.kilometersToMiles(advertisement.distance);
+                
+                Timber.d("Distance Miles: " + distance);
+                
+                unit = context.getString(R.string.list_unit_mi);
+            }
+            
+            holder.tradLocation.setText(distance + " " + unit + " → " + advertisement.location);
         }
 
         if(advertisement.isATM()) {

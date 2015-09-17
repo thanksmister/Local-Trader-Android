@@ -45,6 +45,23 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+            android:key="search_category"
+            android:title="Search Settings"
+            android:summary="Distance measured Kilometers or Miles">
+        
+        <ListPreference
+                android:key="@string/pref_key_distance"
+                android:title="Kilometers (km)"
+                android:summary="Unit used for measuring distance to advertiser."
+                android:defaultValue="0"
+                android:entries="@array/units_entries"
+                android:entryValues="@array/units_values"
+                android:negativeButtonText="@null"
+                android:positiveButtonText="@null"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
             android:key="application_category"
             android:title="Application Settings"
             android:summary="Application specific settings">

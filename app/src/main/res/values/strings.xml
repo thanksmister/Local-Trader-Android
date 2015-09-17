@@ -139,41 +139,8 @@
     <string name="tab_section1">DASHBOARD</string>
     <string name="tab_section2">SEARCH</string>
     <string name="tab_section3">WALLET</string>
-
-    <!-- TITLES -->
-    <string name="title_trade">Search Trades</string>
-    <string name="title_account">Transactions</string>
-    <string name="title_user">User</string>
-    <string name="title_address">Address</string>
-    <string name="title_activity">Activity</string>
-    <string name="title_ars_usdb">ARS/USDB</string>
-    <string name="title_ars_usd">ARS/USD</string>
-    <string name="title_ars_btc">ARS/BTC</string>
-    <string name="title_usd_btc">USD/BTC</string>
-    <string name="date_updated_text">UPDATED: </string>
-    <string name="sales_negative"><![CDATA[<font color="#8d8d8d">%1$s</font> (<font color="#a34835">-%2$s</font>)]]></string>
-    <string name="sales_positive"><![CDATA[<font color="#8d8d8d">%1$s</font> (<font color="#6f9e2f">+%2$s</font>)]]></string>
-    <string name="official_text_usd">OFFICIAL: %1$s ARS/USD</string>
-    <string name="official_text_btc">OFFICIAL: %1$s ARS/BTC</string>
-    <string name="buy">BUY</string>
-    <string name="sell">SELL</string>
-    <string name="ars_amount">ARS AMOUNT</string>
-    <string name="ars">ARS</string>
-    <string name="fees">FEES</string>
-    <string name="commission">COMMISSION</string>
-    <string name="percent">  %  </string>
-    <string name="usd_amount">USD AMOUNT</string>
-    <string name="your_price">SALE PRICE</string>
-    <string name="btc_amount">BTC AMOUNT</string>
-    <string name="button_reset">RESET</string>
-    <string name="date_updated">UPDATED </string>
-    <string name="toast_data_fresh">Data appears fresh...</string>
-    <string name="data_provided_by"><![CDATA[Data provided by <a href="http://bluelytics.com.ar">Bluelytics</a> and <a href=" https://bitcoinaverage.com">BitcoinAverage</a>]]></string>
-    <string name="text_saved_to_clipboard"> saved to clipboard!</string>
-    <string name="text_receipt_hint">Receipt name</string>
-
+    
     <!-- LOGIN/REGISTER -->
-
     <string-array name="login_registration_titles">
         <item>@string/login_register_title0</item>
         <item>@string/login_register_title2</item>
@@ -345,13 +312,12 @@
     <string name="hint_amount">0.00</string>
     <string name="hint_bitcoin">0.00000000</string>
 
-    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s USD</font>]]></string>
-    <string name="form_balance_positive"><![CDATA[<font color="#ff67932c">%1$s BTC / %2$s USD</font>]]></string>
-    <string name="form_rate"><![CDATA[<font color="#ff67932c">%1$s USD / 1 BTC</font>]]></string>
-
+    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
+    <string name="form_balance_positive"><![CDATA[<font color="#ff67932c">%1$s BTC / %2$s %3$s</font>]]></string>
+    
     <string name="pin_code_send"><![CDATA[A PIN code is required to send Bitcoin from your wallet or release trades. PIN code info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
     <string name="pin_code_description_text"><![CDATA[Enter your PIN code to release this trade:]]></string>
-    <string name="pin_code_description_address_text"><![CDATA[Sending <b>%1$s BTC (≈ %2$s USD)</b> to address <b>%3$s<b>]]></string>
+    <string name="pin_code_description_address_text"><![CDATA[Sending <b>%1$s BTC (≈ %2$s %3$s)</b> to address <b>%4$s<b>]]></string>
     <string name="pin_code_description_text_short">Enter PIN code to confirm.</string>
     <string name="pin_code_set"><![CDATA[A PIN code is required to release trades. Set a PIN code at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
 
@@ -468,7 +434,23 @@
     <string name="dashboard_advertisements_header">Advertisements</string>
 
     <!-- SETTINGS -->
-    
     <string name="title_activity_settings">Settings</string>
+
+    <string-array name="units_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="units_entries">
+        <item>@string/list_unit_kilometers</item>
+        <item>@string/list_unit_miles</item>
+    </string-array>
+
+    <string name="list_unit_kilometers">Kilometers</string>
+    <string name="list_unit_miles">Miles</string>
+    <string name="list_unit_km">km</string>
+    <string name="list_unit_mi">mi</string>
+    <string name="pref_key_distance">distance_units</string>
+    <string name="trade_request_warning">The advertiser may have other restrictions on this advertisement such as account verification and new buyer limits that are not available in the LocalBitcoins search data. Please view the trade online to see restrictions if your trade request is rejected.</string>
 
 </resources>

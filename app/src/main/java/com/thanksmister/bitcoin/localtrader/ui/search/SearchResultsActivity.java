@@ -32,7 +32,6 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
@@ -44,7 +43,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiserActivity;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiseAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.List;
@@ -53,11 +51,12 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnClick;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class SearchResultsActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
@@ -88,6 +87,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     private String paymentMethod;
     private TradeType tradeType = TradeType.NONE;
     private Address address;
+    private Subscription geoLocationSubscription = Subscriptions.empty();
     
     public static Intent createStartIntent(Context context, @NonNull TradeType tradeType, @NonNull Address address, @Nullable String paymentMethod)
     {
@@ -120,7 +120,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
         }
         
         if(tradeType == null) { // this is funky but maybe 
-            Timber.e("Trade type null");
+            Timber.w("Trade type null");
             tradeType = TradeType.NONE;
         }
         
@@ -209,6 +209,14 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     }
 
     @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+
+        geoLocationSubscription.unsubscribe();
+    }
+
+    @Override
     public void onRefresh()
     {
         updateData();
@@ -263,8 +271,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
      
         if(tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
 
-            Observable<List<Advertisement>> advertisementsObservable = geoLocationService.getLocalAdvertisements(address.getLatitude(), address.getLongitude(), tradeType);
-            advertisementsObservable
+            geoLocationSubscription = geoLocationService.getLocalAdvertisements(address.getLatitude(), address.getLongitude(), tradeType)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<Advertisement>>()
@@ -302,8 +309,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                     });
         } else {
 
-            Observable<List<MethodItem>> methodObservable = dbManager.methodQuery().cache();
-            methodObservable
+            geoLocationSubscription = dbManager.methodQuery().cache()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<MethodItem>>()
@@ -315,8 +321,8 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
                             Timber.i("Payment Method Util: " + method);
 
-                            Observable<List<Advertisement>> advertisementsObservable = geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method);
-                            advertisementsObservable.subscribe(new Action1<List<Advertisement>>()
+                            geoLocationService.getOnlineAdvertisements(address.getCountryCode(), address.getCountryName(), tradeType, method)
+                            .subscribe(new Action1<List<Advertisement>>()
                             {
                                 @Override
                                 public void call(final List<Advertisement> advertisements)

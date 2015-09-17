@@ -114,7 +114,7 @@
                                     android:layout_height="match_parent"/>
 
                             <EditText
-                                    android:id="@+id/usdEditText"
+                                    android:id="@+id/fiatEditText"
                                     android:theme="@style/EditTextTheme"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
@@ -131,6 +131,7 @@
                                     android:layout_height="match_parent"/>
 
                             <TextView
+                                    android:id="@+id/currencyText"
                                     style="@style/TextLarge.SmallAction.White"
                                     android:minWidth="50dp"
                                     android:layout_width="wrap_content"

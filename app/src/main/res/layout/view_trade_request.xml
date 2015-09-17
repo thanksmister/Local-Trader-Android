@@ -204,6 +204,18 @@
 
             </FrameLayout>
 
+            <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/view_padding_small"/>
+
+            <TextView
+                    style="@style/SmallText.ExtraSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="@dimen/activity_padding"
+                    android:paddingRight="@dimen/activity_padding"
+                    android:text="@string/trade_request_warning"/>
+
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>

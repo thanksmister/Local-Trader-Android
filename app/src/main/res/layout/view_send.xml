@@ -145,7 +145,7 @@
                             
 
                             <EditText
-                                    android:id="@+id/usdEditText"
+                                    android:id="@+id/fiatEditText"
                                     android:theme="@style/EditTextTheme"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
@@ -231,6 +231,18 @@
                         android:layout_height="wrap_content"
                         android:nextFocusUp="@id/amountText"
                         android:text="Send"/>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/view_padding_small"/>
+
+                <TextView
+                        style="@style/SmallText.ExtraSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="@dimen/activity_padding"
+                        android:paddingRight="@dimen/activity_padding"
+                        android:text="Fees are calculated by LocalBitcoins at the time you send and not reflected in the remaining balance. Unless you know the fee amount, the entire wallet balance can not be sent."/>
                 
             </LinearLayout>
         

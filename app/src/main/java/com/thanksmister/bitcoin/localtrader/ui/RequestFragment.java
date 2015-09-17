@@ -45,7 +45,6 @@ import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.api.model.WalletData;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
@@ -65,10 +64,8 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
@@ -98,7 +95,10 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     @InjectView(R.id.amountText)
     TextView amountText;
 
-    @InjectView(R.id.usdEditText)
+    @InjectView(R.id.currencyText)
+    TextView currencyText;
+
+    @InjectView(R.id.fiatEditText)
     TextView usdEditText;
     
     @OnClick(R.id.qrButton)
@@ -182,6 +182,14 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         return false;
     }
 
+    private void setCurrency()
+    {
+        String currency = exchangeService.getExchangeCurrency();
+
+        if(currencyText != null)
+            currencyText.setText(currency);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
@@ -243,8 +251,8 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     public void onResume()
     {
         super.onResume();
-
         subscribeData();
+        setCurrency();
     }
     
     @Override
@@ -471,20 +479,20 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         showGeneratedQrCodeActivity(walletItem.address(), bitcoinAmount);
     }
 
-    private void calculateBitcoinAmount(String usd, ExchangeItem exchangeItem)
+    private void calculateBitcoinAmount(String requestAmount, ExchangeItem exchangeItem)
     {
         if(exchangeItem == null) {
             return;
         }
         
-        if(Doubles.convertToDouble(usd) == 0) {
+        if(Doubles.convertToDouble(requestAmount) == 0) {
             amountText.setText("");
             return;
         }
         
         String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
 
-        double btc = Math.abs(Doubles.convertToDouble(usd) / Doubles.convertToDouble(rate));
+        double btc = Math.abs(Doubles.convertToDouble(requestAmount) / Doubles.convertToDouble(rate));
         String amount = Conversions.formatBitcoinAmount(btc);
         amountText.setText(amount);
     }

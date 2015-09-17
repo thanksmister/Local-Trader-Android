@@ -97,8 +97,8 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     @InjectView(R.id.amountText)
     TextView amountText;
 
-    @InjectView(R.id.usdEditText)
-    TextView usdEditText;
+    @InjectView(R.id.fiatEditText)
+    TextView fiatEditText;
 
     @InjectView(R.id.balanceText)
     TextView balance;
@@ -258,17 +258,23 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
             }
         });
 
-        usdEditText.addTextChangedListener(new TextWatcher(){
+        fiatEditText.addTextChangedListener(new TextWatcher()
+        {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3){
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
             }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3){
-            }
-            @Override
-            public void afterTextChanged(Editable editable){
 
-                if(usdEditText.hasFocus()) {
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable)
+            {
+
+                if (fiatEditText.hasFocus()) {
                     String amount = editable.toString();
                     calculateBitcoinAmount(amount);
                 }
@@ -307,6 +313,8 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         super.onResume();
 
         subscribeData();
+
+        setCurrency();
     }
     
     @Override
@@ -631,21 +639,21 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         double balanceAmount = Conversions.convertToDouble(walletData.getBalance());
         String btcBalance = Conversions.formatBitcoinAmount(balanceAmount - btcAmount);
         String value = Calculations.computedValueOfBitcoin(walletData.getRate(), walletData.getBalance());
-
+        String currency = exchangeService.getExchangeCurrency();
         if(balanceAmount < btcAmount) {
-            balance.setText(Html.fromHtml(getString(R.string.form_balance_negative, btcBalance, value)));
+            balance.setText(Html.fromHtml(getString(R.string.form_balance_negative, btcBalance, value, currency)));
         } else {
-            balance.setText(Html.fromHtml(getString(R.string.form_balance_positive, btcBalance, value)));
+            balance.setText(Html.fromHtml(getString(R.string.form_balance_positive, btcBalance, value, currency)));
         }
 
         balanceTitle.setText(getString(R.string.form_balance_label));
     }
 
-    private void calculateBitcoinAmount(String usd)
+    private void calculateBitcoinAmount(String fiat)
     {
         if(walletData == null) return;
      
-        if(Doubles.convertToDouble(usd) == 0) {
+        if(Doubles.convertToDouble(fiat) == 0) {
             computeBalance(0);
             amountText.setText("");
             return;
@@ -653,7 +661,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         
         String exchangeValue = walletData.getRate();
 
-        double btc = Math.abs(Doubles.convertToDouble(usd) / Doubles.convertToDouble(exchangeValue));
+        double btc = Math.abs(Doubles.convertToDouble(fiat) / Doubles.convertToDouble(exchangeValue));
         String amount = Conversions.formatBitcoinAmount(btc);
         amountText.setText(amount);
 
@@ -665,13 +673,13 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         if(walletData == null) return;
       
         if( Doubles.convertToDouble(bitcoin) == 0) {
-            usdEditText.setText("");
+            fiatEditText.setText("");
             computeBalance(0);
             return;
         }
 
         computeBalance(Doubles.convertToDouble(bitcoin));
         String value = Calculations.computedValueOfBitcoin(walletData.getRate(), bitcoin);
-        usdEditText.setText(value);
+        fiatEditText.setText(value);
     }
 }

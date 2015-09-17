@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.NetworkOnMainThreadException;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -266,7 +267,13 @@ public abstract class BaseActivity extends AppCompatActivity
 
     protected void reportError(Throwable throwable)
     {
-        if (throwable != null) {
+        if(throwable != null && throwable.getLocalizedMessage() != null) {
+            Timber.e(throwable.getLocalizedMessage());
+            throwable.printStackTrace();
+        } else if (throwable != null && throwable instanceof NetworkOnMainThreadException) {
+            NetworkOnMainThreadException exception = (NetworkOnMainThreadException) throwable;
+            Timber.e(exception.getMessage());
+        } else if (throwable != null) {
             throwable.printStackTrace();
         }
     }
@@ -278,8 +285,6 @@ public abstract class BaseActivity extends AppCompatActivity
     
     protected void handleError(Throwable throwable, boolean retry)
     {
-        Timber.d("handleError");
-        
         if(DataServiceUtils.isConnectionError(throwable)) {
             Timber.e("Connection Error");
             snack(getString(R.string.error_service_unreachable_error), retry);

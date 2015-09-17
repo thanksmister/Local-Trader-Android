@@ -33,7 +33,9 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToPlace;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -69,13 +71,12 @@ public class GeoLocationService
                     {
                         return locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1);
                     }
-                })
-                .map(new Func1<List<Address>, Address>()
+                }).map(new Func1<List<Address>, Address>()
                 {
                     @Override
                     public Address call(List<Address> addresses)
                     {
-                        return addresses != null && !addresses.isEmpty() ? addresses.get(0) : null;
+                        return (addresses != null && !addresses.isEmpty())? addresses.get(0) : null;
                     }
                 });
     }
@@ -170,7 +171,7 @@ public class GeoLocationService
                     });
         }
     }
-
+    
     public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type)
     {
         String url;
@@ -182,7 +183,24 @@ public class GeoLocationService
         
         String[] split = url.split("/");
         return localBitcoins.searchAdsByPlace(split[0], split[1], split[2])
-                .map(new ResponseToAds());
+                .map(new ResponseToAds())
+                .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
+                {
+                    @Override
+                    public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
+                    {
+                        Collections.sort(advertisements, new AdvertisementNameComparator());
+                        return Observable.just(advertisements);
+                    }
+                });
+    }
+
+    private class AdvertisementNameComparator implements Comparator<Advertisement>
+    {
+        @Override
+        public int compare(Advertisement o1, Advertisement o2) {
+            return o1.distance.toLowerCase().compareTo(o2.distance.toLowerCase());
+        }
     }
 
     public Observable<List<Address>> geoDecodeLocation(final Location location)

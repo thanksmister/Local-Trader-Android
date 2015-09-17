@@ -20,8 +20,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -36,6 +39,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.search.TradeRequestActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
@@ -58,7 +62,7 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
-public class AdvertiserActivity extends BaseActivity
+public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
 
@@ -88,6 +92,9 @@ public class AdvertiserActivity extends BaseActivity
     
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
+
+    @InjectView(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
 
     @InjectView(R.id.tradePrice)
     TextView tradePrice;
@@ -161,6 +168,9 @@ public class AdvertiserActivity extends BaseActivity
             getSupportActionBar().setTitle("");
             setToolBarMenu(toolbar);
         }
+
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
     }
 
     @Override
@@ -170,7 +180,7 @@ public class AdvertiserActivity extends BaseActivity
         
         outState.putSerializable(EXTRA_AD_ID, adId);
     }
-
+    
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -181,12 +191,12 @@ public class AdvertiserActivity extends BaseActivity
 
         return super.onOptionsItemSelected(item);
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         if(toolbar != null)
-            toolbar.inflateMenu(R.menu.searchresults);
+            toolbar.inflateMenu(R.menu.advertiser);
 
         return true;
     }
@@ -212,6 +222,18 @@ public class AdvertiserActivity extends BaseActivity
         if(content != null)
             content.clearAnimation();
     }
+
+    @Override
+    public void onRefresh()
+    {
+        subscribeData();
+    }
+    
+    public void onRefreshStop()
+    {
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
+    }
     
     public void setToolBarMenu(Toolbar toolbar)
     {
@@ -220,7 +242,6 @@ public class AdvertiserActivity extends BaseActivity
             @Override
             public boolean onMenuItemClick(MenuItem menuItem)
             {
-
                 switch (menuItem.getItemId()) {
                     case R.id.action_profile:
                         showProfile();
@@ -286,6 +307,7 @@ public class AdvertiserActivity extends BaseActivity
                     @Override
                     public void call(AdvertisementData advertisementData)
                     {
+                        onRefreshStop();
                         showContent(true);
 
                         if (TradeUtils.isOnlineTrade(advertisementData.advertisement)) {
@@ -299,6 +321,7 @@ public class AdvertiserActivity extends BaseActivity
                     @Override
                     public void call(Throwable throwable)
                     {
+                        onRefreshStop();
                         reportError(throwable);
                         snackError("Unable to retrieve advertisement.");
                     }
@@ -308,8 +331,7 @@ public class AdvertiserActivity extends BaseActivity
     public void setAdvertisement(Advertisement advertisement, MethodItem method)
     {
         setHeader(advertisement.trade_type);
-        
-        String location = (TradeUtils.isLocalTrade(advertisement))? advertisement.location:advertisement.location + " (" + advertisement.distance + " km)";
+        String location = advertisement.location;
         String provider = TradeUtils.getPaymentMethod(advertisement, method);
         
         switch (advertisement.trade_type) {
@@ -385,7 +407,7 @@ public class AdvertiserActivity extends BaseActivity
     {
         if(advertisementData == null) return;
         Advertisement advertisement = advertisementData.advertisement;
-        Intent intent = TradeRequestActivity.createStartIntent(this, advertisement.ad_id, advertisement.temp_price, advertisement.min_amount, advertisement.max_amount, advertisement.currency, advertisement.profile.username);
+        Intent intent = TradeRequestActivity.createStartIntent(this, advertisement.ad_id, advertisement.temp_price, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency, advertisement.profile.username);
         startActivity(intent);
     }
     

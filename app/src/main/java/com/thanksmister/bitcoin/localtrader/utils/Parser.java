@@ -642,7 +642,17 @@ public class Parser
         } catch (JSONException e) {
             Timber.e("Error Parsing Ads: " + e.getMessage());
         }
+        
+        //Collections.sort(items, new AdvertisementNameComparator());
         return items;
+    }
+
+    private static class AdvertisementNameComparator implements Comparator<Advertisement>
+    {
+        @Override
+        public int compare(Advertisement o1, Advertisement o2) {
+            return o1.distance.toLowerCase().compareTo(o2.distance.toLowerCase());
+        }
     }
 
     public static List<Method> parseMethods(String response)
