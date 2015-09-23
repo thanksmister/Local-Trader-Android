@@ -22,7 +22,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
@@ -736,6 +735,8 @@ public class Parser
         try {
             JSONObject data = object.getJSONObject("data");
             JSONObject actions = object.getJSONObject("actions");
+            
+            Timber.d("Advertisement Data: " + data.toString());
 
             item.ad_id = (data.getString("ad_id"));
             item.created_at = (data.getString("created_at"));
@@ -751,14 +752,21 @@ public class Parser
             
             item.temp_price_usd = ((data.getString("temp_price_usd")));
             item.temp_price_usd = ((data.getString("temp_price_usd")));
-            
-            item.require_feedback_score = ((data.getString("require_feedback_score")));
-            item.require_trade_volume = ((data.getString("require_trade_volume")));
+
+            if (data.has("require_feedback_score"))
+                item.require_feedback_score = ((data.getString("require_feedback_score")));
+
+            if (data.has("require_trade_volume"))
+                item.require_trade_volume = data.getString("require_trade_volume");
+
+            if (data.has("first_time_limit_btc") && !data.getString("first_time_limit_btc").equals("null"))
+                item.first_time_limit_btc = (data.getString("first_time_limit_btc"));
+
+            if (data.has("require_identification"))
+                item.require_identification = (data.getBoolean("require_identification"));
             
             item.email = (data.getString("email"));
             item.location = (data.getString("location_string"));
-            
-           
             
             item.country_code = (data.getString("countrycode"));
             Timber.d("Country Code: " + item.country_code);

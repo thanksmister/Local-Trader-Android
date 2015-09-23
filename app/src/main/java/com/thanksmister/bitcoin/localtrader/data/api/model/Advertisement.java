@@ -47,12 +47,14 @@ public class Advertisement
     public boolean track_max_amount = false;
     public boolean sms_verification_required = false;
     public boolean trusted_required = false;
+    public boolean require_identification = false;
     
     public String online_provider;
     public Profile profile = new Profile();
     public Actions actions = new Actions();
     public String distance;
     public String require_trade_volume;
+    public String first_time_limit_btc;
     public String require_feedback_score;
     public String reference_type;
 

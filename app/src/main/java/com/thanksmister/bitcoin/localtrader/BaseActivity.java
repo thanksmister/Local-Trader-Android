@@ -360,7 +360,7 @@ public abstract class BaseActivity extends AppCompatActivity
          try { 
                 View view = findViewById(R.id.coordinatorLayout);
                 if(retry){
-                    Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+                    Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
                             .setAction("Retry", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view)

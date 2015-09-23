@@ -43,7 +43,7 @@
             android:id="@+id/swipeLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-        
+
         <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -290,6 +290,115 @@
 
                     </LinearLayout>
 
+                    <LinearLayout
+                            android:id="@+id/requirementsLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_large"/>
+
+                        <View style="@style/DividerHorizontal"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/activity_padding"/>
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="left"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:paddingBottom="@dimen/view_padding_small"
+                                android:text="Requirements"/>
+
+                        <TextView
+                                android:id="@+id/trustedTextView"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:text="@string/trade_request_trusted_people"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/identifiedTextView"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_identified_people"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/smsTextView"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_sms_required"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/feedbackText"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_minimum_feedback_score"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/limitText"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_new_buyer_limit"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/volumeText"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_minimum_volume"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                style="@style/SmallText.ExtraSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:paddingTop="8dp"
+                                android:text="@string/trade_request_warning"/>
+
+                    </LinearLayout>
+
                     <View
                             android:layout_width="match_parent"
                             android:layout_height="@dimen/view_padding_large"/>
@@ -307,7 +416,7 @@
                             android:gravity="left"
                             android:paddingLeft="@dimen/activity_padding"
                             android:paddingBottom="@dimen/view_padding_small"
-                            android:text="Trade Terms"/>
+                            android:text="Terms"/>
 
                     <TextView
                             android:id="@+id/tradeTerms"
@@ -319,6 +428,7 @@
                             android:paddingBottom="@dimen/activity_padding"
                             android:autoLink="all"
                             android:textIsSelectable="true"/>
+
 
                 </LinearLayout>
 
@@ -333,5 +443,5 @@
         </android.support.v4.widget.NestedScrollView>
 
     </android.support.v4.widget.SwipeRefreshLayout>
-    
+
 </android.support.design.widget.CoordinatorLayout>

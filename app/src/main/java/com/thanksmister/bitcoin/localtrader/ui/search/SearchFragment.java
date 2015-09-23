@@ -16,10 +16,12 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.search;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
+import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -42,9 +44,11 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.location.LocationSettingsStates;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
@@ -83,6 +87,7 @@ public class SearchFragment extends BaseFragment
 {
     private static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     private static final String EXTRA_TRADE_TYPE = "com.thanksmister.extra.EXTRA_TRADE_TYPE";
+    private static final int REQUEST_CHECK_SETTINGS = 0;
 
     @Inject
     DbManager dbManager;
@@ -131,6 +136,9 @@ public class SearchFragment extends BaseFragment
 
     @InjectView(R.id.searchButton)
     Button searchButton;
+
+    @InjectView(R.id.clearButton)
+    ImageButton clearButton;
 
     @OnClick(R.id.clearButton)
     public void clearButtonClicked()
@@ -349,12 +357,41 @@ public class SearchFragment extends BaseFragment
         predictAdapter = new PredictAdapter(getActivity(), new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
 
-        if(searchButton != null)
+        if(searchButton != null) {
+            clearButton.setEnabled(false);
             searchButton.setEnabled(false); // not enabled until we have valid address
+        }
         
         setupToolbar();
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);//intent);
+
+        switch (requestCode) {
+            
+            case REQUEST_CHECK_SETTINGS:
+                //Refrence: https://developers.google.com/android/reference/com/google/android/gms/location/SettingsApi
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        // All required changes were successfully made
+                        Timber.d("User enabled location");
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        // The user was asked to change settings, but chose not to
+                        Timber.d("User Cancelled enabling location");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+        }
+        
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+    
     public void onRefresh()
     {
         subscribeData();
@@ -460,7 +497,17 @@ public class SearchFragment extends BaseFragment
         if(searchButton == null)
             return;
         
+        clearButton.setEnabled(getPaymentMethod() != null && address != null);
         searchButton.setEnabled(getPaymentMethod() != null && address != null);
+    }
+
+    private void disableSearchButton()
+    {
+        if(searchButton == null)
+            return;
+
+        clearButton.setEnabled(false);
+        searchButton.setEnabled(false);
     }
 
     protected void showSearchLayout()
@@ -498,10 +545,11 @@ public class SearchFragment extends BaseFragment
             handleError(new Throwable(getString(R.string.error_no_internet)), true);
             return;
         }
-
+        
         if (hasLocationServices()) {
             Timber.d("hasLocationServices");
             getLastKnownLocation();
+            //getCurrentLocation();
         } else {
             showEnableLocation();
         }
@@ -509,10 +557,12 @@ public class SearchFragment extends BaseFragment
     
     private void getLastKnownLocation()
     {
+        Timber.d("getLastKnownLocation");
+        
         locationSubscription = geoLocationService.getLastKnownLocation()
-                .timeout(10, TimeUnit.SECONDS, Observable.<Address>just(null))
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
+                .timeout(5, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .subscribe(new Action1<Address>()
                 {
                     @Override
@@ -521,21 +571,41 @@ public class SearchFragment extends BaseFragment
                         if (!locationSubscription.isUnsubscribed()) {
 
                             locationSubscription.unsubscribe();
-
-                            setAddress(address);
-                            hideProgress();
+                            
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    if(address != null) {
+                                        setAddress(address);
+                                        hideProgress();
+                                    } else {
+                                        getCurrentLocation();
+                                    }
+                                }
+                            });
+                            
+                            
                         }
-
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
-                    public void call(Throwable throwable)
+                    public void call(final Throwable throwable)
                     {
                         if (!locationSubscription.isUnsubscribed()) {
                             locationSubscription.unsubscribe();
-                            reportError(throwable);
-                            getCurrentLocation(); // back up plan is to get current location
+
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    reportError(throwable);
+                                    getCurrentLocation(); // back up plan is to get current location
+                                }
+                            });
                         }
                     }
                 });
@@ -543,10 +613,66 @@ public class SearchFragment extends BaseFragment
     
     private void getCurrentLocation()
     {
+        Timber.d("getCurrentLocation");
+        
         locationSubscription = geoLocationService.getUpdatedLocation()
-                .timeout(10, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Location>()
+                {
+                    @Override
+                    public void call(final Location location)
+                    {
+                        if (!locationSubscription.isUnsubscribed()) {
+
+                            locationSubscription.unsubscribe();
+
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    if(location != null) {
+                                        getAddressFromLocation(location);
+                                    } else {
+                                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        if (!locationSubscription.isUnsubscribed()) {
+
+                            locationSubscription.unsubscribe();
+                            
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgress();
+                                    reportError(throwable);
+                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                }
+                            });
+                        }
+                    }
+                });
+    }
+
+    private void getAddressFromLocation(final Location location)
+    {
+        Timber.d("getAddressFromLocation");
+
+        locationSubscription = geoLocationService.getAddressFromLocation(location)
+                .timeout(20, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .subscribe(new Action1<Address>()
                 {
                     @Override
@@ -561,11 +687,60 @@ public class SearchFragment extends BaseFragment
                                 @Override
                                 public void run()
                                 {
-                                    setAddress(address);
-                                    hideProgress();
+                                    if(address != null) {
+                                        setAddress(address);
+                                        hideProgress();
+                                    } else {
+                                        getAddressFromLocationFallback(location);
+                                    }
                                 }
                             });
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        if (!locationSubscription.isUnsubscribed()) {
 
+                            locationSubscription.unsubscribe();
+
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgress();
+                                    reportError(throwable);
+                                    getAddressFromLocationFallback(location);
+                                }
+                            });
+                        }
+                    }
+                });
+    }
+    
+    private void getAddressFromLocationFallback(final Location location)
+    {
+        Timber.d("getAddressFromLocationFallback Location: " + location.getLongitude());
+        
+        locationSubscription = geoLocationService.getUpdatedAddressFallback(location)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Address>()
+                {
+                    @Override
+                    public void call(Address address)
+                    {
+                        if (!locationSubscription.isUnsubscribed()) {
+                            locationSubscription.unsubscribe();
+                            if (address != null) {
+                                setAddress(address);
+                                hideProgress();
+                            } else {
+                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                            }
                         }
                     }
                 }, new Action1<Throwable>()
@@ -574,18 +749,10 @@ public class SearchFragment extends BaseFragment
                     public void call(Throwable throwable)
                     {
                         if (!locationSubscription.isUnsubscribed()) {
-
                             locationSubscription.unsubscribe();
-                            getActivity().runOnUiThread(new Runnable()
-                            {
-                                @Override
-                                public void run()
-                                {
-                                    hideProgress();
-                                    searchButton.setEnabled(false); // no way to search
-                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                                }
-                            });
+                            hideProgress();
+                            reportError(throwable);
+                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                         }
                     }
                 });

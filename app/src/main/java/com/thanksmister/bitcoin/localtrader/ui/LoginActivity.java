@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -71,7 +72,7 @@ public class LoginActivity extends BaseActivity
     @InjectView(R.id.loginProgress)
     View progress;
 
-    @InjectView(R.id.webView)
+    //@InjectView(R.id.webView)
     WebView webView;
     
     private Subscription subscription = Subscriptions.unsubscribed();
@@ -106,12 +107,11 @@ public class LoginActivity extends BaseActivity
     
     public void hideProgress()
     {
-        try {
+        if(progress != null)
             progress.setVisibility(View.GONE);
-            webView.setVisibility(View.VISIBLE); 
-        } catch (NullPointerException e) {
-            // we should be getting this but we are
-        }
+        
+        if(webView != null)
+            webView.setVisibility(View.VISIBLE);
     }
     
     public void showMain()
@@ -129,14 +129,22 @@ public class LoginActivity extends BaseActivity
 
     private void initWebView()
     {
-        //load the url of the oAuth login page and client
-        webView.setWebViewClient(new OauthWebViewClient());
-        webView.setWebChromeClient(new WebChromeClient());
+        try{
+            
+            webView = (WebView) findViewById(R.id.webView);
+            
+            //load the url of the oAuth login page and client
+            webView.setWebViewClient(new OauthWebViewClient());
+            webView.setWebChromeClient(new WebChromeClient());
 
-        //activates JavaScript (just in case)
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webView.loadUrl(OAUTH_URL);
+            //activates JavaScript (just in case)
+            WebSettings webSettings = webView.getSettings();
+            webSettings.setJavaScriptEnabled(true);
+            webView.loadUrl(OAUTH_URL);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private class OauthWebViewClient extends WebViewClient

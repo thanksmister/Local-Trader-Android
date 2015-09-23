@@ -79,7 +79,7 @@ public class NotificationService
 
     public void contactNewNotification(List<Contact> contacts)
     {
-        Timber.e("new contacts size: " + contacts.size());
+        Timber.d("new contacts size: " + contacts.size());
         
         if (contacts.size() > 1) {
             NotificationUtils.createNotification(context.getApplicationContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + contacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
@@ -95,7 +95,7 @@ public class NotificationService
 
     public void contactUpdateNotification(List<Contact> contacts)
     {
-        Timber.e("updated contacts size: " + contacts.size());
+        Timber.d("updated contacts size: " + contacts.size());
         
         if (contacts.size() > 1) {
             NotificationUtils.createNotification(context.getApplicationContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
@@ -110,7 +110,7 @@ public class NotificationService
 
     public void contactDeleteNotification(List<Contact> contacts)
     {
-        Timber.e("Notify Deleted Contact Size: " + contacts.size());
+        Timber.d("Notify Deleted Contact Size: " + contacts.size());
         
         if (contacts.size() > 1) {
 

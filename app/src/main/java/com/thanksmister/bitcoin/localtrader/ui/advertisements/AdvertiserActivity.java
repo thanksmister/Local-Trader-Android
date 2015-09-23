@@ -20,10 +20,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -39,10 +37,10 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.search.TradeRequestActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -123,6 +121,27 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
 
     @InjectView(R.id.lastSeenIcon)
     View lastSeenIcon;
+    
+    @InjectView(R.id.requirementsLayout)
+    View requirementsLayout;
+
+    @InjectView(R.id.trustedTextView)
+    TextView trustedTextView;
+
+    @InjectView(R.id.identifiedTextView)
+    TextView identifiedTextView;
+
+    @InjectView(R.id.smsTextView)
+    TextView smsTextView;
+
+    @InjectView(R.id.feedbackText)
+    TextView feedbackText;
+
+    @InjectView(R.id.limitText)
+    TextView limitText;
+
+    @InjectView(R.id.volumeText)
+    TextView volumeText;
     
     @OnClick(R.id.requestButton)
     public void requestButtonClicked()
@@ -384,6 +403,53 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
         lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(advertisement.profile.last_online));
         String date = Dates.parseLocalDateStringAbbreviatedTime(advertisement.profile.last_online);
         dateText.setText("Last Seen - " + date);
+
+        setTradeRequirements(advertisement);
+    }
+
+    /**
+     * Toggles the trader requirements and options visibility
+     * @param advertisement <code>Advertisement</code>
+     */
+    public void setTradeRequirements(Advertisement advertisement)
+    {
+        boolean showLayout = false;
+        if(advertisement.trusted_required 
+                || advertisement.sms_verification_required
+                || advertisement.require_identification ) {
+
+            showLayout = true;
+        } 
+
+        trustedTextView.setVisibility(advertisement.trusted_required? View.VISIBLE:View.GONE);
+        identifiedTextView.setVisibility(advertisement.require_identification ? View.VISIBLE:View.GONE);
+        smsTextView.setVisibility(advertisement.sms_verification_required? View.VISIBLE:View.GONE);
+
+        if(!Strings.isBlank(advertisement.require_feedback_score) && TradeUtils.isOnlineTrade(advertisement)) {
+            feedbackText.setVisibility(View.VISIBLE);
+            feedbackText.setText(Html.fromHtml(getString(R.string.trade_request_minimum_feedback_score, advertisement.require_feedback_score)));
+            showLayout = true;
+        } else {
+            feedbackText.setVisibility(View.GONE);
+        }
+
+        if(!Strings.isBlank(advertisement.require_trade_volume) && TradeUtils.isOnlineTrade(advertisement)) {
+            volumeText.setVisibility(View.VISIBLE);
+            volumeText.setText(Html.fromHtml(getString(R.string.trade_request_minimum_volume, advertisement.require_trade_volume)));
+            showLayout = true;
+        } else {
+            volumeText.setVisibility(View.GONE);
+        }
+        
+        if(!Strings.isBlank(advertisement.first_time_limit_btc) && TradeUtils.isOnlineTrade(advertisement)) {
+            limitText.setVisibility(View.VISIBLE);
+            limitText.setText(Html.fromHtml(getString(R.string.trade_request_new_buyer_limit, advertisement.first_time_limit_btc)));
+            showLayout = true;
+        } else {
+            limitText.setVisibility(View.GONE);
+        }
+        
+        requirementsLayout.setVisibility(showLayout? View.VISIBLE:View.GONE);
     }
 
     public void setHeader(TradeType tradeType)

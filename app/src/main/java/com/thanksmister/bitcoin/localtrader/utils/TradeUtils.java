@@ -554,16 +554,40 @@ public class TradeUtils
 
     public static String getAddressShort(Address address)
     {
-        String addressText = String.format(
-                "%s, %s, %s",
-                // If there's a street address, add it
-                address.getMaxAddressLineIndex() > 0 ?
-                        address.getAddressLine(0) : "",
-                // Locality is usually a city
-                address.getLocality(),
-                // The country of the address
-                address.getCountryName()
-        );
+        String addressText;
+        if(address.getMaxAddressLineIndex() > 0) {
+            addressText = String.format(
+                    "%s, %s, %s",
+
+                    // If there's a street address, add it
+                    address.getAddressLine(0),
+
+                    // Locality is usually a city
+                    address.getLocality(),
+
+                    // The country of the address
+                    address.getCountryName()
+            );
+        } else if(address.getLocality() != null) {
+            addressText = String.format(
+                    "%s, %s",
+                    
+                    // Locality is usually a city
+                    address.getLocality(),
+
+                    // The country of the address
+                    address.getCountryName()
+            );
+            
+        } else {
+            addressText = String.format(
+                    "%s",
+
+                    // The country of the address
+                    address.getCountryName()
+            );
+        }
+        
 
         return addressText;
     }
