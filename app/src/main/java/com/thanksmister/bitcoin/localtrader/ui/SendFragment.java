@@ -40,6 +40,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -51,6 +52,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
@@ -68,16 +70,21 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
     public static final String EXTRA_WALLET_DATA = "com.thanksmister.extra.EXTRA_WALLET_DATA";
+
+    @Inject
+    Bus bus;
     
     @Inject
     DataService dataService;
@@ -273,7 +280,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
             @Override
             public void afterTextChanged(Editable editable)
             {
-
                 if (fiatEditText.hasFocus()) {
                     String amount = editable.toString();
                     calculateBitcoinAmount(amount);
@@ -535,9 +541,25 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         return  clipText;
     }
     
-    public void pinCodeEvent(String pinCode, String address, String amount)
+    public void pinCodeEvent(final String pinCode, final String address, final String amount)
     {
-        showProgressDialog(new ProgressDialogEvent("Sending bitcoin..."));
+        Timber.d("pinCodeEvent");
+        
+        String confirmTitle = "Confirm Transaction";
+        String confirmDescription = getString(R.string.send_confirmation_description, amount, address);
+        showConfirmationDialog(new ConfirmationDialogEvent(confirmTitle, confirmDescription, getString(R.string.button_confirm), getString(R.string.button_cancel), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                confirmedPinCodeSend(pinCode, address, amount);;
+            }
+        }));
+    }
+    
+    public void confirmedPinCodeSend(String pinCode, String address, String amount)
+    {
+        showProgressDialog(new ProgressDialogEvent("Sending..."));
 
         Observable<Boolean> sendPinCodeMoneyObservable = dataService.sendPinCodeMoney(pinCode, address, amount);
         sendPinCodeMoneyObservable
@@ -549,8 +571,8 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     public void call(Boolean aBoolean)
                     {
                         hideProgressDialog();
-                        resetWallet();
                         toast(R.string.toast_transaction_success);
+                        resetWallet();
                     }
                 }, new Action1<Throwable>()
                 {
@@ -584,6 +606,12 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         amountText.setText("");
         addressText.setText("");
         calculateCurrencyAmount("0.00");
+        //bus.post(NavigateEvent.WALLET);
+
+        Intent i = new Intent(getActivity(), MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(i);
     }
     
     public void setWallet()

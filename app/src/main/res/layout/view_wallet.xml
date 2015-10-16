@@ -37,20 +37,6 @@
                 android:background="@color/white"
                 android:fitsSystemWindows="true"/>
 
-        <!--<ListView
-                android:id="@+id/walletList"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:divider="@null"
-                android:drawSelectorOnTop="true"
-                android:visibility="visible"
-                tools:visibility="visible"
-                android:scrollbars="none"
-                android:paddingBottom="50dp"
-                android:clipToPadding="false"
-                android:fillViewport="true"/>-->
-
     </android.support.v4.widget.SwipeRefreshLayout>
     
     <android.support.design.widget.AppBarLayout

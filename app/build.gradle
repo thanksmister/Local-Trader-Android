@@ -24,7 +24,7 @@ apply plugin: 'com.neenbedankt.android-apt'
 def versionMajor = 2
 def versionMinor = 0
 def versionPatch = 5
-def versionBuild = 5 // bump for dog food builds, public betas, etc.
+def versionBuild = 6 // bump for dog food builds, public betas, etc.
 
 android {
 
@@ -43,16 +43,42 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
     }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        
+    }
+
+    productFlavors {
+
+        dev {
+            applicationId "com.thanksmister.bitcoin.localtrader"
+            versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}-DEV"
+        }
+
+        qa {
+            applicationId "com.thanksmister.bitcoin.localtrader"
+            versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}-QA"
+        }
+
+        prod {
+            applicationId "com.thanksmister.bitcoin.localtrader"
+            versionName "${versionMajor}.${versionMinor}.${versionPatch} Build ${versionBuild}"
+        }
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     
-    compile 'com.android.support:support-annotations:23.0.0'
-    compile 'com.android.support:gridlayout-v7:23.0.0'
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.android.support:design:23.0.0'
-    compile 'com.android.support:recyclerview-v7:23.0.0'
+    compile 'com.android.support:support-annotations:23.0.1'
+    compile 'com.android.support:gridlayout-v7:23.0.1'
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:design:23.0.1'
+    compile 'com.android.support:recyclerview-v7:23.0.1'
     
     compile 'com.squareup.dagger:dagger:1.2.2'
     apt 'com.squareup.dagger:dagger-compiler:1.2.2'

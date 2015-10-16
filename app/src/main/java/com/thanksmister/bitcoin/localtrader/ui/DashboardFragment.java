@@ -53,6 +53,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
@@ -207,7 +208,21 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     private void setupToolbar()
     {
-        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+        try {
+            ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+        } catch (NoClassDefFoundError e) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_device_title),
+                    getString(R.string.error_device_softare_description)), new Action0()
+            {
+                @Override
+                public void call()
+                {
+                    getActivity().finish();
+                }
+            });
+            return;
+        }
+        
         
         // Show menu icon
         final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();

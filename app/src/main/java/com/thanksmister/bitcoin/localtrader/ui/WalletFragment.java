@@ -351,6 +351,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         Timber.d("onRefreshStop");
         handler.removeCallbacks(refreshRunnable);
         swipeLayout.setRefreshing(false);
+        
     }
 
     @Override
@@ -660,7 +661,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         String btcValue = Calculations.computedValueOfBitcoin(bid, ask, balance);
         String btcAmount = Conversions.formatBitcoinAmount(balance) + " " + getString(R.string.btc);
         bitcoinPrice.setText(btcAmount);
-        bitcoinTitle.setText("ACCOUNT BALANCE");
+        bitcoinTitle.setText(R.string.wallet_account_balance);
         bitcoinValue.setText("≈ $" + btcValue + " " + currency + " (" + exchange + ")");
     }
 }

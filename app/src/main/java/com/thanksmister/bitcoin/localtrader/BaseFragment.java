@@ -22,10 +22,13 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.squareup.leakcanary.RefWatcher;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 
 import butterknife.ButterKnife;
+import rx.functions.Action0;
 
 /**
  * Base fragment which performs injection using the activity object graph of its parent.
@@ -121,6 +124,18 @@ public abstract class BaseFragment extends Fragment
     {
         if(parentActivity != null)
             parentActivity.snack(message, retry);
+    }
+
+    public void showAlertDialog(AlertDialogEvent event, Action0 action)
+    {
+        if(parentActivity != null)
+            parentActivity.showAlertDialog(event, action);
+    }
+
+    public void showConfirmationDialog(ConfirmationDialogEvent event)
+    {
+        if(parentActivity != null)
+            parentActivity.showConfirmationDialog(event);
     }
     
     public void showProgressDialog(ProgressDialogEvent event)

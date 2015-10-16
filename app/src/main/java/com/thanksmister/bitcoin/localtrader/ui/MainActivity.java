@@ -18,7 +18,6 @@ package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -31,15 +30,14 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
-import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
@@ -49,13 +47,12 @@ import com.thanksmister.bitcoin.localtrader.ui.settings.SettingsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
-import javax.inject.Inject;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
@@ -109,7 +106,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     {
         super.onCreate(savedInstanceState);
         
-        setContentView(R.layout.activity_main);
+        try {
+            setContentView(R.layout.activity_main);
+        } catch (NoClassDefFoundError e) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_device_title),
+                    getString(R.string.error_device_softare_description)), new Action0()
+            {
+                @Override
+                public void call()
+                {
+                    finish();
+                }
+            });
+            return;
+        }
 
         ButterKnife.inject(this);
 

@@ -62,6 +62,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
@@ -169,6 +170,22 @@ public abstract class BaseActivity extends AppCompatActivity
                 .show();
     }
 
+    public void showAlertDialog(AlertDialogEvent event, final Action0 actionToTake)
+    {
+        new AlertDialog.Builder(this)
+                .setTitle(event.title)
+                .setMessage(Html.fromHtml(event.message))
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        actionToTake.call();
+                    }
+                })
+                .show();
+    }
+
     public void logOutConfirmation()
     {
         new AlertDialog.Builder(this)
@@ -233,7 +250,7 @@ public abstract class BaseActivity extends AppCompatActivity
     {
         new AlertDialog.Builder(this)
                 .setTitle(event.title)
-                .setMessage(event.message)
+                .setMessage(Html.fromHtml(event.message))
                 .setNegativeButton(event.negative, null)
                 .setPositiveButton(event.positive, new DialogInterface.OnClickListener()
                 {

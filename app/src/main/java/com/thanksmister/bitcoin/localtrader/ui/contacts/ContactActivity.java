@@ -88,7 +88,6 @@ import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
-
 public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_ID = "com.thanksmister.extras.EXTRA_ID";
@@ -315,9 +314,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     @Override
     public void onSaveInstanceState(Bundle outState)
     {
+        super.onSaveInstanceState(outState);
         outState.putString(EXTRA_ID, contactId);
         outState.putSerializable(EXTRA_TYPE, dashboardType);
-        //super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -402,7 +401,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                         showProfile();
                         return true;
                     case R.id.action_advertisement:
-                        showAdvertisement(contact.advertisement_id());
+                        showAdvertisement();
                         return true;
                     case R.id.action_dispute:
                         disputeContact();
@@ -872,9 +871,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         startActivity(browserIntent);
     }
 
-    public void showAdvertisement(String advertisement_id)
+    public void showAdvertisement()
     {
-        Intent intent = AdvertisementActivity.createStartIntent(this, advertisement_id);
+        if (contact == null) {
+            return;
+        }
+        
+        Intent intent = AdvertisementActivity.createStartIntent(this, contact.advertisement_id());
         startActivity(intent);
     }
 

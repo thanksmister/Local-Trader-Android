@@ -93,6 +93,7 @@
     <string name="button_dispute">Dispute</string>
     <string name="button_release">Release</string>
     <string name="button_fund">Fund</string>
+    <string name="button_confirm">CONFIRM</string>
     <string name="button_complete">Mark Complete</string>
     <string name="button_mark_paid">Mark Paid</string>
     <string name="button_profile">Profile</string>
@@ -459,5 +460,9 @@
     <string name="trade_request_sms_required">SMS verification required</string>
     <string name="trade_request_identified_people">Identified people only</string>
     <string name="trade_request_trusted_people">Trusted people only</string>
+    <string name="error_device_softare_description">This device has an outdated version of the Android OS (4.2.2), a software update is required for this application to work properly.</string>
+    <string name="error_device_title">Device Error</string>
+    <string name="wallet_account_balance">ACCOUNT BALANCE</string>
+    <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
 
 </resources>
