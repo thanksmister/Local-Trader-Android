@@ -148,8 +148,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
                             }
 
                             StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
-                            SyncUtils.CreateSyncAccount(MainActivity.this, stringPreference.get());
-                            SyncUtils.TriggerRefresh(getApplicationContext(), stringPreference.get());
+                            //SyncUtils.CreateSyncAccount(MainActivity.this, stringPreference.get());
+                            //SyncUtils.TriggerRefresh(getApplicationContext(), stringPreference.get());
                         } else {
                             launchPromoScreen();
                         }

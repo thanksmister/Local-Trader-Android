@@ -20,6 +20,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.DownloadManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -432,9 +433,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         });
 
         content.setVisibility(show ? View.VISIBLE : View.GONE);
-        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter()
+        {
             @Override
-            public void onAnimationEnd(Animator animation) {
+            public void onAnimationEnd(Animator animation)
+            {
                 if (content != null)
                     content.setVisibility(show ? View.VISIBLE : View.GONE);
             }
@@ -700,9 +703,14 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private void showDownload()
     {
-        Intent i = new Intent();
-        i.setAction(DownloadManager.ACTION_VIEW_DOWNLOADS);
-        startActivity(i);
+        try {
+            Intent i = new Intent();
+            i.setAction(DownloadManager.ACTION_VIEW_DOWNLOADS);
+            startActivity(i); 
+        } catch (ActivityNotFoundException exception ) {
+            snack("No application installed to handle the download file.", false);
+        }
+        
     }
 
     public void postMessage(String message)

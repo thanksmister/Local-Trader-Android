@@ -87,6 +87,7 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func3;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
@@ -133,7 +134,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @InjectView(R.id.bitcoinLayout)
     View bitcoinLayout;
 
-    private Subscription databaseSubscription = Subscriptions.empty();
+    private CompositeSubscription databaseSubscription = new CompositeSubscription();
     private Subscription subscription = Subscriptions.empty();
     private Subscription walletUpdateSubscription = Subscriptions.empty();
     private Subscription updateExchangeSubscription = Subscriptions.empty();
@@ -144,14 +145,12 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     private Handler handler;
     private String address;
     private SectionRecycleViewAdapter sectionRecycleViewAdapter;
-
-    class WalletData
-    {
-        public WalletItem walletItem;
-        public Bitmap image;
-        public List<TransactionItem> transactions;
-        public ExchangeItem exchangeItem;
-    }
+    
+    private List<TransactionItem> transactionItems;
+    public ExchangeItem exchangeItem;
+    public WalletItem walletItem;
+    public Bitmap qrImage;
+   
 
     public static WalletFragment newInstance()
     {
@@ -278,9 +277,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         appBarLayout.addOnOffsetChangedListener(this);
         
-        onRefreshStart();
-        
         subscribeData();
+
+        onRefreshStart();
     }
 
     @Override
@@ -380,49 +379,75 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     protected void subscribeData()
     {
-        Timber.d("subscribeData");
-        
-        databaseSubscription = Observable.combineLatest(dbManager.walletQuery(), dbManager.transactionsQuery(), dbManager.exchangeQuery(), 
-                new Func3<WalletItem, List<TransactionItem>, ExchangeItem, WalletData>()
+        //dbManager.clearWallet();
+
+        dbManager.walletQuery().subscribe(new Action1<WalletItem>()
         {
             @Override
-            public WalletData call(WalletItem walletItem, List<TransactionItem> transactions, ExchangeItem exchangeItem)
+            public void call(WalletItem item)
             {
-                WalletData walletData = new WalletData();
-                walletData.walletItem = walletItem;
-                walletData.transactions = transactions;
-                walletData.exchangeItem = exchangeItem;
-                return walletData;
+                walletItem = item;
+                
+                if (walletItem != null) {
+                    setWallet(walletItem);
+                }
+
+                if (exchangeItem != null && walletItem != null) {
+                    setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
+                }
+                
+                setupList(walletItem, qrImage, transactionItems);
             }
-        })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<WalletData>()
-                {
-                    @Override
-                    public void call(final WalletData dataItem)
-                    {
-                        // setup our bar 
-                        Timber.d("walletObservable");
-                        Timber.d("Exchange Bid: " + dataItem.exchangeItem.bid());
-                        Timber.d("Exchange Bid: " + dataItem.exchangeItem.ask());
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(final Throwable throwable)
+            {
+                reportError(throwable);
+            }
+        });
 
-                        if(dataItem.exchangeItem != null)
-                            setAppBarText(dataItem.exchangeItem.bid(), dataItem.exchangeItem.ask(), dataItem.walletItem.balance(), dataItem.exchangeItem.exchange());
+        dbManager.transactionsQuery().subscribe(new Action1<List<TransactionItem>>()
+        {
+            @Override
+            public void call(List<TransactionItem> items)
+            {
+                transactionItems = items;
 
-                        if(dataItem.walletItem != null) {
-                            setWallet(dataItem);
-                        }
-                    }
+                Timber.d("subscribeData transactionItems: " + transactionItems.size());
+                
+                setupList(walletItem, qrImage, transactionItems);
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(final Throwable throwable)
+            {
+                reportError(throwable);
+            }
+        });
 
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(final Throwable throwable)
-                    {
-                        reportError(throwable);
-                    }
-                });
+        dbManager.exchangeQuery().subscribe(new Action1<ExchangeItem>()
+        {
+            @Override
+            public void call(ExchangeItem item)
+            {
+                exchangeItem = item;
+
+                Timber.d("subscribeData exchange: " + exchangeItem);
+                
+                if (exchangeItem != null && walletItem != null) {
+                    setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
+                }
+            }
+        }, new Action1<Throwable>()
+        {
+            @Override
+            public void call(final Throwable throwable)
+            {
+                reportError(throwable);
+            }
+        });
     }
 
     protected void updateData()
@@ -438,6 +463,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(Exchange exchange)
                     {
+                        Timber.d("updateData exchange: " + exchange);
+                        
                         dbManager.updateExchange(exchange);
                     }
                 }, new Action1<Throwable>()
@@ -457,9 +484,13 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Wallet wallet)
                     {
-                        onRefreshStop();
+                        Timber.d("updateData wallet: " + wallet.balance);
+                        
+                        //updateWalletBalance(wallet);
+                        dbManager.updateWallet(wallet);
                         dbManager.updateTransactions(wallet.getTransactions());
-                        updateWalletBalance(wallet);
+                        
+                        onRefreshStop();
                     }
 
                 }, new Action1<Throwable>()
@@ -473,6 +504,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 });
     }
 
+    @Deprecated
     private void updateWalletBalance(final Wallet wallet)
     {
         updateSubscription = dbManager.walletQuery()
@@ -495,26 +527,24 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 });
     }
 
-    public void setWallet(final WalletData walletData)
+    public void setWallet(final WalletItem item)
     {
-        Observable<Bitmap> bitmapObservable = Observable.defer(new Func0<Observable<Bitmap>>()
+        
+        bitmapSubscription = Observable.defer(new Func0<Observable<Bitmap>>()
         {
             @Override
             public Observable<Bitmap> call()
             {
                 try {
-                    Bitmap qrCode = (BitmapFactory.decodeByteArray(walletData.walletItem.qrcode(), 0, walletData.walletItem.qrcode().length));
+                    Bitmap qrCode = (BitmapFactory.decodeByteArray(item.qrcode(), 0, item.qrcode().length));
                     return Observable.just(qrCode);
                 } catch (Exception e) {
                     Timber.e("Error reading wallet QR Code data: " + e.getLocalizedMessage());
                     return null;
                 }
             }
-        });
-        
-        bitmapSubscription = bitmapObservable
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.newThread())
+        })
+                
                 .subscribe(new Observer<Bitmap>()
                 {
                     @Override
@@ -525,55 +555,48 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void onError(final Throwable e)
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                toast("Unable to generate QRCode");
-                                reportError(e);
-                            }
-                        });
+                        setupList(walletItem, qrImage, transactionItems);
+                        reportError(e);
                     }
 
                     @Override
                     public void onNext(final Bitmap bitmap)
                     {
-                        getActivity().runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                walletData.image = bitmap;
-                                setupList(walletData);
-                            }
-                        });
+                        qrImage = bitmap;
+                        setupList(walletItem, qrImage, transactionItems);
                     }
                 });
     }
 
-    private void setupList(WalletData walletData)
+    private void setupList(final WalletItem walletItem, final Bitmap qrImage, final List<TransactionItem> transactionItems)
     {
         // provide combined data
         ArrayList<Object> items = new ArrayList<>();
 
         WalletAdapter walletAdapterData = new WalletAdapter();
-        if (walletData.walletItem != null) {
-            walletAdapterData.address = walletData.walletItem.address();
+        
+        /*if (walletItem != null) {
+            walletAdapterData.address = walletItem.address();
         }
 
-        if (walletData.walletItem != null) {
-            walletAdapterData.qrImage = walletData.image;
+        if (qrImage != null) {
+            walletAdapterData.qrImage = qrImage;
+        }*/
+
+        if(qrImage != null && walletItem != null) {
+            walletAdapterData.address = walletItem.address();
+            walletAdapterData.qrImage = qrImage;
         }
 
         items.add(walletAdapterData);
-        items.addAll(walletData.transactions);
 
         TransactionsAdapter itemAdapter = getAdapter();
         itemAdapter.replaceWith(items);
 
-        if (walletData.transactions != null && walletData.transactions.size() > 0) {
+        if (transactionItems != null && transactionItems.size() > 0) {
 
+            items.addAll(transactionItems);
+            
             List<SectionRecycleViewAdapter.Section> sections = new ArrayList<>();
             sections.add(new SectionRecycleViewAdapter.Section(1, getString(R.string.wallet_recent_activity_header)));
 

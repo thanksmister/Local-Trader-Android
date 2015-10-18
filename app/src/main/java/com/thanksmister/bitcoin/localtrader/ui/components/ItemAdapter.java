@@ -100,7 +100,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         }
 */
         if (items.size() == 0) {
-            return TYPE_PROGRESS;
+            return TYPE_EMPTY;
         }
         
         return (items.get(position) instanceof ContactItem)? TYPE_CONTACT:TYPE_ADVERTISEMENT;

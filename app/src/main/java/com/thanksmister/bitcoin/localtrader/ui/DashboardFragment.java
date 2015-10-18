@@ -130,19 +130,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
     
-    /*@OnClick(R.id.advertiseButton)
-    public void advertiseButtonClicked()
-    {
-        createAdvertisementScreen();
-    }
-    
-    @Optional
-    @OnClick(R.id.searchButton)
-    public void searchButtonClicked()
-    {
-        showSearchScreen();
-    }*/
-    
     private Subscription exchangeSubscription = Subscriptions.empty();
     private Subscription contactsSubscription = Subscriptions.empty();
     private Subscription advertisementsSubscriptions = Subscriptions.empty();
@@ -239,7 +226,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         ArrayList<Object> items = new ArrayList<>();
         ItemAdapter itemAdapter = getAdapter();
         
-        if(contactItems.isEmpty() && advertisementItems.isEmpty()) {
+       if(contactItems.isEmpty() && advertisementItems.isEmpty()) {
             //This is the code to provide a sectioned list
             itemAdapter.replaceWith(items, methodItems);
             recycleView.setAdapter(itemAdapter);
@@ -472,7 +459,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         Timber.d("subscribeData");
 
-        //dbManager.clearTransactions();
+        //dbManager.clearDashboard();
       
         exchangeSubscription = dbManager.exchangeQuery()
                 .subscribeOn(Schedulers.io())
@@ -520,6 +507,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                             @Override
                             public void call(Throwable throwable)
                             {
+                                setupList(contacts, advertisements, methods);
                                 reportError(throwable);
                             }
                         });
@@ -559,6 +547,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call(Throwable throwable)
                     {
+                        setupList(contacts, advertisements, methods);
                         reportError(throwable);
                     }
                 });

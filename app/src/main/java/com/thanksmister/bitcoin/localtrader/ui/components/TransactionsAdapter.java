@@ -131,8 +131,11 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         if(viewHolder instanceof WalletViewHolder) {
 
             WalletAdapter item = (WalletAdapter) items.get(position);
-            ((WalletViewHolder) viewHolder).addressButton.setText(item.address);
-            ((WalletViewHolder) viewHolder).qrCodeImage.setImageBitmap(item.qrImage);
+            if(item.address != null)
+                ((WalletViewHolder) viewHolder).addressButton.setText(item.address);
+            
+            if(item.qrImage != null)
+                ((WalletViewHolder) viewHolder).qrCodeImage.setImageBitmap(item.qrImage);
             
         } else if (viewHolder instanceof TransactionViewHolder) {
 

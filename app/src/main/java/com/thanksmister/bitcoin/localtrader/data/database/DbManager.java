@@ -90,12 +90,20 @@ public class DbManager
         db.delete(AdvertisementItem.TABLE, null);
         db.delete(TransactionItem.TABLE, null);
     }
-    
-    public void clearTransactions()
+
+    public void clearWallet()
     {
+        db.delete(WalletItem.TABLE, null);
         db.delete(TransactionItem.TABLE, null);
     }
-
+    
+    public void clearDashboard()
+    {
+        db.delete(MessageItem.TABLE, null);
+        db.delete(ContactItem.TABLE, null);
+        db.delete(AdvertisementItem.TABLE, null);
+    }
+    
     public Observable<Boolean> isLoggedIn()
     {
         return getTokens()
@@ -128,19 +136,19 @@ public class DbManager
         final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
                 .map(SessionItem.MAP)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                /*.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())*/
                 .subscribe(new Action1<SessionItem>()
                 {
                     @Override
                     public void call(SessionItem sessionItem)
                     {
                         if (sessionItem != null) {
-                            contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
-                            //contentResolver.update(SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
+                            //contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
+                            contentResolver.update(SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
                         } else {
-                            contentResolverAsyncHandler.startInsert(0, null, SyncProvider.SESSION_TABLE_URI, builder.build());
-                            //contentResolver.insert(SyncProvider.SESSION_TABLE_URI, builder.build());
+                            //contentResolverAsyncHandler.startInsert(0, null, SyncProvider.SESSION_TABLE_URI, builder.build());
+                            contentResolver.insert(SyncProvider.SESSION_TABLE_URI, builder.build());
                         }
                     }
                 }, new Action1<Throwable>()
@@ -550,37 +558,47 @@ public class DbManager
 
     public void updateWallet(final Wallet wallet)
     {
+        Timber.d("updateWallet: " + wallet);
+        
         final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
+        
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<WalletItem>()
                 {
                     @Override
                     public void call(WalletItem walletItem)
                     {
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-
                         if (walletItem != null) {
 
+                            Timber.d("updateWallet update: " + walletItem);
+                            
                             if (!walletItem.address().equals(wallet.address)
                                     || !walletItem.balance().equals(wallet.balance)
                                     || !walletItem.receivable().equals(wallet.received)
                                     || !walletItem.sendable().equals(wallet.sendable)) {
 
 
+                                Timber.d("updateWallet update: " + walletItem);
+
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+
                                 WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
-                                contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.MESSAGE_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
-                                //contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
+                                //contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.MESSAGE_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
+                                contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
                             }
 
                         } else {
 
+                            Timber.d("updateWallet insert");
+
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+
                             WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
-                            contentResolverAsyncHandler.startInsert(0, null, SyncProvider.WALLET_TABLE_URI, builder.build());
-                            //contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
+                           // contentResolverAsyncHandler.startInsert(0, null, SyncProvider.WALLET_TABLE_URI, builder.build());
+                            contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
                         }
                     }
                 }, new Action1<Throwable>()
