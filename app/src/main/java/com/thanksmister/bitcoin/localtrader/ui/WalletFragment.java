@@ -134,7 +134,10 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @InjectView(R.id.bitcoinLayout)
     View bitcoinLayout;
 
-    private CompositeSubscription databaseSubscription = new CompositeSubscription();
+    private Subscription exchangeSubscription = Subscriptions.empty();
+    private Subscription walletSubscription = Subscriptions.empty();
+    private Subscription transactionSubscription = Subscriptions.empty();
+    
     private Subscription subscription = Subscriptions.empty();
     private Subscription walletUpdateSubscription = Subscriptions.empty();
     private Subscription updateExchangeSubscription = Subscriptions.empty();
@@ -291,7 +294,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         bitmapSubscription.unsubscribe();
         subscription.unsubscribe();
-        databaseSubscription.unsubscribe();
+        exchangeSubscription.unsubscribe();
+        walletSubscription.unsubscribe();
+        transactionSubscription.unsubscribe();
         walletUpdateSubscription.unsubscribe();
         updateExchangeSubscription.unsubscribe();
         updateSubscription.unsubscribe();
@@ -381,7 +386,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         //dbManager.clearWallet();
 
-        dbManager.walletQuery().subscribe(new Action1<WalletItem>()
+        walletSubscription = dbManager.walletQuery().subscribe(new Action1<WalletItem>()
         {
             @Override
             public void call(WalletItem item)
@@ -407,7 +412,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             }
         });
 
-        dbManager.transactionsQuery().subscribe(new Action1<List<TransactionItem>>()
+        transactionSubscription = dbManager.transactionsQuery().subscribe(new Action1<List<TransactionItem>>()
         {
             @Override
             public void call(List<TransactionItem> items)
@@ -415,7 +420,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 transactionItems = items;
 
                 Timber.d("subscribeData transactionItems: " + transactionItems.size());
-                
+
                 setupList(walletItem, qrImage, transactionItems);
             }
         }, new Action1<Throwable>()
@@ -427,7 +432,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             }
         });
 
-        dbManager.exchangeQuery().subscribe(new Action1<ExchangeItem>()
+        exchangeSubscription = dbManager.exchangeQuery().subscribe(new Action1<ExchangeItem>()
         {
             @Override
             public void call(ExchangeItem item)
@@ -435,7 +440,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 exchangeItem = item;
 
                 Timber.d("subscribeData exchange: " + exchangeItem);
-                
+
                 if (exchangeItem != null && walletItem != null) {
                     setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
                 }
@@ -504,32 +509,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 });
     }
 
-    @Deprecated
-    private void updateWalletBalance(final Wallet wallet)
-    {
-        updateSubscription = dbManager.walletQuery()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<WalletItem>()
-                {
-                    @Override
-                    public void call(WalletItem walletItem)
-                    {
-                        dbManager.updateWallet(wallet);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(final Throwable throwable)
-                    {
-                        reportError(throwable);
-                    }
-                });
-    }
-
     public void setWallet(final WalletItem item)
     {
-        
         bitmapSubscription = Observable.defer(new Func0<Observable<Bitmap>>()
         {
             @Override
@@ -544,7 +525,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 }
             }
         })
-                
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<Bitmap>()
                 {
                     @Override
@@ -555,15 +537,33 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void onError(final Throwable e)
                     {
-                        setupList(walletItem, qrImage, transactionItems);
-                        reportError(e);
+                        if(getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    setupList(walletItem, qrImage, transactionItems);
+                                    reportError(e);  
+                                }
+                            });
+                        }
                     }
 
                     @Override
                     public void onNext(final Bitmap bitmap)
                     {
-                        qrImage = bitmap;
-                        setupList(walletItem, qrImage, transactionItems);
+                        if(getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    qrImage = bitmap;
+                                    setupList(walletItem, qrImage, transactionItems);
+                                }
+                            });
+                        }
                     }
                 });
     }

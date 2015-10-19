@@ -451,7 +451,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void getDeletedContactsInfo(List<String> contacts)
     {
-        Timber.e("Get Deleted Contacts: " + contacts.toString());
         //.onErrorResumeNext(getContactInfo(contacts))
         getContactInfo(contacts)
                 .subscribe(new Action1<List<Contact>>()
@@ -459,7 +458,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(List<Contact> contacts)
                     {
-                        Timber.e("List of Deleted Contacts Size: " + contacts.size());
+                        //Timber.e("List of Deleted Contacts Size: " + contacts.size());
                         if (!contacts.isEmpty())
                             notificationService.contactDeleteNotification(contacts);
                     }
@@ -468,7 +467,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     @Override
                     public void call(Throwable throwable)
                     {
-                        Timber.e("Get Contact Info Error");
+                        //Timber.e("Get Contact Info Error");
                         reportError(throwable);
                     }
                 });
@@ -543,7 +542,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     {
                         if (sessionItem == null) return null;
 
-                        Timber.e("Get Contact Info: " + contactIds.toString());
+                        //Timber.e("Get Contact Info: " + contactIds.toString());
                         
                         return Observable.just(Observable.from(contactIds)
                                 .flatMap(new Func1<String, Observable<? extends List<Contact>>>()

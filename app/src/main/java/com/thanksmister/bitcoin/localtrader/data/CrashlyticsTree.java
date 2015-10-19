@@ -43,33 +43,44 @@ public class CrashlyticsTree extends Timber.Tree
     @Override
     public void i(String message, Object... args)
     {
-        logMessage(Log.INFO, message, args);
+        if(BuildConfig.DEBUG) {
+            logMessage(Log.INFO, message, args);
+        }
     }
 
     @Override
     public void i(Throwable t, String message, Object... args)
     {
-        logMessage(Log.INFO, message, args);
+        //logMessage(Log.INFO, message, args);
+        if(BuildConfig.DEBUG) {
+            logMessage(Log.INFO, message, args);
+        }
         // NOTE: We are explicitly not sending the exception to Crashlytics here.
     }
 
     @Override
     public void w(String message, Object... args)
     {
-        logMessage(Log.WARN, message, args);
+        if(BuildConfig.DEBUG) {
+            logMessage(Log.WARN, message, args);
+        }
     }
 
     @Override
     public void w(Throwable t, String message, Object... args)
     {
-        logMessage(Log.WARN, message, args);
+        if(BuildConfig.DEBUG) {
+            logMessage(Log.WARN, message, args);
+        }
         // NOTE: We are explicitly not sending the exception to Crashlytics here.
     }
 
     @Override
     public void e(String message, Object... args)
     {
-        logMessage(Log.ERROR, message, args);
+        if(BuildConfig.DEBUG) {
+            logMessage(Log.ERROR, message, args);
+        }
     }
 
     @Override
@@ -89,10 +100,10 @@ public class CrashlyticsTree extends Timber.Tree
                     Crashlytics.log(priority, tag, message);
                 }
 
-                Crashlytics.logException(t);
+                //Crashlytics.logException(t);
                 
             } catch (Exception e) {
-                Timber.e(e.getMessage());
+                //Timber.e(e.getMessage());
             }
         }
     }
@@ -102,20 +113,20 @@ public class CrashlyticsTree extends Timber.Tree
         try {
             if(args.length > 0) {
                 
-                Crashlytics.log(priority, "LocalTrader", String.format(message, args));
+                //Crashlytics.log(priority, "LocalTrader", String.format(message, args));
 
                 if(priority == Log.ERROR)
                     Crashlytics.logException(new Throwable(String.format(message, args)));
                 
             } else {
-                Crashlytics.log(priority, "LocalTrader", message);
+                //Crashlytics.log(priority, "LocalTrader", message);
                 
                 if(priority == Log.ERROR)
                     Crashlytics.logException(new Throwable(message));
             }
             
         } catch (Exception e) {
-            Timber.e(e.getMessage());
+            //Timber.e(e.getMessage());
         }
     }
 }

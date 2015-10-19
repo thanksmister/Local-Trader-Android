@@ -452,7 +452,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     protected void onRefreshStop()
     {
         handler.removeCallbacks(refreshRunnable);
-        swipeLayout.setRefreshing(false);
+        
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
     }
 
     protected void subscribeData()

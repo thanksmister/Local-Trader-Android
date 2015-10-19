@@ -303,41 +303,41 @@ public abstract class BaseActivity extends AppCompatActivity
     protected void handleError(Throwable throwable, boolean retry)
     {
         if(DataServiceUtils.isConnectionError(throwable)) {
-            Timber.e("Connection Error");
+            Timber.i("Connection Error");
             snack(getString(R.string.error_service_unreachable_error), retry);
         } else if(DataServiceUtils.isTimeoutError(throwable)) {
-            Timber.e("Timeout Error");
+            Timber.i("Timeout Error");
             snack(getString(R.string.error_service_timeout_error), retry);
         } else if(DataServiceUtils.isNetworkError(throwable)) {
-            Timber.e("Data Error: " + "Code 503");
+            Timber.i("Data Error: " + "Code 503");
             snack(getString(R.string.error_no_internet), retry);
         } else if(DataServiceUtils.isHttp502Error(throwable)) {
-            Timber.e("Data Error: " + "Code 502");
+            Timber.i("Data Error: " + "Code 502");
             snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isConnectionError(throwable)) {
             Timber.e("Connection Error: " + "Code ???");
             snack(getString(R.string.error_service_timeout_error), retry);
         } else if(DataServiceUtils.isHttp403Error(throwable)) {
-            Timber.e("Data Error: " + "Code 403");
+            Timber.i("Data Error: " + "Code 403");
             toast(getString(R.string.error_authentication));
             logOut();
         } else if(DataServiceUtils.isHttp401Error(throwable)) {
-            Timber.e("Data Error: " + "Code 401");
+            Timber.i("Data Error: " + "Code 401");
             snack(getString(R.string.error_no_internet), retry);
         } else if(DataServiceUtils.isHttp500Error(throwable)) {
-            Timber.e("Data Error: " + "Code 500");
+            Timber.i("Data Error: " + "Code 500");
             snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp404Error(throwable)) {
-            Timber.e("Data Error: " + "Code 404");
+            Timber.i("Data Error: " + "Code 404");
             snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
-            Timber.e("Data Error: " + "Code 400 Grant Invalid");
+            Timber.i("Data Error: " + "Code 400 Grant Invalid");
             toast(getString(R.string.error_authentication));
             logOut();
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
             snack(getString(R.string.error_service_error), retry);
         } else if(throwable != null && throwable.getLocalizedMessage() != null) {
-            Timber.e("Data Error: " + throwable.getLocalizedMessage());
+            Timber.i("Data Error: " + throwable.getLocalizedMessage());
             snack(throwable.getLocalizedMessage(), retry);
         } else {
             snack(R.string.error_unknown_error, retry);
