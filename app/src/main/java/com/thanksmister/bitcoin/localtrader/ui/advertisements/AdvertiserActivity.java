@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -34,6 +35,7 @@ import android.widget.TextView;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
@@ -43,6 +45,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+import com.trello.rxlifecycle.ActivityEvent;
 
 import java.util.List;
 
@@ -55,10 +58,12 @@ import butterknife.Optional;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
+import timber.log.Timber;
 
 public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -150,9 +155,9 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
     }
     
     private String adId;
-
-    private Subscription subscription = Subscriptions.empty();
+    
     private AdvertisementData advertisementData;
+    private Handler handler;
 
     private class AdvertisementData {
         public Advertisement advertisement;
@@ -174,6 +179,8 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
         setContentView(R.layout.view_advertiser);
 
         ButterKnife.inject(this);
+
+        handler = new Handler();
 
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
@@ -224,17 +231,15 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
     public void onResume()
     {
         super.onResume();
-
-        subscribeData();
+        
+        onRefreshStart();
     }
 
     @Override
     public void onPause()
     {
         super.onPause();
-
-        subscription.unsubscribe();
-
+        
         if(progress != null)
             progress.clearAnimation();
 
@@ -247,12 +252,30 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
     {
         subscribeData();
     }
-    
+
     public void onRefreshStop()
     {
-        if(swipeLayout != null)
+        handler.removeCallbacks(refreshRunnable);
+
+        if (swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
+
+    public void onRefreshStart()
+    {
+        handler = new Handler();
+        handler.postDelayed(refreshRunnable, 1000);
+    }
+
+    private Runnable refreshRunnable = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            swipeLayout.setRefreshing(true);
+            subscribeData();
+        }
+    };
     
     public void setToolBarMenu(Toolbar toolbar)
     {
@@ -307,7 +330,7 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
 
     protected void subscribeData()
     {
-        subscription = Observable.combineLatest(dbManager.methodQuery().cache(), dataService.getAdvertisement(adId).cache(), new Func2<List<MethodItem>, Advertisement, AdvertisementData>()
+        Observable.combineLatest(dbManager.methodQuery().cache(), dataService.getAdvertisement(adId).cache(), new Func2<List<MethodItem>, Advertisement, AdvertisementData>()
         {
             @Override
             public AdvertisementData call(List<MethodItem> methods, Advertisement advertisement)
@@ -319,6 +342,15 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
                 return advertisementData;
             }
         })
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Advertisement and method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<AdvertisementData>bindUntilEvent(ActivityEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<AdvertisementData>()

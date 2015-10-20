@@ -295,7 +295,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         } catch (NullPointerException e) {
-            Timber.e("Error closing keyboard");
+            Timber.w("Error closing keyboard");
         }
         
         if (position == DRAWER_WALLET) {

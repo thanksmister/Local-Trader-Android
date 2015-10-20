@@ -53,10 +53,23 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     protected List items;
     protected List<MethodItem> methods = Collections.emptyList();
     private Context context;
+    private OnItemClickListener onItemClickListener;
+
+    public static interface OnItemClickListener
+    {
+        public void onSearchButtonClicked();
+        public void onAdvertiseButtonClicked();
+    }
    
     public ItemAdapter(Context context)
     {
         this.context = context;
+    }
+
+    public ItemAdapter(Context context, OnItemClickListener onItemClickListener)
+    {
+        this.context = context;
+        this.onItemClickListener = onItemClickListener;
     }
   
     public void replaceWith(List data, List<MethodItem> methods)
@@ -276,18 +289,6 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         @InjectView(R.id.bitcoinValue)
         TextView bitcoinValue;
 
-        @OnClick(R.id.advertiseButton)
-        public void advertiseButtonClicked()
-        {
-            
-        }
-        
-        @OnClick(R.id.searchButton)
-        public void searchButtonClicked()
-        {
-            
-        }
-
         public ExchangeViewHolder(View itemView)
         {
             super(itemView);
@@ -296,6 +297,18 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
     public class EmptyViewHolder extends ViewHolder
     {
+        @OnClick(R.id.advertiseButton)
+        public void advertiseButtonClicked()
+        {
+            onItemClickListener.onAdvertiseButtonClicked();
+        }
+
+        @OnClick(R.id.searchButton)
+        public void searchButtonClicked()
+        {
+            onItemClickListener.onSearchButtonClicked();
+        }
+        
         public EmptyViewHolder(View itemView) {
             super(itemView);
         }

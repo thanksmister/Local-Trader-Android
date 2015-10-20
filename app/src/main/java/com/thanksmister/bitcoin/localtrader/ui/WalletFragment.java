@@ -68,6 +68,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
+import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -134,15 +135,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @InjectView(R.id.bitcoinLayout)
     View bitcoinLayout;
 
-    private Subscription exchangeSubscription = Subscriptions.empty();
-    private Subscription walletSubscription = Subscriptions.empty();
-    private Subscription transactionSubscription = Subscriptions.empty();
-    
-    private Subscription subscription = Subscriptions.empty();
-    private Subscription walletUpdateSubscription = Subscriptions.empty();
-    private Subscription updateExchangeSubscription = Subscriptions.empty();
-    private Subscription updateSubscription = Subscriptions.empty();
-    private Subscription bitmapSubscription = Subscriptions.empty();
+
     private TransactionsAdapter transactionsAdapter;
 
     private Handler handler;
@@ -292,15 +285,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         appBarLayout.removeOnOffsetChangedListener(this);
 
-        bitmapSubscription.unsubscribe();
-        subscription.unsubscribe();
-        exchangeSubscription.unsubscribe();
-        walletSubscription.unsubscribe();
-        transactionSubscription.unsubscribe();
-        walletUpdateSubscription.unsubscribe();
-        updateExchangeSubscription.unsubscribe();
-        updateSubscription.unsubscribe();
-        
         handler.removeCallbacks(refreshRunnable);
     }
 
@@ -310,11 +294,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         super.onDetach();
 
         ButterKnife.reset(this);
-        
-        if( bitmapSubscription != null && !bitmapSubscription.isUnsubscribed()) {
-            bitmapSubscription.unsubscribe();
-        }
-
+    
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
             Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
@@ -335,7 +315,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     public void onRefreshStart()
     {
-        Timber.d("onRefreshStart");
         handler = new Handler();
         handler.postDelayed(refreshRunnable, 1000);
     }
@@ -352,10 +331,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     protected void onRefreshStop()
     {
-        Timber.d("onRefreshStop");
         handler.removeCallbacks(refreshRunnable);
         swipeLayout.setRefreshing(false);
-        
     }
 
     @Override
@@ -386,81 +363,118 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         //dbManager.clearWallet();
 
-        walletSubscription = dbManager.walletQuery().subscribe(new Action1<WalletItem>()
-        {
-            @Override
-            public void call(WalletItem item)
-            {
-                walletItem = item;
-                
-                if (walletItem != null) {
-                    setWallet(walletItem);
-                }
+        dbManager.walletQuery()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Wallet subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<WalletItem>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<WalletItem>()
+                {
+                    @Override
+                    public void call(WalletItem item)
+                    {
+                        walletItem = item;
 
-                if (exchangeItem != null && walletItem != null) {
-                    setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
-                }
-                
-                setupList(walletItem, qrImage, transactionItems);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(final Throwable throwable)
-            {
-                reportError(throwable);
-            }
-        });
+                        if (walletItem != null) {
+                            setWallet(walletItem);
+                        }
 
-        transactionSubscription = dbManager.transactionsQuery().subscribe(new Action1<List<TransactionItem>>()
-        {
-            @Override
-            public void call(List<TransactionItem> items)
-            {
-                transactionItems = items;
+                        if (exchangeItem != null && walletItem != null) {
+                            setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
+                        }
 
-                Timber.d("subscribeData transactionItems: " + transactionItems.size());
+                        setupList(walletItem, qrImage, transactionItems);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
 
-                setupList(walletItem, qrImage, transactionItems);
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(final Throwable throwable)
-            {
-                reportError(throwable);
-            }
-        });
+        dbManager.transactionsQuery()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Transactions subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<TransactionItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<TransactionItem>>()
+                {
+                    @Override
+                    public void call(List<TransactionItem> items)
+                    {
+                        transactionItems = items;
 
-        exchangeSubscription = dbManager.exchangeQuery().subscribe(new Action1<ExchangeItem>()
-        {
-            @Override
-            public void call(ExchangeItem item)
-            {
-                exchangeItem = item;
+                        setupList(walletItem, qrImage, transactionItems);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
 
-                Timber.d("subscribeData exchange: " + exchangeItem);
+        dbManager.exchangeQuery()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Exchange subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<ExchangeItem>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<ExchangeItem>()
+                {
+                    @Override
+                    public void call(ExchangeItem item)
+                    {
+                        exchangeItem = item;
 
-                if (exchangeItem != null && walletItem != null) {
-                    setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(final Throwable throwable)
-            {
-                reportError(throwable);
-            }
-        });
+                        Timber.d("subscribeData exchange: " + exchangeItem);
+
+                        if (exchangeItem != null && walletItem != null) {
+                            setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        reportError(throwable);
+                    }
+                });
     }
 
     protected void updateData()
     {
         Timber.d("updateData");
         
-        updateExchangeSubscription = exchangeService.getMarket(true)
+        exchangeService.getMarket(true)
                 .timeout(20, TimeUnit.SECONDS)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Exchange update subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Exchange>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()
@@ -481,7 +495,16 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     }
                 });
         
-        walletUpdateSubscription = dataService.getWallet(true)
+        dataService.getWallet(true)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Wallet update subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Wallet>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Wallet>()
@@ -511,7 +534,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     public void setWallet(final WalletItem item)
     {
-        bitmapSubscription = Observable.defer(new Func0<Observable<Bitmap>>()
+        Observable.defer(new Func0<Observable<Bitmap>>()
         {
             @Override
             public Observable<Bitmap> call()
@@ -525,6 +548,15 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 }
             }
         })
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Bitmap subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Bitmap>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<Bitmap>()

@@ -26,6 +26,7 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
+import com.trello.rxlifecycle.components.support.RxFragment;
 
 import butterknife.ButterKnife;
 import rx.functions.Action0;
@@ -33,7 +34,7 @@ import rx.functions.Action0;
 /**
  * Base fragment which performs injection using the activity object graph of its parent.
  */
-public abstract class BaseFragment extends Fragment
+public abstract class BaseFragment extends RxFragment
 {
     private BaseActivity parentActivity;
     
@@ -75,8 +76,8 @@ public abstract class BaseFragment extends Fragment
         super.onDestroy();
         
         if (BuildConfig.DEBUG) {
-            RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
+            //RefWatcher refWatcher = BaseApplication.getRefWatcher(getActivity());
+            //refWatcher.watch(this);
         }
     }
     

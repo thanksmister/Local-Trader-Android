@@ -35,7 +35,8 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".ui.MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -84,61 +85,75 @@
                     android:resource="@xml/syncadapter" />
         </service>
 
-        <activity android:name=".ui.LoginActivity"/>
+        <activity android:name=".ui.LoginActivity"
+                  android:screenOrientation="portrait"/>
                 
         <activity
-            android:name=".ui.advertisements.AdvertisementActivity">
+            android:name=".ui.advertisements.AdvertisementActivity"
+            android:screenOrientation="portrait">
         </activity>
 
         <activity
-                android:name=".ui.contacts.ContactActivity">
+                android:name=".ui.contacts.ContactActivity"
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
-                android:name=".ui.PinCodeActivity">
+                android:name=".ui.PinCodeActivity"
+                android:screenOrientation="portrait"
+                android:noHistory="true">
         </activity>
 
         <activity
-                android:name=".ui.search.SearchResultsActivity">
+                android:name=".ui.search.SearchResultsActivity"
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
                 android:name=".ui.advertisements.AdvertiserActivity"
-                >
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
-                android:name=".ui.search.TradeRequestActivity">
+                android:name=".ui.search.TradeRequestActivity"
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
-                android:name=".ui.contacts.ContactsActivity">
+                android:name=".ui.contacts.ContactsActivity"
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
-                android:name=".ui.advertisements.EditActivity">
+                android:name=".ui.advertisements.EditActivity"
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
-                android:name=".ui.PromoActivity">
+                android:name=".ui.PromoActivity"
+                android:screenOrientation="portrait"
+                android:noHistory="true">
         </activity>
 
         <activity
                 android:name=".ui.bitcoin.QRCodeActivity"
-                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth">
+                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
                 android:name=".ui.settings.SettingsActivity"
                 android:label="@string/title_activity_settings"
-                android:theme="@style/PreferencesTheme">
+                android:theme="@style/PreferencesTheme"
+                android:screenOrientation="portrait">
         </activity>
 
         <activity
                android:name=".ui.bitcoin.BitcoinHandler"
                android:exported="true"
                android:label="Send Bitcoins"
-               android:noHistory="true">
+               android:noHistory="true"
+               android:screenOrientation="portrait">
            <intent-filter>
                <action android:name="android.intent.action.VIEW" />
                <category android:name="android.intent.category.DEFAULT" />

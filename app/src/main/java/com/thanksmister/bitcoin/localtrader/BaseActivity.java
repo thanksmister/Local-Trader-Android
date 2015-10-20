@@ -51,6 +51,8 @@ import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
 import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
+import com.trello.rxlifecycle.ActivityEvent;
+import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
 import org.json.JSONObject;
 
@@ -69,7 +71,7 @@ import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 /** Base activity which sets up a per-activity object graph and performs injection. */
-public abstract class BaseActivity extends AppCompatActivity
+public abstract class BaseActivity extends RxAppCompatActivity
 {
     /** This activity requires authentication */
     @Retention(RetentionPolicy.RUNTIME)
@@ -88,8 +90,6 @@ public abstract class BaseActivity extends AppCompatActivity
     protected SharedPreferences sharedPreferences;
     
     AlertDialog progressDialog;
-    
-    Subscription subscription = Subscriptions.empty();
 
     @Override 
     protected void onCreate(Bundle savedInstanceState) 
@@ -115,8 +115,6 @@ public abstract class BaseActivity extends AppCompatActivity
         bus.unregister(this);
 
         unregisterReceiver(connReceiver);
-
-        subscription.unsubscribe();
     }
 
     @Override
@@ -205,7 +203,16 @@ public abstract class BaseActivity extends AppCompatActivity
 
     public void logOut()
     {
-        subscription = dataService.logout()
+        dataService.logout()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Logout subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<JSONObject>()

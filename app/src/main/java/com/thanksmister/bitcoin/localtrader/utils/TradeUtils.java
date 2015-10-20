@@ -552,43 +552,42 @@ public class TradeUtils
         return  addressText;
     }
 
+    // TODO unit tests
     public static String getAddressShort(Address address)
     {
-        String addressText;
+        String addressText = "No location....";
+
+        String addressLine = "0";
+        String locality = "0";
+        String country = "0";
+        
         if(address.getMaxAddressLineIndex() > 0) {
+
+            if(address.getAddressLine(0) != null)
+                addressLine = address.getAddressLine(0);
+
+            if(address.getLocality() != null)
+                addressLine = address.getLocality();
+
+            if (address.getCountryName() != null)
+                country = address.getCountryName();
+
             addressText = String.format(
                     "%s, %s, %s",
 
                     // If there's a street address, add it
-                    address.getAddressLine(0),
+                    addressLine,
 
                     // Locality is usually a city
-                    address.getLocality(),
+                    locality,
 
                     // The country of the address
-                    address.getCountryName()
+                    country
             );
-        } else if(address.getLocality() != null) {
-            addressText = String.format(
-                    "%s, %s",
-                    
-                    // Locality is usually a city
-                    address.getLocality(),
-
-                    // The country of the address
-                    address.getCountryName()
-            );
-            
-        } else {
-            addressText = String.format(
-                    "%s",
-
-                    // The country of the address
-                    address.getCountryName()
-            );
-        }
+        } 
         
-
+        addressText = addressText.replace("0,", "");
+        
         return addressText;
     }
 

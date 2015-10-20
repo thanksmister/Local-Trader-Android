@@ -59,6 +59,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
+import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
@@ -128,11 +129,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     private String address;
     private String amount;
     private WalletData walletData;
-   
-    CompositeSubscription dataSubscriptions = new CompositeSubscription();
-    CompositeSubscription updateSubscriptions = new CompositeSubscription();
     
-
     private Handler handler;
 
     public static SendFragment newInstance(String address, String amount)
@@ -329,8 +326,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         super.onPause();
 
         handler.removeCallbacks(refreshRunnable);
-        dataSubscriptions.unsubscribe();
-        updateSubscriptions.unsubscribe();
     }
 
     @Override
@@ -401,7 +396,8 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     protected void subscribeData()
     {
         // this must be set each time
-        dataSubscriptions = new CompositeSubscription();
+        CompositeSubscription dataSubscriptions = new CompositeSubscription();
+        
         dataSubscriptions.add(Observable.combineLatest(dbManager.exchangeQuery(), dbManager.walletQuery(), new Func2<ExchangeItem, WalletItem, WalletData>()
         {
             @Override
@@ -418,8 +414,15 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 return walletData;
             }
         })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Wallet and exchange subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<WalletData>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribe(new Action1<WalletData>()
                 {
                     @Override
@@ -440,10 +443,20 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     
     private void updateData()
     {
-        updateSubscriptions = new CompositeSubscription();
+        CompositeSubscription updateSubscriptions = new CompositeSubscription();
+        
         updateSubscriptions.add(dataService.getWalletBalance()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Wallet update subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Wallet>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribe(new Action1<Wallet>()
                 {
                     @Override
@@ -465,6 +478,15 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
 
         updateSubscriptions.add(exchangeService.getMarket(true)
                 .timeout(10, TimeUnit.SECONDS)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Exchange update subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Exchange>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()

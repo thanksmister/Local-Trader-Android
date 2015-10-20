@@ -51,6 +51,7 @@ import android.widget.TextView;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -63,6 +64,7 @@ import com.thanksmister.bitcoin.localtrader.ui.components.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -78,6 +80,7 @@ import butterknife.OnClick;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
@@ -163,12 +166,7 @@ public class SearchFragment extends BaseFragment
     private Address address;
     private PredictAdapter predictAdapter;
     private TradeType tradeType = TradeType.NONE;
-
-    private Subscription locationSubscription = Subscriptions.empty();
-    private Subscription geoLocationSubscription = Subscriptions.empty();
-    private Subscription methodUpdateSubscription = Subscriptions.empty();
-    private Subscription methodSubscription = Subscriptions.empty();
-
+    
     private Handler handler;
     
     public static SearchFragment newInstance()
@@ -229,12 +227,7 @@ public class SearchFragment extends BaseFragment
         ButterKnife.reset(this);
 
         handler.removeCallbacks(locationRunnable);
-
-        methodSubscription.unsubscribe();
-        methodUpdateSubscription.unsubscribe();
-        geoLocationSubscription.unsubscribe();
-        locationSubscription.unsubscribe();
-
+        
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
             Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
@@ -444,10 +437,16 @@ public class SearchFragment extends BaseFragment
     
     private void subscribeData()
     {
-        Observable<List<MethodItem>> methodObservable = dbManager.methodQuery().cache();
-        methodSubscription = methodObservable
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        dbManager.methodQuery().cache()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<MethodItem>>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribe(new Action1<List<MethodItem>>()
                 {
                     @Override
@@ -559,8 +558,17 @@ public class SearchFragment extends BaseFragment
     {
         Timber.d("getLastKnownLocation");
         
-        locationSubscription = geoLocationService.getLastKnownLocation()
+        geoLocationService.getLastKnownLocation()
                 .timeout(5, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Last Location subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Address>bindUntilEvent(FragmentEvent.PAUSE))
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Action1<Address>()
@@ -568,10 +576,6 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(final Address address)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-
-                            locationSubscription.unsubscribe();
-                            
                             getActivity().runOnUiThread(new Runnable()
                             {
                                 @Override
@@ -585,18 +589,13 @@ public class SearchFragment extends BaseFragment
                                     }
                                 }
                             });
-                            
-                            
-                        }
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-                            locationSubscription.unsubscribe();
-
+                       
                             getActivity().runOnUiThread(new Runnable()
                             {
                                 @Override
@@ -606,7 +605,7 @@ public class SearchFragment extends BaseFragment
                                     getCurrentLocation(); // back up plan is to get current location
                                 }
                             });
-                        }
+                        
                     }
                 });
     }
@@ -615,7 +614,16 @@ public class SearchFragment extends BaseFragment
     {
         Timber.d("getCurrentLocation");
         
-        locationSubscription = geoLocationService.getUpdatedLocation()
+        geoLocationService.getUpdatedLocation()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Current Location subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Location>bindUntilEvent(FragmentEvent.PAUSE))
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Action1<Location>()
@@ -623,10 +631,7 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(final Location location)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-
-                            locationSubscription.unsubscribe();
-
+                        
                             getActivity().runOnUiThread(new Runnable()
                             {
                                 @Override
@@ -639,17 +644,14 @@ public class SearchFragment extends BaseFragment
                                     }
                                 }
                             });
-                        }
+                        
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-
-                            locationSubscription.unsubscribe();
-                            
+                        
                             getActivity().runOnUiThread(new Runnable()
                             {
                                 @Override
@@ -660,7 +662,7 @@ public class SearchFragment extends BaseFragment
                                     handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                                 }
                             });
-                        }
+                        
                     }
                 });
     }
@@ -669,8 +671,17 @@ public class SearchFragment extends BaseFragment
     {
         Timber.d("getAddressFromLocation");
 
-        locationSubscription = geoLocationService.getAddressFromLocation(location)
+        geoLocationService.getAddressFromLocation(location)
                 .timeout(20, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Get Address From Location subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Address>bindUntilEvent(FragmentEvent.PAUSE))
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Action1<Address>()
@@ -678,11 +689,7 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(final Address address)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-
-                            locationSubscription.unsubscribe();
-
-                            getActivity().runOnUiThread(new Runnable()
+                        getActivity().runOnUiThread(new Runnable()
                             {
                                 @Override
                                 public void run()
@@ -695,18 +702,14 @@ public class SearchFragment extends BaseFragment
                                     }
                                 }
                             });
-                        }
+                        
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-
-                            locationSubscription.unsubscribe();
-
-                            getActivity().runOnUiThread(new Runnable()
+                        getActivity().runOnUiThread(new Runnable()
                             {
                                 @Override
                                 public void run()
@@ -716,7 +719,7 @@ public class SearchFragment extends BaseFragment
                                     getAddressFromLocationFallback(location);
                                 }
                             });
-                        }
+                        
                     }
                 });
     }
@@ -725,7 +728,16 @@ public class SearchFragment extends BaseFragment
     {
         Timber.d("getAddressFromLocationFallback Location: " + location.getLongitude());
         
-        locationSubscription = geoLocationService.getUpdatedAddressFallback(location)
+        geoLocationService.getUpdatedAddressFallback(location)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Get Address From Location Fallback subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Address>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Address>()
@@ -733,14 +745,11 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(Address address)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-                            locationSubscription.unsubscribe();
-                            if (address != null) {
-                                setAddress(address);
-                                hideProgress();
-                            } else {
-                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                            }
+                        if (address != null) {
+                            setAddress(address);
+                            hideProgress();
+                        } else {
+                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                         }
                     }
                 }, new Action1<Throwable>()
@@ -748,12 +757,9 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(Throwable throwable)
                     {
-                        if (!locationSubscription.isUnsubscribed()) {
-                            locationSubscription.unsubscribe();
-                            hideProgress();
-                            reportError(throwable);
-                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                        }
+                        hideProgress();
+                        reportError(throwable);
+                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                     }
                 });
     }
@@ -762,8 +768,16 @@ public class SearchFragment extends BaseFragment
     {
         Timber.d("UpdateData");
 
-        Observable<List<Method>> methodUpdateObservable = dataService.getMethods();
-        methodUpdateSubscription = methodUpdateObservable
+        dataService.getMethods()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Get Method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<Method>>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Method>>()
@@ -852,8 +866,16 @@ public class SearchFragment extends BaseFragment
 
     private void doAddressLookup(String locationName)
     {
-        Observable<List<Address>> geoLocationObservable = geoLocationService.geoGetLocationFromName(locationName);
-        geoLocationSubscription = geoLocationObservable
+        geoLocationService.geoGetLocationFromName(locationName)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Get Method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<Address>>bindUntilEvent(FragmentEvent.PAUSE))
                 .observeOn(Schedulers.io())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Action1<List<Address>>()
