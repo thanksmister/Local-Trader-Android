@@ -555,7 +555,7 @@ public class TradeUtils
     // TODO unit tests
     public static String getAddressShort(Address address)
     {
-        String addressText = "No location....";
+        String addressText = "No location...";
 
         String addressLine = "0";
         String locality = "0";
@@ -567,7 +567,7 @@ public class TradeUtils
                 addressLine = address.getAddressLine(0);
 
             if(address.getLocality() != null)
-                addressLine = address.getLocality();
+                locality = address.getLocality();
 
             if (address.getCountryName() != null)
                 country = address.getCountryName();

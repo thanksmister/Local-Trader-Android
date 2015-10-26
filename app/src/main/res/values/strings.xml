@@ -40,6 +40,8 @@
     <string name="toast_warning_no_location">Couldn\'t determine current location, using last known…</string>
     <string name="warning_no_location_active">Location services are required to use the search function, please enable location services to continue.</string>
     <string name="warning_no_google_play_services">Google Play Services are required to use the search function, please install the services to continue.</string>
+    <string name="warning_update_google_play_services">Google Play Services are out of date, please update the services to continue.</string>
+    <string name="warning_disabled_google_play_services">Google Play Services is disabled, please enable the services to continue.</string>
     <string name="warning_no_location_services_title">Location Services</string>
     <string name="warning_no_google_play_services_title">Google Play Services</string>
     <string name="error_generic_server_down">Service temporarily down or unreachable.</string>

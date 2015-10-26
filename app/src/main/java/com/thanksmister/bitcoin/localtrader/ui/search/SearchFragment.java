@@ -48,10 +48,11 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -78,12 +79,10 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class SearchFragment extends BaseFragment
@@ -415,8 +414,11 @@ public class SearchFragment extends BaseFragment
 
     public void hideProgress()
     {
-        progress.setVisibility(View.GONE);
-        content.setVisibility(View.VISIBLE);
+        if(progress != null)
+            progress.setVisibility(View.GONE);
+        
+        if(content != null)
+            content.setVisibility(View.VISIBLE);
     }
 
     private void setupToolbar()
@@ -536,7 +538,7 @@ public class SearchFragment extends BaseFragment
         Timber.d("startLocationCheck");
         if (!geoLocationService.isGooglePlayServicesAvailable()) {
             hideProgress();
-            missingGooglePlayServices();
+            showGooglePlayServicesError();
             return;
         }
 
@@ -547,10 +549,9 @@ public class SearchFragment extends BaseFragment
         
         if (hasLocationServices()) {
             Timber.d("hasLocationServices");
-            getLastKnownLocation();
-            //getCurrentLocation();
+            getCurrentLocation();
         } else {
-            showEnableLocation();
+            showNoLocationServicesWarning();
         }
     }
     
@@ -710,15 +711,15 @@ public class SearchFragment extends BaseFragment
                     public void call(final Throwable throwable)
                     {
                         getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
                             {
-                                @Override
-                                public void run()
-                                {
-                                    hideProgress();
-                                    reportError(throwable);
-                                    getAddressFromLocationFallback(location);
-                                }
-                            });
+                                hideProgress();
+                                reportError(throwable);
+                                getAddressFromLocationFallback(location);
+                            }
+                        });
                         
                     }
                 });
@@ -803,14 +804,9 @@ public class SearchFragment extends BaseFragment
                 });
     }
 
-    private void showEnableLocation()
+    private void showNoLocationServicesWarning()
     {
         createAlert(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active), false);
-    }
-
-    private void missingGooglePlayServices()
-    {
-        createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
     }
 
     public void createAlert(String title, String message, final boolean googlePlay)
@@ -922,12 +918,12 @@ public class SearchFragment extends BaseFragment
     private void showSearchResultsScreen()
     {
         if(address == null) {
-            showEnableLocation();
+            showNoLocationServicesWarning();
             return;
         }
         
         if (!geoLocationService.isGooglePlayServicesAvailable()) {
-            missingGooglePlayServices();
+            showGooglePlayServicesError();
             return;
         }
 
@@ -937,7 +933,24 @@ public class SearchFragment extends BaseFragment
             Intent intent = SearchResultsActivity.createStartIntent(getActivity(), tradeType, address, methodCode);
             startActivity(intent);
         } else {
-            showEnableLocation();
+            showNoLocationServicesWarning();
+        }
+    }
+    
+    private void showGooglePlayServicesError()
+    {
+        int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity());
+
+        switch (result) {
+            case ConnectionResult.SERVICE_MISSING:
+                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
+                break;
+            case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
+                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_location_active), true);
+                break;
+            case ConnectionResult.SERVICE_DISABLED:
+                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_disabled_google_play_services), false);
+                break;
         }
     }
 }

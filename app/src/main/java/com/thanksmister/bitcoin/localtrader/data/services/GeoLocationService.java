@@ -97,7 +97,7 @@ public class GeoLocationService
 
         final LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setNumUpdates(5)
+                .setNumUpdates(1)
                 .setInterval(100);
 
         return locationProvider.getUpdatedLocation(locationRequest);

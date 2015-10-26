@@ -272,7 +272,9 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
         @Override
         public void run()
         {
-            swipeLayout.setRefreshing(true);
+            if (swipeLayout != null)
+                swipeLayout.setRefreshing(true);
+            
             subscribeData();
         }
     };

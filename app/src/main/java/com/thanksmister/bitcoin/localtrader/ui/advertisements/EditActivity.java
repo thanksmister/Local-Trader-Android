@@ -45,6 +45,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -771,7 +773,7 @@ public class EditActivity extends BaseActivity
 
     public void setAddress(Address address)
     {
-        if (address == null) return;
+        if (address == null || currentLocation == null) return;
 
         this.address = address;
 
@@ -815,7 +817,7 @@ public class EditActivity extends BaseActivity
     public void startLocationCheck()
     {
         if (!geoLocationService.isGooglePlayServicesAvailable()) {
-            missingGooglePlayServices();
+            showGooglePlayServicesError();
             return;
         }
 
@@ -1087,5 +1089,22 @@ public class EditActivity extends BaseActivity
                         });
                     }
                 });
+    }
+
+    private void showGooglePlayServicesError()
+    {
+        int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+
+        switch (result) {
+            case ConnectionResult.SERVICE_MISSING:
+                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
+                break;
+            case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
+                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_location_active), true);
+                break;
+            case ConnectionResult.SERVICE_DISABLED:
+                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_disabled_google_play_services), false);
+                break;
+        }
     }
 }

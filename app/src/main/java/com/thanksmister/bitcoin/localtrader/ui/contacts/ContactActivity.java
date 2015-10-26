@@ -377,7 +377,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         @Override
         public void run()
         {
-            swipeLayout.setRefreshing(true);
+            if(swipeLayout != null)
+                swipeLayout.setRefreshing(true);
+            
             updateData();
         }
     };
@@ -427,9 +429,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
         progress.setVisibility(show ? View.GONE : View.VISIBLE);
-        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
+        {
             @Override
-            public void onAnimationEnd(Animator animation) {
+            public void onAnimationEnd(Animator animation)
+            {
                 if (progress != null)
                     progress.setVisibility(show ? View.GONE : View.VISIBLE);
             }
@@ -840,11 +844,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private void contactAction(final String contactId, final String pinCode, final ContactAction action)
     {
         dataService.contactAction(contactId, pinCode, action)
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
-                    public void call()
-                    {
+                    public void call() {
                         Timber.i("Contact action subscription safely unsubscribed");
                     }
                 })
@@ -856,7 +858,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     @Override
                     public void call(JSONObject jsonObject)
                     {
-                        if (action == ContactAction.RELEASE) {
+                        if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
                             deleteContact(contactId);
                         } else {
                             onRefreshStart();
