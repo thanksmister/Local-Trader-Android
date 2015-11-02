@@ -36,7 +36,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.squareup.otto.Bus;
-import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -52,7 +51,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
@@ -75,18 +73,14 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnClick;
-import butterknife.Optional;
 import rx.Observable;
 import rx.Observer;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class DashboardFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, AppBarLayout.OnOffsetChangedListener
@@ -194,6 +188,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     private void setupToolbar()
     {
+        if(!isAdded()) return;
+        
         try {
             ((MainActivity) getActivity()).setSupportActionBar(toolbar);
         } catch (NoClassDefFoundError e) {
@@ -220,6 +216,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     private void setupList(List<ContactItem> contactItems, List<AdvertisementItem> advertisementItems, List<MethodItem> methodItems)
     {
         Timber.d("setupList");
+
+        if(!isAdded()) return;
 
         // provide combined data
         ArrayList<Object> items = new ArrayList<>();
@@ -454,14 +452,16 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         @Override
         public void run()
         {
-            swipeLayout.setRefreshing(true);
+            if(swipeLayout != null)
+                swipeLayout.setRefreshing(true);
             updateData(false);
         }
     };
 
     protected void onRefreshStop()
     {
-        handler.removeCallbacks(refreshRunnable);
+        if(handler != null)
+            handler.removeCallbacks(refreshRunnable);
 
         if (swipeLayout != null)
             swipeLayout.setRefreshing(false);

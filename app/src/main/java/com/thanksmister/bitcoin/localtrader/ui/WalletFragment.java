@@ -54,7 +54,6 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletAdapter;
-import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
@@ -66,7 +65,6 @@ import com.thanksmister.bitcoin.localtrader.ui.components.SectionRecycleViewAdap
 import com.thanksmister.bitcoin.localtrader.ui.components.TransactionsAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
-import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
@@ -81,15 +79,11 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import rx.Observable;
 import rx.Observer;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func0;
-import rx.functions.Func3;
 import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, AppBarLayout.OnOffsetChangedListener
@@ -323,16 +317,23 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         @Override
         public void run() {
+            
             Timber.d("refreshRunnable");
-            swipeLayout.setRefreshing(true);
+            
+            if(swipeLayout != null)
+                swipeLayout.setRefreshing(true);
+            
             updateData();
         }
     };
 
     protected void onRefreshStop()
     {
-        handler.removeCallbacks(refreshRunnable);
-        swipeLayout.setRefreshing(false);
+        if(handler != null)
+            handler.removeCallbacks(refreshRunnable);
+        
+        if(swipeLayout != null)
+            swipeLayout.setRefreshing(false);
     }
 
     @Override
