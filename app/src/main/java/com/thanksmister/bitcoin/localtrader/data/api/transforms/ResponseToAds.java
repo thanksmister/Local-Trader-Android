@@ -27,6 +27,7 @@ import java.util.List;
 
 import retrofit.client.Response;
 import rx.functions.Func1;
+import timber.log.Timber;
 
 public class ResponseToAds implements Func1<Response, List<Advertisement>>
 {
@@ -44,9 +45,11 @@ public class ResponseToAds implements Func1<Response, List<Advertisement>>
                     sb.append(line);
                 }
             } catch (IOException e) {
+                Timber.e(e.getMessage());
                 e.printStackTrace();
             }
         } catch (IOException e) {
+            Timber.e(e.getMessage());
             e.printStackTrace();
         }
 

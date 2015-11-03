@@ -35,14 +35,12 @@ import android.widget.TextView;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.search.TradeRequestActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
-import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.trello.rxlifecycle.ActivityEvent;
@@ -56,13 +54,11 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.Optional;
 import rx.Observable;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
@@ -416,19 +412,28 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
         traderName.setText(advertisement.profile.username);
         
         if(advertisement.isATM()) {
+            
             tradeLimit.setText("");
-        } else if(advertisement.min_amount == null) {
-            tradeLimit.setText("");
-        } else if(advertisement.max_amount == null) {
-            tradeLimit.setText(getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
-        } else if (advertisement.max_amount_available != null){ // no maximum set
-            tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency));
+            
         } else {
-            tradeLimit.setText("");
-        }
 
+            if(advertisement.max_amount != null && advertisement.min_amount != null) {
+                tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount, advertisement.currency));
+            }
+            
+            if(advertisement.max_amount == null && advertisement.min_amount != null) {
+                tradeLimit.setText(getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
+            }
+
+            if (advertisement.max_amount_available != null && advertisement.min_amount != null){ // no maximum set
+                tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency));
+            } else if (advertisement.max_amount_available != null) {
+                tradeLimit.setText(getString(R.string.trade_limit_max, advertisement.max_amount_available, advertisement.currency));
+            }
+        }
+        
         if(!Strings.isBlank(advertisement.message)){
-            tradeTerms.setText(Html.fromHtml(advertisement.message.trim()));
+            tradeTerms.setText(advertisement.message.trim());
             tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
         }
 

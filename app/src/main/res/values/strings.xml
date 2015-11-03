@@ -358,6 +358,7 @@
     <string name="trade_limit"><![CDATA[%1$s - %2$s %3$s]]></string>
     <string name="trade_limit_short"><![CDATA[%1$s - %2$s]]></string>
     <string name="trade_limit_min"><![CDATA[At least %1$s %2$s]]></string>
+    <string name="trade_limit_max"><![CDATA[Max %1$s %2$s]]></string>
     <string name="trade_price"><![CDATA[%1$s %2$s]]></string>
 
     <string-array name="list_types_spinner">

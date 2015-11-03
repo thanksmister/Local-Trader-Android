@@ -52,6 +52,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.mock.MockData;
+import com.thanksmister.bitcoin.localtrader.data.mock.TestData;
 import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -610,17 +611,12 @@ public class DataService
     {
         if(Constants.USE_MOCK_DATA) {
             List<Advertisement> list = Collections.emptyList();
-            return Observable.just(Parser.parseAdvertisements(MockData.ADVERTISEMENT_LIST_SUCCESS));
+            return Observable.just(Parser.parseAdvertisements(TestData.ADVERTISEMENT_LIST_SUCCESS));
         }
-        
-        Timber.d("Dashboard force: " + force);
-        Timber.d("Dashboard needToRefreshAdvertisements: " + needToRefreshAdvertisements());
-        
+      
         if(!needToRefreshAdvertisements() && !force) {
             return Observable.empty();
         }
-
-        Timber.d("Dashboard Get Advertisements");
         
         return getAdvertisementsObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()));

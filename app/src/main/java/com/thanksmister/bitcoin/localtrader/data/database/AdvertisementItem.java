@@ -104,11 +104,11 @@ public abstract class AdvertisementItem implements Parcelable
     public abstract String online_provider();
     public abstract String temp_price();
     public abstract String temp_price_usd();
-    public abstract String price_equation();
+    @Nullable public abstract String price_equation();
     @Nullable public abstract String reference_type();
     @Nullable public abstract String atm_model();
     public abstract String currency();
-    public abstract String account_info();
+    @Nullable public abstract String account_info();
     public abstract double lat();
     public abstract double lon();
     @Nullable public abstract String min_amount();

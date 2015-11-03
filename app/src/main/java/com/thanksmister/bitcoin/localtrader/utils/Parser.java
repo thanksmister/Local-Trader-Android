@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.utils;
 
 import android.net.Uri;
 
+import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
@@ -387,7 +388,9 @@ public class Parser
 
         
         } catch (JSONException e) {
-            Timber.e("Parsing Contact Error: " + e.getMessage());
+            Timber.e("Error Parsing: " + e.getMessage());
+            Crashlytics.setString("Message", "Parsing error discovered");
+            Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
         }
         
     return null;
@@ -446,7 +449,10 @@ public class Parser
             return message;
 
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            
+            Timber.e("Error Parsing: " + e.getMessage());
+            Crashlytics.setString("Message", "Parsing error discovered");
+            Crashlytics.logException(new Throwable("Error parsing advertisement: " + messageObj.toString()));
         }
 
         return null;
@@ -569,7 +575,10 @@ public class Parser
             return wallet;
 
         } catch (Exception e) {
-            Timber.e("Wallet Parsing Error: " + e.getMessage());
+           
+            Timber.e("Error Parsing: " + e.getMessage());
+            Crashlytics.setString("Wallet", "Parsing error discovered");
+            Crashlytics.logException(new Throwable("Error parsing advertisement: " + response));
         }
 
         return null;
@@ -724,6 +733,9 @@ public class Parser
             return parseAdvertisement(obj, null);
         } catch (JSONException e) {
             Timber.e(e.getMessage());
+            Crashlytics.setString("Advertisement", "Parsing error discovered");
+            Crashlytics.logException(new Throwable("Error parsing advertisement: " + response));
+            
             return null;
         }
     }
@@ -788,7 +800,10 @@ public class Parser
             if (data.has("sms_verification_required")) item.sms_verification_required = (data.getBoolean("sms_verification_required"));
 
             item.currency = (data.getString("currency"));
-            if (data.has("account_info")) item.account_info = (data.getString("account_info"));
+            
+            if (data.has("account_info")) 
+                item.account_info = (data.getString("account_info"));
+            
             item.lat = (Float.parseFloat(data.getString("lat")));
             item.lon = (Float.parseFloat(data.getString("lon")));
 
@@ -838,7 +853,10 @@ public class Parser
             return item;
 
         } catch (JSONException e) {
-            Timber.e("Error Parsing Advertisement: " + e.getMessage());
+            
+            Timber.e("Error Parsing: " + e.getMessage());
+            Crashlytics.setString("Advertisement", "Parsing error discovered");
+            Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
         }
 
         return null;

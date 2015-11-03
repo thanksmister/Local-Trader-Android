@@ -684,7 +684,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     public void onNext(List<Advertisement> advertisements)
                     {
                         onRefreshStop();
-                        dbManager.updateAdvertisements(advertisements);
+                        
+                        if(advertisements!= null && !advertisements.isEmpty())
+                            dbManager.updateAdvertisements(advertisements);
                     }
                 }));
     }

@@ -27,7 +27,6 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -135,7 +134,7 @@ public class AdvertiseAdapter extends BaseAdapter
         holder.tradeFeedback.setText(advertisement.profile.feedback_score);
         holder.tradeCount.setText(advertisement.profile.trade_count);
 
-        if(advertisement.isATM()) {
+        /*if(advertisement.isATM()) {
             holder.tradeLimit.setText("");
         } else if(advertisement.min_amount == null) {
             holder.tradeLimit.setText("");
@@ -143,8 +142,28 @@ public class AdvertiseAdapter extends BaseAdapter
             holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
         } else { // no maximum set
             holder.tradeLimit.setText(context.getString(R.string.trade_limit_short, advertisement.min_amount, advertisement.max_amount));
-        }
+        }*/
 
+        if(advertisement.isATM()) {
+            
+            holder.tradeLimit.setText("");
+            
+        } else {
+            if(advertisement.max_amount != null && advertisement.min_amount != null) {
+                holder.tradeLimit.setText(context.getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount, advertisement.currency));
+            }
+
+            if(advertisement.max_amount == null && advertisement.min_amount != null) {
+                holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
+            }
+
+            if (advertisement.max_amount_available != null && advertisement.min_amount != null){ // no maximum set
+                holder.tradeLimit.setText(context.getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency));
+            } else if (advertisement.max_amount_available != null) {
+                holder.tradeLimit.setText(context.getString(R.string.trade_limit_max, advertisement.max_amount_available, advertisement.currency));
+            }
+        }
+     
         holder.lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(advertisement.profile.last_online));
 
         return view;
