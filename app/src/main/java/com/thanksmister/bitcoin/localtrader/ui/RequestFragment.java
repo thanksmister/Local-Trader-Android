@@ -99,7 +99,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     TextView currencyText;
 
     @InjectView(R.id.fiatEditText)
-    TextView usdEditText;
+    TextView fiatEditText;
     
     @OnClick(R.id.qrButton)
     public void qrButtonClicked()
@@ -210,15 +210,21 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
-        amountText.addTextChangedListener(new TextWatcher(){
+        amountText.addTextChangedListener(new TextWatcher()
+        {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3){
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
             }
+
             @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3){
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
+            {
             }
+
             @Override
-            public void afterTextChanged(Editable editable){
+            public void afterTextChanged(Editable editable)
+            {
 
                 if (amountText.hasFocus()) {
                     String bitcoin = editable.toString();
@@ -227,7 +233,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             }
         });
 
-        usdEditText.addTextChangedListener(new TextWatcher(){
+        fiatEditText.addTextChangedListener(new TextWatcher(){
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3){
             }
@@ -237,7 +243,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             @Override
             public void afterTextChanged(Editable editable){
 
-                if(usdEditText.hasFocus()) {
+                if(fiatEditText.hasFocus()) {
                     String amount = editable.toString();
                     calculateBitcoinAmount(amount, exchangeItem);
                 }
@@ -504,12 +510,12 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         }
         
         if( Doubles.convertToDouble(bitcoin) == 0) {
-            usdEditText.setText("");
+            fiatEditText.setText("");
             return;
         }
 
         String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
         String value = Calculations.computedValueOfBitcoin(rate, bitcoin);
-        usdEditText.setText(value);
+        fiatEditText.setText(value);
     }
 }

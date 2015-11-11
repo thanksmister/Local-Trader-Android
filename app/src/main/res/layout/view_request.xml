@@ -112,7 +112,7 @@
                             <View
                                     android:layout_width="@dimen/view_padding_small"
                                     android:layout_height="match_parent"/>
-
+                            
                             <EditText
                                     android:id="@+id/fiatEditText"
                                     android:theme="@style/EditTextTheme"
