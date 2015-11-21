@@ -51,7 +51,6 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -362,19 +361,12 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
 
     private void setData(List<Advertisement> advertisements, List<MethodItem> methodItems)
     {
-        Timber.d("setData");
-        Timber.d("setData Payment Methods: " + methodItems);
-        
-        if(methodItems != null)
-            Timber.d("setData Payment Methods: " + methodItems.size());
-        
-        Timber.d("setData Advertisement: " + advertisements.size());
-    
         if(advertisements.isEmpty()) {
             snackError("No advertisers located.");
         } else if ( (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && methodItems == null ) {
             snackError("Unable to load online advertisers.");
         } else {
+            // TODO for local ads sort by distance
             getAdapter().replaceWith(advertisements, methodItems);
         }
     }

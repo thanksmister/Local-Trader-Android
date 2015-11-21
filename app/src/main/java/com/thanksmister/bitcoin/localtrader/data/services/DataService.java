@@ -400,7 +400,7 @@ public class DataService
         if(Strings.isBlank(advertisement.city)){
             city = advertisement.location;
         } else {
-            city =  advertisement.city;
+            city = advertisement.city;
         }
         
         return localBitcoins.createAdvertisement(access_token, advertisement.min_amount,

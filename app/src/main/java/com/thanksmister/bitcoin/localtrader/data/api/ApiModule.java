@@ -48,7 +48,7 @@ public final class ApiModule
     {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLogLevel(RestAdapter.LogLevel.BASIC)
                 .setEndpoint(BASE_URL)
                 .build();
         return restAdapter.create(LocalBitcoins.class);
@@ -72,7 +72,7 @@ public final class ApiModule
     {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLogLevel(RestAdapter.LogLevel.BASIC)
                 .setEndpoint(BITCOIN_AVERAGE_ENDPOINT)
                 .build();
         return restAdapter.create(BitcoinAverage.class);

@@ -29,9 +29,6 @@ import android.os.NetworkOnMainThreadException;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatCallback;
-import android.support.v7.view.ActionMode;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,6 +40,7 @@ import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
@@ -50,7 +48,6 @@ import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
-import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.trello.rxlifecycle.ActivityEvent;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
@@ -62,12 +59,10 @@ import java.lang.annotation.RetentionPolicy;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 /** Base activity which sets up a per-activity object graph and performs injection. */
@@ -113,15 +108,19 @@ public abstract class BaseActivity extends RxAppCompatActivity
         super.onPause();
 
         bus.unregister(this);
-
-        unregisterReceiver(connReceiver);
+        
+        try {
+            unregisterReceiver(connReceiver); 
+        } catch (IllegalArgumentException e) {
+            Timber.e(e.getMessage());
+        }
     }
 
     @Override
     public void onResume() {
 
         super.onResume();
-        
+
         bus.register(this);
 
         registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));

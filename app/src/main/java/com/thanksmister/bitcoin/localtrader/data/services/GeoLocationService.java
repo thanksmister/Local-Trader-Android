@@ -34,6 +34,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Place;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToPlace;
+import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -293,12 +294,15 @@ public class GeoLocationService
                 });
     }
 
+    /**
+     * Compares distance as a double value to list advertisements by shortest to longest distance from user
+     */
     private class AdvertisementNameComparator implements Comparator<Advertisement>
     {
         @Override
-        public int compare(Advertisement o1, Advertisement o2)
+        public int compare(Advertisement a1, Advertisement a2)
         {
-            return o1.distance.toLowerCase().compareTo(o2.distance.toLowerCase());
+            return Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance));
         }
     }
 

@@ -608,13 +608,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         WalletAdapter walletAdapterData = new WalletAdapter();
         
-        /*if (walletItem != null) {
-            walletAdapterData.address = walletItem.address();
+        if (walletItem != null) {
+            address = walletItem.address(); // save address for sharing
         }
-
-        if (qrImage != null) {
-            walletAdapterData.qrImage = qrImage;
-        }*/
 
         if(qrImage != null && walletItem != null) {
             walletAdapterData.address = walletItem.address();
@@ -704,6 +700,24 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 Timber.e(e.getMessage());
             }
         }
+        
+        /*
+        String bitcoinUrl = (Strings.isBlank(amount))? WalletUtils.generateBitCoinURI(address, amount): WalletUtils.generateBitCoinURI(address, amount);
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(bitcoinUrl)));
+        } catch (ActivityNotFoundException ex) {
+            try {
+                Intent sendIntent = new Intent(Intent.ACTION_SEND);
+                sendIntent.setType("text/plain");
+                sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                sendIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.bitcoin_request_clipboard_title));
+                sendIntent.putExtra(Intent.EXTRA_TEXT, bitcoinUrl);
+                startActivity(Intent.createChooser(sendIntent, "Share using:"));
+            } catch (AndroidRuntimeException e) {
+                Timber.e(e.getMessage());
+            }
+        }
+         */
     }
 
     protected void setAppBarText(String bid, String ask, String balance, String exchange)

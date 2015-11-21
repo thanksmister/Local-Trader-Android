@@ -578,7 +578,7 @@ public class Parser
            
             Timber.e("Error Parsing: " + e.getMessage());
             Crashlytics.setString("Wallet", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + response));
+            Crashlytics.logException(new Throwable("Error parsing wallet: " + response));
         }
 
         return null;
