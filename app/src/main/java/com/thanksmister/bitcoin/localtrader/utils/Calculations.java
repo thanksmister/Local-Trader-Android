@@ -32,10 +32,14 @@ public class Calculations
 
     public static String computedValueOfBitcoin(String rate, String btc)
     {
-        if(TextUtils.isEmpty(btc)) return "";
-        double averageExchangeUSD = Doubles.convertToDouble(rate);
-        double value = Calculations.calculateUSDValue(averageExchangeUSD, Conversions.convertToDouble(btc));
-        return Conversions.formatCurrencyAmount(value);
+        try{
+            if(TextUtils.isEmpty(btc)) return "";
+            double averageExchangeUSD = Doubles.convertToDouble(rate);
+            double value = Calculations.calculateUSDValue(averageExchangeUSD, Conversions.convertToDouble(btc));
+            return Conversions.formatCurrencyAmount(value);
+        } catch (Exception e) {
+            return "";
+        }
     }
     
     public static String calculateAverageBidAskFormatted(String bid, String ask)

@@ -220,14 +220,19 @@ public class TradeRequestActivity extends BaseActivity
         }
 
         boolean cancel = false;
-        if (Strings.isBlank(amount)) {
-            toast("Enter a valid amount for the trade.");
-            cancel = true;
-        } else if ( Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
-            toast("Enter an amount lower than " + adMax + " " + currency);
-            cancel = true;
-        } else if (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) {
-            toast("Enter an amount greater than " + adMin + " " + currency);
+        try{
+            if (Strings.isBlank(amount)) {
+                toast("Enter a valid amount for the trade.");
+                cancel = true;
+            } else if ( Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
+                toast("Enter an amount lower than " + adMax + " " + currency);
+                cancel = true;
+            } else if (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) {
+                toast("Enter an amount greater than " + adMin + " " + currency);
+                cancel = true;
+            }
+        } catch (Exception e) {
+            reportError(e);
             cancel = true;
         }
 
@@ -262,36 +267,54 @@ public class TradeRequestActivity extends BaseActivity
 
     private void calculateBitcoinAmount(String amount)
     {
-        if(Doubles.convertToDouble(amount) == 0) {
-            editBitcoinText.setText("");
+        try {
+            if(Doubles.convertToDouble(amount) == 0) {
+                editBitcoinText.setText("");
+                return;
+            } 
+        } catch (Exception e) {
+            reportError(e);
             return;
         }
+        
+        try {
+            double value = (Doubles.convertToDouble(amount) / Doubles.convertToDouble(adPrice));
+            editBitcoinText.setText(Conversions.formatBitcoinAmount(value));
 
-        double value = (Doubles.convertToDouble(amount) / Doubles.convertToDouble(adPrice));
-        editBitcoinText.setText(Conversions.formatBitcoinAmount(value));
-
-        if( (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) || (Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) ) {
-            editAmountText.setTextColor(getResources().getColorStateList(R.color.red_light_up));
-        } else {
-            editAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
+            if( (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) || (Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) ) {
+                editAmountText.setTextColor(getResources().getColorStateList(R.color.red_light_up));
+            } else {
+                editAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
+            }
+        } catch (Exception e) {
+            reportError(e);
         }
     }
 
     private void calculateCurrencyAmount(String bitcoin)
     {
-        if( Doubles.convertToDouble(bitcoin) == 0) {
-            editAmountText.setText("");
+        try {
+            if( Doubles.convertToDouble(bitcoin) == 0) {
+                editAmountText.setText("");
+                return;
+            }
+        } catch (Exception e) {
+            reportError(e);
             return;
         }
 
-        double value = Doubles.convertToDouble(bitcoin) * Doubles.convertToDouble(adPrice);
-        String amount = Conversions.formatCurrencyAmount(value);
-        editAmountText.setText(amount);
+        try {
+            double value = Doubles.convertToDouble(bitcoin) * Doubles.convertToDouble(adPrice);
+            String amount = Conversions.formatCurrencyAmount(value);
+            editAmountText.setText(amount);
 
-        if( (Doubles.convertToDouble(amount) <  Doubles.convertToDouble(adMin)) || (Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) ) {
-            editAmountText.setTextColor(getResources().getColorStateList(R.color.red_light_up));
-        } else {
-            editAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
+            if( (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) || (Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) ) {
+                editAmountText.setTextColor(getResources().getColorStateList(R.color.red_light_up));
+            } else {
+                editAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
+            }
+        } catch (Exception e) {
+            reportError(e);
         }
     }
 }

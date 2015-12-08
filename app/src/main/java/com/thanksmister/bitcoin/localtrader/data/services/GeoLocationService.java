@@ -302,7 +302,11 @@ public class GeoLocationService
         @Override
         public int compare(Advertisement a1, Advertisement a2)
         {
-            return Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance));
+            try {
+                return Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance)); 
+            } catch (Exception e) {
+                return 0;
+            }
         }
     }
 

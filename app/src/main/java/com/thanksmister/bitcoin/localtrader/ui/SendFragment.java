@@ -684,10 +684,13 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     
     protected void computeBalance(double btcAmount)
     {
+        Timber.d("Compute balance for: " + btcAmount);
+        
         if(walletData == null) return;
 
         double balanceAmount = Conversions.convertToDouble(walletData.getBalance());
         String btcBalance = Conversions.formatBitcoinAmount(balanceAmount - btcAmount);
+
         String value = Calculations.computedValueOfBitcoin(walletData.getRate(), walletData.getBalance());
         String currency = exchangeService.getExchangeCurrency();
         if(balanceAmount < btcAmount) {
@@ -702,34 +705,56 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     private void calculateBitcoinAmount(String fiat)
     {
         if(walletData == null) return;
-     
-        if(Doubles.convertToDouble(fiat) == 0) {
-            computeBalance(0);
-            amountText.setText("");
+        
+        try {
+            if(Doubles.convertToDouble(fiat) == 0) {
+                computeBalance(0);
+                amountText.setText("");
+                return;
+            }
+        } catch (Exception e) {
+            reportError(e);
             return;
         }
         
-        String exchangeValue = walletData.getRate();
-
-        double btc = Math.abs(Doubles.convertToDouble(fiat) / Doubles.convertToDouble(exchangeValue));
-        String amount = Conversions.formatBitcoinAmount(btc);
-        amountText.setText(amount);
-
-        computeBalance(Doubles.convertToDouble(amount));
+        try {
+            String exchangeValue = walletData.getRate();
+            
+            double btc = Math.abs(Doubles.convertToDouble(fiat) / Doubles.convertToDouble(exchangeValue));
+            
+            String amount = Conversions.formatBitcoinAmount(btc);
+            
+            amountText.setText(amount); // set bitcoin amount
+            
+            computeBalance(btc);
+            
+        } catch (Exception e) {
+            
+            reportError(e);
+        }
     }
 
     private void calculateCurrencyAmount(String bitcoin)
     {
         if(walletData == null) return;
-      
-        if( Doubles.convertToDouble(bitcoin) == 0) {
-            fiatEditText.setText("");
-            computeBalance(0);
+        
+        try {
+            if( Doubles.convertToDouble(bitcoin) == 0) {
+                fiatEditText.setText("");
+                computeBalance(0);
+                return;
+            }
+        } catch (Exception e) {
+            reportError(e);
             return;
         }
-
-        computeBalance(Doubles.convertToDouble(bitcoin));
-        String value = Calculations.computedValueOfBitcoin(walletData.getRate(), bitcoin);
-        fiatEditText.setText(value);
+        
+        try {
+            computeBalance(Doubles.convertToDouble(bitcoin));
+            String value = Calculations.computedValueOfBitcoin(walletData.getRate(), bitcoin);
+            fiatEditText.setText(value);
+        } catch (Exception e) {
+            reportError(e);
+        }
     }
 }

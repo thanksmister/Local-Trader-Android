@@ -22,6 +22,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -55,6 +57,7 @@ import org.json.JSONObject;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -92,6 +95,9 @@ public abstract class BaseActivity extends RxAppCompatActivity
         super.onCreate(savedInstanceState);
 
         Injector.inject(this);
+
+        // TODO this is for testing locals
+        //setLocale("es", "ES");
     }
 
     @Override 
@@ -202,6 +208,8 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void logOut()
     {
+        showProgressDialog(new ProgressDialogEvent("Logging out..."));
+        
         dataService.logout()
                 .doOnUnsubscribe(new Action0()
                 {
@@ -246,6 +254,9 @@ public abstract class BaseActivity extends RxAppCompatActivity
         StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
         SyncUtils.CreateSyncAccount(getApplicationContext(), stringPreference.get());
         SyncUtils.ClearSyncAccount(getApplicationContext(), stringPreference.get());
+
+        hideProgressDialog();
+
         
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);
@@ -403,5 +414,23 @@ public abstract class BaseActivity extends RxAppCompatActivity
     protected void toast(int messageId)
     {
         Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
+    }
+
+    protected void setLocale(String language, String country) 
+    {
+        // create new local
+        Locale locale = new Locale(language, country);
+        
+        // here we update locale for date formatters
+        Locale.setDefault(locale);
+        
+        // here we update locale for app resources
+        
+        Resources res = getResources();
+        
+        Configuration config = res.getConfiguration();
+        config.locale = locale;
+        
+        res.updateConfiguration(config, res.getDisplayMetrics());
     }
 }

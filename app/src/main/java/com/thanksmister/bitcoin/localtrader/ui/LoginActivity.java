@@ -16,22 +16,22 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -52,6 +52,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
+import timber.log.Timber;
 
 public class LoginActivity extends BaseActivity
 {
@@ -90,11 +91,55 @@ public class LoginActivity extends BaseActivity
         setContentView(R.layout.view_login);
 
         ButterKnife.inject(this);
-
+        
         OAUTH_URL = "https://localbitcoins.com/oauth2/authorize/?ch=2hbo&client_id="
                 + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
+        
+        setUpWebViewDefaults();
 
-        initWebView();
+        //initWebView();
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void setUpWebViewDefaults() {
+
+        try {
+            
+            webView = (WebView) findViewById(R.id.webView);
+
+            webView.setWebViewClient(new OauthWebViewClient());
+            webView.setWebChromeClient(new WebChromeClient());
+            
+            WebSettings settings = webView.getSettings();
+
+            // Enable Javascript
+            settings.setJavaScriptEnabled(true);
+
+            // Use WideViewport and Zoom out if there is no viewport defined
+            settings.setUseWideViewPort(true);
+            settings.setLoadWithOverviewMode(true);
+
+            // Enable pinch to zoom without the zoom buttons
+            settings.setBuiltInZoomControls(true);
+
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
+                // Hide the zoom controls for HONEYCOMB+
+                settings.setDisplayZoomControls(false);
+            }
+
+            // Enable remote debugging via chrome://inspect
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                WebView.setWebContentsDebuggingEnabled(true);
+            }
+
+            // Load website
+            webView.loadUrl(OAUTH_URL);
+
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+            Crashlytics.log("WebView");
+            Crashlytics.logException(e);
+        }
     }
 
     @Override
@@ -127,12 +172,13 @@ public class LoginActivity extends BaseActivity
         return this;
     }
 
+    @Deprecated
     private void initWebView()
     {
         try{
-            
+
             webView = (WebView) findViewById(R.id.webView);
-            
+
             //load the url of the oAuth login page and client
             webView.setWebViewClient(new OauthWebViewClient());
             webView.setWebChromeClient(new WebChromeClient());

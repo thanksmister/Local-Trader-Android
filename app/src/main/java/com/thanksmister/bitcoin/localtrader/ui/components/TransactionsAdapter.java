@@ -21,7 +21,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Build;
-import android.os.Parcelable;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -34,24 +33,21 @@ import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TransactionType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletAdapter;
-import com.thanksmister.bitcoin.localtrader.data.api.model.WalletData;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import timber.log.Timber;
 
 public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapter.ViewHolder>
 {
@@ -141,8 +137,15 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
 
             TransactionItem transaction = (TransactionItem) items.get(position);
             
-            String amount = Conversions.formatBitcoinAmount(Doubles.convertToDouble(transaction.amount()));
-
+            String amount = "";
+                    
+            // TODO convert the data to the display format instead of converting, only convert when doing math
+            try {
+                amount = Conversions.formatBitcoinAmount(Doubles.convertToDouble(transaction.amount())); 
+            } catch (Exception e) {
+                Timber.e(e.getMessage());
+            }
+            
             if(transaction.tx_type() == TransactionType.RECEIVED) {
                 String blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description());
                 String blockUrl = Constants.BLOCKCHAIN_INFO_ADDRESS + blockAddress;

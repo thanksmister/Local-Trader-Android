@@ -27,7 +27,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.BriteContentResolver;
@@ -77,7 +76,6 @@ import rx.functions.Func1;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
@@ -426,13 +424,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                             notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.balance + " BTC");
 
                         } else {
+                            
+                            try{
+                                double newBalance = Doubles.convertToDouble(wallet.balance);
+                                double oldBalance = Doubles.convertToDouble(walletItem.balance());
+                                String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
 
-                            double newBalance = Doubles.convertToDouble(wallet.balance);
-                            double oldBalance = Doubles.convertToDouble(walletItem.balance());
-                            String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
-
-                            if (newBalance > oldBalance) {
-                                notificationService.balanceUpdateNotification("Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC");
+                                if (newBalance > oldBalance) {
+                                    notificationService.balanceUpdateNotification("Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC");
+                                } 
+                            } catch (Exception e) {
+                                Timber.e(e.getMessage());
                             }
                         }
 

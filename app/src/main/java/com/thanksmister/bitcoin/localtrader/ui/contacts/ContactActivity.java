@@ -80,15 +80,12 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import rx.Observable;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
@@ -885,7 +882,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             public void onQueryComplete()
             {
                 hideProgressDialog();
-                toast(getString(R.string.trade_released_toast_text));
+                toast(getString(R.string.trade_canceled_toast_text));
                 finish();
             }
         });

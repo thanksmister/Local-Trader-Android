@@ -24,12 +24,12 @@ apply plugin: 'com.neenbedankt.android-apt'
 def versionMajor = 2
 def versionMinor = 0
 def versionPatch = 6
-def versionBuild = 5 // bump for dog food builds, public betas, etc.
+def versionBuild = 7 // bump for dog food builds, public betas, etc.
 
 android {
 
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         minSdkVersion 15
@@ -74,11 +74,11 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     
-    compile 'com.android.support:support-annotations:23.1.0'
-    compile 'com.android.support:gridlayout-v7:23.1.0'
-    compile 'com.android.support:appcompat-v7:23.1.0'
-    compile 'com.android.support:design:23.1.0'
-    compile 'com.android.support:recyclerview-v7:23.1.0'
+    compile 'com.android.support:support-annotations:23.1.1'
+    compile 'com.android.support:gridlayout-v7:23.1.1'
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
 
     compile 'com.trello:rxlifecycle:0.3.0'
     compile 'com.trello:rxlifecycle-components:0.3.0'
@@ -115,8 +115,8 @@ dependencies {
     compile 'pl.charmas.android:android-reactive-location:0.8@aar'
 
     // Google Play Support Libraries
-    compile 'com.google.android.gms:play-services-maps:8.1.0'
-    compile 'com.google.android.gms:play-services-location:8.1.0'
+    compile 'com.google.android.gms:play-services-maps:8.3.0'
+    compile 'com.google.android.gms:play-services-location:8.3.0'
     compile 'com.github.doctoror.geocoder:library:1.0.0'
     
     compile('com.crashlytics.sdk.android:crashlytics:2.4.0@aar') {

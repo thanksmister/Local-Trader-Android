@@ -88,7 +88,6 @@ import rx.Observer;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
@@ -681,7 +680,14 @@ public class EditActivity extends BaseActivity
 
         String margin = marginText.getText().toString();
         if (!Strings.isBlank(margin)) {
-            double marginValue = Doubles.convertToDouble(margin);
+
+            double marginValue = 1.0;
+            try {
+                marginValue = Doubles.convertToDouble(margin);
+            } catch (Exception e) {
+                reportError(e);
+            }
+            
             double marginPercent = 1.0;
             if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
                 marginPercent = 1 - marginValue / 100;

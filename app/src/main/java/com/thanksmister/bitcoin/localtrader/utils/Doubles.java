@@ -16,6 +16,10 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Locale;
+
 public final class Doubles
 {
     private Doubles()
@@ -25,27 +29,46 @@ public final class Doubles
 
     public static double valueOrDefault (String value, double defaultValue)
     {
-        if (Strings.isBlank(value))
-            return defaultValue;
-
         try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        }
+            if (Strings.isBlank(value))
+                return defaultValue;
 
-        return defaultValue;
+            return convertToNumber(value);
+            
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 
     public static double convertToDouble (String value)
     {
-        if (value == null || Strings.isBlank(value) || value.equals(".")) return 0;
-
         try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
+            //if (value == null || Strings.isBlank(value) || value.equals(".") || value.equals(",")) return 0;
+            return convertToNumber(value);
+        } catch (Exception e) {
+            return 0;
         }
-        return 0;
+    }
+    
+    public static double convertToNumber(String value)
+    {
+        try {
+            Locale locUS = new Locale("en_US");
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
+            return numberFormat.parse(value).doubleValue();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static double convertToNumberLocal(String value, String local) throws NumberFormatException, ParseException
+    {
+        try {
+            Locale loc = new Locale(local);
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(loc);
+            return numberFormat.parse(value).doubleValue();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

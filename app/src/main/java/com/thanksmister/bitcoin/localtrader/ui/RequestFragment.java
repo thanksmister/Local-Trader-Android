@@ -68,6 +68,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -225,10 +226,9 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             @Override
             public void afterTextChanged(Editable editable)
             {
-
                 if (amountText.hasFocus()) {
                     String bitcoin = editable.toString();
-                    calculateCurrencyAmount(bitcoin, exchangeItem);
+                    calculateCurrencyAmount(bitcoin);
                 }
             }
         });
@@ -245,7 +245,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
                 if(fiatEditText.hasFocus()) {
                     String amount = editable.toString();
-                    calculateBitcoinAmount(amount, exchangeItem);
+                    calculateBitcoinAmount(amount);
                 }
             }
         });
@@ -456,16 +456,16 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     {
         if(!Strings.isBlank(bitcoinAmount)) {
             amountText.setText(bitcoinAmount);
-            calculateCurrencyAmount(bitcoinAmount, exchangeItem);
+            calculateCurrencyAmount(bitcoinAmount);
         }
     }
     
     public void setWallet(ExchangeItem exchangeItem)
     {
         if(Strings.isBlank(amountText.getText())) {
-            calculateCurrencyAmount("0.00", exchangeItem);
+            calculateCurrencyAmount("0.00");
         } else {
-            calculateCurrencyAmount(amountText.getText().toString(), exchangeItem);
+            calculateCurrencyAmount(amountText.getText().toString());
         }
     }
 
@@ -485,35 +485,53 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         showGeneratedQrCodeActivity(walletItem.address(), bitcoinAmount);
     }
 
-    private void calculateBitcoinAmount(String requestAmount, ExchangeItem exchangeItem)
+    private void calculateBitcoinAmount(String requestAmount)
     {
         if(exchangeItem == null) {
             return;
         }
+
+        Timber.d("calculateBitcoinAmount: " + requestAmount);
         
-        if(Doubles.convertToDouble(requestAmount) == 0) {
-            amountText.setText("");
+        try {
+            if(Doubles.convertToDouble(requestAmount) == 0) {
+                amountText.setText("");
+                return;
+            }
+        } catch (Exception e) {
+            reportError(e);
             return;
         }
-        
+    
         String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
 
         double btc = Math.abs(Doubles.convertToDouble(requestAmount) / Doubles.convertToDouble(rate));
+
+        Timber.d("BTC: " + btc);
+
         String amount = Conversions.formatBitcoinAmount(btc);
+
+        Timber.d("Bitcoin amount: " + amount);
+
         amountText.setText(amount);
     }
 
-    private void calculateCurrencyAmount(String bitcoin, ExchangeItem exchangeItem)
+    private void calculateCurrencyAmount(String bitcoin)
     {
         if(exchangeItem == null) {
             return;
         }
-        
-        if( Doubles.convertToDouble(bitcoin) == 0) {
-            fiatEditText.setText("");
+
+        try {
+            if( Doubles.convertToDouble(bitcoin) == 0) {
+                fiatEditText.setText("");
+                return;
+            }
+        } catch (Exception e) {
+            reportError(e);
             return;
         }
-
+        
         String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
         String value = Calculations.computedValueOfBitcoin(rate, bitcoin);
         fiatEditText.setText(value);

@@ -73,12 +73,10 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
@@ -224,7 +222,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         ItemAdapter itemAdapter = getAdapter();
 
          if ((contactItems == null || contactItems.isEmpty()) && (advertisementItems == null || advertisementItems.isEmpty())) {
-            //This is the code to provide a sectioned list
             itemAdapter.replaceWith(items, methodItems);
             recycleView.setAdapter(itemAdapter);
             return;
@@ -233,7 +230,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         if (contactItems != null && !contactItems.isEmpty())
             items.addAll(contactItems);
 
-        if (advertisementItems != null &&  !advertisementItems.isEmpty())
+        if (advertisementItems != null && !advertisementItems.isEmpty())
             items.addAll(advertisementItems);
 
         itemAdapter.replaceWith(items, methodItems);
@@ -241,14 +238,16 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         //This is the code to provide a sectioned list
         List<SectionRecycleViewAdapter.Section> sections = new ArrayList<>();
 
-        if (contactItems.size() > 0) {
+        if (contactItems != null && contactItems.size() > 0) {
             //int start = (dataItem.exchange == null)? 0:1;
             sections.add(new SectionRecycleViewAdapter.Section(0, getString(R.string.dashboard_active_trades_header)));
         }
 
-        if (advertisementItems.size() > 0) {
-            //int first = (dataItem.exchange == null)? 0:1;
-            int start = (contactItems.isEmpty()) ? 0 : contactItems.size();
+        if (advertisementItems != null && advertisementItems.size() > 0) {
+            int start = 0;
+            if(contactItems != null) {
+                start = (contactItems.isEmpty()) ? 0 : contactItems.size(); 
+            }
             sections.add(new SectionRecycleViewAdapter.Section(start, getString(R.string.dashboard_advertisements_header)));
         }
 
@@ -538,39 +537,62 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     }
                 });
 
-
-        Observable.combineLatest(dbManager.methodQuery(), dbManager.advertisementsQuery(), new Func2<List<MethodItem>, List<AdvertisementItem>, DataItem>()
-        {
-            @Override
-            public DataItem call(List<MethodItem> methodItems, List<AdvertisementItem> advertisementItems)
-            {
-                DataItem dataItem = new DataItem();
-                dataItem.advertisements = advertisementItems;
-                dataItem.methods = methodItems;
-                return dataItem;
-            }
-        })
+        dbManager.advertisementsQuery()
                 .doOnUnsubscribe(new Action0()
                 {
                     @Override
                     public void call()
                     {
-                        Timber.i("Advertisements subscription safely unsubscribed");
+                        Timber.i("Contacts subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<DataItem>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<DataItem>()
+                .compose(this.<List<AdvertisementItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<AdvertisementItem>>()
                 {
                     @Override
-                    public void call(final DataItem dataItem)
+                    public void call(final List<AdvertisementItem> items)
                     {
                         getActivity().runOnUiThread(new Runnable()
                         {
                             @Override
                             public void run()
                             {
-                                advertisements = dataItem.advertisements;
-                                methods = dataItem.methods;
+                                advertisements = items;
+                                setupList(contacts, advertisements, methods);
+                            }
+                        });
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        setupList(contacts, advertisements, methods);
+                        reportError(throwable);
+                    }
+                });
+
+        dbManager.methodQuery()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Contacts subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<MethodItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<MethodItem>>()
+                {
+                    @Override
+                    public void call(final List<MethodItem> items)
+                    {
+                        getActivity().runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                methods = items;
                                 setupList(contacts, advertisements, methods);
                             }
                         });
