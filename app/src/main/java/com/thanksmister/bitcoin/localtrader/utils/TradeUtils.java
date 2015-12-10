@@ -17,9 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.utils;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.location.Address;
-import android.os.Build;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -32,11 +30,11 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import timber.log.Timber;
+import java.util.Locale;
 
 public class TradeUtils
 {
@@ -345,6 +343,10 @@ public class TradeUtils
 
     public static String getPaymentMethodFromItems(AdvertisementItem advertisement, List<MethodItem> methodItems)
     {
+        if(methodItems == null || methodItems.isEmpty()) {
+            return "";
+        }
+        
         String paymentMethod = "";
         
         for (MethodItem method : methodItems) {
@@ -649,5 +651,18 @@ public class TradeUtils
         double mi = Doubles.convertToDouble(km) * .62137;
         DecimalFormat precision = new DecimalFormat("0.00");
         return precision.format(mi);
+    }
+
+    public static String convertCurrencyAmount(String value)
+    {
+        try {
+            Locale locUS = new Locale("en_US");
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
+            double result = numberFormat.parse(value).intValue();
+            DecimalFormat decimalFormat = new DecimalFormat("#");
+            return decimalFormat.format(result);
+        } catch (Exception e) {
+            return value;
+        }
     }
 }

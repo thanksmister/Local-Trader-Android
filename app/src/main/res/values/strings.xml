@@ -260,6 +260,7 @@
     <string name="advertisement_payment_method">Each payment method has an associated risk level. See risk assessments online at localbitcoins.com/guides/how-to-sell-bitcoins-online#risk-level.</string>
     <string name="advertisement_notes_text_online"><![CDATA[%1$s for <b>%2$s</b> using <b>%3$s</b> in <b>%4$s</b>]]></string>
     <string name="advertisement_notes_text_locally"><![CDATA[%1$s for <b>%2$s</b> near <b>%3$s</b>]]></string>
+    <string name="advertisement_notes_text_online_location"><![CDATA[%1$s for <b>%2$s</b> in <b>%3$s</b>]]></string>
     <string name="advertisement_edit_margin_description">A margin is used in price equation to add or subtract additional value from market price. Use a negative margin to set below market.</string>
     <string name="advertisement_delete_confirm">Do you want to permanently delete this advertisement?</string>
 

@@ -25,4 +25,23 @@ public class TradeUtilsTest extends TestCase
         String miles = TradeUtils.kilometersToMiles("2");
         assertEquals("1.24", miles); // two decimals
     }
+
+    public void testConvertCurrencyAmount() throws Exception
+    {
+        String actual = TradeUtils.convertCurrencyAmount("100");
+        String expected = "100";
+        assertEquals(actual, expected);
+
+        actual = TradeUtils.convertCurrencyAmount("100,00");
+        expected = "100";
+        assertEquals(actual, expected);
+
+        actual = TradeUtils.convertCurrencyAmount("100.00");
+        expected = "100";
+        assertEquals(expected, actual);
+
+        actual = TradeUtils.convertCurrencyAmount("512.47");
+        expected = "512";
+        assertEquals(expected, actual);
+    }
 }

@@ -35,18 +35,15 @@ import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAds;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthorize;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
@@ -81,7 +78,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 {
     private Subscription walletSubscription;
     private Subscription contactsSubscription;
-    private Subscription advertisementsSubscription;
     private Subscription tokensSubscription;
 
     ContentResolver contentResolver;
@@ -137,7 +133,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                         {
                             updateContacts();
                             updateWalletBalance();
-                            //updateAdvertisements();
                         }
                     }, 10000);
                 }
@@ -165,9 +160,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
         if(tokensSubscription != null)
             tokensSubscription.unsubscribe();
-        
-        if(advertisementsSubscription != null)
-            advertisementsSubscription.unsubscribe();
     }
 
     private void updateContacts()
@@ -193,35 +185,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public void call(Throwable throwable)
                     {
                         contactsSubscription = null;
-                        handleError(throwable);
-                    }
-                });
-    }
-
-    private void updateAdvertisements()
-    {
-        if(advertisementsSubscription != null)
-            return;
-
-        Timber.d("UpdateAdvertisements");
-
-        advertisementsSubscription = getAdvertisementObservable()
-                .subscribe(new Action1<List<Advertisement>>()
-                {
-                    @Override
-                    public void call(List<Advertisement> advertisements)
-                    {
-                        advertisementsSubscription = null;
-
-                        updateAdvertisements(advertisements);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        advertisementsSubscription = null;
-
                         handleError(throwable);
                     }
                 });
@@ -289,7 +252,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             Timber.e("Sync Data Error: " + throwable.getLocalizedMessage());
             throwable.printStackTrace();
         }
-            
     }
 
     protected void handleError(Throwable throwable)
@@ -301,96 +263,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         }
     }
     
-    private void updateAdvertisements(final List<Advertisement> advertisements)
-    {
-        final ArrayList<Advertisement> newAdvertisements = new ArrayList<Advertisement>();
-        final ArrayList<String> deletedAdvertisements = new ArrayList<String>();
-        final ArrayList<Advertisement> updateAdvertisements = new ArrayList<Advertisement>();
-
-        final HashMap<String, Advertisement> entryMap = new HashMap<String, Advertisement>();
-        for (Advertisement item : advertisements) {
-            entryMap.put(item.ad_id, item);
-        }
-
-        Subscription subscription = briteContentResolver.createQuery(SyncProvider.ADVERTISEMENT_TABLE_URI, null, null, null, null, false)
-                .map(AdvertisementItem.MAP)
-                .subscribe(new Action1<List<AdvertisementItem>>()
-                {
-                    @Override
-                    public void call(List<AdvertisementItem> advertisementItems)
-                    {
-                        Timber.d("Advertisements Items in Database: " + advertisementItems.size());
-
-                        for (AdvertisementItem advertisementItem : advertisementItems) {
-
-                            Advertisement match = entryMap.get(advertisementItem.ad_id());
-
-                            if (match != null) {
-
-                                entryMap.remove(advertisementItem.ad_id());
-
-                                if ((match.price_equation != null && !match.price_equation.equals(advertisementItem.price_equation())) ||
-                                        (match.temp_price != null && !match.temp_price.equals(advertisementItem.temp_price())) ||
-                                        (match.city != null && !match.city.equals(advertisementItem.city())) ||
-                                        (match.country_code != null && !match.country_code.equals(advertisementItem.country_code())) ||
-                                        (match.bank_name != null && !match.bank_name.equals(advertisementItem.bank_name())) ||
-                                        (match.currency != null && !match.currency.equals(advertisementItem.currency())) ||
-                                        (match.lat != advertisementItem.lat()) || (match.lon != advertisementItem.lon()) ||
-                                        (match.location != null && !match.location.equals(advertisementItem.location_string())) ||
-                                        (match.max_amount != null && !match.max_amount.equals(advertisementItem.max_amount())) ||
-                                        (match.min_amount != null && !match.min_amount.equals(advertisementItem.min_amount())) ||
-                                        (match.max_amount_available != null && !match.max_amount_available.equals(advertisementItem.max_amount_available())) ||
-                                        (match.online_provider != null && !match.online_provider.equals(advertisementItem.online_provider())) ||
-                                        (match.account_info != null && !match.account_info.equals(advertisementItem.account_info())) ||
-                                        (match.sms_verification_required != advertisementItem.sms_verification_required()) ||
-                                        (match.visible != advertisementItem.visible() ||
-                                                (match.trusted_required != advertisementItem.trusted_required()) ||
-                                                (match.track_max_amount != advertisementItem.track_max_amount()) ||
-                                                (match.message != null && !match.message.equals(advertisementItem.message())))) {
-
-                                    updateAdvertisements.add(match);
-                                }
-
-                            } else {
-
-                                deletedAdvertisements.add(advertisementItem.ad_id());
-                            }
-                        }
-
-                        for (Advertisement advertisement : entryMap.values()) {
-                            newAdvertisements.add(advertisement);
-                        }
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        reportError(throwable);
-                    }
-                });
-
-        subscription.unsubscribe();
-
-        for (Advertisement item : newAdvertisements) {
-            AdvertisementItem.Builder builder = AdvertisementItem.createBuilder(item);
-            contentResolver.insert(SyncProvider.ADVERTISEMENT_TABLE_URI, builder.build());
-        }
-
-        for (Advertisement item : updateAdvertisements) {
-            AdvertisementItem.Builder builder = AdvertisementItem.createBuilder(item);
-            contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, builder.build(), AdvertisementItem.AD_ID + " = ?", new String[]{item.ad_id});
-        }
-
-        for (String id : deletedAdvertisements) {
-            contentResolver.delete(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.AD_ID + " = ?", new String[]{id});
-        }
-    }
-
     private void updateWalletBalance(final Wallet wallet)
     {
-        Timber.d("Update Wallet");
-        
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
                 .subscribe(new Action1<WalletItem>()
@@ -577,23 +451,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
-    private Observable<List<Advertisement>> getAdvertisementObservable()
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<List<Advertisement>>>()
-                {
-                    @Override
-                    public Observable<List<Advertisement>> call(final SessionItem sessionItem)
-                    {
-                        if (sessionItem == null) return null;
-                        Timber.d("Access Token: " + sessionItem.access_token());
-                        return localBitcoins.getAds(sessionItem.access_token())
-                                .map(new ResponseToAds());
-
-                    }
-                });
-    }
-
     private Observable<List<Contact>> getContactsObservable()
     {
         Timber.d("getContactsObservable");
@@ -714,8 +571,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
     private Observable<Authorization> refreshTokens()
     {
-        Timber.d("refreshTokens");
-
         return getTokens()
                 .flatMap(new Func1<SessionItem, Observable<Authorization>>() {
                     @Override

@@ -134,13 +134,55 @@ public class Parser
         }
         return false;
     }
+    
+    public static JSONObject parseResponseToJsonObject(Response response)
+    {
+        //Try to get response body
+        BufferedReader reader = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
+            String line;
+            try {
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        JSONObject jsonObject;
+        try {
+            jsonObject = new JSONObject(sb.toString());
+            return jsonObject;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return new JSONObject();
+    }
 
     public static RetroError parseError(JSONObject jsonObject)
     {
         try {
             JSONObject errorObj = jsonObject.getJSONObject("error");
             int error_code = errorObj.getInt("error_code");
-            String error_message = errorObj.getString("message");
+            String error_message = errorObj.getString("message"); // TODO this is too generic
+            
+            if(errorObj.has("errors")) {
+                error_message = "";
+                JSONObject errors = errorObj.getJSONObject("errors");
+                Iterator<?> keys = errors.keys();
+                while( keys.hasNext() ) {
+                    String key = (String) keys.next();
+                    String message = errors.getString(key);
+                    error_message += Strings.convertCamelCase(key) + " " + message + " ";
+                }
+            }
+            
             return new RetroError(error_message, error_code);
 
         } catch (JSONException e) {

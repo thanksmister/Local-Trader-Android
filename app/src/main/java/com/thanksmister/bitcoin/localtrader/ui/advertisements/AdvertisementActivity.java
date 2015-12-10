@@ -43,12 +43,14 @@ import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+import com.trello.rxlifecycle.ActivityEvent;
 
 import org.json.JSONObject;
 
@@ -72,6 +74,8 @@ import timber.log.Timber;
 public class AdvertisementActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
+    public static final int REQUEST_CODE = 10939;
+    public static final int RESULT_DELETED = 837373;
 
     @Inject
     DataService dataService;
@@ -182,6 +186,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         if (requestCode == EditActivity.REQUEST_CODE) {
             if (resultCode == EditActivity.RESULT_UPDATED) {
                 this.adId = intent.getStringExtra(EXTRA_AD_ID);
+                setResult(resultCode);
+                onRefresh();
+                onRefreshStart();
             }
         }
     }
@@ -415,7 +422,11 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_locally, title, price, location)));
         } else {
             String paymentMethod = TradeUtils.getPaymentMethod(advertisement, method);
-            noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, advertisement.location_string())));
+            if(Strings.isBlank(paymentMethod)) {
+                noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location)));
+            } else {
+                noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location)));
+            }
         }
 
         if (TradeUtils.isLocalTrade(advertisement)) {
@@ -518,28 +529,66 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     private void deleteAdvertisementConfirmed(final String adId)
     {
-        Observable<Boolean> deleteObservable = dataService.deleteAdvertisement(adId);
-        deleteObservable.subscribe(new Action1<Boolean>()
+        showProgressDialog(new ProgressDialogEvent("Deleting...."));
+        
+        dataService.deleteAdvertisement(adId)
+        .doOnUnsubscribe(new Action0()
+            {
+                @Override
+                public void call()
+                {
+                    Timber.i("Delete advertisement safely unsubscribed");
+                }
+            })
+            .compose(this.<Boolean>bindUntilEvent(ActivityEvent.DESTROY))
+            .observeOn(Schedulers.io())
+            .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>()
         {
             @Override
-            public void call(Boolean deleted)
+            public void call(final Boolean deleted)
             {
-                if (deleted) {
-                    db.delete(AdvertisementItem.TABLE, AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
+                runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        hideProgressDialog();
 
-                    toast("Advertisement deleted!");
+                        if (deleted) {
 
-                    finish();
-                } else {
-                    toast("Error deleting advertisement!");
-                }
+                            db.delete(AdvertisementItem.TABLE, AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
+
+                            toast("Advertisement deleted!");
+
+                            setResult(RESULT_DELETED); // hard refresh
+
+                            finish();
+
+                        } else {
+
+                            showAlertDialog(new AlertDialogEvent("Error", "Error deleting advertisement."));
+                        }
+                    }
+                });
             }
         }, new Action1<Throwable>()
         {
             @Override
             public void call(Throwable throwable)
             {
-                toast("Error deleting advertisement!");
+                runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        hideProgressDialog();
+
+                        showAlertDialog(new AlertDialogEvent("Error", "Error deleting advertisement."));
+                    }
+                });
             }
         });
     }

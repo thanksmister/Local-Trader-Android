@@ -32,6 +32,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.Collections;
@@ -191,10 +192,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
             } else {
 
-                String paymentMethod = TradeUtils.getPaymentMethodFromItems(advertisement, methods);
                 String adLocation = TradeUtils.isOnlineTrade(advertisement)? advertisement.location_string(): advertisement.city();
+                String paymentMethod = TradeUtils.getPaymentMethodFromItems(advertisement, methods);
+                if(Strings.isBlank(paymentMethod)) {
+                    ((AdvertisementViewHolder) viewHolder).advertisementDetails.setText("In " + adLocation);
+                } else {
+                    ((AdvertisementViewHolder) viewHolder).advertisementDetails.setText("With " +  paymentMethod + " in " + adLocation);
+                }
+
                 ((AdvertisementViewHolder) viewHolder).advertisementType.setText(type + " " + price);
-                ((AdvertisementViewHolder) viewHolder).advertisementDetails.setText("With " +  paymentMethod + " in " + adLocation);
             }
 
             if (advertisement.visible()) {

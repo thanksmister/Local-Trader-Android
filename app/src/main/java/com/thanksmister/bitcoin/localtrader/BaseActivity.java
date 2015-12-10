@@ -140,6 +140,11 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void showProgressDialog(ProgressDialogEvent event)
     {
+        showProgressDialog(event, false);
+    }
+
+    public void showProgressDialog(ProgressDialogEvent event, boolean modal)
+    {
         if(progressDialog != null) {
             progressDialog.dismiss();
             progressDialog = null;
@@ -152,6 +157,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
         progressDialogMessage.setText(event.message);
 
         progressDialog = new AlertDialog.Builder(this)
+                .setCancelable(modal)
                 .setView(dialogView)
                 .show();
     }
@@ -352,7 +358,9 @@ public abstract class BaseActivity extends RxAppCompatActivity
             toast(getString(R.string.error_authentication));
             logOut();
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
+            Timber.i("Data Error: " + "Code 400");
             snack(getString(R.string.error_service_error), retry);
+            
         } else if(throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.i("Data Error: " + throwable.getLocalizedMessage());
             snack(throwable.getLocalizedMessage(), retry);

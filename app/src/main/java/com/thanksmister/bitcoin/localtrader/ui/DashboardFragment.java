@@ -127,14 +127,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     private ItemAdapter itemAdapter;
 
-    private class DataItem
-    {
-        public List<AdvertisementItem> advertisements;
-        public List<MethodItem> methods;
-        public List<ContactItem> contacts;
-        public ExchangeItem exchange;
-    }
-
     private Handler handler;
     private List<ContactItem> contacts = Collections.emptyList();
     private List<AdvertisementItem> advertisements = Collections.emptyList();
@@ -329,9 +321,18 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
         super.onActivityResult(requestCode, resultCode, intent);
-
+        
         if (requestCode == EditActivity.REQUEST_CODE) {
+            
             if (resultCode == EditActivity.RESULT_CREATED || resultCode == EditActivity.RESULT_UPDATED) {
+                
+                updateData(true);
+            }
+            
+        } else if (requestCode == AdvertisementActivity.REQUEST_CODE) {
+            
+            if ( resultCode == AdvertisementActivity.RESULT_DELETED) {
+
                 updateData(true);
             }
         }
@@ -578,7 +579,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call()
                     {
-                        Timber.i("Contacts subscription safely unsubscribed");
+                        Timber.i("Methods subscription safely unsubscribed");
                     }
                 })
                 .compose(this.<List<MethodItem>>bindUntilEvent(FragmentEvent.PAUSE))
@@ -614,7 +615,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
         CompositeSubscription updateSubscriptions = new CompositeSubscription();
 
-        updateSubscriptions.add(dataService.getMethods().cache()
+        updateSubscriptions.add(dataService.getMethods()
                 .doOnUnsubscribe(new Action0()
                 {
                     @Override
@@ -627,14 +628,15 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 .subscribe(new Action1<List<Method>>()
                 {
                     @Override
-                    public void call(List<Method> methods)
+                    public void call(List<Method> results)
                     {
                         Timber.d("methodUpdateObservable");
                         Method method = new Method();
                         method.code = "all";
                         method.name = "All";
-                        methods.add(0, method);
-                        dbManager.updateMethods(methods);
+                        results.add(0, method);
+                        
+                        dbManager.updateMethods(results);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -727,38 +729,33 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         bus.post(NavigateEvent.SEARCH);
     }
-
-    /*   protected void logOut()
-       {
-           bus.post(NavigateEvent.LOGOUT_CONFIRM);
-       }
-   */
+    
     protected void showTradesScreen()
     {
         Intent intent = ContactsActivity.createStartIntent(getActivity(), DashboardType.RELEASED);
         intent.setClass(getActivity(), ContactsActivity.class);
-        getActivity().startActivity(intent);
+        startActivity(intent);
     }
 
     protected void showContact(ContactItem contact)
     {
         Intent intent = ContactActivity.createStartIntent(getActivity(), contact.contact_id(), DashboardType.ACTIVE);
         intent.setClass(getActivity(), ContactActivity.class);
-        getActivity().startActivity(intent);
+        startActivity(intent);
     }
 
     protected void showAdvertisement(AdvertisementItem advertisement)
     {
         Intent intent = AdvertisementActivity.createStartIntent(getActivity(), advertisement.ad_id());
         intent.setClass(getActivity(), AdvertisementActivity.class);
-        getActivity().startActivity(intent);
+        startActivityForResult(intent, AdvertisementActivity.REQUEST_CODE);
     }
 
     protected void createAdvertisementScreen()
     {
         Intent intent = EditActivity.createStartIntent(getActivity(), true, null);
         intent.setClass(getActivity(), EditActivity.class);
-        getActivity().startActivityForResult(intent, EditActivity.REQUEST_CODE);
+        startActivityForResult(intent, EditActivity.REQUEST_CODE);
     }
 
     protected void setHeaderItem(ExchangeItem exchange)

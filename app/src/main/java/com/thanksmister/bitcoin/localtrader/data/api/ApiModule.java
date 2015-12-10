@@ -48,7 +48,7 @@ public final class ApiModule
     {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setEndpoint(BASE_URL)
                 .build();
         return restAdapter.create(LocalBitcoins.class);

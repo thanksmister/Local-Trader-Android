@@ -18,8 +18,8 @@ package com.thanksmister.bitcoin.localtrader.data.api.model;
 
 public class RetroError extends Error
 {
-    public String message;
-    public int code;
+    private String message;
+    private int code;
     
     @Override
     public String getMessage()

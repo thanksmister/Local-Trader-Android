@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
+import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -53,13 +54,16 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.components.CurrencyAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.MethodAdapter;
@@ -69,6 +73,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+import com.trello.rxlifecycle.ActivityEvent;
 
 import org.json.JSONObject;
 
@@ -83,10 +88,12 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.Optional;
+import retrofit.RetrofitError;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
@@ -437,8 +444,9 @@ public class EditActivity extends BaseActivity
         if (create) {
             if (geoLocationService.isGooglePlayServicesAvailable()) {
                 subScribeData();
+            } else {
+                startLocationCheck();
             }
-            startLocationCheck();
         } else {
             subScribeData();
         }
@@ -465,7 +473,7 @@ public class EditActivity extends BaseActivity
     {
         subscriptions = new CompositeSubscription(); // must initiate each time
       
-        subscriptions.add(dbManager.methodQuery().subscribe(new Action1<List<MethodItem>>()
+        subscriptions.add(dbManager.methodSubSetQuery().subscribe(new Action1<List<MethodItem>>()
         {
             @Override
             public void call(List<MethodItem> methodItems)
@@ -475,6 +483,7 @@ public class EditActivity extends BaseActivity
         }));
 
         if (create) {
+            
             subscriptions.add(currencyObservable
                     .timeout(20, TimeUnit.SECONDS)
                     .subscribeOn(Schedulers.newThread())
@@ -484,9 +493,10 @@ public class EditActivity extends BaseActivity
                         @Override
                         public void call(List<ExchangeCurrency> currencies)
                         {
-                            showContent(true);
+                            //showContent(true);
                             createAdvertisement();
                             setCurrencies(currencies, null);
+                            startLocationCheck(); // start location check
                         }
                     }, new Action1<Throwable>()
                     {
@@ -559,6 +569,7 @@ public class EditActivity extends BaseActivity
 
     private void setMethods(List<MethodItem> methods)
     {
+        // TODO remove methods
         MethodAdapter typeAdapter = new MethodAdapter(this, R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
     }
@@ -728,7 +739,9 @@ public class EditActivity extends BaseActivity
         }
 
         // used to store values for service call
-        Advertisement editedAdvertisement = new Advertisement(); 
+        Advertisement editedAdvertisement = new Advertisement();
+
+        TradeType tradeType = TradeType.values()[typeSpinner.getSelectedItemPosition()];
 
         if (create) {
 
@@ -736,12 +749,23 @@ public class EditActivity extends BaseActivity
                 snackError("Unable to save changes.");
                 return;
             }
-
+          
             editedAdvertisement.visible = true;
             editedAdvertisement.currency =  ((ExchangeCurrency) currencySpinner.getSelectedItem()).getName();
-            editedAdvertisement.trade_type = TradeType.values()[typeSpinner.getSelectedItemPosition()];
-            editedAdvertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code(); 
-
+            editedAdvertisement.trade_type = tradeType;
+            
+            Timber.d("Trade Type: " + tradeType.name());
+            
+            String onlineProvider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code();
+            
+            Timber.d("Online Provider: " + onlineProvider);
+            
+            if(tradeType == TradeType.ONLINE_BUY || tradeType ==TradeType.ONLINE_SELL) {
+                editedAdvertisement.online_provider = onlineProvider;
+            } else {
+                editedAdvertisement.online_provider = "NATIONAL_BANK";
+            }
+            
         } else {
 
             if (advertisementItem == null) {
@@ -755,23 +779,33 @@ public class EditActivity extends BaseActivity
             editedAdvertisement.visible = activeCheckBox.isChecked();
         }
 
-        editedAdvertisement.price_equation = equation;
-        editedAdvertisement.min_amount = min;
-        editedAdvertisement.max_amount = max;
-        editedAdvertisement.bank_name = bankName;
         editedAdvertisement.message = msg;
-        editedAdvertisement.account_info = accountInfo;
+        editedAdvertisement.price_equation = equation;
+        editedAdvertisement.min_amount = String.valueOf(TradeUtils.convertCurrencyAmount(min));
+        editedAdvertisement.max_amount = String.valueOf(TradeUtils.convertCurrencyAmount(max));
+        
+        Timber.d("Min: " +  editedAdvertisement.min_amount);
+        Timber.d("Max: " + editedAdvertisement.max_amount);
+
+        // only online trades have these values
+        if(tradeType == TradeType.ONLINE_BUY || tradeType ==TradeType.ONLINE_SELL) {
+            editedAdvertisement.bank_name = bankName;
+            editedAdvertisement.account_info = accountInfo;
+        } 
 
         editedAdvertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
         editedAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
         editedAdvertisement.trusted_required = trustedCheckBox.isChecked();
 
+        // we can only add the address if its available and it should be
         if (address != null) {
+            
             editedAdvertisement.location = TradeUtils.getAddressShort(address);
             editedAdvertisement.city = address.getLocality();
             editedAdvertisement.country_code = address.getCountryCode();
             editedAdvertisement.lon = address.getLongitude();
             editedAdvertisement.lat = address.getLatitude();
+            
         }
 
         updateAdvertisement(editedAdvertisement, create);
@@ -833,45 +867,159 @@ public class EditActivity extends BaseActivity
         }
 
         if (hasLocationServices()) {
-
-            Observable<Address> addressObservable = geoLocationService.getLastKnownLocation()
-                    .observeOn(Schedulers.io())
-                    .subscribeOn(Schedulers.newThread());
-
-            geoLocalSubscription = addressObservable
-                        .subscribe(new Action1<Address>()
-                        {
-                            @Override
-                            public void call(final Address address)
-                            {
-                                runOnUiThread(new Runnable()
-                                {
-                                    @Override
-                                    public void run()
-                                    {
-                                        setAddress(address);
-                                    }
-                                });
-                            }
-                        }, new Action1<Throwable>()
-                        {
-                            @Override
-                            public void call(Throwable throwable)
-                            {
-                                runOnUiThread(new Runnable()
-                                {
-                                    @Override
-                                    public void run()
-                                    {
-                                        showEnableLocationDialog();
-                                    }
-                                });
-                            }
-                        });
-
+            getCurrentLocation();
         } else {
             showEnableLocationDialog();
         }
+    }
+    
+    private void getCurrentLocation()
+    {
+        Timber.d("getCurrentLocation");
+
+        geoLocationService.getUpdatedLocation()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Current Location subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Location>bindUntilEvent(ActivityEvent.PAUSE))
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(new Action1<Location>()
+                {
+                    @Override
+                    public void call(final Location location)
+                    {
+
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                if(location != null) {
+                                    getAddressFromLocation(location);
+                                } else {
+                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                }
+                            }
+                        });
+
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                reportError(throwable);
+                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                            }
+                        });
+
+                    }
+                });
+    }
+
+    private void getAddressFromLocation(final Location location)
+    {
+        geoLocationService.getAddressFromLocation(location)
+                .timeout(20, TimeUnit.SECONDS, Observable.<Address>just(null))
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Get Address From Location subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Address>bindUntilEvent(ActivityEvent.PAUSE))
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(new Action1<Address>()
+                {
+                    @Override
+                    public void call(final Address address)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                if(address != null) {
+                                    showContent(true);
+                                    setAddress(address);
+                                } else {
+                                    getAddressFromLocationFallback(location);
+                                }
+                            }
+                        });
+
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                reportError(throwable);
+                                getAddressFromLocationFallback(location);
+                            }
+                        });
+
+                    }
+                });
+    }
+
+    private void getAddressFromLocationFallback(final Location location)
+    {
+        Timber.d("getAddressFromLocationFallback Location: " + location.getLongitude());
+
+        geoLocationService.getUpdatedAddressFallback(location)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Get Address From Location Fallback subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Address>bindUntilEvent(ActivityEvent.PAUSE))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Address>()
+                {
+                    @Override
+                    public void call(Address address)
+                    {
+                        if (address != null) {
+                            showContent(true);
+                            setAddress(address);
+                        } else {
+                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        reportError(throwable);
+                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                    }
+                });
     }
 
     private void showEnableLocationDialog()
@@ -962,7 +1110,7 @@ public class EditActivity extends BaseActivity
                                 public void run()
                                 {
                                     hideProgressDialog();
-                                    handleError(e);
+                                    handleLocalError(e);
                                 }
                             });
                         }
@@ -976,12 +1124,16 @@ public class EditActivity extends BaseActivity
                                 public void run()
                                 {
                                     toast("New advertisement posted!");
+                                    
+                                    if (Parser.containsError(jsonObject)) {
 
-                                    // TODO have to refresh main view after creating new advertisement
-                                    //db.insert(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build());
-
-                                    setResult(RESULT_CREATED);
-                                    finish();
+                                        RetroError error = Parser.parseError(jsonObject);
+                                        showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
+                                        
+                                    } else {
+                                        setResult(RESULT_CREATED); // hard refresh
+                                        finish();
+                                    }
                                 }
                             });
                         }
@@ -1012,7 +1164,7 @@ public class EditActivity extends BaseActivity
                                 public void run()
                                 {
                                     hideProgressDialog();
-                                    handleError(e);
+                                    handleLocalError(e);
                                 }
                             });
                         }
@@ -1028,14 +1180,48 @@ public class EditActivity extends BaseActivity
                                 public void run()
                                 {
                                     if (Parser.containsError(jsonObject)) {
-                                        toast("Error updating advertisement visibility");
+                                        
+                                        RetroError error = Parser.parseError(jsonObject);
+
+                                        showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
+                                        
                                     } else {
+                                        
                                         updateAdvertisement(advertisement);
                                     }
                                 }
                             });
                         }
                     });
+        }
+    }
+    
+    // TODO let's clean this up and move to central location to get the errors
+    private void handleLocalError(Throwable throwable)
+    {
+        Timber.d("handleLocalError 404: " + DataServiceUtils.isHttp404Error(throwable));
+        
+        if(DataServiceUtils.isHttp400Error(throwable)) {
+
+            Timber.d("handleLocalError");
+            
+            if (throwable instanceof RetrofitError) {
+                
+                RetrofitError retroError = (RetrofitError) throwable;
+                
+                if(retroError.getResponse() != null) {
+                    
+                    JSONObject jsonObject = Parser.parseResponseToJsonObject(retroError.getResponse());
+                    RetroError error = Parser.parseError(jsonObject);
+
+                    showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
+                    Timber.e(jsonObject.toString());
+                }
+            }
+            
+        } else {
+            
+            handleError(throwable); // hand off to global error handling
         }
     }
 

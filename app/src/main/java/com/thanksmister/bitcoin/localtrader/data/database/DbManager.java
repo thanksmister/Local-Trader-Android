@@ -16,13 +16,10 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
-import android.app.DownloadManager;
-import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.squareup.sqlbrite.BriteContentResolver;
@@ -41,9 +38,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
@@ -52,10 +47,8 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class DbManager 
@@ -517,6 +510,13 @@ public class DbManager
     {
        return db.createQuery(MethodItem.TABLE, MethodItem.QUERY)
                 .map(MethodItem.MAP);
+    }
+
+    // We get only the methods that ar va
+    public Observable<List<MethodItem>> methodSubSetQuery()
+    {
+        return db.createQuery(MethodItem.TABLE, MethodItem.QUERY)
+                .map(MethodItem.MAP_SUBSET);
     }
 
     public Observable<ExchangeItem> exchangeQuery()

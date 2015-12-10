@@ -15,7 +15,6 @@
  */
 package com.thanksmister.bitcoin.localtrader.data.database;
 
-import auto.parcel.AutoParcel;
 import android.content.ContentValues;
 import android.database.Cursor;
 
@@ -23,6 +22,8 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import auto.parcel.AutoParcel;
 import rx.functions.Func1;
 
 import static com.squareup.sqlbrite.SqlBrite.Query;
@@ -88,6 +89,30 @@ public abstract class MethodItem
                     String countryCode = Db.getString(cursor, COUNTRY_CODE);
                     String countryName = Db.getString(cursor, COUNTRY_NAME);
                     values.add(new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName));
+                }
+                return values;
+            } finally {
+                cursor.close();
+            }
+        }
+    };
+
+    public static final Func1<Query, List<MethodItem>> MAP_SUBSET = new Func1<Query, List<MethodItem>>() {
+        @Override public List<MethodItem> call(Query query) {
+            Cursor cursor = query.run();
+            try {
+                List<MethodItem> values = new ArrayList<>(cursor.getCount());
+                while (cursor.moveToNext()) {
+                    long id = Db.getLong(cursor, ID);
+                    String key = Db.getString(cursor, KEY);
+                    String code = Db.getString(cursor, CODE);
+                    String name = Db.getString(cursor, NAME);
+                    String countryCode = Db.getString(cursor, COUNTRY_CODE);
+                    String countryName = Db.getString(cursor, COUNTRY_NAME);
+                    
+                    if(!code.toUpperCase().equals("ALL")) {
+                        values.add(new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName));
+                    }
                 }
                 return values;
             } finally {

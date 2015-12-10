@@ -16,17 +16,11 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
-import android.content.Context;
-
-import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
-
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 
 import retrofit.RetrofitError;
-import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
 import timber.log.Timber;
 
@@ -155,7 +149,7 @@ public class DataServiceUtils
     public static int getStatusCode(RetrofitError error) 
     {
         try {
-            Timber.e("Status Code: " + error.getKind());
+            //Timber.e("Status Code: " + error.getKind());
         } catch(Throwable e){
             //Timber.e("Error Status: " + e.getMessage());
         }

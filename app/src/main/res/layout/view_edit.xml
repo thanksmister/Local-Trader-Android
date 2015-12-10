@@ -448,8 +448,9 @@
                                     style="@style/TextLarge.SmallAction"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:hint="0.00"
+                                    android:hint="0"
                                     android:inputType="numberDecimal"
+                                    android:digits="0123456789"
                                     android:theme="@style/EditTextTheme"
                                     android:layout_weight="1"/>
 
@@ -520,7 +521,8 @@
                                     style="@style/TextLarge.SmallAction"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:hint="0.00"
+                                    android:hint="0"
+                                    android:digits="0123456789"
                                     android:inputType="numberDecimal"
                                     android:theme="@style/EditTextTheme"
                                     android:layout_weight="1"/>
@@ -667,7 +669,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginLeft="@dimen/activity_padding"
                                 android:layout_marginRight="@dimen/activity_padding"
-                                android:text="Payment details (optional)"/>
+                                android:text="Payment details (required)"/>
 
                         <View
                                 android:layout_width="match_parent"
