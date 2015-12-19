@@ -86,66 +86,72 @@
         </service>
 
         <activity android:name=".ui.LoginActivity"
-                  android:screenOrientation="portrait"/>
+                  android:screenOrientation="portrait"
+                  android:configChanges="locale"/>
                 
         <activity
             android:name=".ui.advertisements.AdvertisementActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.contacts.ContactActivity"
-                android:screenOrientation="portrait">
+                android:screenOrientation="portrait"
+                android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.PinCodeActivity"
                 android:screenOrientation="portrait"
-                android:noHistory="true">
+                android:noHistory="true"
+                android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.search.SearchResultsActivity"
-                android:screenOrientation="portrait">
+                android:screenOrientation="portrait"
+                android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.advertisements.AdvertiserActivity"
-                android:screenOrientation="portrait">
+                android:screenOrientation="portrait"
+                android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.search.TradeRequestActivity"
-                android:screenOrientation="portrait">
+                android:screenOrientation="portrait"
+                android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.contacts.ContactsActivity"
-                android:screenOrientation="portrait">
+                android:screenOrientation="portrait"
+                android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.advertisements.EditActivity"
-                android:screenOrientation="portrait">
+                android:screenOrientation="portrait"
+                android:configChanges="locale">
         </activity>
 
         <activity
                 android:name=".ui.PromoActivity"
                 android:screenOrientation="portrait"
-                android:noHistory="true">
+                android:noHistory="true"
+                android:configChanges="locale">
         </activity>
-
-        <activity
-                android:name=".ui.bitcoin.QRCodeActivity"
-                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"
-                android:screenOrientation="portrait">
-        </activity>
+        
 
         <activity
                 android:name=".ui.settings.SettingsActivity"
                 android:label="@string/title_activity_settings"
                 android:theme="@style/PreferencesTheme"
-                android:screenOrientation="portrait">
+                android:screenOrientation="portrait"
+                android:configChanges="locale">
         </activity>
 
         <activity

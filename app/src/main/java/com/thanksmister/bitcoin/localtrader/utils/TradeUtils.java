@@ -34,7 +34,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class TradeUtils
 {
@@ -656,8 +655,8 @@ public class TradeUtils
     public static String convertCurrencyAmount(String value)
     {
         try {
-            Locale locUS = new Locale("en_US");
-            NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
+            //Locale locUS = new Locale("en_US");
+            NumberFormat numberFormat = NumberFormat.getNumberInstance();
             double result = numberFormat.parse(value).intValue();
             DecimalFormat decimalFormat = new DecimalFormat("#");
             return decimalFormat.format(result);

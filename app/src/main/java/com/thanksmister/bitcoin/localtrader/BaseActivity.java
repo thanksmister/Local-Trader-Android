@@ -98,6 +98,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
         // TODO this is for testing locals
         //setLocale("es", "ES");
+        setLocale("en", "US");
     }
 
     @Override 

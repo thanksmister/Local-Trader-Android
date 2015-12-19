@@ -856,7 +856,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     public void call(JSONObject jsonObject)
                     {
                         if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
-                            deleteContact(contactId);
+                            deleteContact(contactId, action);
                         } else {
                             onRefreshStart();
                             updateData();
@@ -873,16 +873,21 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                 });
     }
 
-    private void deleteContact(String contactId)
+    private void deleteContact(String contactId, final ContactAction action)
     {
         dbManager.deleteContact(contactId, new ContentResolverAsyncHandler.AsyncQueryListener()
         {
-
             @Override
             public void onQueryComplete()
             {
                 hideProgressDialog();
-                toast(getString(R.string.trade_canceled_toast_text));
+                
+                if (action == ContactAction.RELEASE) {
+                    toast(getString(R.string.trade_released_toast_text));
+                } else {
+                    toast(getString(R.string.trade_canceled_toast_text));
+                }
+             
                 finish();
             }
         });

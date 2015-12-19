@@ -16,24 +16,48 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
-import junit.framework.TestCase;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.test.AndroidTestCase;
+
+import java.util.Locale;
 
 /**
  * Author: Michael Ritchie
  * Updated: 12/8/15
  */
-public class DoublesTest extends TestCase
+public class DoublesTest extends AndroidTestCase
 {
-
-    public void testValueOrDefault() throws Exception
+    public void setUp() throws Exception
     {
-
+        super.setUp();
     }
 
+    protected void setLocale(String language, String country)
+    {
+        // create new local
+        Locale locale = new Locale(language, country);
+
+        // here we update locale for date formatters
+        Locale.setDefault(locale);
+
+        // here we update locale for app resources
+
+        Resources res = getContext().getResources();
+
+        Configuration config = res.getConfiguration();
+        config.locale = locale;
+
+        res.updateConfiguration(config, res.getDisplayMetrics());
+    }
+    
+   
     public void testConvertToDouble() throws Exception
     {
+        setLocale("es", "ES");
         String value = "1000,00";
         double expected = 1000.00;
+        
         double actual = Doubles.convertToDouble(value);
         assertEquals(expected, actual);
         
@@ -65,10 +89,19 @@ public class DoublesTest extends TestCase
     */
     public void testConvertToNumber() throws Exception
     {
-        String value = "1000,00";
-        double expected = 1000.00;
-        double actual = Doubles.convertToNumber(value);
+        String value = "452.20";
+        double expected = 452.20;
+        double actual;
+
+        setLocale("es", "US");
+        actual = Doubles.convertToNumber(value);
+        assertEquals(expected, actual);
         
+        value = "452,20";
+        expected = 452.20;
+        
+        setLocale("es", "ES");
+        actual = Doubles.convertToNumber(value);
         assertEquals(expected, actual);
     }
 
@@ -76,7 +109,7 @@ public class DoublesTest extends TestCase
     {
         String value = "1000,00";
         double expected = 1000.00;
-        double actual = Doubles.convertToNumberLocal(value, "fr");
+        double actual = Doubles.convertToNumberLocal(value, "en_US");
         assertEquals(expected, actual);
     }
 }

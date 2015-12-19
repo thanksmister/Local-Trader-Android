@@ -16,14 +16,15 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
-import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Locale;
 
 public class Conversions
 {
     public static int MAXIMUM_BTC_DECIMALS = 8;
     public static int MINIMUM_BTC_DECIMALS = 1;
+    public static int MINIMUM_CURRENCY_DECIMALS = 2;
 
     private Conversions()
     {
@@ -80,21 +81,20 @@ public class Conversions
         return cents;
     }
 
-    public static String formatCurrencyAmount(String amount)
-    {
-        return formatCurrencyAmount(amount, 2, 2);
-    }
-
-    public static String formatBitcoinAmount(String amount)
-    {
-        Double btc = Doubles.convertToDouble(amount);
-        return formatBitcoinAmount(btc);
-    }
     
     public static String formatBitcoinAmount(Double amount)
     {
-        NumberFormat formatter = new DecimalFormat("###.########");
-        return formatter.format(amount);
+        try {
+            Locale locUS = new Locale("en_US");
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
+            numberFormat.setMaximumFractionDigits(MAXIMUM_BTC_DECIMALS);
+            numberFormat.setMinimumFractionDigits(MINIMUM_BTC_DECIMALS);
+            return String.valueOf(numberFormat.format(amount));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public static String formatWholeNumber(Double amount)
@@ -105,75 +105,17 @@ public class Conversions
 
     public static String formatCurrencyAmount(Double amount)
     {
-        NumberFormat formatter = new DecimalFormat("###.#####");
-        String f = formatter.format(amount);
-        return formatCurrencyAmount(f, 2, 2);
-    }
-
-    public static String formatCurrencyAmount(Double amount, int max, int min)
-    {
-        NumberFormat formatter = new DecimalFormat("###.#####");
-        String f = formatter.format(amount);
-        return formatCurrencyAmount(f, max, min);
-    }
-
-    private static String formatCurrencyAmount(String amount, int maxDecimal, int minDecimal)
-    {
-        try{
-            if(amount == null) return "";
-            if(amount.equals("") || amount.equals(".")) amount = "0.00";
-            if (amount.length() > 0 && (amount.lastIndexOf(".") > amount.length() )) { // return default if multiple periods
-                return "0.00";
-            }
-
-            if(amount.contains(",")) amount = amount.replace(",", ".");
-            BigDecimal balanceNumber = new BigDecimal(amount);
-            DecimalFormat df = new DecimalFormat();
-            df.setMaximumFractionDigits(maxDecimal);
-            df.setMinimumFractionDigits(minDecimal);
-            df.setGroupingUsed(false);
-
-            if (balanceNumber.compareTo(BigDecimal.ZERO) == -1) {
-                balanceNumber = balanceNumber.multiply(new BigDecimal(-1));
-            }
-
-            return df.format(balanceNumber);
-            
-        } catch (NumberFormatException e) {
-            return "0.00";
-        }
-    }
-    
-    private static String removeLastChar(String str)
-    {
-        str = str.substring(0, str.length()-1);
-        return str;
-    }
-
-    public static double convertToDouble (String value)
-    {
-        if (value == null || Strings.isBlank(value)) return 0;
-        
         try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    public static double convertToDoubleOrDefault (String value, double defaultValue)
-    {
-        if (value == null) 
-            return defaultValue;
-
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
+            Locale locUS = new Locale("en_US");
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
+            numberFormat.setMinimumFractionDigits(MINIMUM_CURRENCY_DECIMALS);
+            numberFormat.setMaximumFractionDigits(MINIMUM_CURRENCY_DECIMALS);
+            return String.valueOf(numberFormat.format(amount));
+        } catch (Exception e) {
             e.printStackTrace();
         }
         
-        return defaultValue;
+        return "0.00";
     }
     
     public static float convertToFloat (String value)
@@ -185,46 +127,58 @@ public class Conversions
         }
         return 0;
     }
-
-    public static String formatCurrencyAmount(Float amount, int maxDecimal, int minDecimal)
+    
+    public static String formatBitcoinAmount(String btc)
     {
-        BigDecimal balanceNumber = new BigDecimal(amount);
-        DecimalFormat df = new DecimalFormat();
-        df.setMaximumFractionDigits(maxDecimal);
-        df.setMinimumFractionDigits(minDecimal);
-        df.setGroupingUsed(false);
-
-        if (balanceNumber.compareTo(BigDecimal.ZERO) == -1) {
-            balanceNumber = balanceNumber.multiply(new BigDecimal(-1));
-        }
-
-        return df.format(balanceNumber);
-    }
-
-    public static String formatBitcoinAmount(String btc, int maxDecimal, int minDecimal)
-    {
-        if(btc == null) return null;
-
         try {
-            Double balanceNumber = Double.parseDouble(btc);
-            DecimalFormat df = new DecimalFormat();
-            df.setMaximumFractionDigits(maxDecimal);
-            df.setMinimumFractionDigits(minDecimal);
-            df.setGroupingUsed(false);
-
-            return df.format(balanceNumber);
-        } catch (NumberFormatException e) {
+            Locale locUS = new Locale("en_US");
+            Double value = Doubles.convertToDouble(btc);
+            NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
+            numberFormat.setMinimumFractionDigits(MINIMUM_BTC_DECIMALS);
+            numberFormat.setMaximumFractionDigits(MAXIMUM_BTC_DECIMALS);
+            return numberFormat.format(value); // only format, not parse uses max/min values
+        } catch (Exception e) {
             e.printStackTrace();
         }
         
         return null;
     }
+    
+    public static Double convertToDouble(String value)
+    {
+        return Doubles.convertToDouble(value);
+    }
 
+    /**
+     * Computes value of bitcoin based on current rate and fiat amount entered
+     * @param fiat Required amount of fiat currency (USD)
+     * @param rate Market rate of Bitcoin
+     * @return Computed bitcoin amount as <code>String</code>
+     */
+    public static String computeBitcoinFromFiatAndRate(String fiat, String rate)
+    {
+        double fiatAmount = Doubles.convertToDouble(fiat);
+        double rateAmount = Doubles.convertToDouble(rate);
+        return formatBitcoinAmount(fiatAmount/rateAmount);
+    }
+
+    /**
+     * Computes value of bitcoin based on current rate and bitcoin amount entered
+     * @param bitcoin Bitcoin amount
+     * @param rate Market rate of Bitcoin
+     * @return Computed bitcoin amount as <code>String</code>
+     */
+    public static String computeFiatFromBitcoinAndRate(String bitcoin, String rate)
+    {
+        double btcAmount = Doubles.convertToDouble(bitcoin);
+        double rateAmount = Doubles.convertToDouble(rate);
+        return formatCurrencyAmount(btcAmount*rateAmount);
+    }
+    
     public static String formatDealAmount(String btc, String amount)
     {
-        double btcAmount = convertToDouble(btc);
-        double fiatAmount = convertToDouble(amount);
-
+        double btcAmount = Doubles.convertToDouble(btc);
+        double fiatAmount = Doubles.convertToDouble(amount);
         return formatCurrencyAmount(fiatAmount/btcAmount);
     }
 }

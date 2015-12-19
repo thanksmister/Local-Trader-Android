@@ -54,10 +54,10 @@ public final class Doubles
     {
         try {
             Locale locUS = new Locale("en_US");
-            NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
+            NumberFormat numberFormat = NumberFormat.getInstance(locUS);
             return numberFormat.parse(value).doubleValue();
         } catch (Exception e) {
-            return 0;
+            return 0.00;
         }
     }
 

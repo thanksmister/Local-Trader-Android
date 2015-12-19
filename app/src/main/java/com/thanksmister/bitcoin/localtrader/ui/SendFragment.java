@@ -340,9 +340,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
             Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
             childFragmentManager.setAccessible(true);
             childFragmentManager.set(this, null);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -657,7 +655,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
             return;
         }
 
-        String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString(), Conversions.MAXIMUM_BTC_DECIMALS, Conversions.MINIMUM_BTC_DECIMALS);
+        String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString());
         String bitcoinAddress = addressText.getText().toString();
         
         if(Strings.isBlank(addressText.getText())) {

@@ -268,7 +268,7 @@ public class TradeRequestActivity extends BaseActivity
     private void calculateBitcoinAmount(String amount)
     {
         try {
-            if(Doubles.convertToDouble(amount) == 0) {
+            if(Strings.isBlank(amount) ||  amount.equals("0")) {
                 editBitcoinText.setText("");
                 return;
             } 
@@ -293,13 +293,8 @@ public class TradeRequestActivity extends BaseActivity
 
     private void calculateCurrencyAmount(String bitcoin)
     {
-        try {
-            if( Doubles.convertToDouble(bitcoin) == 0) {
-                editAmountText.setText("");
-                return;
-            }
-        } catch (Exception e) {
-            reportError(e);
+        if( Strings.isBlank(bitcoin) || bitcoin.equals("0")) {
+            editAmountText.setText("");
             return;
         }
 

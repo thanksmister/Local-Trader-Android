@@ -141,7 +141,7 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
                     
             // TODO convert the data to the display format instead of converting, only convert when doing math
             try {
-                amount = Conversions.formatBitcoinAmount(Doubles.convertToDouble(transaction.amount())); 
+                amount = Conversions.formatBitcoinAmount(transaction.amount()); 
             } catch (Exception e) {
                 Timber.e(e.getMessage());
             }

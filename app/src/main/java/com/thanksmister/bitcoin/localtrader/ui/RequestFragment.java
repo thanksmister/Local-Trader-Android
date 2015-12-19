@@ -481,7 +481,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             return;
         }
 
-        String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString(), Conversions.MAXIMUM_BTC_DECIMALS, Conversions.MINIMUM_BTC_DECIMALS);
+        String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString());
         showGeneratedQrCodeActivity(walletItem.address(), bitcoinAmount);
     }
 
