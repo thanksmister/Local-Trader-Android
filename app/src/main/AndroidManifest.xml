@@ -121,6 +121,12 @@
         </activity>
 
         <activity
+                android:name=".presentation.activities.QRCodeActivity"
+                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"
+                android:screenOrientation="portrait">
+        </activity>
+
+        <activity
                 android:name=".ui.search.TradeRequestActivity"
                 android:screenOrientation="portrait"
                 android:configChanges="locale">
