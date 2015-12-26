@@ -121,7 +121,7 @@
         </activity>
 
         <activity
-                android:name=".presentation.activities.QRCodeActivity"
+                android:name=".ui.bitcoin.QRCodeActivity"
                 android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"
                 android:screenOrientation="portrait">
         </activity>
