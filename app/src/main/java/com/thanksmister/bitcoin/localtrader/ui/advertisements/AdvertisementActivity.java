@@ -394,6 +394,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     public void setAdvertisement(AdvertisementItem advertisement, @Nullable MethodItem method)
     {
+        Timber.d("setAdvertisement");
 
         tradePrice.setText(getString(R.string.trade_price, advertisement.temp_price(), advertisement.currency()));
 
@@ -468,7 +469,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         if (tradeType == TradeType.ONLINE_SELL) {
             String paymentMethod = TradeUtils.getPaymentMethodName(advertisement, method);
             onlineProvider.setText(paymentMethod);
-            paymentDetails.setText(advertisement.account_info());
+            paymentDetails.setText(advertisement.account_info().trim());
+            paymentDetails.setMovementMethod(LinkMovementMethod.getInstance());
         }
 
         updateAdvertisement(advertisement);

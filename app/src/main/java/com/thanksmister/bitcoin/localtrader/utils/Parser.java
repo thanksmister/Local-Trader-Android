@@ -790,7 +790,7 @@ public class Parser
             JSONObject data = object.getJSONObject("data");
             JSONObject actions = object.getJSONObject("actions");
             
-            Timber.d("Advertisement Data: " + data.toString());
+            //Timber.d("Advertisement Data: " + data.toString());
 
             item.ad_id = (data.getString("ad_id"));
             item.created_at = (data.getString("created_at"));
@@ -843,13 +843,16 @@ public class Parser
 
             item.currency = (data.getString("currency"));
             
-            if (data.has("account_info")) 
-                item.account_info = (data.getString("account_info"));
+            if (data.has("account_info")) {
+                item.account_info = data.getString("account_info");
+                //Timber.d("Account Info: " + data.getString("account_info"));
+            }
             
             item.lat = (Float.parseFloat(data.getString("lat")));
             item.lon = (Float.parseFloat(data.getString("lon")));
 
-            if (data.has("distance")) item.distance = (data.getString("distance")); // for public searches only
+            if (data.has("distance")) 
+                item.distance = (data.getString("distance")); // for public searches only
 
             if (data.has("bank_name") && !data.isNull("bank_name")) {
                 item.bank_name = (data.getString("bank_name"));
