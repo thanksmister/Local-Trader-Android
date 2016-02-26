@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.AppBarLayout;
@@ -48,9 +49,11 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
@@ -124,6 +127,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
+
+    @Inject
+    protected SharedPreferences sharedPreferences;
 
     private ItemAdapter itemAdapter;
 
@@ -438,6 +444,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public void onRefresh()
     {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
+        SyncUtils.TriggerRefresh(getContext().getApplicationContext(),  stringPreference.get());
         updateData(true);
     }
 

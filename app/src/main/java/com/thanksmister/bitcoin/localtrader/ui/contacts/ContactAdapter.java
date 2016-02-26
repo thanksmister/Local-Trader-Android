@@ -26,7 +26,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
@@ -114,7 +113,12 @@ public class ContactAdapter extends BaseAdapter
 
         holder.tradeType.setText(type + " - " + amount);
         holder.tradeDetails.setText("With " + person + " (" + date + ")");
-        holder.contactMessageCount.setText(String.valueOf(contact.messageCount()));
+        //holder.contactMessageCount.setText(String.valueOf(contact.messageCount()));
+        if(contact.messageCount() > 0) {
+            holder.contactMessageCount.setText(String.valueOf(contact.messageCount()));
+        } else {
+            holder.contactMessageCount.setText("");
+        }
         
         return view;
     }

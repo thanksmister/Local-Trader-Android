@@ -499,13 +499,9 @@ public class DataService
                                         @Override
                                         public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                                         {
-                                            if (contacts.isEmpty()) {
-                                                return Observable.just(contacts);
-                                            }
-
                                             setContactsExpireTime();
 
-                                            return getContactsMessages(contacts, sessionItem.access_token());
+                                            return Observable.just(contacts);
                                         }
                                     });
                         } else if (dashboardType == DashboardType.CANCELED) {
@@ -516,13 +512,9 @@ public class DataService
                                         @Override
                                         public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                                         {
-                                            if (contacts.isEmpty()) {
-                                                return Observable.just(contacts);
-                                            }
-
                                             setContactsExpireTime();
 
-                                            return getContactsMessages(contacts, sessionItem.access_token());
+                                            return Observable.just(contacts);
                                         }
                                     });
                         } else if (dashboardType == DashboardType.CLOSED) {
@@ -533,13 +525,9 @@ public class DataService
                                         @Override
                                         public Observable<? extends List<Contact>> call(final List<Contact> contacts)
                                         {
-                                            if (contacts.isEmpty()) {
-                                                return Observable.just(contacts);
-                                            }
-
                                             setContactsExpireTime();
 
-                                            return getContactsMessages(contacts, sessionItem.access_token());
+                                            return Observable.just(contacts);
                                         }
                                     });
                         } else {
@@ -556,7 +544,7 @@ public class DataService
 
                                             setContactsExpireTime();
 
-                                            return getContactsMessages(contacts, sessionItem.access_token());
+                                            return Observable.just(contacts);
                                         }
                                     });
                         }
