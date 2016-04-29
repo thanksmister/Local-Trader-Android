@@ -11,3 +11,4 @@ reports
 
 # Apple
 .DS_Store
+npm-debug.log
