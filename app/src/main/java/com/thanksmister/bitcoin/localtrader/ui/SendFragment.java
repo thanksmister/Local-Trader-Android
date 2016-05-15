@@ -499,7 +499,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     @Override
                     public void call(Throwable throwable)
                     {
-                        snackError("Unable to update exchange data...");
+                        snackError("Unable to update currency rate...");
                     }
                 }));
     }

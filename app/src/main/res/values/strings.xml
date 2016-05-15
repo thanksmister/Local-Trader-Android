@@ -424,8 +424,8 @@
         limitations under the License.
     ]]></string>
     <string name="error_no_play_services">No Google Play Services</string>
-    <string name="error_unable_load_address">Unable to get current address.</string>
-    <string name="error_unable_load_address_retry">Unable to get current address, retry with WiFi enabled.</string>
+    <string name="error_unable_load_address">Unable to get current address. Turn on location permissions.</string>
+    <string name="error_unable_load_address_retry">Unable to get current address, retry with WiFi enabled and turn onlocation permissions.</string>
     <string name="error_no_trade_data">There are no trades.</string>
     <string name="dialog_logout_title">Log Out</string>
     <string name="dialog_logout_message">Do you wish to logout?</string>

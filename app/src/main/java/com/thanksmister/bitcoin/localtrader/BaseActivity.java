@@ -39,6 +39,7 @@ import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.squareup.otto.Bus;
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
@@ -359,9 +360,14 @@ public abstract class BaseActivity extends RxAppCompatActivity
             toast(getString(R.string.error_authentication));
             logOut();
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
-            Timber.i("Data Error: " + "Code 400");
-            snack(getString(R.string.error_service_error), retry);
-            
+            Timber.e("Data Error: " + "Code 400");
+            RetroError error = DataServiceUtils.createRetroError(throwable);
+            if(error.getCode() == DataServiceUtils.CODE_THREE) {
+                toast(getString(R.string.error_authentication));
+                logOut();
+            } else {
+                snack(error.getMessage(), retry);
+            }
         } else if(throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.i("Data Error: " + throwable.getLocalizedMessage());
             snack(throwable.getLocalizedMessage(), retry);

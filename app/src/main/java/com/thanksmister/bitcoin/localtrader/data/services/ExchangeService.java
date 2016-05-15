@@ -33,7 +33,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import rx.Observable;
-import rx.functions.Action1;
 import timber.log.Timber;
 
 @Singleton
@@ -108,7 +107,7 @@ public class ExchangeService
         
         Timber.d("WalletFragment Currency: " + currency);
         
-        return bitcoinAverage.market(currency)
+        return bitcoinAverage.globalCurrency(currency)
                 .map(new ResponseToExchange());
                 /*.doOnNext(new Action1<Exchange>()
                 {

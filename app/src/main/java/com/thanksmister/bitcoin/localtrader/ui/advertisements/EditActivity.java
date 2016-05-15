@@ -380,7 +380,7 @@ public class EditActivity extends BaseActivity
         
         swipeLayout.setEnabled(false); // freeze swipe ability
 
-        currencyObservable = exchangeService.getMarketTickers().cache();
+        currencyObservable = exchangeService.getGlobalTickers().cache();
     }
 
     @Override

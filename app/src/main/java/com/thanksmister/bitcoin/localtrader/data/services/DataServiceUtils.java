@@ -16,16 +16,22 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
+import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
+
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 
 import retrofit.RetrofitError;
+import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
 import timber.log.Timber;
 
 public class DataServiceUtils
 {
+    public static int CODE_THREE = 3; // authorization failed
+    
     public static boolean isNetworkError(Throwable throwable)
     {
         if(throwable instanceof UnknownHostException) {
@@ -144,6 +150,29 @@ public class DataServiceUtils
         }
 
         return false;
+    }
+
+    /*
+   Added because service now always returns 400 error and have to check valid code
+   {"error": {"message": "Invalid or expired access token for scope 2. 
+   Learn how to renew an access token at https://localbitcoins.com/api-docs/", "error_code": 3}}
+   
+   if(retroError.getResponse() != null) {
+                    String response =  new String(((TypedByteArray) retroError.getResponse().getBody()).getBytes());
+                    return (response.contains("invalid_grant"));
+                }
+    */
+    public static RetroError createRetroError(Throwable throwable)
+    {
+        RetrofitError retroError = (RetrofitError) throwable;
+        Response response = retroError.getResponse();
+        String json = Parser.parseRetrofitResponse(response);
+        Timber.e("JSON: " + json);
+
+        RetroError err = Parser.parseError(json);
+        Timber.e("Error: " + err.getMessage());
+        Timber.e("Code: " + err.getCode());
+        return err;
     }
 
     public static int getStatusCode(RetrofitError error) 

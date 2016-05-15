@@ -681,7 +681,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call(Throwable throwable)
                     {
-                        snackError("Unable to update exchange data...");
+                        snackError("Unable to update currency rate...");
                     }
                 }));
 

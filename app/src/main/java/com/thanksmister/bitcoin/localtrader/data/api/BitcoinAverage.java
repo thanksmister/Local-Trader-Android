@@ -26,6 +26,9 @@ public interface BitcoinAverage
     @GET("/ticker/{currency}")
     Observable<Response> market(@Path("currency") String currency);
 
+    @GET("/ticker/global/{currency}")
+    Observable<Response> globalCurrency(@Path("currency") String currency);
+
     @GET("/ticker/global/")
     Observable<Response> globalTickers();
 

@@ -492,7 +492,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     @Override
                     public void call(final Throwable throwable)
                     {
-                        snackError("Unable to update exchange data...");
+                        snackError("Unable to update currency rate...");
                     }
                 });
         

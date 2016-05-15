@@ -126,7 +126,7 @@ public class DbManager
                 .access_token(authorization.access_token)
                 .refresh_token(authorization.refresh_token);
 
-        final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
+//        final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
                 .map(SessionItem.MAP)
                 /*.subscribeOn(Schedulers.io())
