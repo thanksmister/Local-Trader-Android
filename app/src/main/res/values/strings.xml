@@ -468,5 +468,7 @@
     <string name="error_device_title">Device Error</string>
     <string name="wallet_account_balance">ACCOUNT BALANCE</string>
     <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
+    <string name="alert_permission_required">Permission Required</string>
+    <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
 
 </resources>

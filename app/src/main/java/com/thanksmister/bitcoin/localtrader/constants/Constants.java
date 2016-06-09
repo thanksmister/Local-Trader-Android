@@ -38,6 +38,9 @@ public class Constants
     
     public static final String BLOCKCHAIN_INFO_ADDRESS = "https://blockchain.info/address/";
     public static final String REGISTRATION_URL = "http://goo.gl/xgUVP8";
+
+    public static final int LOCATION_SETTINGS_REQUEST = 5;
+    public static final int REQUEST_PERMISSIONS = 6;
     
     public static Boolean USE_MOCK_DATA = false;
 }

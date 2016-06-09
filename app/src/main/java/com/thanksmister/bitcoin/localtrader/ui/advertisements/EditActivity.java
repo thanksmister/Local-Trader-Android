@@ -16,19 +16,26 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.advertisements;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
@@ -440,7 +447,12 @@ public class EditActivity extends BaseActivity
     public void onResume()
     {
         super.onResume();
-        
+
+        if(!checkPermissions()){
+            showRequestPermissionsDialog();
+            return;
+        }
+
         if (create) {
             if (geoLocationService.isGooglePlayServicesAvailable()) {
                 subScribeData();
@@ -467,6 +479,53 @@ public class EditActivity extends BaseActivity
 
         if(content != null)
             content.clearAnimation();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
+    {
+        switch (requestCode) {
+            case Constants.REQUEST_PERMISSIONS: {
+                if (grantResults.length > 0) {
+                    boolean permissionsDenied = false;
+                    for (int permission : grantResults) {
+                        if(permission != PackageManager.PERMISSION_GRANTED) {
+                            permissionsDenied = true;
+                            break;
+                        }
+                    }
+
+                    if(permissionsDenied) {
+                        toast("Edit canceled...");
+                        finish();
+                    } else {
+                        onResume(); // load our stuff
+                    }
+                }
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean checkPermissions()
+    {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void showRequestPermissionsDialog()
+    {
+        showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required), getString(R.string.require_location_permission)), new Action0() {
+            @Override
+            public void call() {
+                ActivityCompat.requestPermissions(EditActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+            }
+        });
     }
 
     public void subScribeData()

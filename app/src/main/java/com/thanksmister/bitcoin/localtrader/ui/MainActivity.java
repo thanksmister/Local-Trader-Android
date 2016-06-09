@@ -72,13 +72,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     public static String EXTRA_CONTACT = "extra_contact";
     public static String EXTRA_TYPE = "extra_type";
     public static String EXTRA_FRAGMENT = "extra_fragment";
-    
-    private static final int DRAWER_DASHBOARD = 0;
-    private static final int DRAWER_SEARCH = 1;
-    private static final int DRAWER_SEND = 2;
-    private static final int DRAWER_RECEIVE= 3;
-    private static final int DRAWER_WALLET = 4;
-    private static final int DRAWER_ABOUT = 5;
+
+    public static final int DRAWER_DASHBOARD = 0;
+    public static final int DRAWER_SEARCH = 1;
+    public static final int DRAWER_SEND = 2;
+    public static final int DRAWER_RECEIVE= 3;
+    public static final int DRAWER_WALLET = 4;
+    public static final int DRAWER_ABOUT = 5;
     
     private static final int REQUEST_SCAN = 49374;
 
@@ -287,7 +287,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         }
     }*/
     
-    private void setContentFragment(int position)
+    public void setContentFragment(int position)
     {
         this.position = position;
 

@@ -16,22 +16,28 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.search;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
@@ -53,12 +59,14 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.PredictAdapter;
@@ -206,6 +214,13 @@ public class SearchFragment extends BaseFragment
     @Override
     public void onResume()
     {
+        super.onResume();
+        
+        if(!checkPermissions()){
+            showRequestPermissionsDialog();
+            return;
+        }
+
         subscribeData();
         updateData();
         
@@ -214,8 +229,6 @@ public class SearchFragment extends BaseFragment
         } else {
             delayLocationCheck();
         }
-
-        super.onResume();
     }
 
     @Override
@@ -374,6 +387,8 @@ public class SearchFragment extends BaseFragment
                     case Activity.RESULT_CANCELED:
                         // The user was asked to change settings, but chose not to
                         Timber.d("User Cancelled enabling location");
+                        toast("Search canceled...");
+                        ((MainActivity) getActivity()).setContentFragment(MainActivity.DRAWER_DASHBOARD);
                         break;
                     default:
                         break;
@@ -382,6 +397,53 @@ public class SearchFragment extends BaseFragment
         }
         
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
+    {
+        switch (requestCode) {
+            case Constants.REQUEST_PERMISSIONS: {
+                if (grantResults.length > 0) {
+                    boolean permissionsDenied = false;
+                    for (int permission : grantResults) {
+                        if(permission != PackageManager.PERMISSION_GRANTED) {
+                            permissionsDenied = true;
+                            break;
+                        }
+                    }
+
+                    if(permissionsDenied) {
+                        toast("Search canceled...");
+                        ((MainActivity) getActivity()).setContentFragment(MainActivity.DRAWER_DASHBOARD);
+                    } else {
+                        onResume(); // load our stuff
+                    }
+                }
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean checkPermissions()
+    {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void showRequestPermissionsDialog()
+    {
+        showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required), getString(R.string.require_location_permission)), new Action0() {
+            @Override
+            public void call() {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+            }
+        });
     }
     
     public void onRefresh()
