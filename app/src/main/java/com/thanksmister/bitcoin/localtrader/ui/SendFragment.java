@@ -70,6 +70,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -131,6 +132,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     private WalletData walletData;
     
     private Handler handler;
+    private Subscription sendSubscription;
 
     public static SendFragment newInstance(String address, String amount)
     {
@@ -314,9 +316,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     public void onResume()
     {
         super.onResume();
-
         subscribeData();
-
         setCurrency();
     }
     
@@ -325,6 +325,9 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     {
         super.onPause();
 
+        if(sendSubscription != null)
+            sendSubscription.unsubscribe();
+        
         handler.removeCallbacks(refreshRunnable);
     }
 
@@ -579,10 +582,13 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     
     public void confirmedPinCodeSend(String pinCode, String address, String amount)
     {
+        if (sendSubscription != null)
+            return;
+        
         showProgressDialog(new ProgressDialogEvent("Sending..."));
 
         Observable<Boolean> sendPinCodeMoneyObservable = dataService.sendPinCodeMoney(pinCode, address, amount);
-        sendPinCodeMoneyObservable
+        sendSubscription = sendPinCodeMoneyObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>()
@@ -600,9 +606,23 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     public void call(Throwable throwable)
                     {
                         hideProgressDialog();
-                        handleError(throwable);
+                        handleSendError(throwable);
                     }
                 });
+    }
+    
+    private void handleSendError(Throwable throwable)
+    {
+        if(sendSubscription != null)
+            sendSubscription.unsubscribe();
+
+        sendSubscription = null;
+
+        amountText.setText("");
+        addressText.setText("");
+        calculateCurrencyAmount("0.00");
+        
+        handleError(throwable);
     }
     
     public void setBitcoinAddress(String bitcoinAddress)
@@ -622,6 +642,11 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
 
     public void resetWallet()
     {
+        if(sendSubscription != null)
+            sendSubscription.unsubscribe();
+
+        sendSubscription = null;
+        
         updateData(); // refresh wallet data
         amountText.setText("");
         addressText.setText("");
@@ -717,15 +742,10 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         
         try {
             String exchangeValue = walletData.getRate();
-            
             double btc = Math.abs(Doubles.convertToDouble(fiat) / Doubles.convertToDouble(exchangeValue));
-            
             String amount = Conversions.formatBitcoinAmount(btc);
-            
             amountText.setText(amount); // set bitcoin amount
-            
             computeBalance(btc);
-            
         } catch (Exception e) {
             
             reportError(e);
