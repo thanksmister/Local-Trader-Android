@@ -87,6 +87,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -175,6 +176,7 @@ public class SearchFragment extends BaseFragment
     private TradeType tradeType = TradeType.NONE;
     
     private Handler handler;
+    private Subscription geoSubscription;
     
     public static SearchFragment newInstance()
     {
@@ -239,6 +241,11 @@ public class SearchFragment extends BaseFragment
         ButterKnife.reset(this);
 
         handler.removeCallbacks(locationRunnable);
+
+        if(geoSubscription != null) {
+            geoSubscription.unsubscribe();
+            geoSubscription = null;
+        }
         
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
@@ -441,7 +448,10 @@ public class SearchFragment extends BaseFragment
         showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required), getString(R.string.require_location_permission)), new Action0() {
             @Override
             public void call() {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+                Activity activity = getActivity();
+                if(activity != null) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+                }
             }
         });
     }
@@ -924,7 +934,10 @@ public class SearchFragment extends BaseFragment
 
     private void doAddressLookup(String locationName)
     {
-        geoLocationService.geoGetLocationFromName(locationName)
+        if(geoSubscription != null)
+            return;
+        
+        geoSubscription = geoLocationService.geoGetLocationFromName(locationName)
                 .doOnUnsubscribe(new Action0()
                 {
                     @Override
@@ -941,7 +954,7 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(final List<Address> addresses)
                     {
-                        if (!addresses.isEmpty()) {
+                        if (!addresses.isEmpty() && getActivity() != null) {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -949,19 +962,24 @@ public class SearchFragment extends BaseFragment
                                 }
                             });
                         }
-                        
+
+                        geoSubscription = null;
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(Throwable throwable)
                     {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                            }
-                        });
+                        if(getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                }
+                            });
+                        }
+
+                        geoSubscription = null;
                     }
                 });
     }
