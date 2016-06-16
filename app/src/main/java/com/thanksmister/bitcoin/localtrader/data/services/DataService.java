@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.text.TextUtils;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -331,6 +332,10 @@ public class DataService
             city =  advertisement.city;
         }
 
+        if(TextUtils.isEmpty(advertisement.bank_name)) {
+            advertisement.bank_name = " ";
+        }
+
         return localBitcoins.updateAdvertisement(advertisement.ad_id, token, String.valueOf(visible), advertisement.min_amount,
                 advertisement.max_amount, advertisement.price_equation, advertisement.currency, String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
@@ -354,6 +359,10 @@ public class DataService
             city = advertisement.location;
         } else {
             city =  advertisement.city;
+        }
+
+        if(TextUtils.isEmpty(advertisement.bank_name)) {
+            advertisement.bank_name = " ";
         }
 
         return localBitcoins.updateAdvertisement(advertisement.ad_id, token, String.valueOf(advertisement.visible), advertisement.min_amount,
@@ -401,6 +410,10 @@ public class DataService
             city = advertisement.location;
         } else {
             city = advertisement.city;
+        }
+        
+        if(TextUtils.isEmpty(advertisement.bank_name)) {
+            advertisement.bank_name = " ";
         }
         
         return localBitcoins.createAdvertisement(access_token, advertisement.min_amount,
