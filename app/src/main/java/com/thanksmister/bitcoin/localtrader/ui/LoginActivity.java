@@ -16,31 +16,31 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
+import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 
 import javax.inject.Inject;
 
@@ -50,17 +50,19 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class LoginActivity extends BaseActivity
 {
-    public String OAUTH_URL = "";
+    private static String HMAC_AUTH_KEY = "3a5c1401d798712470903e746b0be158";
+    private static String HMAC_AUTH_SECRET = "0a6676e934dc1c3a7e4e89393cfc104e2c1994e77ba1d7b3ab40807c553b62e4";
 
     @Inject
     DataService dataService;
-    
+
     @Inject
     BriteDatabase db;
 
@@ -70,13 +72,23 @@ public class LoginActivity extends BaseActivity
     @Inject
     DbManager dbManager;
 
-    @InjectView(R.id.loginProgress)
-    View progress;
-
-    //@InjectView(R.id.webView)
-    WebView webView;
+    @InjectView(R.id.content)
+    View content;
     
+    @InjectView(R.id.authenticateButton)
+    Button authenticateButton;
+
+    @InjectView(R.id.hmacKey)
+    EditText hmacKey;
+
+    @InjectView(R.id.hmacSecret)
+    EditText hmacSecret;
+    
+    @InjectView(R.id.editTextDescription)
+    TextView editTextDescription;
+
     private Subscription subscription = Subscriptions.unsubscribed();
+    private int retryLimit = 1;
 
     public static Intent createStartIntent(Context context)
     {
@@ -91,189 +103,103 @@ public class LoginActivity extends BaseActivity
         setContentView(R.layout.view_login);
 
         ButterKnife.inject(this);
-        
-        OAUTH_URL = "https://localbitcoins.com/oauth2/authorize/?ch=2hbo&client_id="
-                + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
-        
-        setUpWebViewDefaults();
 
-        //initWebView();
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setUpWebViewDefaults() {
-
-        try {
-            
-            webView = (WebView) findViewById(R.id.webView);
-
-            webView.setWebViewClient(new OauthWebViewClient());
-            webView.setWebChromeClient(new WebChromeClient());
-            
-            WebSettings settings = webView.getSettings();
-
-            // Enable Javascript
-            settings.setJavaScriptEnabled(true);
-
-            // Use WideViewport and Zoom out if there is no viewport defined
-            settings.setUseWideViewPort(true);
-            settings.setLoadWithOverviewMode(true);
-
-            // Enable pinch to zoom without the zoom buttons
-            settings.setBuiltInZoomControls(true);
-
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-                // Hide the zoom controls for HONEYCOMB+
-                settings.setDisplayZoomControls(false);
-            }
-
-            // Enable remote debugging via chrome://inspect
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                WebView.setWebContentsDebuggingEnabled(true);
-            }
-
-            // Load website
-            webView.loadUrl(OAUTH_URL);
-
-        } catch (Exception e) {
-            Timber.e(e.getMessage());
-            Crashlytics.log("WebView");
-            Crashlytics.logException(e);
+        if (BuildConfig.DEBUG) {
+            hmacKey.setText(HMAC_AUTH_KEY);
+            hmacSecret.setText(HMAC_AUTH_SECRET);
         }
+
+        editTextDescription.setText(Html.fromHtml(getString(R.string.setup_description)));
+        editTextDescription.setMovementMethod(LinkMovementMethod.getInstance());
+        authenticateButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                checkCredentials();
+            }
+        });
     }
 
     @Override
     public void onPause()
     {
         super.onPause();
-
         subscription.unsubscribe();
     }
-    
-    public void hideProgress()
+
+    private void checkCredentials()
     {
-        if(progress != null)
-            progress.setVisibility(View.GONE);
-        
-        if(webView != null)
-            webView.setVisibility(View.VISIBLE);
+        String key = hmacKey.getText().toString();
+        String secret = hmacSecret.getText().toString();
+        if (!TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret)) {
+            showProgressDialog(new ProgressDialogEvent(getString(R.string.login_authorizing)));
+            getMyself(key, secret);
+        } else {
+            hideProgressDialog();
+            showAlertDialog(new AlertDialogEvent(null, getString(R.string.setup_form_error)));
+        }
     }
     
-    public void showMain()
+    public Context getContext()
     {
+        return this;
+    }
+
+    public void setAuthorization(final String key, final String secret, final String username)
+    {
+        AuthUtils.setHmacKey(sharedPreferences, key);
+        AuthUtils.setHmacSecret(sharedPreferences, secret);
+        AuthUtils.setUsername(sharedPreferences, username);
+
+        Timber.d("Username: " + username);
+
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
 
-    public Context getContext()
+    public void getMyself(final String key, final String secret)
     {
-        return this;
-    }
+        final String nonce = NetworkUtils.generateNonce();
+        final String signature = NetworkUtils.createSignature(LocalBitcoins.GET_MYSELF, nonce, key, secret);
 
-    @Deprecated
-    private void initWebView()
-    {
-        try{
-
-            webView = (WebView) findViewById(R.id.webView);
-
-            //load the url of the oAuth login page and client
-            webView.setWebViewClient(new OauthWebViewClient());
-            webView.setWebChromeClient(new WebChromeClient());
-
-            //activates JavaScript (just in case)
-            WebSettings webSettings = webView.getSettings();
-            webSettings.setJavaScriptEnabled(true);
-            webView.loadUrl(OAUTH_URL);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private class OauthWebViewClient extends WebViewClient
-    {
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url)
-        {
-            hideProgress();
-            
-            //check if the login was successful and the access token returned
-            if (url.contains("thanksmr.com")) {
-                Pattern codePattern = Pattern.compile("code=([^&]+)?");
-                Matcher codeMatcher = codePattern.matcher(url);
-
-                if (codeMatcher.find()) {
-                    String code[] = codeMatcher.group().split("=");
-
-                    if (code.length > 0) {
-                        setAuthorizationCode(code[1]);
-                        return true;
-                    }
-                }
-                
-            } else if (url.contains("authorize") || url.contains("oauth2") || url.contains("accounts") || url.contains("threefactor_login_verification")) {
-                hideProgress();
-                return false;
-            } else if (url.contains("ads")) { // hack to get past 3 factor screen
-                webView.loadUrl(OAUTH_URL); // reload authentication page
-            } else if (url.contains("error=access_denied")) {
-                handleError(new Throwable(getString(R.string.error_invalid_credentials)));
-                return false;
-            }
-
-            return false;
-        }
-    }
-
-    public void setAuthorizationCode(final String code)
-    {
-        Observable<Authorization> tokenObservable = dataService.getAuthorization(code);
-        subscription = tokenObservable
+        subscription = dataService.getMyself(key, nonce, signature)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Authorization>()
+                .onErrorResumeNext(new Func1<Throwable, Observable<? extends User>>()
                 {
                     @Override
-                    public void call(Authorization authorization)
+                    public Observable<? extends User> call(Throwable throwable)
                     {
-                        db.insert(SessionItem.TABLE, new SessionItem.Builder().access_token(authorization.access_token).refresh_token(authorization.refresh_token).build());
-                        getUser(authorization.access_token);
+                        if (DataServiceUtils.isHttp41Error(throwable) && retryLimit > 0) {
+                            retryLimit--;
+                            return dataService.getMyself(key, nonce, signature);
+                        }
+                        return Observable.error(throwable); // bubble up the exception
                     }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        toast(getString(R.string.error_authentication));
-                    }
-                });
-    }
-
-    public void getUser(String token)
-    {
-        Observable<User> userObservable = dataService.getMyself(token);
-        subscription = userObservable
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                })
                 .subscribe(new Action1<User>()
                 {
                     @Override
                     public void call(User user)
                     {
-                        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
-                        stringPreference.set(user.username);
-                        toast("Login successful for " + user.username);
-                        showMain();
+                        hideProgressDialog();
+                        toast(getString(R.string.authentication_success, user.username));
+                        setAuthorization(key, secret, user.username);
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
                     public void call(Throwable throwable)
                     {
-                        toast("Login error");
+                        hideProgressDialog();
+                        if (DataServiceUtils.isHttp403Error(throwable)) {
+                            showAlertDialog(new AlertDialogEvent(null, getString(R.string.setup_form_error)));
+                        } else {
+                            handleError(throwable);
+                        }
                     }
                 });
     }

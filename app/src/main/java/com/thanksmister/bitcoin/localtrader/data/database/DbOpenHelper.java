@@ -24,7 +24,8 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 29;
+    private static final int DATABASE_VERSION = 30;
+    private static final int DATABASE_VERSION_TRANSACTIONS = 29;
     private static final int DATABASE_VERSION_MESSAGES = 25;
     private static final int CONTACT_VERSION_MESSAGES = 27;
     private static final String TYPE_TEXT = " TEXT";
@@ -32,13 +33,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
     private static final String TYPE_INTEGER = " INTEGER";
     private static final String TYPE_REAL = " REAL";
     private static final String COMMA_SEP = ", ";
-
-    private static final String CREATE_SESSION =
-            "CREATE TABLE IF NOT EXISTS " + SessionItem.TABLE + " (" +
-                    SessionItem.ID + " INTEGER PRIMARY KEY," +
-                    SessionItem.ACCESS_TOKEN + TYPE_TEXT + COMMA_SEP +
-                    SessionItem.REFRESH_TOKEN + TYPE_TEXT + ")";
-
+    
     private static final String CREATE_WALLET =
             "CREATE TABLE IF NOT EXISTS " + WalletItem.TABLE + " (" +
                     WalletItem.ID + " INTEGER PRIMARY KEY," +
@@ -203,7 +198,6 @@ public class DbOpenHelper extends SQLiteOpenHelper
         db.execSQL(CREATE_CONTACTS);
         db.execSQL(CREATE_MESSAGES);
         db.execSQL(CREATE_EXCHANGES);
-        db.execSQL(CREATE_SESSION);
         db.execSQL(CREATE_WALLET);
         db.execSQL(CREATE_ADVERTISEMENTS);
         db.execSQL(CREATE_TRANSACTIONS);
@@ -238,6 +232,11 @@ public class DbOpenHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
         if (oldVersion < newVersion) {
+            db.delete("session_table", null, null);
+        }
+
+        // check older version for transactions table
+        if (oldVersion < DATABASE_VERSION_TRANSACTIONS) {
             db.execSQL(CREATE_TRANSACTIONS);
         }
 

@@ -41,7 +41,6 @@ import com.google.zxing.android.IntentIntegrator;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
@@ -51,10 +50,8 @@ import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
-import com.trello.rxlifecycle.ActivityEvent;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
-
-import org.json.JSONObject;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -63,11 +60,11 @@ import java.util.Locale;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
+
+import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils.CODE_FORTY_ONE;
+import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils.CODE_THREE;
 
 /** Base activity which sets up a per-activity object graph and performs injection. */
 public abstract class BaseActivity extends RxAppCompatActivity
@@ -217,40 +214,15 @@ public abstract class BaseActivity extends RxAppCompatActivity
     public void logOut()
     {
         showProgressDialog(new ProgressDialogEvent("Logging out..."));
-        
-        dataService.logout()
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Logout subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<JSONObject>()
-                {
-                    @Override
-                    public void call(JSONObject jsonObject)
-                    {
-                        Timber.d("Logged out: " + jsonObject.toString());
-                        onLoggedOut();
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        reportError(throwable);
-                        onLoggedOut();
-                    }
-                });
+        dataService.logout();
+        onLoggedOut();
     }
     
     private void  onLoggedOut()
     {
+        String userName = AuthUtils.getUsername(sharedPreferences);
+        SyncUtils.ClearSyncAccount(getApplicationContext(), userName);
+        
         dbManager.clearDbManager();
         
         // clear preferences
@@ -259,12 +231,9 @@ public abstract class BaseActivity extends RxAppCompatActivity
         editor.clear();
         editor.apply();
 
-        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
-        SyncUtils.CreateSyncAccount(getApplicationContext(), stringPreference.get());
-        SyncUtils.ClearSyncAccount(getApplicationContext(), stringPreference.get());
-
+        AuthUtils.resetCredentials(sharedPreferences);
+        
         hideProgressDialog();
-
         
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);
@@ -345,7 +314,6 @@ public abstract class BaseActivity extends RxAppCompatActivity
         } else if(DataServiceUtils.isHttp403Error(throwable)) {
             Timber.i("Data Error: " + "Code 403");
             toast(getString(R.string.error_authentication));
-            logOut();
         } else if(DataServiceUtils.isHttp401Error(throwable)) {
             Timber.i("Data Error: " + "Code 401");
             snack(getString(R.string.error_no_internet), retry);
@@ -354,17 +322,12 @@ public abstract class BaseActivity extends RxAppCompatActivity
             snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp404Error(throwable)) {
             Timber.i("Data Error: " + "Code 404");
-            snack(getString(R.string.error_service_error), retry);
-        } else if(DataServiceUtils.isHttp400GrantError(throwable)) {
-            Timber.i("Data Error: " + "Code 400 Grant Invalid");
-            toast(getString(R.string.error_authentication));
-            logOut();
+            snack(getString(R.string.error_service_error), retry);;
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
             Timber.e("Data Error: " + "Code 400");
             RetroError error = DataServiceUtils.createRetroError(throwable);
-            if(error.getCode() == DataServiceUtils.CODE_THREE) {
+            if(error.getCode() == CODE_THREE || error.getCode() == CODE_FORTY_ONE) {
                 toast(getString(R.string.error_authentication));
-                logOut();
             } else {
                 snack(error.getMessage(), retry);
             }

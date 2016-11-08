@@ -52,7 +52,7 @@
 
         <Button
                 android:id="@+id/registerButton"
-                style="@style/ButtonGray"
+                style="@style/ButtonGreen.Small"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_weight="1"
@@ -64,11 +64,11 @@
 
         <Button
                 android:id="@+id/loginButton"
-                style="@style/ButtonGray"
+                style="@style/ButtonGreen.Small"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="Log in"/>
+                android:text="Authenticate"/>
 
     </LinearLayout>
 

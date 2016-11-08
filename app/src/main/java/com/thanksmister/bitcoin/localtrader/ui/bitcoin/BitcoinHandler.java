@@ -19,21 +19,14 @@ package com.thanksmister.bitcoin.localtrader.ui.bitcoin;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 
 import javax.inject.Inject;
-
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import timber.log.Timber;
 
 public class BitcoinHandler extends BaseActivity
 {
@@ -51,25 +44,15 @@ public class BitcoinHandler extends BaseActivity
             
             final String url = data.toString();
             String scheme = data.getScheme(); // "http"
-
-            dbManager.isLoggedIn()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Action1<Boolean>()
-            {
-                @Override
-                public void call(Boolean isLoggedIn)
-                {
-                    if (!isLoggedIn) {
-                        toast("You need to be logged in to perform that action.");
-                        launchMainApplication();
-                    } else {
-                        Intent intent = MainActivity.createStartIntent(getApplicationContext(), url);
-                        startActivity(intent);
-                        finish();
-                    }
-                }
-            });
+            boolean authorized = AuthUtils.hasCredentials(sharedPreferences);
+            if (!authorized) {
+                toast("You need to be logged in to perform that action.");
+                launchMainApplication();
+            } else {
+                Intent intent = MainActivity.createStartIntent(getApplicationContext(), url);
+                startActivity(intent);
+                finish();
+            }
         } else {
             toast(getString(R.string.toast_invalid_address));
             launchMainApplication();

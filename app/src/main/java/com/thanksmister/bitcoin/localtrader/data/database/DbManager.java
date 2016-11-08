@@ -26,7 +26,6 @@ import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
@@ -34,7 +33,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -77,7 +75,6 @@ public class DbManager
     public void clearDbManager()
     {
         db.delete(WalletItem.TABLE, null);
-        db.delete(SessionItem.TABLE, null);
         db.delete(ContactItem.TABLE, null);
         db.delete(MessageItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
@@ -95,65 +92,6 @@ public class DbManager
         db.delete(MessageItem.TABLE, null);
         db.delete(ContactItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
-    }
-    
-    public Observable<Boolean> isLoggedIn()
-    {
-        return getTokens()
-                .flatMap(new Func1<SessionItem, Observable<Boolean>>()
-                {
-                    @Override
-                    public Observable<Boolean> call(SessionItem sessionItem)
-                    {
-                        if (sessionItem != null) {
-                            return Observable.just((sessionItem.access_token() != null && !Strings.isBlank(sessionItem.access_token())));
-                        } else {
-                            return Observable.just(false);
-                        }
-                    }
-                });
-    }
-
-    public Observable<SessionItem> getTokens()
-    {
-        return briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
-                .map(SessionItem.MAP);
-    }
-
-    public void updateTokens(final Authorization authorization)
-    {
-        final SessionItem.Builder builder = new SessionItem.Builder()
-                .access_token(authorization.access_token)
-                .refresh_token(authorization.refresh_token);
-
-//        final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
-        Subscription subscription = briteContentResolver.createQuery(SyncProvider.SESSION_TABLE_URI, null, null, null, null, false)
-                .map(SessionItem.MAP)
-                /*.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())*/
-                .subscribe(new Action1<SessionItem>()
-                {
-                    @Override
-                    public void call(SessionItem sessionItem)
-                    {
-                        if (sessionItem != null) {
-                            //contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
-                            contentResolver.update(SyncProvider.SESSION_TABLE_URI, builder.build(), SessionItem.ID + " = ?", new String[]{String.valueOf(sessionItem.id())});
-                        } else {
-                            //contentResolverAsyncHandler.startInsert(0, null, SyncProvider.SESSION_TABLE_URI, builder.build());
-                            contentResolver.insert(SyncProvider.SESSION_TABLE_URI, builder.build());
-                        }
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        Timber.e(throwable.getLocalizedMessage());
-                    }
-                });
-
-        subscription.unsubscribe();
     }
     
     public Observable<ContactItem> contactQuery(String contactId)

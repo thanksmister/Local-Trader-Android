@@ -23,7 +23,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -201,11 +200,11 @@ public class AboutFragment extends BaseFragment
     protected void join()
     {
         try {
-            Intent googleIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GOOGLE_PLUS_COMMUNITY));
-            googleIntent.setPackage("com.google.android.apps.plus");
-            startActivity(googleIntent);
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.reddit.com/r/LocalTrader/")));
         } catch (android.content.ActivityNotFoundException ex) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GOOGLE_PLUS_COMMUNITY)));
+            blockchainTipMe();
+        } catch (Exception e) {
+            Timber.e(e.getLocalizedMessage());
         }
     }
 

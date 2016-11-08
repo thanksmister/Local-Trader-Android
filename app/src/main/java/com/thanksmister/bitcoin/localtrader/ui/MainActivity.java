@@ -34,8 +34,6 @@ import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
@@ -44,18 +42,13 @@ import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment;
 import com.thanksmister.bitcoin.localtrader.ui.settings.SettingsActivity;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 @BaseActivity.RequiresAuthentication
@@ -91,9 +84,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     private Fragment fragment;
     private int position = DRAWER_DASHBOARD;
     private int lastMenuItemId = R.id.navigationItemDashboard;
-    private Observable<Boolean> loginObserver;
-    private Subscription loginSubscription = Subscriptions.unsubscribed();
-    
+   
     public static Intent createStartIntent(Context context, String bitcoinUri)
     {
         Intent intent = new Intent(context, MainActivity.class);
@@ -131,37 +122,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
 
         setupNavigationView();
         
-        loginObserver = dbManager.isLoggedIn();
-        loginSubscription = loginObserver
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>()
-                {
-                    @Override
-                    public void call(Boolean isLoggedIn)
-                    {
-                        if (isLoggedIn) {
-                            if (bitcoinUri != null && validAddressOrAmount(bitcoinUri)) { // we have a uri request so override setting content
-                                handleBitcoinUri(bitcoinUri);
-                            } else {
-                                setContentFragment(position);
-                            }
-
-                            StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
-                            SyncUtils.CreateSyncAccount(MainActivity.this, stringPreference.get());
-                            SyncUtils.TriggerRefresh(getApplicationContext(), stringPreference.get());
-                        } else {
-                            launchPromoScreen();
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        Timber.e("Error thrown during login verification");
-                    }
-                });
-        
+        boolean authenticated = AuthUtils.hasCredentials(sharedPreferences);
+        if(authenticated) {
+            if (bitcoinUri != null && validAddressOrAmount(bitcoinUri)) { // we have a uri request so override setting content
+                handleBitcoinUri(bitcoinUri);
+            } else {
+                setContentFragment(position);
+            }
+            String userName = AuthUtils.getUsername(sharedPreferences);
+            SyncUtils.CreateSyncAccount(MainActivity.this, userName);
+            SyncUtils.TriggerRefresh(getApplicationContext(), userName);
+        } else {
+            launchPromoScreen();
+        }
     }
 
     @Override
@@ -177,22 +150,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         super.onResume();
         
         if (((Object) this).getClass().isAnnotationPresent(RequiresAuthentication.class)) {
-
-            if(loginSubscription.isUnsubscribed()) {
-                
-                loginSubscription = dbManager.isLoggedIn()
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Action1<Boolean>()
-                        {
-                            @Override
-                            public void call(Boolean isLoggedIn)
-                            {
-                                if (!isLoggedIn) {
-                                    launchPromoScreen();
-                                }
-                            }
-                        });
+            boolean authenticated = AuthUtils.hasCredentials(sharedPreferences);
+            if(!authenticated) {
+                launchPromoScreen();
             }
         }
 
@@ -203,8 +163,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     public void onPause()
     {
         super.onPause();
-
-        loginSubscription.unsubscribe();
     }
     
     @Override

@@ -372,7 +372,7 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
                     {
                         onRefreshStop();
                         reportError(throwable);
-                        snackError("Unable to retrieve advertisement.");
+                        toast("Unable to retrieve advertisement.");
                     }
                 });
     }

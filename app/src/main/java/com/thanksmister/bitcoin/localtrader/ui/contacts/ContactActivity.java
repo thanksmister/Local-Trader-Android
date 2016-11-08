@@ -59,15 +59,16 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
-import com.thanksmister.bitcoin.localtrader.data.database.SessionItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.MessageAdapter;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.trello.rxlifecycle.ActivityEvent;
@@ -530,9 +531,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     @Override
                     public void call(Throwable throwable)
                     {
-                        handleError(throwable, true);
+                        reportError(throwable);
                         hideProgressDialog();
                         onRefreshStop();
+                        toast("Unable to retrieve contact.");
                     }
                 }));
     }
@@ -580,8 +582,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private void updateMessages(Contact contact)
     {
-        Timber.d("updateMessages");
-
         dbManager.updateMessages(contact.contact_id, contact.messages, new ContentResolverAsyncHandler.AsyncQueryListener()
         {
             @Override
@@ -694,38 +694,28 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     public void downloadAttachment(final MessageItem message)
     {
-        dataService.getTokens()
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Get tokens subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<SessionItem>bindUntilEvent(ActivityEvent.PAUSE))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<SessionItem>()
-                {
-                    @Override
-                    public void call(SessionItem sessionItem)
-                    {
-                        String token = sessionItem.access_token();
+        final String key = AuthUtils.getHmacKey(sharedPreferences);
+        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
+        
+        String url = message.attachment_url();
+        String shortUrl = url.replace("https://localbitcoins.com", "");
+        String nonce = NetworkUtils.generateNonce();
+        String uri = Uri.parse(shortUrl).toString();
+        String signature = NetworkUtils.createSignature(uri, nonce, key, secret);
 
-                        Timber.d("Download URL : " + message.attachment_url() + "?access_token=" + token);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.addRequestHeader("Apiauth-Key", key);
+        request.addRequestHeader("Apiauth-Nonce", nonce);
+        request.addRequestHeader("Apiauth-Signature", signature);
 
-                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(message.attachment_url() + "?access_token=" + token));
-                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-                        request.setVisibleInDownloadsUi(true);
-                        request.setMimeType(message.attachment_type());
-                        request.setTitle(message.attachment_name());
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+        request.setVisibleInDownloadsUi(true);
+        request.setMimeType(message.attachment_type());
+        request.setTitle(message.attachment_name());
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-                        downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                        downloadManager.enqueue(request);
-                    }
-                });
+        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        downloadManager.enqueue(request);
     }
 
     private void showDownload()
@@ -868,7 +858,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     public void call(Throwable throwable)
                     {
                         hideProgressDialog();
-                        handleError(throwable);
+                        reportError(throwable);
+                        toast("Unable to perform contact action.");
                     }
                 });
     }

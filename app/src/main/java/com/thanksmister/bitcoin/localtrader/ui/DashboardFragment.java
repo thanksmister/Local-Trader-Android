@@ -49,7 +49,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
@@ -63,6 +62,7 @@ import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
 import com.thanksmister.bitcoin.localtrader.ui.components.SectionRecycleViewAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.trello.rxlifecycle.FragmentEvent;
 
@@ -444,8 +444,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public void onRefresh()
     {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, DbManager.PREFS_USER);
-        SyncUtils.TriggerRefresh(getContext().getApplicationContext(),  stringPreference.get());
+        String userName = AuthUtils.getUsername(sharedPreferences);
+        SyncUtils.TriggerRefresh(getContext().getApplicationContext(), userName);
         updateData(true);
     }
 
@@ -552,7 +552,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                     @Override
                     public void call()
                     {
-                        Timber.i("Contacts subscription safely unsubscribed");
+                        Timber.i("Advertisement subscription safely unsubscribed");
                     }
                 })
                 .compose(this.<List<AdvertisementItem>>bindUntilEvent(FragmentEvent.PAUSE))

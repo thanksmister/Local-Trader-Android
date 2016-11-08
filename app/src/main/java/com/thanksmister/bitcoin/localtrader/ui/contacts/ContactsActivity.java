@@ -29,9 +29,7 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
@@ -39,7 +37,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +45,6 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnClick;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -296,9 +291,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                     {
                         Timber.d("Update Data Contacts: " + contacts.size());
                         onRefreshStop();
-                        
                         if (contacts.isEmpty()) {
-                            snackError(getString(R.string.error_no_trade_data));
+                            toast(getString(R.string.error_no_trade_data));
                         } else {
                             showContent(true);
                             ArrayList<ContactItem> contactItems = new ArrayList<ContactItem>();
@@ -314,7 +308,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
                     public void call(Throwable throwable)
                     {
                         onRefreshStop();
-                        snackError(getString(R.string.error_no_trade_data));
+                        toast("Error retrieving trades.");
                     }
                 });
     }

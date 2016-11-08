@@ -31,6 +31,7 @@ import timber.log.Timber;
 public class DataServiceUtils
 {
     public static int CODE_THREE = 3; // authorization failed
+    public static int CODE_FORTY_ONE = 41; // bad hmac signature
     
     public static boolean isNetworkError(Throwable throwable)
     {
@@ -62,6 +63,16 @@ public class DataServiceUtils
         return false;
     }
 
+    public static boolean isHttp41Error(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetroError retroError = createRetroError(throwable);
+            return (retroError.getCode() == CODE_FORTY_ONE);
+        }
+
+        return false;
+    }
+    
     // bad gateway eror
     public static boolean isHttp502Error(Throwable throwable)
     {
@@ -127,6 +138,7 @@ public class DataServiceUtils
         return false;
     }
 
+    @Deprecated
     public static boolean isHttp400GrantError(Throwable throwable)
     {
         if (throwable instanceof RetrofitError) {
@@ -178,9 +190,9 @@ public class DataServiceUtils
     public static int getStatusCode(RetrofitError error) 
     {
         try {
-            //Timber.e("Status Code: " + error.getKind());
+            Timber.e("Status Kind: " + error.getKind());
         } catch(Throwable e){
-            //Timber.e("Error Status: " + e.getMessage());
+            Timber.e("Error Status: " + e.getMessage());
         }
         
         try {
@@ -193,11 +205,22 @@ public class DataServiceUtils
         }
         
         try {
+            Timber.e("Error Code: " + error.getResponse().getStatus());
             return error.getResponse().getStatus();
         } catch(Throwable e){
             Timber.e("Error Status: " + e.getMessage());
         }
         
+        return 0;
+    }
+
+    public static int getStatusCode(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetrofitError retroError = (RetrofitError) throwable;
+            return (getStatusCode(retroError));
+        }
+
         return 0;
     }
 }

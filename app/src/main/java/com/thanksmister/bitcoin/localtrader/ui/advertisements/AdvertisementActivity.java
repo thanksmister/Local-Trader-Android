@@ -201,7 +201,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         this.menu = menu;
 
-        if (advertisementData != null &&  advertisementData.advertisement != null) {
+        if (advertisementData != null && advertisementData.advertisement != null) {
             setMenuVisibilityIcon(advertisementData.advertisement.visible());
         }
 
@@ -255,10 +255,10 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         updateSubscription.unsubscribe();
         subscription.unsubscribe();
 
-        if(progress != null)
+        if (progress != null)
             progress.clearAnimation();
 
-        if(content != null)
+        if (content != null)
             content.clearAnimation();
     }
 
@@ -302,26 +302,30 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             }
         });
     }
-    
+
     public void showContent(final boolean show)
     {
         if (progress == null || content == null)
             return;
-        
+
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
         progress.setVisibility(show ? View.GONE : View.VISIBLE);
-        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
+        {
             @Override
-            public void onAnimationEnd(Animator animation) {
+            public void onAnimationEnd(Animator animation)
+            {
                 if (progress != null)
                     progress.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 
         content.setVisibility(show ? View.VISIBLE : View.GONE);
-        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+        content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter()
+        {
             @Override
-            public void onAnimationEnd(Animator animation) {
+            public void onAnimationEnd(Animator animation)
+            {
                 if (content != null)
                     content.setVisibility(show ? View.VISIBLE : View.GONE);
             }
@@ -330,7 +334,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     protected void subscribeData()
     {
-       subscription = Observable.combineLatest(dbManager.methodQuery(), dbManager.advertisementItemQuery(adId), new Func2<List<MethodItem>, AdvertisementItem, AdvertisementData>()
+        subscription = Observable.combineLatest(dbManager.methodQuery(), dbManager.advertisementItemQuery(adId), new Func2<List<MethodItem>, AdvertisementItem, AdvertisementData>()
         {
             @Override
             public AdvertisementData call(List<MethodItem> methods, AdvertisementItem advertisement)
@@ -349,8 +353,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     public void call(AdvertisementData advertisementData)
                     {
                         showContent(true);
-                        
-                        if(advertisementData.advertisement != null)
+
+                        if (advertisementData.advertisement != null)
                             setAdvertisement(advertisementData.advertisement, advertisementData.method);
                     }
                 }, new Action1<Throwable>()
@@ -423,7 +427,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_locally, title, price, location)));
         } else {
             String paymentMethod = TradeUtils.getPaymentMethod(advertisement, method);
-            if(Strings.isBlank(paymentMethod)) {
+            if (Strings.isBlank(paymentMethod)) {
                 noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location)));
             } else {
                 noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location)));
@@ -479,9 +483,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     public void updateAdvertisement(AdvertisementItem advertisement)
     {
         noteLayout.setVisibility(advertisement.visible() ? View.GONE : View.VISIBLE);
-
         noteText.setText(getString(R.string.advertisement_invisible_warning));
-
         setMenuVisibilityIcon(advertisement.visible());
     }
 
@@ -496,7 +498,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         if (menu != null && menu.hasVisibleItems()) {
             MenuItem menuItem = menu.getItem(0);
-            if(menuItem != null)
+            if (menuItem != null)
                 menuItem.setIcon(icon);
         }
 
@@ -532,67 +534,67 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     private void deleteAdvertisementConfirmed(final String adId)
     {
         showProgressDialog(new ProgressDialogEvent("Deleting...."));
-        
+
         dataService.deleteAdvertisement(adId)
-        .doOnUnsubscribe(new Action0()
-            {
-                @Override
-                public void call()
+                .doOnUnsubscribe(new Action0()
                 {
-                    Timber.i("Delete advertisement safely unsubscribed");
-                }
-            })
-            .compose(this.<Boolean>bindUntilEvent(ActivityEvent.DESTROY))
-            .observeOn(Schedulers.io())
-            .subscribeOn(Schedulers.newThread())
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Delete advertisement safely unsubscribed");
+                    }
+                })
+                .compose(this.<Boolean>bindUntilEvent(ActivityEvent.DESTROY))
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>()
-        {
-            @Override
-            public void call(final Boolean deleted)
-            {
-                runOnUiThread(new Runnable()
                 {
                     @Override
-                    public void run()
+                    public void call(final Boolean deleted)
                     {
-                        hideProgressDialog();
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                hideProgressDialog();
 
-                        if (deleted) {
+                                if (deleted) {
 
-                            db.delete(AdvertisementItem.TABLE, AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
+                                    db.delete(AdvertisementItem.TABLE, AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
 
-                            toast("Advertisement deleted!");
+                                    toast("Advertisement deleted!");
 
-                            setResult(RESULT_DELETED); // hard refresh
+                                    setResult(RESULT_DELETED); // hard refresh
 
-                            finish();
+                                    finish();
 
-                        } else {
+                                } else {
 
-                            showAlertDialog(new AlertDialogEvent("Error", "Error deleting advertisement."));
-                        }
+                                    showAlertDialog(new AlertDialogEvent("Error", "Error deleting advertisement."));
+                                }
+                            }
+                        });
                     }
-                });
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                runOnUiThread(new Runnable()
+                }, new Action1<Throwable>()
                 {
                     @Override
-                    public void run()
+                    public void call(Throwable throwable)
                     {
-                        hideProgressDialog();
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                hideProgressDialog();
 
-                        showAlertDialog(new AlertDialogEvent("Error", "Error deleting advertisement."));
+                                showAlertDialog(new AlertDialogEvent("Error", "Error deleting advertisement."));
+                            }
+                        });
                     }
                 });
-            }
-        });
     }
 
     private void updateAdvertisementVisibility()
@@ -611,37 +613,33 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         Timber.d("Update Advertisement Visibility: " + visible);
 
         Observable<JSONObject> updateObservable = dataService.updateAdvertisementVisibility(advertisement, visible);
-        updateObservable.subscribe(new Action1<JSONObject>()
-        {
-            @Override
-            public void call(JSONObject jsonObject)
-            {
-                hideProgressDialog();
-
-                Timber.d("Updated JSON: " + jsonObject.toString());
-
-                if (Parser.containsError(jsonObject)) {
-
-                    toast("Error updating advertisement visibility");
-
-                } else {
-
-                    dbManager.updateAdvertisementVisibility(adId, visible);
-                    //db.update(AdvertisementItem.TABLE, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", String.valueOf(adId));
-
-                    toast("Visibility updated!");
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                reportError(throwable);
-
-                toast("Error updating visibility!");
-            }
-        });
+        updateObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<JSONObject>()
+                {
+                    @Override
+                    public void call(JSONObject jsonObject)
+                    {
+                        hideProgressDialog();
+                        
+                        if (Parser.containsError(jsonObject)) {
+                            toast("Error updating visibility!");
+                        } else {
+                            dbManager.updateAdvertisementVisibility(adId, visible);
+                            toast("Visibility updated!");
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        hideProgressDialog();
+                        toast("Error updating visibility!");
+                        reportError(throwable);
+                    }
+                });
     }
 
     private void showAdvertisementOnMap()
