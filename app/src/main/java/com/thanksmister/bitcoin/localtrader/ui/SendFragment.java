@@ -31,11 +31,14 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -121,6 +124,9 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     @InjectView(R.id.currencyText)
     TextView currencyText;
     
+    @InjectView(R.id.sendDescription)
+    TextView sendDescription;
+    
     @OnClick(R.id.sendButton)
     public void sendButtonClicked()
     {
@@ -149,11 +155,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     {
         return new SendFragment();
     }
-
-    public SendFragment()
-    {
-    }
-
+    
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -247,6 +249,20 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
+        sendDescription.setText(Html.fromHtml(getString(R.string.send_form_description)));
+        sendDescription.setMovementMethod(LinkMovementMethod.getInstance());
+
+        addressText.setOnTouchListener(new View.OnTouchListener()
+        {
+            public boolean onTouch(View arg0, MotionEvent arg1)
+            {
+                if(TextUtils.isEmpty(addressText.getText().toString())) {
+                    setAddressFromClipboardTouch();
+                }
+                return false;
+            }
+        });
+        
         amountText.addTextChangedListener(new TextWatcher(){
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3){
@@ -477,7 +493,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     }
                 }));
 
-        updateSubscriptions.add(exchangeService.getMarket(true)
+        updateSubscriptions.add(exchangeService.getMarket()
                 .timeout(10, TimeUnit.SECONDS)
                 .doOnUnsubscribe(new Action0()
                 {
@@ -511,6 +527,21 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     {
         Intent intent = PinCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
         startActivityForResult(intent, PinCodeActivity.REQUEST_CODE); // be sure to do this from fragment context
+    }
+
+    public void setAddressFromClipboardTouch()
+    {
+        String clipText = getClipboardText();
+        if(Strings.isBlank(clipText)) {
+            return;
+        }
+
+        String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
+        if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
+            return;
+        }
+
+        setAddressFromClipboard();
     }
     
     public void setAddressFromClipboard()
@@ -585,10 +616,9 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         if (sendSubscription != null)
             return;
         
-        showProgressDialog(new ProgressDialogEvent("Sending..."));
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_sending_transaction)));
 
-        Observable<Boolean> sendPinCodeMoneyObservable = dataService.sendPinCodeMoney(pinCode, address, amount);
-        sendSubscription = sendPinCodeMoneyObservable
+        sendSubscription = dataService.sendPinCodeMoney(pinCode, address, amount)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>()

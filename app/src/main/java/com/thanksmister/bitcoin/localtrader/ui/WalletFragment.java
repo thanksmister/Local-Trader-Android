@@ -30,7 +30,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -86,7 +85,8 @@ import rx.functions.Func0;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, AppBarLayout.OnOffsetChangedListener
+public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener, 
+        View.OnClickListener
 {
     public static final String EXTRA_WALLET_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
 
@@ -107,10 +107,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     @InjectView(R.id.fab)
     FloatingActionButton fab;
-
-    @InjectView(R.id.appBarLayout)
-    AppBarLayout appBarLayout;
-
+    
     @InjectView(R.id.recycleView)
     RecyclerView recycleView;
 
@@ -176,18 +173,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     }
 
     @Override
-    public void onOffsetChanged(AppBarLayout appBarLayout, int i)
-    {
-        if(swipeLayout != null) {
-            if (i == 0) {
-                swipeLayout.setEnabled(true);
-            } else {
-                swipeLayout.setEnabled(false);
-            }  
-        }
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         return inflater.inflate(R.layout.view_wallet, container, false);
@@ -206,22 +191,11 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
-
-        recycleView.setHasFixedSize(true);
+        
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recycleView.setLayoutManager(linearLayoutManager);
-        recycleView.addOnScrollListener(new RecyclerView.OnScrollListener()
-        {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy)
-            {
-                super.onScrolled(recyclerView, dx, dy);
-                int topRowVerticalPosition = (recycleView == null || recycleView.getChildCount() == 0) ? 0 : recycleView.getChildAt(0).getTop();
-                swipeLayout.setEnabled(topRowVerticalPosition >= 0);
-            }
-        });
-
+        recycleView.setHasFixedSize(true);
         transactionsAdapter = new TransactionsAdapter(getActivity());
         sectionRecycleViewAdapter = createAdapter();
         recycleView.setAdapter(sectionRecycleViewAdapter);
@@ -264,11 +238,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     public void onResume()
     {
         super.onResume();
-
-        appBarLayout.addOnOffsetChangedListener(this);
-        
         subscribeData();
-
         onRefreshStart();
     }
 
@@ -276,9 +246,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     public void onPause()
     {
         super.onPause();
-
-        appBarLayout.removeOnOffsetChangedListener(this);
-
+        
         handler.removeCallbacks(refreshRunnable);
     }
 
@@ -465,7 +433,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     {
         Timber.d("updateData");
         
-        exchangeService.getMarket(true)
+        exchangeService.getMarket()
                 .timeout(20, TimeUnit.SECONDS)
                 .doOnUnsubscribe(new Action0()
                 {

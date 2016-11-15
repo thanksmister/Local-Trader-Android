@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -22,6 +22,11 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
     <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -34,23 +39,24 @@
                 app:popupTheme="@style/Theme.AppCompat.Light"/>
 
     </android.support.design.widget.AppBarLayout>
+    
+        <android.support.v4.widget.SwipeRefreshLayout
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                android:id="@+id/swipeLayout"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    <android.support.v4.widget.SwipeRefreshLayout
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:id="@+id/swipeLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-     
-    <android.support.v4.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="true">
-        
-            <LinearLayout
+            <android.support.v4.widget.NestedScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                
+                    android:layout_height="match_parent"
+                    android:fillViewport="true">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -143,7 +149,7 @@
                                     android:gravity="center"
                                     android:layout_weight="0"
                                     android:layout_marginBottom="2dp"/>
-                            
+
 
                             <EditText
                                     android:id="@+id/fiatEditText"
@@ -197,13 +203,13 @@
                         android:background="@color/gray_color">
 
                     <TextView
-                        android:id="@+id/balanceTitle"
-                        style="@style/TextMedium.Secondary"
-                        android:layout_marginLeft="4dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/form_balance_label"/>
-                    
+                            android:id="@+id/balanceTitle"
+                            style="@style/TextMedium.Secondary"
+                            android:layout_marginLeft="4dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/form_balance_label"/>
+
                     <TextView
                             android:id="@+id/balanceText"
                             android:textIsSelectable="true"
@@ -212,44 +218,51 @@
                             android:layout_marginLeft="4dp"
                             android:layout_gravity="center"
                             style="@style/TextMedium.Secondary"/>
-                    
-                </LinearLayout>
-                
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"/>
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="8dp"
-                        style="@style/DividerHorizontal"
-                        android:layout_gravity="top"/>
-                
-                <Button
-                        android:id="@+id/sendButton"
-                        android:layout_margin="@dimen/activity_padding"
-                        style="@style/ButtonGreen"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nextFocusUp="@id/amountText"
-                        android:text="Send"/>
 
+                </LinearLayout>
+                    
                 <View
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/view_padding_small"/>
 
                 <TextView
-                        style="@style/SmallText.ExtraSmall"
+                        android:id="@+id/sendDescription"
+                        style="@style/SmallText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="@dimen/activity_padding"
                         android:paddingRight="@dimen/activity_padding"
-                        android:text="Fees are calculated by LocalBitcoins at the time you send and not reflected in the remaining balance. Unless you know the fee amount, the entire wallet balance can not be sent."/>
+                        android:linksClickable="true"
+                        android:text="@string/pin_code_send"/>
                 
-            </LinearLayout>
-        
-    </android.support.v4.widget.NestedScrollView>
-    
-    </android.support.v4.widget.SwipeRefreshLayout>
+                </LinearLayout>
+
+            </android.support.v4.widget.NestedScrollView>
+            
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+        <View
+                android:id="@+id/divider"
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_height="1dp"
+                android:layout_width="match_parent"/>
+
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <Button
+                    style="@style/ButtonGreen.Small"
+                    android:id="@+id/sendButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="48dp"
+                    android:text="@string/button_send"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

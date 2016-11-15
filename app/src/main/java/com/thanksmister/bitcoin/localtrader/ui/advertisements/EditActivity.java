@@ -21,7 +21,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -37,7 +36,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -1092,32 +1090,28 @@ public class EditActivity extends BaseActivity
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return networkInfo != null;
     }
-
-    private void missingGooglePlayServices()
-    {
-        createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
-    }
-
+    
     public void createAlert(String title, String message, final boolean googlePlay)
     {
-        int positiveButton = (googlePlay) ? R.string.button_install : R.string.button_enable;
-        new AlertDialog.Builder(this)
-                .setTitle(title)
-                .setMessage(message)
-                .setNegativeButton(R.string.button_cancel, null)
-                .setPositiveButton(positiveButton, new DialogInterface.OnClickListener()
-                {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i)
-                    {
-                        if (googlePlay) {
-                            installGooglePlayServices();
-                        } else {
-                            openLocationServices();
-                        }
-                    }
-                })
-                .show();
+        showAlertDialog(new AlertDialogEvent(title, message), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                if (googlePlay) {
+                    installGooglePlayServices();
+                } else {
+                    openLocationServices();
+                }
+            }
+        }, new Action0()
+        {
+            @Override
+            public void call()
+            {
+                finish();
+            }
+        });
     }
 
     private void openLocationServices()
@@ -1183,12 +1177,9 @@ public class EditActivity extends BaseActivity
                                 public void run()
                                 {
                                     toast("New advertisement posted!");
-                                    
                                     if (Parser.containsError(jsonObject)) {
-
                                         RetroError error = Parser.parseError(jsonObject);
                                         showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
-                                        
                                     } else {
                                         setResult(RESULT_CREATED); // hard refresh
                                         finish();
@@ -1232,20 +1223,15 @@ public class EditActivity extends BaseActivity
                         public void onNext(final JSONObject jsonObject)
                         {
                             Timber.d("Updated JSON: " + jsonObject.toString());
-
                             runOnUiThread(new Runnable()
                             {
                                 @Override
                                 public void run()
                                 {
                                     if (Parser.containsError(jsonObject)) {
-                                        
                                         RetroError error = Parser.parseError(jsonObject);
-
                                         showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
-                                        
                                     } else {
-                                        
                                         updateAdvertisement(advertisement);
                                     }
                                 }
@@ -1262,8 +1248,6 @@ public class EditActivity extends BaseActivity
         
         if(DataServiceUtils.isHttp400Error(throwable)) {
 
-            Timber.d("handleLocalError");
-            
             if (throwable instanceof RetrofitError) {
                 
                 RetrofitError retroError = (RetrofitError) throwable;

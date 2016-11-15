@@ -71,6 +71,7 @@
     <string name="view_title_search">Search Advertisers</string>
     <string name="view_title_account">Transactions</string>
     <string name="view_title_trades">Trades</string>
+    <string name="view_title_messages">Messages</string>
     <string name="view_title_dashboard">Dashboard</string>
     <string name="view_title_wallet">My Wallet</string>
     <string name="view_title_buy_sell">Search Advertisers</string>
@@ -139,6 +140,13 @@
         <item>@string/tab_section3</item>
     </string-array>
 
+    <array name="tab_items">
+        <item>@string/view_title_advertisements</item>
+        <item>@string/view_title_trades</item>
+        <item>@string/view_title_messages</item>
+        <item>@string/view_title_wallet</item>
+    </array>
+    
     <string name="tab_section1">DASHBOARD</string>
     <string name="tab_section2">SEARCH</string>
     <string name="tab_section3">WALLET</string>
@@ -146,33 +154,35 @@
     <!-- LOGIN/REGISTER -->
     <string-array name="login_registration_titles">
         <item>@string/login_register_title0</item>
-        <item>@string/login_register_title2</item>
-        <item>@string/login_register_title1</item>
-        <item>@string/login_register_title3</item>
-        <item>@string/login_register_title4</item>
-        <item>@string/login_register_title5</item>
+        <item>@string/login_register_title0</item>
+        <item>@string/login_register_title0</item>
     </string-array>
-    <string-array name="login_registration_screens">
-        <item>@string/login_register_screen0</item>
-        <item>@string/login_register_screen2</item>
-        <item>@string/login_register_screen1</item>
-        <item>@string/login_register_screen3</item>
-        <item>@string/login_register_screen4</item>
-        <item>@string/login_register_screen5</item>
+    <string-array name="login_registration_screens_summary">
+        <item>Register new account</item>
+        <item>Setup HMAC authentication</item>
+        <item>Create PIN code</item>
+    </string-array>
+
+    <string-array name="login_registration_screens_description">
+        <item><![CDATA[Local Trader works with your LocalBitcoins account to create and update advertisements, manage trades, release or fund trades, send and receive messages, or to handle payments.<br><br>A LocalBitcoins account is required to use Local trader. If you need an account, please register for one at <a href=\'https://localbitcoins.com/?ch=2hbo\'>LocalBitcoins.com</a>.]]></item>
+        <item><![CDATA[Local Trader uses HMAC authentication for LocalBitcoins services. A unique HMAC key and secret is generated for each application with the specified permissions.<br><br>You can create a new HMAc authentication for Local Trader from your <a href=\'https://localbitcoins.com/accounts/api?ch=2hbo\'>LocalBitcoins Account</a> page.Be sure to request permissions to send money with a PIN code to use the wallet functionality.]]></item>
+        <item><![CDATA[A PIN code is required to send Bitcoin from your wallet, fund trades, or release trades. You created this PIN code as part of your LocalBitcoins registration.<br><br>The PIN code is not the same as your 2-factor authentication (2FA).View or manage your PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page.]]></item>
     </string-array>
 
     <string name="login_register_title0">@string/app_name</string>
-    <string name="login_register_title1">Wallet</string>
-    <string name="login_register_title2">Search</string>
+    <string name="login_register_title2">Wallet</string>
+    <string name="login_register_title3">Search</string>
     <string name="login_register_title4">Advertise</string>
-    <string name="login_register_title3">Trade</string>
-    <string name="login_register_title5">LocalBitcoins</string>
-    <string name="login_register_screen0">Send, receive, trade, or advertise.</string>
-    <string name="login_register_screen1">Send and request bitcoin from friends or merchants from a secure wallet.</string>
-    <string name="login_register_screen2">Search for online or local bitcoin buyers and sellers in your area.</string>
-    <string name="login_register_screen3">Manage your active trades including messages and attachments.</string>
-    <string name="login_register_screen4">Create your own advertisements to buy and sell bitcoins locally or online.</string>
-    <string name="login_register_screen5">Register now or use your existing LocalBitcoins HMAC key and secret. For information on HMAC security, visit <a href="https://localbitcoins.com/accounts/api/">https://localbitcoins.com/accounts/api/</a>.</string>
+    <string name="login_register_title5">Trade</string>
+    <string name="login_register_title6">LocalBitcoins</string>
+    <string name="login_register_title1">Security</string>
+    <string name="login_register_screen0">Send, receive, trade, or advertise bitcoin.</string>
+    <string name="login_register_screen2">Send and request bitcoin from friends or merchants from a secure wallet.</string>
+    <string name="login_register_screen3">Search for online or local bitcoin buyers and sellers in your area.</string>
+    <string name="login_register_screen4">Manage your active trades including messages and attachments.</string>
+    <string name="login_register_screen5">Create your own advertisements to buy and sell bitcoins locally or online.</string>
+    <string name="login_register_screen6"><![CDATA[Register a new account or create a HMAC authentication from your <a href="https://localbitcoins.com/accounts/api/">LocalBitcoins Account</a> page.]]></string>
+    <string name="login_register_screen1">Use HMAC security to create a unique authentication with the permissions you choose.</string>
     <string name="login_authorizing">Authorizing…</string>
     <string name="setup_form_error">Please enter a valid key and secret.</string>
 
@@ -321,7 +331,7 @@
     <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
     <string name="form_balance_positive"><![CDATA[<font color="#ff67932c">%1$s BTC / %2$s %3$s</font>]]></string>
     
-    <string name="pin_code_send"><![CDATA[A PIN code is required to send Bitcoin from your wallet or release trades. PIN code info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
+    <string name="pin_code_send"><![CDATA[A PIN code is required to release, fund send bitcoin. More info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
     <string name="pin_code_description_text"><![CDATA[Enter your PIN code to release this trade:]]></string>
     <string name="pin_code_description_address_text"><![CDATA[Sending <b>%1$s BTC (≈ %2$s %3$s)</b> to address <b>%4$s<b>]]></string>
     <string name="pin_code_description_text_short">Enter PIN code to confirm.</string>
@@ -329,7 +339,7 @@
 
     <string name="toast_error_transaction_incomplete">An error has occurred, bitcoins not sent.</string>
     <string name="toast_transaction_success">Bitcoins sent!</string>
-    <string name="progress_sending_transaction">Sending bitcoins...</string>
+    <string name="progress_sending_transaction">Sending bitcoins…</string>
     <string name="toast_pin_code_canceled">PIN code canceled</string>
     <string name="toast_pin_code_invalid">PIN code invalid</string>
 
@@ -429,17 +439,18 @@
     <string name="error_unable_load_address">Unable to get current address. Turn on location permissions.</string>
     <string name="error_unable_load_address_retry">Unable to get current address, retry with WiFi enabled and turn onlocation permissions.</string>
     <string name="error_no_trade_data">There are no trades.</string>
-    <string name="dialog_logout_title">Log Out</string>
-    <string name="dialog_logout_message">Do you wish to logout?</string>
+    <string name="dialog_logout_title">Logout</string>
+    <string name="dialog_logout_message">Do you wish to logout and clear your data?</string>
     <string name="wallet_recent_activity_header">Recent Activity</string>
     <string name="wallet_my_address_share">My Bitcoin Address</string>
     <string name="share_using">Share using:</string>
     <string name="error_invalid_credentials">Access denied, invalid credentials</string>
     <string name="message_advertisement_changed">Advertisement changed successfully!</string>
     <string name="button_search_trades">Search Trades</string>
-    <string name="dialog_send_message">Sending message...</string>
+    <string name="dialog_send_message">Sending message…</string>
     <string name="dashboard_active_trades_header">Active Trades</string>
     <string name="dashboard_advertisements_header">Advertisements</string>
+    <string name="dashboard_messages_header">Recent Messages</string>
 
     <!-- SETTINGS -->
     <string name="title_activity_settings">Settings</string>
@@ -472,11 +483,12 @@
     <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
     <string name="alert_permission_required">Permission Required</string>
     <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
-    <string name="setup_description"><![CDATA[Enter your LocalBitcoins HMAC key and secret. For information on creating a HMAC key, visit your <a href=\"https://localbitcoins.com/accounts/api/\">LocalBitcoins Account</a> page.]]></string>
+    <string name="setup_description"><![CDATA[Enter your Local Trader HMAC authentication key and secret or create a new authentication from your <a href=\"https://localbitcoins.com/accounts/api/\">LocalBitcoins Account</a> page.]]></string>
     <string name="setup_hint_secret">SECRET</string>
     <string name="setup_hint_key">KEY</string>
-    <string name="setup_credentials">Enter Credentials</string>
+    <string name="setup_credentials">Enter Authentication</string>
     <string name="error_authorization">Authentication error, please verify your key and secret are correct.</string>
     <string name="authentication_success">Authentication successful for %1$s</string>
+    <string name="send_form_description"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page.]]></string>
 
 </resources>

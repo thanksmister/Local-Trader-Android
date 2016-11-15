@@ -18,11 +18,11 @@ package com.thanksmister.bitcoin.localtrader.ui.components;
 
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
@@ -32,26 +32,20 @@ import butterknife.InjectView;
 
 public class ScreenPagerAdapter extends PagerAdapter
 {
-    private int numberOfPages = 6;
+    private int numberOfPages = 3;
 
     private Context context;
     private final LayoutInflater inflater;
 
     int[] res = {
             R.drawable.logo_screen,
-            R.drawable.search_screen,
-            R.drawable.wallet_screen,
-            R.drawable.trade_screen,
-            R.drawable.advertise_screen,
-            R.drawable.lbc_screen};
+            R.drawable.security_screen,
+            R.drawable.wallet_screen};
 
     int[] backgroundColor = {
-            R.color.gray_color,
-            R.color.gray_color,
-            R.color.gray_color,
-            R.color.gray_color,
-            R.color.gray_color,
-            R.color.gray_color};
+            R.color.white,
+            R.color.white,
+            R.color.white};
 
   
     public ScreenPagerAdapter(Context context)
@@ -74,11 +68,11 @@ public class ScreenPagerAdapter extends PagerAdapter
         holder = new ViewHolder(view);
 
         String[] titleStrings = context.getResources().getStringArray(R.array.login_registration_titles);
-        String[] textStrings = context.getResources().getStringArray(R.array.login_registration_screens);
-
-        //holder.screenText.setTextColor(context.getResources().getColor(R.color.white));
-        holder.screenText.setText(textStrings[position]);
+        String[] summaryStrings = context.getResources().getStringArray(R.array.login_registration_screens_summary);
+        String[] descriptionStrings = context.getResources().getStringArray(R.array.login_registration_screens_description);
         
+        holder.summaryText.setText(Html.fromHtml(summaryStrings[position]));
+        holder.descriptionText.setText(Html.fromHtml(descriptionStrings[position]));
         holder.headerText.setText(titleStrings[position]);
         
         holder.screenImage.setImageResource(res[position]);
@@ -98,7 +92,7 @@ public class ScreenPagerAdapter extends PagerAdapter
     @Override
     public void destroyItem(ViewGroup container, int position, Object object)
     {
-        container.removeView((LinearLayout) object);
+        container.removeView((View) object);
     }
 
     static class ViewHolder
@@ -112,8 +106,11 @@ public class ScreenPagerAdapter extends PagerAdapter
         @InjectView(R.id.headerText)
         TextView headerText;
         
-        @InjectView(R.id.screenText) 
-        TextView screenText;
+        @InjectView(R.id.summaryText) 
+        TextView summaryText;
+
+        @InjectView(R.id.descriptionText)
+        TextView descriptionText;
 
         public ViewHolder(View view) {
             ButterKnife.inject(this, view);

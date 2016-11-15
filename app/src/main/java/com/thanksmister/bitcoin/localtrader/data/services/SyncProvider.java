@@ -19,12 +19,12 @@ package com.thanksmister.bitcoin.localtrader.data.services;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
 
 /*
  * Define an implementation of ContentProvider that stubs out
@@ -48,9 +48,9 @@ public class SyncProvider extends ContentProvider
     public static final Uri CONTACT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("contact_item").build();
     public static final Uri ADVERTISEMENT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("advertisement_item").build();
     public static final Uri MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath("message_item").build();
+    public static final Uri RECENT_MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath(RecentMessageItem.TABLE).build();
     public static final Uri WALLET_TABLE_URI = CONTENT_URI.buildUpon().appendPath("wallet_item").build();
-    public static final Uri SESSION_TABLE_URI = CONTENT_URI.buildUpon().appendPath("session_item").build();
-    
+   
     DbOpenHelper dbOpenHelper;
     ContentResolver contentResolver;
 

@@ -26,7 +26,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.inject.Singleton;
 

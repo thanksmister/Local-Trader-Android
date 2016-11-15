@@ -53,7 +53,6 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
@@ -131,8 +130,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private String contactId;
     private ContactItem contact;
-    private DashboardType dashboardType;
-
     private DownloadManager downloadManager;
     private MenuItem cancelItem;
     private MenuItem disputeItem;
@@ -140,11 +137,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private boolean messageScroll = false;
     private Handler handler;
 
-    public static Intent createStartIntent(Context context, String contactId, DashboardType dashboardType)
+    public static Intent createStartIntent(Context context, String contactId)
     {
         Intent intent = new Intent(context, ContactActivity.class);
         intent.putExtra(EXTRA_ID, contactId);
-        intent.putExtra(EXTRA_TYPE, dashboardType);
         return intent;
     }
 
@@ -161,10 +157,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
         if (savedInstanceState == null) {
             contactId = getIntent().getStringExtra(EXTRA_ID);
-            dashboardType = (DashboardType) getIntent().getSerializableExtra(EXTRA_TYPE);
         } else {
             contactId = savedInstanceState.getString(EXTRA_ID);
-            dashboardType = (DashboardType) savedInstanceState.getSerializable(EXTRA_TYPE);
         }
 
         if (toolbar != null) {
@@ -188,7 +182,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         tradeCount = (TextView) headerView.findViewById(R.id.tradeCount);
         dealPrice = (TextView) headerView.findViewById(R.id.dealPrice);
         lastSeenIcon = headerView.findViewById(R.id.lastSeenIcon);
-        buttonLayout = headerView.findViewById(R.id.buttonLayout);
         contactHeaderLayout = headerView.findViewById(R.id.contactHeaderLayout);
 
         sendMessage = (ImageButton) headerView.findViewById(R.id.sendMessage);
@@ -201,7 +194,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             }
         });
 
-        contactButton = (Button) headerView.findViewById(R.id.contactButton);
+        buttonLayout = findViewById(R.id.buttonLayout);
+        contactButton = (Button) findViewById(R.id.contactButton);
         contactButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -306,7 +300,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     {
         super.onSaveInstanceState(outState);
         outState.putString(EXTRA_ID, contactId);
-        outState.putSerializable(EXTRA_TYPE, dashboardType);
     }
 
     @Override

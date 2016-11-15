@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -28,14 +28,18 @@
             android:id="@+id/content_frame"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
-
+    
     <android.support.design.widget.NavigationView
             android:id="@+id/navigation"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            app:itemTextColor="@color/body_text_2"
-            app:itemIconTint="@color/body_text_2"
-            app:menu="@menu/drawer"/>
+            android:background="@color/gray_color"
+            app:itemTextColor="@color/dark_gray_color"
+            app:itemIconTint="@color/dark_gray_color"
+            app:headerLayout="@layout/drawer_header"
+            app:menu="@menu/drawer">
+        
+    </android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>

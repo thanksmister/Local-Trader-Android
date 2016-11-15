@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -259,30 +259,6 @@
         </LinearLayout>
 
     </LinearLayout>
-
-
-    <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/view_padding_small"/>
-
-    <LinearLayout
-            android:id="@+id/buttonLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/activity_padding"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-        <Button
-                android:id="@+id/contactButton"
-                style="@style/ButtonGreen.Small"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"/>
-
-    </LinearLayout>
-
 
     <View
             android:layout_width="match_parent"

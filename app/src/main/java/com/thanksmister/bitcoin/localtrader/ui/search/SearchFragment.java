@@ -20,7 +20,6 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -39,7 +38,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -57,6 +55,7 @@ import android.widget.TextView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationSettingsStates;
+import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -67,6 +66,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.PredictAdapter;
@@ -102,6 +102,9 @@ public class SearchFragment extends BaseFragment
 
     @Inject
     DbManager dbManager;
+
+    @Inject
+    Bus bus;
 
     @Inject
     DataService dataService;
@@ -466,18 +469,28 @@ public class SearchFragment extends BaseFragment
         }
         return true;
     }
-
+    
     public void showRequestPermissionsDialog()
     {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required), getString(R.string.require_location_permission)), new Action0() {
-            @Override
-            public void call() {
-                Activity activity = getActivity();
-                if(activity != null) {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
-                }
-            }
-        });
+        showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required),
+                        getString(R.string.require_location_permission)),
+                new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        if (isAdded()) {
+                            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+                        }
+                    }
+                }, new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        bus.post(NavigateEvent.DASHBOARD);
+                    }
+                });
     }
     
     public void onRefresh()
@@ -896,24 +909,25 @@ public class SearchFragment extends BaseFragment
 
     public void createAlert(String title, String message, final boolean googlePlay)
     {
-        int positiveButton = (googlePlay) ? R.string.button_install : R.string.button_enable;
-        new AlertDialog.Builder(getActivity())
-                .setTitle(title)
-                .setMessage(message)
-                .setNegativeButton(R.string.button_cancel, null)
-                .setPositiveButton(positiveButton, new DialogInterface.OnClickListener()
-                {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i)
-                    {
-                        if (googlePlay) {
-                            installGooglePlayServices();
-                        } else {
-                            openLocationServices();
-                        }
-                    }
-                })
-                .show();
+        showAlertDialog(new AlertDialogEvent(title, message), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                if (googlePlay) {
+                    installGooglePlayServices();
+                } else {
+                    openLocationServices();
+                }
+            }
+        }, new Action0()
+        {
+            @Override
+            public void call()
+            {
+                bus.post(NavigateEvent.DASHBOARD);
+            }
+        });
     }
 
     private void openLocationServices()

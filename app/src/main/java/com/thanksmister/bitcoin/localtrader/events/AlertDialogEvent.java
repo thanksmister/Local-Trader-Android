@@ -21,7 +21,7 @@ public class AlertDialogEvent
     public final String message;
     public final String title;
 
-    public AlertDialogEvent(final String title, final String message) 
+    public AlertDialogEvent(final String title, final String message)
     {
         this.title = title;
         this.message = message;

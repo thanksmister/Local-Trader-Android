@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -22,6 +22,17 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
+    <include
+            android:id="@+id/advertiserProgress"
+            layout="@layout/view_progress"
+            android:visibility="visible"
+            tools:visibility="gone"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
     <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -41,8 +52,10 @@
     <android.support.v4.widget.SwipeRefreshLayout
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:id="@+id/swipeLayout"
+            android:layout_weight="1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@color/white">
 
         <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
@@ -266,30 +279,7 @@
                         </LinearLayout>
 
                     </LinearLayout>
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:id="@+id/buttonLayoutDivider"/>
-
-                    <LinearLayout
-                            android:id="@+id/buttonLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/activity_padding"
-                            android:paddingLeft="@dimen/view_padding_xxlarge"
-                            android:paddingRight="@dimen/view_padding_xxlarge"
-                            android:orientation="horizontal">
-
-                        <Button
-                                android:id="@+id/requestButton"
-                                style="@style/ButtonGreen"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_weight="1"
-                                android:text="Request Trade"/>
-
-                    </LinearLayout>
-
+                    
                     <LinearLayout
                             android:id="@+id/requirementsLayout"
                             android:layout_width="match_parent"
@@ -431,12 +421,7 @@
 
 
                 </LinearLayout>
-
-                <include
-                        android:id="@+id/advertiserProgress"
-                        layout="@layout/view_progress"
-                        android:visibility="visible"
-                        tools:visibility="visible"/>
+                
 
             </FrameLayout>
 
@@ -444,4 +429,21 @@
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
+        <View
+                android:id="@+id/divider"
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_height="1dp"
+                android:layout_width="match_parent"/>
+
+        
+            <Button
+                    style="@style/ButtonGreen.Small"
+                    android:id="@+id/requestButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Request Trade"/>
+        
+    </LinearLayout>
+
+    
 </android.support.design.widget.CoordinatorLayout>

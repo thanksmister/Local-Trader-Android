@@ -391,7 +391,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                     }
                 }));
 
-        updateSubscriptions.add(exchangeService.getMarket(true)
+        updateSubscriptions.add(exchangeService.getMarket()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Exchange>()

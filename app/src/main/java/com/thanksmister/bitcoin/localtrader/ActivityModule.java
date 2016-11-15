@@ -27,6 +27,9 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.domain.DomainModule;
+import com.thanksmister.bitcoin.localtrader.ui.AdvertisementsFragment;
+import com.thanksmister.bitcoin.localtrader.ui.ContactsFragment;
+import com.thanksmister.bitcoin.localtrader.ui.MessagesFragment;
 import com.thanksmister.bitcoin.localtrader.ui.SendFragment;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiserActivity;
@@ -55,6 +58,7 @@ import dagger.Provides;
 
 @Module(
         injects = {MainActivity.class, PromoActivity.class, LoginActivity.class, AdvertisementActivity.class, 
+                AdvertisementsFragment.class, MessagesFragment.class, ContactsFragment.class,
                 EditActivity.class, DashboardFragment.class, WalletFragment.class, ContactActivity.class, SearchFragment.class,
                 PinCodeActivity.class, SearchResultsActivity.class, AdvertiserActivity.class, AboutFragment.class, SendFragment.class, RequestFragment.class,
                 TradeRequestActivity.class, ContactsActivity.class, BitcoinHandler.class, SettingsActivity.class, SettingsFragment.class},

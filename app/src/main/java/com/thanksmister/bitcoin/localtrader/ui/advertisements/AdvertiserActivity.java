@@ -83,9 +83,6 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
     @InjectView(R.id.priceLayout)
     View priceLayout;
 
-    @InjectView(R.id.buttonLayoutDivider)
-    View buttonLayoutDivider;
-
     @InjectView(R.id.priceLayoutDivider)
     View priceLayoutDivider;
     
@@ -402,7 +399,6 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
             priceLayout.setVisibility(View.GONE);
             buttonLayout.setVisibility(View.GONE);
             priceLayoutDivider.setVisibility(View.GONE);
-            buttonLayoutDivider.setVisibility(View.GONE);
             tradePrice.setText("ATM");
             noteTextAdvertiser.setText(Html.fromHtml(getString(R.string.advertiser_notes_text_atm, advertisement.currency, location)));
         } else {

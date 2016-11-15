@@ -29,6 +29,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.NetworkOnMainThreadException;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
@@ -63,9 +64,6 @@ import butterknife.ButterKnife;
 import rx.functions.Action0;
 import timber.log.Timber;
 
-import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils.CODE_FORTY_ONE;
-import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils.CODE_THREE;
-
 /** Base activity which sets up a per-activity object graph and performs injection. */
 public abstract class BaseActivity extends RxAppCompatActivity
 {
@@ -91,11 +89,8 @@ public abstract class BaseActivity extends RxAppCompatActivity
     protected void onCreate(Bundle savedInstanceState) 
     {
         super.onCreate(savedInstanceState);
-
         Injector.inject(this);
-
-        // TODO this is for testing locals
-        //setLocale("es", "ES");
+        // force locale US for conversions
         setLocale("en", "US");
     }
 
@@ -103,7 +98,6 @@ public abstract class BaseActivity extends RxAppCompatActivity
     protected void onDestroy() 
     {
         super.onDestroy();
-
         ButterKnife.reset(this);
     }
 
@@ -125,15 +119,13 @@ public abstract class BaseActivity extends RxAppCompatActivity
     public void onResume() {
 
         super.onResume();
-
-        bus.register(this);
-
+        bus.register(BaseActivity.this);
         registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
     
     public void launchScanner()
     {
-        IntentIntegrator scanIntegrator = new IntentIntegrator(this);
+        IntentIntegrator scanIntegrator = new IntentIntegrator(BaseActivity.this);
         scanIntegrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
     }
 
@@ -155,7 +147,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
         TextView progressDialogMessage = (TextView) dialogView.findViewById(R.id.progressDialogMessage);
         progressDialogMessage.setText(event.message);
 
-        progressDialog = new AlertDialog.Builder(this)
+        progressDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setCancelable(modal)
                 .setView(dialogView)
                 .show();
@@ -171,16 +163,16 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void showAlertDialog(AlertDialogEvent event)
     {
-         new AlertDialog.Builder(this)
+         new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                  .setTitle(event.title)
                  .setMessage(Html.fromHtml(event.message))
                  .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 
-    public void showAlertDialog(AlertDialogEvent event, final Action0 actionToTake)
+    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake)
     {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener()
@@ -194,9 +186,34 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .show();
     }
 
+    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake, final Action0 cancelActionToTake)
+    {
+        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+                .setTitle(event.title)
+                .setCancelable(false)
+                .setMessage(Html.fromHtml(event.message))
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        cancelActionToTake.call();
+                    }
+                })
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        actionToTake.call();
+                    }
+                })
+                .show();
+    }
+
     public void logOutConfirmation()
     {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(R.string.dialog_logout_title)
                 .setMessage(R.string.dialog_logout_message)
                 .setNegativeButton(R.string.button_cancel, null)
@@ -214,7 +231,6 @@ public abstract class BaseActivity extends RxAppCompatActivity
     public void logOut()
     {
         showProgressDialog(new ProgressDialogEvent("Logging out..."));
-        dataService.logout();
         onLoggedOut();
     }
     
@@ -222,16 +238,21 @@ public abstract class BaseActivity extends RxAppCompatActivity
     {
         String userName = AuthUtils.getUsername(sharedPreferences);
         SyncUtils.ClearSyncAccount(getApplicationContext(), userName);
-        
+
+        dataService.logout();
         dbManager.clearDbManager();
         
         // clear preferences
+        AuthUtils.resetCredentials(sharedPreferences);
+        
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        SharedPreferences.Editor editor = settings.edit();
+        SharedPreferences.Editor prefEditor = settings.edit();
+        prefEditor.clear();
+        prefEditor.apply();
+        
+        SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
-
-        AuthUtils.resetCredentials(sharedPreferences);
         
         hideProgressDialog();
         
@@ -242,7 +263,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void showConfirmationDialog(final ConfirmationDialogEvent event)
     {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setNegativeButton(event.negative, null)
@@ -305,6 +326,12 @@ public abstract class BaseActivity extends RxAppCompatActivity
         } else if(DataServiceUtils.isNetworkError(throwable)) {
             Timber.i("Data Error: " + "Code 503");
             snack(getString(R.string.error_no_internet), retry);
+        } else if(DataServiceUtils.isHttp42Error(throwable)) {
+            Timber.i("Data Error: " + "Code 42");
+            snack(getString(R.string.error_generic_error), retry);
+        } else if(DataServiceUtils.isHttp41Error(throwable)) {
+            Timber.i("Data Error: " + "Code 41");
+            snack(getString(R.string.error_authentication), retry);
         } else if(DataServiceUtils.isHttp502Error(throwable)) {
             Timber.i("Data Error: " + "Code 502");
             snack(getString(R.string.error_service_error), retry);
@@ -322,15 +349,11 @@ public abstract class BaseActivity extends RxAppCompatActivity
             snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp404Error(throwable)) {
             Timber.i("Data Error: " + "Code 404");
-            snack(getString(R.string.error_service_error), retry);;
+            snack(getString(R.string.error_service_error), retry);
         } else if(DataServiceUtils.isHttp400Error(throwable)) {
             Timber.e("Data Error: " + "Code 400");
             RetroError error = DataServiceUtils.createRetroError(throwable);
-            if(error.getCode() == CODE_THREE || error.getCode() == CODE_FORTY_ONE) {
-                toast(getString(R.string.error_authentication));
-            } else {
-                snack(error.getMessage(), retry);
-            }
+            snack(error.getMessage(), retry);
         } else if(throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.i("Data Error: " + throwable.getLocalizedMessage());
             snack(throwable.getLocalizedMessage(), retry);
@@ -392,6 +415,15 @@ public abstract class BaseActivity extends RxAppCompatActivity
     protected void toast(int messageId)
     {
         Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
+    }
+
+    protected void toast(int messageId, boolean showLong)
+    {
+        if(showLong){
+            Toast.makeText(this, messageId, Toast.LENGTH_LONG).show();
+        } else {
+            toast(messageId);
+        }
     }
 
     protected void setLocale(String language, String country) 

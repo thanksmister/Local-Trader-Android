@@ -21,7 +21,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
@@ -42,7 +41,6 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.Optional;
 
 public class AdvertisementAdapter extends BaseAdapter implements Filterable
 {
@@ -325,10 +323,6 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
             @InjectView(R.id.tradeDetails) TextView tradeDetails;
             @InjectView(R.id.contactMessageCount) TextView contactMessageCount;
             
-            @Optional
-            @InjectView(R.id.contactButton)
-            Button contactButton;
-    
             public ViewHolder(View view) {
                 ButterKnife.inject(this, view);
             }

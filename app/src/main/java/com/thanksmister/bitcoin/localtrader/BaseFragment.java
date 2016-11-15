@@ -18,14 +18,11 @@ package com.thanksmister.bitcoin.localtrader;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.View;
 
-import com.squareup.leakcanary.RefWatcher;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.trello.rxlifecycle.components.support.RxFragment;
 
 import butterknife.ButterKnife;
@@ -36,15 +33,12 @@ import rx.functions.Action0;
  */
 public abstract class BaseFragment extends RxFragment
 {
-    private BaseActivity parentActivity;
-    
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         Injector.inject(this);
-        
     }
 
     @Override
@@ -58,16 +52,12 @@ public abstract class BaseFragment extends RxFragment
     public void onAttach(Context context)
     {
         super.onAttach(context);
-        
-        parentActivity = (MainActivity) getActivity();
     }
 
     @Override
     public void onDetach()
     {
         super.onDetach();
-
-        parentActivity = (MainActivity) getActivity();
     }
     
     @Override 
@@ -83,73 +73,79 @@ public abstract class BaseFragment extends RxFragment
     
     protected void reportError(Throwable throwable)
     {
-        if(parentActivity != null)
-            parentActivity.reportError(throwable);
+        if(isAdded())
+            ((BaseActivity) getActivity()).reportError(throwable);
     }
 
     protected void handleError(Throwable throwable, boolean retry)
     {
-        if(parentActivity != null)
-            parentActivity.handleError(throwable, retry);
+        if(isAdded())
+            ((BaseActivity) getActivity()).handleError(throwable, retry);
     }
 
     protected void handleError(Throwable throwable)
     {
-        if(parentActivity != null)
-            parentActivity.handleError(throwable, false);
+        if(isAdded())
+            ((BaseActivity) getActivity()).handleError(throwable, false);
     }
 
     protected void toast(int messageId)
     {
-        if(parentActivity != null)
-            parentActivity.toast(messageId);
+        if(isAdded())
+            ((BaseActivity) getActivity()).toast(messageId);
     }
 
     protected void toast(String message)
     {
-        if(parentActivity != null)
-            parentActivity.toast(message);
+        if(isAdded())
+            ((BaseActivity) getActivity()).toast(message);
     }
 
     protected void snack(String message)
     {
-        if(parentActivity != null)
-            parentActivity.snack(message, false);
+        if(isAdded())
+            ((BaseActivity) getActivity()).snack(message, false);
     }
 
     protected void snackError(String message)
     {
-        if(parentActivity != null)
-            parentActivity.snackError(message);
+        if(isAdded())
+            ((BaseActivity) getActivity()).snackError(message);
     }
 
     protected void snack(String message, boolean retry)
     {
-        if(parentActivity != null)
-            parentActivity.snack(message, retry);
+        if(isAdded())
+            ((BaseActivity) getActivity()).snack(message, retry);
     }
 
     public void showAlertDialog(AlertDialogEvent event, Action0 action)
     {
-        if(parentActivity != null)
-            parentActivity.showAlertDialog(event, action);
+        if(isAdded())
+            ((BaseActivity) getActivity()).showAlertDialog(event, action);
+    }
+
+    public void showAlertDialog(AlertDialogEvent event, Action0 actionPos, Action0 actionNeg)
+    {
+        if(isAdded())
+            ((BaseActivity) getActivity()).showAlertDialog(event, actionPos, actionNeg);
     }
 
     public void showConfirmationDialog(ConfirmationDialogEvent event)
     {
-        if(parentActivity != null)
-            parentActivity.showConfirmationDialog(event);
+        if(isAdded())
+            ((BaseActivity) getActivity()).showConfirmationDialog(event);
     }
     
     public void showProgressDialog(ProgressDialogEvent event)
     {
-        if(parentActivity != null)
-            parentActivity.showProgressDialog(event);
+        if(isAdded())
+            ((BaseActivity) getActivity()).showProgressDialog(event);
     }
 
     public void hideProgressDialog()
     {
-        if(parentActivity != null)
-            parentActivity.hideProgressDialog();
+        if(isAdded())
+            ((BaseActivity) getActivity()).hideProgressDialog();
     }
 }

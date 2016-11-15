@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.ui.components;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,18 +31,19 @@ import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import timber.log.Timber;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 {
@@ -50,7 +52,8 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     private static final int TYPE_HEADER = R.layout.view_dashboard_header;
     private static final int TYPE_CONTACT = R.layout.adapter_dashboard_contact_list;
     private static final int TYPE_ADVERTISEMENT = R.layout.adapter_dashboard_advertisement_list;
-    
+    private static final int TYPE_MESSAGE = R.layout.adapter_dashboard_message_list;
+
     protected List items;
     protected List<MethodItem> methods = Collections.emptyList();
     private Context context;
@@ -59,9 +62,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     public static interface OnItemClickListener
     {
         public void onSearchButtonClicked();
+
         public void onAdvertiseButtonClicked();
     }
-   
+
     public ItemAdapter(Context context)
     {
         this.context = context;
@@ -72,22 +76,22 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         this.context = context;
         this.onItemClickListener = onItemClickListener;
     }
-  
+
     public void replaceWith(List data, List<MethodItem> methods)
     {
         this.items = data;
         this.methods = methods;
         notifyDataSetChanged();
     }
-    
+
     // Create new views (invoked by the layout manager)
     @Override
     public ItemAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
     {
         // create a new view
         View itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false);
-        
-        if(viewType == TYPE_CONTACT) {
+
+        if (viewType == TYPE_CONTACT) {
             return new ContactViewHolder(itemLayoutView);
         } else if (viewType == TYPE_ADVERTISEMENT) {
             return new AdvertisementViewHolder(itemLayoutView);
@@ -95,37 +99,43 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
             return new ExchangeViewHolder(itemLayoutView);
         } else if (viewType == TYPE_EMPTY) {
             return new EmptyViewHolder(itemLayoutView);
-        } 
+        } else if (viewType == TYPE_MESSAGE) {
+            return new MessageViewHolder(itemLayoutView);
+        }
 
         return new ProgressViewHolder(itemLayoutView);
     }
 
     @Override
-    public int getItemViewType(int position) {
+    public int getItemViewType(int position)
+    {
 
-        Timber.d("Position: " + position);
-        
         if (items == null) {
             return TYPE_PROGRESS;
         }
-        
-        /*if(isPositionHeader(position)) {
-            return TYPE_HEADER;
-        }
-*/
+
         if (items.size() == 0) {
             return TYPE_EMPTY;
         }
-        
-        return (items.get(position) instanceof ContactItem)? TYPE_CONTACT:TYPE_ADVERTISEMENT;
+
+        if (items.get(position) instanceof ContactItem) {
+            return TYPE_CONTACT;
+        } else if (items.get(position) instanceof AdvertisementItem) {
+            return TYPE_ADVERTISEMENT;
+        } else if (items.get(position) instanceof RecentMessageItem) {
+            return TYPE_MESSAGE;
+        } else {
+            return 0;
+        }
     }
 
     @Override
-    public int getItemCount() {
-        
+    public int getItemCount()
+    {
+
         if (items == null)
             return -1;
-        
+
         return items.size() > 0 ? items.size() : 1;
     }
 
@@ -133,7 +143,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position)
     {
-        if(viewHolder instanceof ContactViewHolder) {
+        if (viewHolder instanceof ContactViewHolder) {
 
             ContactItem contact = (ContactItem) items.get(position);
             TradeType tradeType = TradeType.valueOf(contact.advertisement_trade_type());
@@ -141,25 +151,25 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
             switch (tradeType) {
                 case LOCAL_BUY:
                 case LOCAL_SELL:
-                    type = (contact.is_buying())? "Buying Locally":"Selling Locally";
+                    type = (contact.is_buying()) ? "Buying Locally" : "Selling Locally";
                     break;
                 case ONLINE_BUY:
                 case ONLINE_SELL:
-                    type = (contact.is_buying())? "Buying Online":"Selling Online";
+                    type = (contact.is_buying()) ? "Buying Online" : "Selling Online";
                     break;
             }
 
-            String amount =  contact.amount() + " " + contact.currency();
+            String amount = contact.amount() + " " + contact.currency();
             //String btc =  contact.amount_btc() + context.getString(R.string.btc);
-            String person = (contact.is_buying())? contact.seller_username():contact.buyer_username();
+            String person = (contact.is_buying()) ? contact.seller_username() : contact.buyer_username();
             String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
 
             ((ContactViewHolder) viewHolder).tradeType.setText(type + " - " + amount);
             ((ContactViewHolder) viewHolder).tradeDetails.setText("With " + person + " (" + date + ")");
-            ((ContactViewHolder) viewHolder).contactMessageCount.setText(String.valueOf(contact.messageCount()));
-            
+            //((ContactViewHolder) viewHolder).contactMessageCount.setText(String.valueOf(contact.messageCount()));
+
         } else if (viewHolder instanceof AdvertisementViewHolder) {
-            
+
             AdvertisementItem advertisement = (AdvertisementItem) items.get(position);
             TradeType tradeType = TradeType.valueOf(advertisement.trade_type());
             String type = "";
@@ -181,9 +191,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
             String price = advertisement.temp_price() + " " + advertisement.currency();
             String location = advertisement.location_string();
 
-            if(advertisement.trade_type().equals(TradeType.LOCAL_SELL.name()) || advertisement.trade_type().equals(TradeType.LOCAL_BUY.name())) {
+            if (advertisement.trade_type().equals(TradeType.LOCAL_SELL.name()) || advertisement.trade_type().equals(TradeType.LOCAL_BUY.name())) {
 
-                if(TradeUtils.isAtm(advertisement)) {
+                if (TradeUtils.isAtm(advertisement)) {
                     ((AdvertisementViewHolder) viewHolder).advertisementType.setText("ATM");
                 } else {
                     ((AdvertisementViewHolder) viewHolder).advertisementType.setText(type + " " + price);
@@ -192,12 +202,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
             } else {
 
-                String adLocation = TradeUtils.isOnlineTrade(advertisement)? advertisement.location_string(): advertisement.city();
+                String adLocation = TradeUtils.isOnlineTrade(advertisement) ? advertisement.location_string() : advertisement.city();
                 String paymentMethod = TradeUtils.getPaymentMethodFromItems(advertisement, methods);
-                if(Strings.isBlank(paymentMethod)) {
+                if (Strings.isBlank(paymentMethod)) {
                     ((AdvertisementViewHolder) viewHolder).advertisementDetails.setText("In " + adLocation);
                 } else {
-                    ((AdvertisementViewHolder) viewHolder).advertisementDetails.setText("With " +  paymentMethod + " in " + adLocation);
+                    ((AdvertisementViewHolder) viewHolder).advertisementDetails.setText("With " + paymentMethod + " in " + adLocation);
                 }
 
                 ((AdvertisementViewHolder) viewHolder).advertisementType.setText(type + " " + price);
@@ -208,6 +218,14 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
             } else {
                 ((AdvertisementViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_action_visibility_off_dark);
             }
+        } else if (viewHolder instanceof MessageViewHolder) {
+
+            RecentMessageItem messageItem = (RecentMessageItem) items.get(position);
+            ((MessageViewHolder) viewHolder).messageBody.setText("Message from " + messageItem.sender_username());
+            ((MessageViewHolder) viewHolder).contactId.setText("Contact #" + messageItem.contact_id());
+            Date date = Dates.parseLocalDateISO(messageItem.create_at());
+            ((MessageViewHolder) viewHolder).createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
+
         } else if (viewHolder instanceof ExchangeViewHolder) {
 
             ExchangeItem exchangeItem = (ExchangeItem) items.get(position);
@@ -238,7 +256,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         public ViewHolder(View itemView)
         {
             super(itemView);
-            
+
             ButterKnife.inject(this, itemView);
         }
     }
@@ -248,17 +266,34 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     {
         @InjectView(R.id.tradeType)
         public TextView tradeType;
-        
+
         @InjectView(R.id.itemIcon)
         public ImageView icon;
-        
+
         @InjectView(R.id.tradeDetails)
         public TextView tradeDetails;
-        
-        @InjectView(R.id.contactMessageCount)
-        public TextView contactMessageCount;
 
         public ContactViewHolder(View itemView)
+        {
+            super(itemView);
+        }
+    }
+
+    public class MessageViewHolder extends ViewHolder
+    {
+        @InjectView(R.id.messageBody)
+        public TextView messageBody;
+
+        @InjectView(R.id.itemIcon)
+        public ImageView icon;
+
+        @InjectView(R.id.contactId)
+        public TextView contactId;
+
+        @InjectView(R.id.createdAt)
+        public TextView createdAt;
+
+        public MessageViewHolder(View itemView)
         {
             super(itemView);
         }
@@ -268,17 +303,17 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     {
         @InjectView(android.R.id.background)
         public View row;
-        
+
         @InjectView(R.id.advertisementType)
         public TextView advertisementType;
-        
+
         @InjectView(R.id.itemIcon)
         public ImageView icon;
-        
+
         @InjectView(R.id.advertisementDetails)
         public TextView advertisementDetails;
-        
-        public AdvertisementViewHolder(View itemView) 
+
+        public AdvertisementViewHolder(View itemView)
         {
             super(itemView);
         }
@@ -314,15 +349,17 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         {
             onItemClickListener.onSearchButtonClicked();
         }
-        
-        public EmptyViewHolder(View itemView) {
+
+        public EmptyViewHolder(View itemView)
+        {
             super(itemView);
         }
     }
 
     public class ProgressViewHolder extends ViewHolder
     {
-        public ProgressViewHolder(View itemView) {
+        public ProgressViewHolder(View itemView)
+        {
             super(itemView);
         }
     }

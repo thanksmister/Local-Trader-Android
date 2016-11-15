@@ -25,6 +25,8 @@ import android.preference.PreferenceManager;
 
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 
+import static com.thanksmister.bitcoin.localtrader.data.services.SyncProvider.CONTENT_AUTHORITY;
+
 
 /**
  * Static helper methods for working with the sync framework.
@@ -80,20 +82,14 @@ public class SyncUtils
 
         return false;
     }
-
-    @Deprecated
-    public static void ClearSyncAccount(Context context)
-    {
-        PreferenceManager.getDefaultSharedPreferences(context).edit().remove(PREF_SETUP_COMPLETE).commit();
-    }
-
+    
     public static void ClearSyncAccount(Context context, String accountName)
     {
         PreferenceManager.getDefaultSharedPreferences(context).edit().remove(PREF_SETUP_COMPLETE).commit();
         Account account = AuthenticatorService.GetAccount(accountName);
         AccountManager accountManager = (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
         accountManager.removeAccount(account, null, null);
-        //ContentResolver.setIsSyncable(account, CONTENT_AUTHORITY, 0);
+        ContentResolver.setIsSyncable(account, CONTENT_AUTHORITY, 0);
     }
 
     /**

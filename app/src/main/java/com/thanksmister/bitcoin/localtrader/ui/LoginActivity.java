@@ -28,13 +28,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
@@ -64,14 +62,8 @@ public class LoginActivity extends BaseActivity
     DataService dataService;
 
     @Inject
-    BriteDatabase db;
-
-    @Inject
     SharedPreferences sharedPreferences;
-
-    @Inject
-    DbManager dbManager;
-
+    
     @InjectView(R.id.content)
     View content;
     

@@ -240,4 +240,9 @@ public interface LocalBitcoins
                                        @Field("pincode") String pincode,
                                        @Field("address") String address, 
                                        @Field("amount") String amount);
+
+    @GET(GET_RECENT_MESSAGES)
+    Observable<Response> recentMessages(@Header("Apiauth-Key") String key,
+                                        @Header("Apiauth-Nonce") String nonce,
+                                        @Header("Apiauth-Signature") String signature);
 }

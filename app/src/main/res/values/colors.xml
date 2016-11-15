@@ -56,6 +56,7 @@
     <color name="white">#FFFFFF</color>
     <color name="light_gray">#efefef</color>
     <color name="red">#d7523e</color>
+    <color name="light_red">#47d7523e</color>
     <color name="text_red">#d7523e</color>
     <color name="button_red">#d7523e</color>
     <color name="red_light_up">#fff4492c</color>

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -49,14 +49,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:gravity="center_horizontal"
                     android:paddingTop="20dp"
-                    android:paddingBottom="20dp">
+                    android:paddingBottom="10dp"
+                    android:gravity="center_horizontal">
 
                 <ImageView
-                        android:layout_marginTop="10dp"
                         android:layout_height="200dp"
-                        android:layout_width="200dp"
+                        android:layout_width="wrap_content"
                         android:src="@drawable/logo_screen"
                         android:contentDescription="@string/desc"/>
 
@@ -92,14 +91,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         style="@style/SmallText.ExtraSmall"
-                        android:maxLines="2"
-
-                        android:autoLink="web|email"/>
+                        android:maxLines="2"/>
 
             </LinearLayout>
-
-            <View style="@style/DividerHorizontal"/>
-
+            
             <LinearLayout
                     android:id="@+id/sendFeedbackButton"
                     style="@style/BorderlessButtonStyle"
@@ -232,4 +227,3 @@
     </ScrollView>
 
 </LinearLayout>
-

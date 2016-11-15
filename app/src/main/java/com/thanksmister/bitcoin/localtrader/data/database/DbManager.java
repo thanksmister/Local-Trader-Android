@@ -79,6 +79,7 @@ public class DbManager
         db.delete(MessageItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
         db.delete(TransactionItem.TABLE, null);
+        db.delete(RecentMessageItem.TABLE, null);
     }
 
     public void clearWallet()
@@ -89,7 +90,7 @@ public class DbManager
     
     public void clearDashboard()
     {
-        db.delete(MessageItem.TABLE, null);
+        db.delete(RecentMessageItem.TABLE, null);
         db.delete(ContactItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
     }
@@ -112,7 +113,6 @@ public class DbManager
                 });
     }
     
-    @Deprecated
     public TreeMap<String, ArrayList<Contact>> updateContacts(List<Contact> contacts)
     {
         TreeMap<String, ArrayList<Contact>> updateMap = new TreeMap<String, ArrayList<Contact>>();
@@ -321,7 +321,13 @@ public class DbManager
         return briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contactId}, MessageItem.CREATED_AT + " DESC", false)
                 .map(MessageItem.MAP);
     }
-
+    
+    public Observable<List<RecentMessageItem>> recentMessagesQuery()
+    {
+        return briteContentResolver.createQuery(SyncProvider.RECENT_MESSAGE_TABLE_URI, null, null, null, RecentMessageItem.CREATED_AT + " DESC", false)
+                .map(RecentMessageItem.MAP);
+    }
+    
     public Observable<Integer> messageCountQuery(long contactId)
     {
         return db.createQuery(MessageItem.TABLE, MessageItem.COUNT_QUERY, String.valueOf(contactId))
@@ -393,11 +399,10 @@ public class DbManager
 
     public void updateMessages(final String contactId, List<Message> messages, final ContentResolverAsyncHandler.AsyncQueryListener listener)
     {
-        final ArrayList<Message> newMessages = new ArrayList<Message>();
         final HashMap<String, Message> entryMap = new HashMap<String, Message>();
         
         for (Message message : messages) {
-            message.id = contactId+ "_" + message.created_at;
+            message.id = contactId + "_" + message.created_at;
             message.contact_id = contactId;
             entryMap.put(message.id, message);
         }
@@ -508,17 +513,13 @@ public class DbManager
                     public void call(WalletItem walletItem)
                     {
                         if (walletItem != null) {
-
-                            Timber.d("updateWallet update: " + walletItem);
                             
                             if (!walletItem.address().equals(wallet.address)
                                     || !walletItem.balance().equals(wallet.balance)
                                     || !walletItem.receivable().equals(wallet.received)
                                     || !walletItem.sendable().equals(wallet.sendable)) {
 
-
-                                Timber.d("updateWallet update: " + walletItem);
-
+                                
                                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                                 wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
 
@@ -872,9 +873,8 @@ public class DbManager
     public int updateAdvertisement(final Advertisement advertisement)
     {
        return db.update(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build(), AdvertisementItem.AD_ID + " = ?", advertisement.ad_id);
-
     }
-
+    
     private class QrCodeTask extends AsyncTask<Object, Void, Object[]>
     {
         private Context context;

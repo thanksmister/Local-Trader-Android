@@ -25,13 +25,14 @@ import java.util.concurrent.TimeoutException;
 
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
 import timber.log.Timber;
 
 public class DataServiceUtils
 {
+    public static int CODE_MINUS_ONE = -1; // authorization failed
     public static int CODE_THREE = 3; // authorization failed
     public static int CODE_FORTY_ONE = 41; // bad hmac signature
+    public static int CODE_FORTY_TWO = 42; // nonce too small
     
     public static boolean isNetworkError(Throwable throwable)
     {
@@ -68,6 +69,16 @@ public class DataServiceUtils
         if (throwable instanceof RetrofitError) {
             RetroError retroError = createRetroError(throwable);
             return (retroError.getCode() == CODE_FORTY_ONE);
+        }
+
+        return false;
+    }
+
+    public static boolean isHttp42Error(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetroError retroError = createRetroError(throwable);
+            return (retroError.getCode() == CODE_FORTY_TWO);
         }
 
         return false;
@@ -138,49 +149,22 @@ public class DataServiceUtils
         return false;
     }
 
-    @Deprecated
-    public static boolean isHttp400GrantError(Throwable throwable)
-    {
-        if (throwable instanceof RetrofitError) {
-            RetrofitError retroError = (RetrofitError) throwable;
-            if(getStatusCode(retroError) == 503)
-                return false;
-                    
-            try {
-                if(retroError.getResponse() != null) {
-                    String response =  new String(((TypedByteArray) retroError.getResponse().getBody()).getBytes());
-                    return (response.contains("invalid_grant"));
-                }
-                    
-            } catch (ClassCastException error) {
-                Timber.e(error.getLocalizedMessage());
-                return (throwable.getLocalizedMessage().contains("invalid_grant"));
-             } catch (NullPointerException error) {
-                Timber.e(error.getLocalizedMessage());
-                return false;
-            }
-        }
-
-        return false;
-    }
-
     /*
    Added because service now always returns 400 error and have to check valid code
    {"error": {"message": "Invalid or expired access token for scope 2. 
-   Learn how to renew an access token at https://localbitcoins.com/api-docs/", "error_code": 3}}
-   
-   if(retroError.getResponse() != null) {
-                    String response =  new String(((TypedByteArray) retroError.getResponse().getBody()).getBytes());
-                    return (response.contains("invalid_grant"));
-                }
     */
     public static RetroError createRetroError(Throwable throwable)
     {
         RetrofitError retroError = (RetrofitError) throwable;
         Response response = retroError.getResponse();
-        String json = Parser.parseRetrofitResponse(response);
+        String json = null;
+        try {
+            json = Parser.parseRetrofitResponse(response);
+        } catch (RetroError error) {
+            return error;
+        }
+        
         Timber.e("JSON: " + json);
-
         RetroError err = Parser.parseError(json);
         Timber.e("Error: " + err.getMessage());
         Timber.e("Code: " + err.getCode());

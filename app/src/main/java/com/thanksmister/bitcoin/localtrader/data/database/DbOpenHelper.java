@@ -24,7 +24,7 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 30;
+    private static final int DATABASE_VERSION = 31;
     private static final int DATABASE_VERSION_TRANSACTIONS = 29;
     private static final int DATABASE_VERSION_MESSAGES = 25;
     private static final int CONTACT_VERSION_MESSAGES = 27;
@@ -127,6 +127,24 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     + MessageItem.SEEN + " INTEGER NOT NULL DEFAULT 0"
                     + ")";
 
+    private static final String CREATE_RECENT_MESSAGES =
+            "CREATE TABLE " + RecentMessageItem.TABLE + " ("
+                    + RecentMessageItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
+                    + RecentMessageItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.MESSAGE + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.SENDER_ID + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.SENDER_NAME + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.SENDER_USERNAME + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.SENDER_TRADE_COUNT + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.SENDER_LAST_ONLINE + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.IS_ADMIN + TYPE_INTEGER + COMMA_SEP
+                    + RecentMessageItem.ATTACHMENT_NAME + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.ATTACHMENT_URL + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.ATTACHMENT_TYPE + TYPE_TEXT + COMMA_SEP
+                    + RecentMessageItem.SEEN + " INTEGER NOT NULL DEFAULT 0"
+                    + ")";
+
     private static final String CREATE_EXCHANGES =
             "CREATE TABLE IF NOT EXISTS " + ExchangeItem.TABLE + " (" +
                     ExchangeItem.ID + " INTEGER PRIMARY KEY," +
@@ -202,6 +220,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
         db.execSQL(CREATE_ADVERTISEMENTS);
         db.execSQL(CREATE_TRANSACTIONS);
         db.execSQL(CREATE_CONTACT_LIST_ID_INDEX);
+        db.execSQL(CREATE_RECENT_MESSAGES);
         
         /*
 
@@ -233,6 +252,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
     {
         if (oldVersion < newVersion) {
             db.delete("session_table", null, null);
+            db.execSQL(CREATE_RECENT_MESSAGES);
         }
 
         // check older version for transactions table

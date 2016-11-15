@@ -15,6 +15,7 @@
  */
 
 package com.thanksmister.bitcoin.localtrader.ui;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.widget.ImageView;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 
 import org.json.JSONException;
@@ -38,9 +40,10 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import rx.Observable;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
@@ -50,7 +53,7 @@ public class PinCodeActivity extends BaseActivity
     public static final String EXTRA_PIN_CODE = "EXTRA_PIN_CODE";
     public static final String EXTRA_ADDRESS = "EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "EXTRA_AMOUNT";
-    
+
     public static final int MAX_PINCODE_LENGTH = 4;
     public static final int REQUEST_CODE = 648;
     public static final int RESULT_VERIFIED = 7652;
@@ -144,8 +147,6 @@ public class PinCodeActivity extends BaseActivity
     private String pinCode = "";
     private String address;
     private String amount;
-    private boolean sendingInProgress;
-    
     private Subscription subscription = Subscriptions.empty();
 
     public static Intent createStartIntent(Context context)
@@ -165,43 +166,41 @@ public class PinCodeActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
+
         setContentView(R.layout.view_release);
 
         ButterKnife.inject(this);
 
-        getWindow().setSoftInputMode (WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); // show keyboard
- 
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); // show keyboard
+
         if (savedInstanceState != null) {
             
-            sendingInProgress = savedInstanceState.getBoolean(EXTRA_PROGRESS);
-            
-            if(savedInstanceState.containsKey(EXTRA_AMOUNT))
+            if (savedInstanceState.containsKey(EXTRA_AMOUNT))
                 amount = savedInstanceState.getString(EXTRA_AMOUNT);
 
-            if(savedInstanceState.containsKey(EXTRA_ADDRESS))
+            if (savedInstanceState.containsKey(EXTRA_ADDRESS))
                 address = savedInstanceState.getString(EXTRA_ADDRESS);
-            
-            if(savedInstanceState.containsKey(EXTRA_PIN_CODE))
+
+            if (savedInstanceState.containsKey(EXTRA_PIN_CODE))
                 pinCode = savedInstanceState.getString(EXTRA_PIN_CODE);
-            
+
         } else {
-            
-            if(getIntent().hasExtra(EXTRA_AMOUNT))
+
+            if (getIntent().hasExtra(EXTRA_AMOUNT))
                 amount = getIntent().getStringExtra(EXTRA_AMOUNT);
 
-            if(getIntent().hasExtra(EXTRA_ADDRESS))
+            if (getIntent().hasExtra(EXTRA_ADDRESS))
                 address = getIntent().getStringExtra(EXTRA_ADDRESS);
         }
 
         setupToolbar();
     }
-    
+
     @Override
     public void onPause()
     {
         super.onPause();
-        
+
         subscription.unsubscribe();
     }
 
@@ -210,15 +209,13 @@ public class PinCodeActivity extends BaseActivity
     {
         super.onSaveInstanceState(outState);
         
-        outState.putBoolean(EXTRA_PROGRESS, sendingInProgress);
-        
-        if(address != null)
+        if (address != null)
             outState.putString(EXTRA_ADDRESS, address);
-        
-        if(amount != null)
+
+        if (amount != null)
             outState.putString(EXTRA_AMOUNT, amount);
-        
-        if(pinCode != null)
+
+        if (pinCode != null)
             outState.putString(EXTRA_PIN_CODE, pinCode);
     }
 
@@ -234,7 +231,7 @@ public class PinCodeActivity extends BaseActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
-        if (item.getItemId() == android.R.id.home && !sendingInProgress) {
+        if (item.getItemId() == android.R.id.home) {
             toast(R.string.toast_pin_code_canceled);
             setResult(PinCodeActivity.RESULT_CANCELED);
             finish();
@@ -243,36 +240,44 @@ public class PinCodeActivity extends BaseActivity
 
         return super.onOptionsItemSelected(item);
     }
-    
+
+    @Override
+    public void onBackPressed()
+    {
+        toast(R.string.toast_pin_code_canceled);
+        setResult(PinCodeActivity.RESULT_CANCELED);
+        finish();
+    }
+
     private void invalidatePinCode()
     {
         pinCode = "";
         pinComplete = false;
         showFilledPins(0);
-        toast(R.string.toast_pin_code_invalid);
+        toast(R.string.toast_pin_code_invalid, true);
     }
-    
+
     private void addPinCode(String code)
     {
-        if(pinComplete) return;
-        
-        pinCode += code;
-        
-        showFilledPins (pinCode.length());
+        if (pinComplete) return;
 
-        if(pinCode.length() == MAX_PINCODE_LENGTH) {
+        pinCode += code;
+
+        showFilledPins(pinCode.length());
+
+        if (pinCode.length() == MAX_PINCODE_LENGTH) {
             pinComplete = true;
             onSetPinCodeClick(pinCode);
         }
     }
-    
+
     private void removePinCode()
     {
-        if(pinComplete) return;
-        
-        if(!Strings.isBlank(pinCode)) {
+        if (pinComplete) return;
+
+        if (!Strings.isBlank(pinCode)) {
             pinCode = pinCode.substring(0, pinCode.length() - 1);
-            showFilledPins (pinCode.length());
+            showFilledPins(pinCode.length());
         }
     }
 
@@ -280,10 +285,10 @@ public class PinCodeActivity extends BaseActivity
     {
         validatePinCode(pinCode, address, amount);
     }
-    
+
     private void showFilledPins(int pinsShown)
     {
-        switch(pinsShown) {
+        switch (pinsShown) {
             case 1:
                 pinCode1.setImageResource(R.drawable.ic_pin_code_on);
                 pinCode2.setImageResource(R.drawable.ic_pin_code_off);
@@ -317,57 +322,47 @@ public class PinCodeActivity extends BaseActivity
         }
     }
 
-    /*Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) 
-    {
-        // block back button while in progress
-        if (keyCode == KeyEvent.KEYCODE_BACK && sendingInProgress) {   
-            return false;
-        } else if (keyCode == KeyEvent.KEYCODE_BACK ) {
-            setResult(PinCodeActivity.RESULT_CANCELED);
-            finish();
-        }
-
-        return super.onKeyDown(keyCode, event);
-    }*/
-
     private void validatePinCode(final String pinCode, final String address, final String amount)
     {
-        sendingInProgress = true; // we are sending pin
-        Observable<JSONObject> validateObservable = dataService.validatePinCode(pinCode);
-        subscription = validateObservable.subscribe(new Action1<JSONObject>()
-        {
-            @Override
-            public void call(JSONObject jsonObject)
-            {
-                try {
-                    JSONObject object = jsonObject.getJSONObject("data");
-                    Boolean valid = (object.getString("pincode_ok").equals("true"));
-                    if (valid) {
-
-                        Intent intent = getIntent();
-                        intent.putExtra(PinCodeActivity.EXTRA_PIN_CODE, pinCode);
-                        intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, address);
-                        intent.putExtra(PinCodeActivity.EXTRA_AMOUNT, amount);
-                        setResult(PinCodeActivity.RESULT_VERIFIED, intent);
-                        finish();
-
-                    } else {
-                        Timber.d(object.toString());
+        showProgressDialog(new ProgressDialogEvent("Verifying PIN..."), true);
+        
+        subscription = dataService.validatePinCode(pinCode)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<JSONObject>()
+                {
+                    @Override
+                    public void call(JSONObject jsonObject)
+                    {
+                        hideProgressDialog();
+                        
+                        try {
+                            JSONObject object = jsonObject.getJSONObject("data");
+                            Boolean valid = (object.getString("pincode_ok").equals("true"));
+                            if (valid) {
+                                Intent intent = getIntent();
+                                intent.putExtra(PinCodeActivity.EXTRA_PIN_CODE, pinCode);
+                                intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, address);
+                                intent.putExtra(PinCodeActivity.EXTRA_AMOUNT, amount);
+                                setResult(PinCodeActivity.RESULT_VERIFIED, intent);
+                                finish();
+                            } else {
+                                Timber.d(object.toString());
+                                invalidatePinCode();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            invalidatePinCode();
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        hideProgressDialog();
                         invalidatePinCode();
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    invalidatePinCode();
-                }
-            }
-        }, new Action1<Throwable>()
-        {
-            @Override
-            public void call(Throwable throwable)
-            {
-                invalidatePinCode();
-            }
-        });
+                });
     }
 }

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -33,60 +33,72 @@
         <android.support.v7.widget.RecyclerView
                 android:id="@+id/recycleView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:background="@color/white"
                 android:fitsSystemWindows="true"/>
 
     </android.support.v4.widget.SwipeRefreshLayout>
-    
+
     <android.support.design.widget.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true">
-        
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
 
-        <LinearLayout
-                android:id="@+id/bitcoinLayout"
+        <android.support.design.widget.CollapsingToolbarLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="bottom"
-                android:paddingTop="@dimen/activity_space"
-                android:paddingBottom="@dimen/activity_space"
-                android:paddingLeft="72dp">
+                android:layout_height="match_parent"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                android:fitsSystemWindows="true"
+                app:contentScrim="?attr/colorPrimary"
+                app:titleEnabled="false">
 
-            <TextView
-                    android:id="@+id/bitcoinTitle"
-                    style="@style/TextMedium.SmallAction.White"
+            <LinearLayout
+                    android:id="@+id/bitcoinLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="start"
-                    tools:text="MARKET PRICE"/>
+                    android:orientation="vertical"
+                    android:gravity="bottom"
+                    android:layout_marginTop="56dp"
+                    android:layout_marginBottom="12dp"
+                    android:paddingLeft="72dp"
+                    app:layout_collapseMode="parallax">
 
-            <TextView
-                    android:id="@+id/bitcoinPrice"
-                    style="@style/TextExtraLarge.White.Bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                <TextView
+                        android:id="@+id/bitcoinTitle"
+                        style="@style/TextMedium.SmallAction.White"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        tools:text="MARKET PRICE"/>
 
-            <TextView
-                    android:id="@+id/bitcoinValue"
-                    style="@style/TextSmall.White"
+                <TextView
+                        android:id="@+id/bitcoinPrice"
+                        style="@style/TextExtraLarge.White.Bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                <TextView
+                        android:id="@+id/bitcoinValue"
+                        style="@style/TextSmall.White"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textIsSelectable="true"/>
+
+            </LinearLayout>
+
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textIsSelectable="true"/>
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary"
+                    app:popupTheme="@style/Theme.AppCompat.Light"
+                    app:layout_collapseMode="pin"/>
 
-        </LinearLayout>
-        
+        </android.support.design.widget.CollapsingToolbarLayout>
+
     </android.support.design.widget.AppBarLayout>
-    
+
     <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"
             android:clickable="true"

@@ -33,7 +33,6 @@ import com.google.zxing.android.IntentResult;
 import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
@@ -132,8 +131,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             String userName = AuthUtils.getUsername(sharedPreferences);
             SyncUtils.CreateSyncAccount(MainActivity.this, userName);
             SyncUtils.TriggerRefresh(getApplicationContext(), userName);
-        } else {
-            launchPromoScreen();
         }
     }
 
@@ -332,7 +329,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     @Subscribe
     public void onNavigateEvent (NavigateEvent event)
     {
-        if(event == NavigateEvent.SEND) {
+        if(event == NavigateEvent.DASHBOARD) {
+            setContentFragment(DRAWER_DASHBOARD);
+            navigationView.getMenu().findItem(R.id.navigationItemDashboard).setChecked(true);
+        } else if(event == NavigateEvent.SEND) {
             setContentFragment(DRAWER_SEND);
             navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);
         } else if (event == NavigateEvent.SEARCH) {
@@ -426,7 +426,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
            String contactId = extras.getString(EXTRA_CONTACT);
             
             if(contactId != null) {
-                Intent contactIntent = ContactActivity.createStartIntent(this, contactId, DashboardType.ACTIVE);
+                Intent contactIntent = ContactActivity.createStartIntent(this, contactId);
                 startActivity(contactIntent);
             }
             

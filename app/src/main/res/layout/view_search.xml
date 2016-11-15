@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -22,40 +22,46 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
-    <android.support.design.widget.AppBarLayout
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
+        <android.support.design.widget.AppBarLayout
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
+                android:layout_height="wrap_content">
 
-    </android.support.design.widget.AppBarLayout>
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary"
+                    app:popupTheme="@style/Theme.AppCompat.Light"/>
 
-    <android.support.v4.widget.SwipeRefreshLayout
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:id="@+id/swipeLayout"
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:enabled="false">
+        </android.support.design.widget.AppBarLayout>
 
-        <!-- Your Scrollable View -->
-        <android.support.v4.widget.NestedScrollView
+        <android.support.v4.widget.SwipeRefreshLayout
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                android:id="@+id/swipeLayout"
+                android:layout_weight="1"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true">
-            
+                android:layout_height="fill_parent"
+                android:enabled="false">
 
-            <LinearLayout
-                    android:id="@+id/searchContent"
-                    android:orientation="vertical"
+            <!-- Your Scrollable View -->
+            <android.support.v4.widget.NestedScrollView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:visibility="gone"
-                    android:layout_above="@+id/searchButton">
+                    android:fillViewport="true">
+
+                <LinearLayout
+                        android:id="@+id/searchContent"
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone"
+                        tools:visibility="visible"
+                        android:layout_above="@+id/searchButton">
 
                     <FrameLayout
                             android:layout_width="match_parent"
@@ -63,7 +69,7 @@
                             android:layout_marginLeft="@dimen/view_padding_small"
                             android:paddingTop="@dimen/activity_padding"
                             android:paddingBottom="@dimen/activity_padding">
-    
+
                         <LinearLayout
                                 android:id="@+id/searchLayout"
                                 android:layout_width="match_parent"
@@ -71,7 +77,7 @@
                                 android:orientation="horizontal"
                                 android:layout_gravity="center_vertical"
                                 android:visibility="gone">
-    
+
                             <AutoCompleteTextView
                                     style="@style/TextLarge.SmallAction"
                                     android:theme="@style/EditTextTheme"
@@ -83,7 +89,7 @@
                                     android:layout_marginLeft="5dp"
                                     android:hint="Enter city or address"
                                     android:layout_weight="1"/>
-    
+
                             <ImageButton
                                     android:id="@+id/mapButton"
                                     style="@style/BorderlessButtonStyle"
@@ -93,16 +99,16 @@
                                     android:src="@drawable/ic_action_location_2"
                                     android:layout_gravity="center"
                                     android:layout_weight="0"/>
-    
+
                         </LinearLayout>
-    
+
                         <LinearLayout
                                 android:id="@+id/mapLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:orientation="horizontal"
                                 android:visibility="visible">
-    
+
                             <TextView
                                     style="@style/TextLarge.SmallAction"
                                     android:id="@+id/currentLocation"
@@ -116,11 +122,11 @@
                                     android:layout_gravity="center_vertical"
                                     android:textIsSelectable="true"
                                     android:layout_weight="1"/>
-    
+
                             <View
                                     android:layout_width="@dimen/view_padding_small"
                                     android:layout_height="match_parent"/>
-    
+
                             <ImageButton
                                     style="@style/BorderlessButtonStyle"
                                     android:id="@+id/clearButton"
@@ -129,25 +135,25 @@
                                     android:layout_width="48dp"
                                     android:src="@drawable/ic_action_content_clear"
                                     android:layout_weight="0"/>
-    
+
                             <View
                                     android:layout_width="@dimen/view_padding_small"
                                     android:layout_height="match_parent"/>
-    
+
                         </LinearLayout>
-    
+
                     </FrameLayout>
-    
+
                     <View
                             style="@style/DividerHorizontal"
                             android:layout_width="match_parent"
                             android:layout_height="1dp"/>
-    
+
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
-    
+
                         <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -157,28 +163,28 @@
                                 android:paddingRight="@dimen/view_padding"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
-    
+
                             <TextView
                                     style="@style/TextSmall"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Buying or selling?"
                                     android:gravity="left"/>
-    
+
                             <Spinner
                                     android:id="@+id/typeSpinner"
-    
+
                                     android:theme="@style/SpinnerTheme"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"/>
-    
+
                         </LinearLayout>
-    
+
                         <View
                                 style="@style/DividerVertical"
                                 android:layout_width="1dp"
                                 android:layout_height="match_parent"/>
-    
+
                         <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -188,31 +194,31 @@
                                 android:paddingRight="@dimen/view_padding"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
-    
+
                             <TextView
                                     style="@style/TextSmall"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Locally or online?"
                                     android:gravity="left"/>
-    
+
                             <Spinner
                                     android:id="@+id/locationSpinner"
-    
+
                                     android:theme="@style/SpinnerTheme"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"/>
-    
-    
+
+
                         </LinearLayout>
-    
+
                     </LinearLayout>
-    
+
                     <View
                             style="@style/DividerHorizontal"
                             android:layout_width="match_parent"
                             android:layout_height="1dp"/>
-    
+
                     <LinearLayout
                             android:id="@+id/paymentMethodLayout"
                             android:layout_width="match_parent"
@@ -221,8 +227,8 @@
                             android:paddingTop="@dimen/view_padding_small"
                             android:visibility="gone"
                             tools:visibility="visible">
-                        
-    
+
+
                         <TextView
                                 style="@style/TextSmall"
                                 android:layout_width="wrap_content"
@@ -230,59 +236,66 @@
                                 android:text="Online payment method?"
                                 android:gravity="left"
                                 android:layout_marginLeft="@dimen/view_padding"/>
-    
+
                         <FrameLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:paddingBottom="@dimen/view_padding"
                                 android:paddingLeft="@dimen/view_padding"
                                 android:paddingRight="@dimen/view_padding">
-    
+
                             <Spinner
                                     android:id="@+id/paymentMethodSpinner"
                                     android:theme="@style/SpinnerTheme"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"/>
-    
+
                         </FrameLayout>
-    
+
                         <View
                                 style="@style/DividerHorizontal"
                                 android:layout_width="match_parent"
                                 android:layout_height="1dp"/>
-    
-    
+
+
                     </LinearLayout>
 
-                <FrameLayout
-                        android:id="@+id/buttonLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/white">
 
-                <Button
-                        android:id="@+id/searchButton"
-                        android:layout_margin="@dimen/activity_padding"
-                        style="@style/ButtonGreen"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/button_search_trades"/>
-                
-                </FrameLayout>
-                
                 </LinearLayout>
-                
-                
-            
-        </android.support.v4.widget.NestedScrollView>
+
+
+            </android.support.v4.widget.NestedScrollView>
+
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+        <View
+                android:id="@+id/divider"
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_height="1dp"
+                android:layout_width="match_parent"/>
         
-    </android.support.v4.widget.SwipeRefreshLayout>
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <Button
+                    style="@style/ButtonGreen.Small"
+                    android:id="@+id/searchButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="48dp"
+                    android:text="@string/button_search_trades"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <include
             android:id="@+id/searchProgress"
             layout="@layout/view_progress"
             android:visibility="visible"
-            tools:visibility="visible"/>
+            tools:visibility="gone"/>
 
 </android.support.design.widget.CoordinatorLayout>
 

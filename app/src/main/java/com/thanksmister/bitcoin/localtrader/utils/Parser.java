@@ -50,9 +50,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 import timber.log.Timber;
+
+import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils.CODE_MINUS_ONE;
 
 public class Parser
 {
@@ -80,8 +81,11 @@ public class Parser
         return null;
     }
     
-    public static String parseRetrofitResponse(Response response)
+    public static String parseRetrofitResponse(Response response) throws RetroError
     {
+        if(response == null || response.getBody() == null)
+            throw new RetroError("Error connecting to service.", CODE_MINUS_ONE);
+        
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
         try {
@@ -93,21 +97,14 @@ public class Parser
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                return "";
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            return "";
         }
 
-        String result = sb.toString();
-        return result;
-    }
-
-    public static RetroError parseRetrofitError(RetrofitError error)
-    {
-        Response response = error.getResponse();
-        String json = parseRetrofitResponse(response);
-        Timber.e("Error Json: " + json);
-        return parseError(json);
+        return sb.toString();
     }
 
     public static boolean containsError(JSONObject jsonObject)
@@ -469,7 +466,7 @@ public class Parser
             if (sender.has("name")) message.sender.name = (sender.getString("name"));
             if (sender.has("trade_count")) message.sender.trade_count = (sender.getString("trade_count"));
             if (sender.has("last_online")) message.sender.last_seen_on = (sender.getString("last_online"));
-            
+            if (messageObj.has("contact_id")) message.contact_id = (messageObj.getString("contact_id"));
             if (messageObj.has("created_at")) message.created_at = (messageObj.getString("created_at"));
             if (messageObj.has("msg")) message.msg = (Uri.decode(messageObj.getString("msg")));
             if (messageObj.has("is_admin")) message.is_admin = (Boolean.valueOf(messageObj.getString("is_admin")));

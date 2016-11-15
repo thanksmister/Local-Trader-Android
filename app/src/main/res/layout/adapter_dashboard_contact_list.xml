@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -43,16 +43,7 @@
                     android:layout_width="72dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_communication_messenger"/>
-
-            <TextView
-                    android:id="@+id/contactMessageCount"
-                    style="@style/SmallText.ExtraSmall.White.Bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:paddingBottom="4dp"
-                    tools:text="1"/>
+                    android:src="@drawable/ic_action_contact"/>
 
         </FrameLayout>
 

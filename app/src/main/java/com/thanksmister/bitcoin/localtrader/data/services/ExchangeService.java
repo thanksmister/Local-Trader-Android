@@ -97,7 +97,7 @@ public class ExchangeService
                 .map(new ResponseToExchangeCurrencyList());
     }
 
-    public Observable<Exchange> getMarket(boolean force)
+    public Observable<Exchange> getMarket()
     {
        /* if (!needToRefreshExchanges() && !force) {
             return Observable.empty();

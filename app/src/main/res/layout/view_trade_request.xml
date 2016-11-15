@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -20,6 +20,11 @@
         android:id="@+id/coordinatorLayout"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
+    
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
     <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
@@ -38,6 +43,7 @@
 
     <android.support.v4.widget.NestedScrollView
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -182,31 +188,26 @@
             <View
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/view_padding_small"/>
-
-            <FrameLayout
-                    android:id="@+id/buttonLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                <Button
-                        android:id="@+id/sendButton"
-                        style="@style/ButtonGreen"
-                        android:layout_margin="@dimen/activity_padding"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/button_send"/>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        style="@style/DividerHorizontal"
-                        android:layout_gravity="top"/>
-
-            </FrameLayout>
-
+            
 
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>
+
+        <View
+                android:id="@+id/divider"
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_height="1dp"
+                android:layout_width="match_parent"/>
+
+       
+            <Button
+                    style="@style/ButtonGreen.Small"
+                    android:id="@+id/sendButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="@string/button_send"/>
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

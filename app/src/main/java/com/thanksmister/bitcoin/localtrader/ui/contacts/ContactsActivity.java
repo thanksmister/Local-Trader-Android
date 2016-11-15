@@ -281,7 +281,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
         setTitle(dashboardType);
         
-        updateSubscription = dataService.getContacts(dashboardType, true)
+        updateSubscription = dataService.getContacts(dashboardType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Contact>>()
@@ -315,7 +315,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
   
     private void getContact(final ContactItem contact)
     {
-        Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id(), dashboardType);
+        Intent intent = ContactActivity.createStartIntent(ContactsActivity.this, contact.contact_id());
         startActivity(intent);
     }
 
