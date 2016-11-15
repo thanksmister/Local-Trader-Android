@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
@@ -83,6 +85,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     private Fragment fragment;
     private int position = DRAWER_DASHBOARD;
     private int lastMenuItemId = R.id.navigationItemDashboard;
+    TextView userName;
+    TextView feedbackScore;
+    TextView tradeCount;
    
     public static Intent createStartIntent(Context context, String bitcoinUri)
     {
@@ -184,6 +189,39 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
   
     private void setupNavigationView()
     {
+        final View headerView = navigationView.getHeaderView(0);
+        userName = (TextView) headerView.findViewById(R.id.userName);
+        tradeCount = (TextView) headerView.findViewById(R.id.userTradeCount);
+        feedbackScore = (TextView) headerView.findViewById(R.id.userTradeFeedback);
+
+        userName.setText(AuthUtils.getUsername(sharedPreferences));
+        tradeCount.setText(AuthUtils.getUsername(sharedPreferences));
+        feedbackScore.setText(AuthUtils.getTrades(sharedPreferences));
+        
+        drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset)
+            {
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView)
+            {
+                InputMethodManager inputMethodManager = (InputMethodManager)  MainActivity.this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(MainActivity.this.getCurrentFocus().getWindowToken(), 0);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView)
+            {
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState)
+            {
+            }
+        });
+        
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener()
         {
             @Override
@@ -231,16 +269,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         menuItem.setChecked(true);
         drawerLayout.closeDrawers();
     }
-    
-    /*private void setInitialFragment(int position)
-    {
-        FragmentManager fragmentManager = getFragmentManager();
-        if(fragmentManager.findFragmentByTag(DASHBOARD_FRAGMENT) == null) {
-            setContentFragment(DRAWER_DASHBOARD);
-        } else {
-            setContentFragment(position);
-        }
-    }*/
     
     public void setContentFragment(int position)
     {

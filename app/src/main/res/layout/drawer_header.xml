@@ -47,13 +47,14 @@
                 android:singleLine="true"
                 android:ellipsize="end"
                 android:layout_weight="0"
-                android:text="ThanksMister"/>
+                tools:text="ThanksMister"/>
 
 
         <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
+                android:visibility="gone"
                 android:orientation="horizontal">
 
             <ImageView
@@ -71,7 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="right|center_vertical"
-                    android:text="100"/>
+                    tools:text="100"/>
             
             <android.support.v4.widget.Space
                     android:layout_width="8dp"
@@ -93,7 +94,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="right"
                     android:layout_gravity="right|center_vertical"
-                    android:text="100+"/>
+                    tools:text="100+"/>
 
         </LinearLayout>
     

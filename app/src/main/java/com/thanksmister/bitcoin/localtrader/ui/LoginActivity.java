@@ -55,8 +55,8 @@ import timber.log.Timber;
 
 public class LoginActivity extends BaseActivity
 {
-    private static String HMAC_AUTH_KEY = "3a5c1401d798712470903e746b0be158";
-    private static String HMAC_AUTH_SECRET = "0a6676e934dc1c3a7e4e89393cfc104e2c1994e77ba1d7b3ab40807c553b62e4";
+    private static String HMAC_AUTH_KEY = "";
+    private static String HMAC_AUTH_SECRET = "";
 
     @Inject
     DataService dataService;
@@ -138,13 +138,15 @@ public class LoginActivity extends BaseActivity
         return this;
     }
 
-    public void setAuthorization(final String key, final String secret, final String username)
+    public void setAuthorization(final String key, final String secret, final User user)
     {
         AuthUtils.setHmacKey(sharedPreferences, key);
         AuthUtils.setHmacSecret(sharedPreferences, secret);
-        AuthUtils.setUsername(sharedPreferences, username);
+        AuthUtils.setUsername(sharedPreferences, user.username);
+        AuthUtils.setFeedbackScore(sharedPreferences, user.feedback_score);
+        AuthUtils.setTrades(sharedPreferences, String.valueOf(user.trading_partners_count));
 
-        Timber.d("Username: " + username);
+        Timber.d("Username: " + user.username);
 
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -179,7 +181,7 @@ public class LoginActivity extends BaseActivity
                     {
                         hideProgressDialog();
                         toast(getString(R.string.authentication_success, user.username));
-                        setAuthorization(key, secret, user.username);
+                        setAuthorization(key, secret, user);
                     }
                 }, new Action1<Throwable>()
                 {

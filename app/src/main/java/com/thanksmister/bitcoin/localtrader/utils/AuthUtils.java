@@ -16,6 +16,8 @@ public class AuthUtils
     private final static String HMAC_KEY = "hmacKey";
     private final static String HMAC_SECRET = "hmacSecret";
     private static final String PREFS_USER = "userName";
+    private static final String PREFS_USER_FEEDBACK = "userFeedback";
+    private static final String PREFS_USER_TRADES = "userTrades";
 
     /**
      * Returns true if we have stored credentials
@@ -58,6 +60,18 @@ public class AuthUtils
         return stringPreference.get();
     }
 
+    public static String getFeedback(@NonNull SharedPreferences sharedPreferences)
+    {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_FEEDBACK);
+        return stringPreference.get();
+    }
+
+    public static String getTrades(@NonNull SharedPreferences sharedPreferences)
+    {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_TRADES);
+        return stringPreference.get();
+    }
+
     /**
      * Set the hmac key
      * @param sharedPreferences
@@ -83,7 +97,7 @@ public class AuthUtils
     }
     
     /**
-     * Set the username secret
+     * Set the username
      * @param sharedPreferences
      * @param username
      */
@@ -91,6 +105,28 @@ public class AuthUtils
     {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER);
         stringPreference.set(username);
+    }
+
+    /**
+     * Set the user feedbacks
+     * @param sharedPreferences
+     * @param feedback
+     */
+    public static void setFeedbackScore(@NonNull SharedPreferences sharedPreferences, @NonNull String feedback)
+    {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_FEEDBACK);
+        stringPreference.set(feedback);
+    }
+
+    /**
+     * Set the user trades
+     * @param sharedPreferences
+     * @param trades
+     */
+    public static void setTrades(@NonNull SharedPreferences sharedPreferences, @NonNull String trades)
+    {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_TRADES);
+        stringPreference.set(trades);
     }
 
     /**
