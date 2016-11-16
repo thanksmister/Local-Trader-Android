@@ -113,16 +113,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
         Timber.d("onPerformSync: " + hasCredentials);
-        
         if (hasCredentials) {
-            handler.postDelayed(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    getContacts();
-                }
-            }, 10000);
+            getContacts();
         }
     }
 

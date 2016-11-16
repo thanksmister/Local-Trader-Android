@@ -93,7 +93,7 @@ public abstract class RecentMessageItem
         return new Builder()
                 .contact_id(item.contact_id)
                 .message(item.msg)
-                .seen(true)
+                .seen(item.seen)
                 .created_at(item.created_at)
                 .sender_id(item.sender.id)
                 .sender_name(item.sender.name)

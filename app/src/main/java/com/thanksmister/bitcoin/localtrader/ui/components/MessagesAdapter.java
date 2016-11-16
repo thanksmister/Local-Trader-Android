@@ -116,6 +116,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             ((ItemViewHolder) viewHolder).contactId.setText("Contact #" + messageItem.contact_id());
             Date date = Dates.parseLocalDateISO(messageItem.create_at());
             ((ItemViewHolder) viewHolder).createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
+            if (messageItem.seen()) {
+                ((ItemViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_communication_messenger);
+            } else {
+                ((ItemViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_communication_messenger_active);
+            }
         }
     }
 

@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 
@@ -36,7 +37,7 @@ public class DataServiceUtils
     
     public static boolean isNetworkError(Throwable throwable)
     {
-        if(throwable instanceof UnknownHostException) {
+        if(throwable instanceof UnknownHostException || throwable instanceof NetworkConnectionException) {
             return true;
         } else if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;

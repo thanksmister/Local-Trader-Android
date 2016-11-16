@@ -32,11 +32,14 @@ import android.widget.ListView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -275,6 +278,12 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
     public void updateData(final DashboardType type)
     {
+        if (!NetworkUtils.isNetworkConnected(ContactsActivity.this)) {
+            onRefreshStop();
+            handleError(new NetworkConnectionException());
+            return;
+        }
+        
         subscription.unsubscribe(); // stop subscribed database data
         
         dashboardType = type;

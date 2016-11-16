@@ -127,6 +127,7 @@
     <string name="menu_action_advertisement">Advertisement</string>
     <string name="menu_action_advertise">Post Trade</string>
     <string name="menu_action_trades">Trade History</string>
+    <string name="menu_action_messages">Mark Messages Read</string>
     <string name="menu_action_profile">Profile</string>
     <string name="menu_action_cancel">Cancel</string>
     <string name="menu_action_dispute">Dispute</string>
@@ -158,15 +159,15 @@
         <item>@string/login_register_title0</item>
     </string-array>
     <string-array name="login_registration_screens_summary">
-        <item>Register new account</item>
-        <item>Setup HMAC authentication</item>
+        <item>Register account</item>
+        <item>Setup authentication</item>
         <item>Create PIN code</item>
     </string-array>
 
     <string-array name="login_registration_screens_description">
-        <item><![CDATA[Local Trader works with your LocalBitcoins account to create and update advertisements, manage trades, release or fund trades, send and receive messages, or to handle payments.<br><br>A LocalBitcoins account is required to use Local trader. If you need an account, please register for one at <a href=\'https://localbitcoins.com/?ch=2hbo\'>LocalBitcoins.com</a>.]]></item>
-        <item><![CDATA[Local Trader uses HMAC authentication for LocalBitcoins services. A unique HMAC key and secret is generated for each application with the specified permissions.<br><br>You can create a new HMAc authentication for Local Trader from your <a href=\'https://localbitcoins.com/accounts/api?ch=2hbo\'>LocalBitcoins Account</a> page.Be sure to request permissions to send money with a PIN code to use the wallet functionality.]]></item>
-        <item><![CDATA[A PIN code is required to send Bitcoin from your wallet, fund trades, or release trades. You created this PIN code as part of your LocalBitcoins registration.<br><br>The PIN code is not the same as your 2-factor authentication (2FA).View or manage your PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page.]]></item>
+        <item><![CDATA[Local Trader works with your <b>LocalBitcoins account</b> to create and update advertisements, manage trades, release or fund trades, send and receive messages, or to handle payments.<br><br>A <b>LocalBitcoins account</b> is required to use Local trader. If you need an account, please register for one at <a href=\'https://localbitcoins.com/?ch=2hbo\'>LocalBitcoins.com</a>.]]></item>
+        <item><![CDATA[Local Trader uses <b>HMAC authentication</b> for LocalBitcoins services. A unique <b>HMAC key and secret</b> is generated for each application with the specified permissions.<br><br>You can create a new <b>HMAC authentication</b> for Local Trader from your <a href=\'https://localbitcoins.com/accounts/api?ch=2hbo\'>LocalBitcoins Account</a> page.<br><br>Be sure to request permissions for read, write and money_pin (only set money_pin permission if you intend to send Bitcoin).]]></item>
+        <item><![CDATA[A <b>PIN code</b> is required to send Bitcoin from your wallet, fund trades, or release trades. You created a <b>PIN code</b> as part of the LocalBitcoins registration.<br><br>The <b>PIN code</b> is not the same as your 2-Factor Authentication (2FA).  View or manage your PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page.]]></item>
     </string-array>
 
     <string name="login_register_title0">@string/app_name</string>

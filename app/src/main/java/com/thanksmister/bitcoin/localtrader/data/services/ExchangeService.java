@@ -102,7 +102,7 @@ public class ExchangeService
        /* if (!needToRefreshExchanges() && !force) {
             return Observable.empty();
         }*/
-
+        
         String currency = getExchangeCurrency();
         
         Timber.d("WalletFragment Currency: " + currency);

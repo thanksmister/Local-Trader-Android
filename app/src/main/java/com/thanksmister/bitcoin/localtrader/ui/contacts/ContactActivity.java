@@ -51,6 +51,7 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
@@ -445,6 +446,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     public void subscribeData()
     {
         Timber.d("subscribeData");
+        
+        dbManager.markRecentMessagesSeen(contactId);
 
         dbManager.contactQuery(contactId)
                 .subscribe(new Action1<ContactItem>()
@@ -490,6 +493,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private void updateData()
     {
         Timber.d("updateData");
+
+        if (!NetworkUtils.isNetworkConnected(ContactActivity.this)) {
+            onRefreshStop();
+            handleError(new NetworkConnectionException());
+            return;
+        }
 
         CompositeSubscription subscriptions = new CompositeSubscription();
 

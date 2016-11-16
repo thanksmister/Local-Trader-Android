@@ -29,7 +29,7 @@
             android:visibility="visible">
 
         <TextView
-                style="@style/Text.Headline"
+                style="@style/TextExtraLarge"
                 android:text="@string/setup_credentials"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

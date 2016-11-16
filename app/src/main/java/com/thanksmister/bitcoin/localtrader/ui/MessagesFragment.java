@@ -29,13 +29,10 @@ import android.view.ViewGroup;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
 import com.thanksmister.bitcoin.localtrader.ui.components.MessagesAdapter;
@@ -128,7 +125,7 @@ public class MessagesFragment extends BaseFragment
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v)
             {
-                showRecentMessage(getAdapter().getItemAt(position));
+                showContact(getAdapter().getItemAt(position));
             }
         });
 
@@ -153,7 +150,6 @@ public class MessagesFragment extends BaseFragment
     {
         super.onResume();
         subscribeData();
-        updateData();
     }
 
     @Override
@@ -223,32 +219,12 @@ public class MessagesFragment extends BaseFragment
                 });
     }
 
-    protected void updateData()
-    {
-        Timber.d("UpdateData");
-        
-    }
-
     protected MessagesAdapter getAdapter()
     {
         return itemAdapter;
     }
     
-    protected void showContact(ContactItem contact)
-    {
-        Intent intent = ContactActivity.createStartIntent(getActivity(), contact.contact_id());
-        intent.setClass(getActivity(), ContactActivity.class);
-        startActivity(intent);
-    }
-
-    protected void showAdvertisement(AdvertisementItem advertisement)
-    {
-        Intent intent = AdvertisementActivity.createStartIntent(getActivity(), advertisement.ad_id());
-        intent.setClass(getActivity(), AdvertisementActivity.class);
-        startActivityForResult(intent, AdvertisementActivity.REQUEST_CODE);
-    }
-
-    protected void showRecentMessage(RecentMessageItem recentMessage)
+    protected void showContact(RecentMessageItem recentMessage)
     {
         Intent intent = ContactActivity.createStartIntent(getActivity(), recentMessage.contact_id());
         intent.setClass(getActivity(), ContactActivity.class);

@@ -50,6 +50,7 @@ import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletAdapter;
@@ -64,6 +65,7 @@ import com.thanksmister.bitcoin.localtrader.ui.components.SectionRecycleViewAdap
 import com.thanksmister.bitcoin.localtrader.ui.components.TransactionsAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
@@ -272,7 +274,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @Override
     public void onRefresh()
     {
-        updateData();
+        onRefreshStart();
     }
 
     public void onRefreshStart()
@@ -286,9 +288,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         @Override
         public void run() {
             
-            Timber.d("refreshRunnable");
-            
-            if(swipeLayout != null)
+            if(swipeLayout != null && !swipeLayout.isShown())
                 swipeLayout.setRefreshing(true);
             
             updateData();
@@ -331,7 +331,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     protected void subscribeData()
     {
         //dbManager.clearWallet();
-
         dbManager.walletQuery()
                 .doOnUnsubscribe(new Action0()
                 {
@@ -432,6 +431,11 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     protected void updateData()
     {
         Timber.d("updateData");
+
+        if (!NetworkUtils.isNetworkConnected(getActivity())) {
+            handleError(new NetworkConnectionException(), true);
+            return;
+        }
         
         exchangeService.getMarket()
                 .timeout(20, TimeUnit.SECONDS)

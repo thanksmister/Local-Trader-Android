@@ -89,6 +89,7 @@ public class SyncUtils
         Account account = AuthenticatorService.GetAccount(accountName);
         AccountManager accountManager = (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
         accountManager.removeAccount(account, null, null);
+        ContentResolver.setSyncAutomatically(account,  Constants.AUTHORITY, false);
         ContentResolver.setIsSyncable(account, CONTENT_AUTHORITY, 0);
     }
 

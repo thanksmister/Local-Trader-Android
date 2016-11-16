@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -326,6 +327,34 @@ public class DbManager
     {
         return briteContentResolver.createQuery(SyncProvider.RECENT_MESSAGE_TABLE_URI, null, null, null, RecentMessageItem.CREATED_AT + " DESC", false)
                 .map(RecentMessageItem.MAP);
+    }
+
+    public void markRecentMessagesSeen()
+    {
+        Timber.d("markRecentMessagesSeen");
+        synchronized (this) {
+            Cursor cursor = contentResolver.query(SyncProvider.RECENT_MESSAGE_TABLE_URI, null, null, null, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(RecentMessageItem.SEEN, true);
+                contentResolver.update(SyncProvider.RECENT_MESSAGE_TABLE_URI, contentValues, null, null);
+                cursor.close();
+            }
+        }
+    }
+
+    public void markRecentMessagesSeen(String contactId)
+    {
+        Timber.d("markRecentMessagesSeen contactId: " + contactId);
+        synchronized (this) {
+            Cursor cursor = contentResolver.query(SyncProvider.RECENT_MESSAGE_TABLE_URI, null, RecentMessageItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)}, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(RecentMessageItem.SEEN, true);
+                contentResolver.update(SyncProvider.RECENT_MESSAGE_TABLE_URI, contentValues, RecentMessageItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)});
+                cursor.close();
+            }
+        }
     }
     
     public Observable<Integer> messageCountQuery(long contactId)

@@ -59,6 +59,7 @@ import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -71,6 +72,7 @@ import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.SpinnerAdapter;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.trello.rxlifecycle.FragmentEvent;
@@ -860,6 +862,11 @@ public class SearchFragment extends BaseFragment
     private void updateData()
     {
         Timber.d("UpdateData");
+
+        if (!NetworkUtils.isNetworkConnected(getActivity())) {
+            handleError(new NetworkConnectionException(), true);
+            return;
+        }
         
         if(dataServiceSubscription != null)
             return;

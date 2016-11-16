@@ -29,6 +29,7 @@ import android.view.ViewGroup;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
@@ -40,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActiv
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.AdvertisementsAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
@@ -367,6 +369,11 @@ public class AdvertisementsFragment extends BaseFragment
     protected void updateData()
     {
         Timber.d("UpdateData");
+
+        if (!NetworkUtils.isNetworkConnected(getActivity())) {
+            handleError(new NetworkConnectionException());
+            return;
+        }
 
         CompositeSubscription updateSubscriptions = new CompositeSubscription();
 

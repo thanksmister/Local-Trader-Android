@@ -37,6 +37,7 @@ import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
@@ -47,6 +48,7 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -370,6 +372,12 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     protected void updateData()
     {
+        if (!NetworkUtils.isNetworkConnected(AdvertisementActivity.this)) {
+            onRefreshStop();
+            handleError(new NetworkConnectionException());
+            return;
+        }
+        
         Observable<Advertisement> updateAdvertisementObservable = dataService.getAdvertisement(adId);
         updateSubscription = updateAdvertisementObservable
                 .subscribeOn(Schedulers.newThread())

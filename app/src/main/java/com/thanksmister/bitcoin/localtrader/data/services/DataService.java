@@ -162,7 +162,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return createContactObservable(adId, amount, message, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -198,9 +198,9 @@ public class DataService
         StringBuilder params = new StringBuilder();
         params.append("pincode=");
         params.append(Uri.encode(pinCode, NetworkUtils.DEFAULT_ENCODING));
-        params.append("address=");
+        params.append("&address=");
         params.append(Uri.encode(address, NetworkUtils.DEFAULT_ENCODING));
-        params.append("amount=");
+        params.append("&amount=");
         params.append(Uri.encode(amount, NetworkUtils.DEFAULT_ENCODING));
         String signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
         
@@ -209,7 +209,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return sendPinCodeMoneyObservable(pinCode, address, amount, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -256,7 +256,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getWalletBalanceObservable(retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -287,7 +287,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return validatePinCodeObservable(pinCode, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -349,7 +349,7 @@ public class DataService
                             @Override
                             public Observable<? extends Response> call(final Throwable throwable)
                             {
-                                if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                                     return contactActionObservable(contactId, pinCode, action, retry - 1);
                                 }
                                 return Observable.error(throwable); // bubble up the exception
@@ -364,7 +364,7 @@ public class DataService
                             @Override
                             public Observable<? extends Response> call(final Throwable throwable)
                             {
-                                if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                                     return contactActionObservable(contactId, pinCode, action, retry - 1);
                                 }
                                 return Observable.error(throwable); // bubble up the exception
@@ -378,7 +378,7 @@ public class DataService
                             @Override
                             public Observable<? extends Response> call(final Throwable throwable)
                             {
-                                if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                                     return contactActionObservable(contactId, pinCode, action, retry - 1);
                                 }
                                 return Observable.error(throwable); // bubble up the exception
@@ -392,7 +392,7 @@ public class DataService
                             @Override
                             public Observable<? extends Response> call(final Throwable throwable)
                             {
-                                if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                                     return contactActionObservable(contactId, pinCode, action, retry - 1);
                                 }
                                 return Observable.error(throwable); // bubble up the exception
@@ -406,7 +406,7 @@ public class DataService
                             @Override
                             public Observable<? extends Response> call(final Throwable throwable)
                             {
-                                if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                                     return contactActionObservable(contactId, pinCode, action, retry - 1);
                                 }
                                 return Observable.error(throwable); // bubble up the exception
@@ -488,7 +488,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return updateAdvertisementObservable(advertisement, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -527,7 +527,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return createAdvertisementObservable(advertisement, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -558,7 +558,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return postMessageObservable(contact_id, message, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -612,7 +612,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getContactObservable(contact_id, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -639,7 +639,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getRecentMessagesObservable(retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -660,7 +660,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getContactMessagesObservable(contact_id, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -712,7 +712,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getContactsObservable(retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -734,7 +734,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getContactsObservable(dashboardType, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -765,7 +765,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getAdvertisementObservable(adId, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -804,7 +804,7 @@ public class DataService
                     {
                         Timber.d("onErrorResumeNext retry: " + retry);
                         
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             Timber.d("isHttp41Error retry");
                             return getAdvertisementsObservable(retry - 1);
                         }
@@ -858,7 +858,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return deleteAdvertisementObservable(adId, retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception
@@ -911,7 +911,7 @@ public class DataService
                     @Override
                     public Observable<? extends Response> call(final Throwable throwable)
                     {
-                        if (DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable) && retry > 0) {
+                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
                             return getWalletObservable(retry - 1);
                         }
                         return Observable.error(throwable); // bubble up the exception

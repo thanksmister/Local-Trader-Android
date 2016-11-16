@@ -26,7 +26,8 @@ public class AuthUtils
     public static boolean hasCredentials(@NonNull SharedPreferences sharedPreferences)
     {
         String key = sharedPreferences.getString(HMAC_KEY, null);
-        return !TextUtils.isEmpty(key);
+        String secret = sharedPreferences.getString(HMAC_SECRET, null);
+        return !TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret);
     }
     
     /**

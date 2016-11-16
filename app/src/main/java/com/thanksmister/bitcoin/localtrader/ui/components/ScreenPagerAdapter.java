@@ -40,7 +40,7 @@ public class ScreenPagerAdapter extends PagerAdapter
     int[] res = {
             R.drawable.logo_screen,
             R.drawable.security_screen,
-            R.drawable.wallet_screen};
+            R.drawable.logo_screen};
 
     int[] backgroundColor = {
             R.color.white,

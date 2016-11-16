@@ -47,6 +47,7 @@ import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletData;
@@ -60,6 +61,7 @@ import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.FragmentEvent;
@@ -368,7 +370,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     public void onRefresh()
     {
         onRefreshStart();
-        updateData();
     }
 
     public void onRefreshStart()
@@ -387,7 +388,10 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     {
         @Override
         public void run() {
-            swipeLayout.setRefreshing(true);
+            if(swipeLayout != null && !swipeLayout.isShown())
+                swipeLayout.setRefreshing(true);
+
+            updateData();
         }
     };
 
@@ -460,6 +464,12 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     
     private void updateData()
     {
+        if (!NetworkUtils.isNetworkConnected(getActivity())) {
+            onRefreshStop();
+            handleError(new NetworkConnectionException(), true);
+            return;
+        }
+        
         CompositeSubscription updateSubscriptions = new CompositeSubscription();
         
         updateSubscriptions.add(dataService.getWalletBalance()

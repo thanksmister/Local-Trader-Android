@@ -55,9 +55,6 @@ import timber.log.Timber;
 
 public class LoginActivity extends BaseActivity
 {
-    private static String HMAC_AUTH_KEY = "";
-    private static String HMAC_AUTH_SECRET = "";
-
     @Inject
     DataService dataService;
 
@@ -97,8 +94,8 @@ public class LoginActivity extends BaseActivity
         ButterKnife.inject(this);
 
         if (BuildConfig.DEBUG) {
-            hmacKey.setText(HMAC_AUTH_KEY);
-            hmacSecret.setText(HMAC_AUTH_SECRET);
+            hmacKey.setText(R.string.hmac_key);
+            hmacSecret.setText(R.string.hmac_secret);
         }
 
         editTextDescription.setText(Html.fromHtml(getString(R.string.setup_description)));

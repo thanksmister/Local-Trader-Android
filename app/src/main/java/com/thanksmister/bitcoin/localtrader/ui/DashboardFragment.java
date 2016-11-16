@@ -41,6 +41,7 @@ import com.squareup.otto.Bus;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -56,6 +57,7 @@ import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
+import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
@@ -286,6 +288,9 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             case R.id.action_advertise:
                 createAdvertisementScreen();
                 return true;
+            case R.id.action_clear_messages:
+                markMessagesRead();
+                return true;
             default:
                 break;
         }
@@ -336,9 +341,10 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public void onRefresh()
     {
+        Timber.d("onRefresh");
+        onRefreshStart();
         String userName = AuthUtils.getUsername(sharedPreferences);
         SyncUtils.TriggerRefresh(getContext().getApplicationContext(), userName);
-        updateData();
     }
 
     public void onRefreshStart()
@@ -352,9 +358,10 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         @Override
         public void run()
         {
-            if(swipeLayout != null)
+            if(swipeLayout != null && !swipeLayout.isShown())
                 swipeLayout.setRefreshing(true);
-            
+
+
             updateData();
         }
     };
@@ -407,6 +414,12 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         Timber.d("UpdateData");
 
+        if (!NetworkUtils.isNetworkConnected(getActivity())) {
+            onRefreshStop();
+            handleError(new NetworkConnectionException(), true);
+            return;
+        }
+        
         CompositeSubscription updateSubscriptions = new CompositeSubscription();
 
         updateSubscriptions.add(exchangeService.getMarket()
@@ -504,6 +517,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         Intent intent = EditActivity.createStartIntent(getActivity(), true, null);
         intent.setClass(getActivity(), EditActivity.class);
         startActivityForResult(intent, EditActivity.REQUEST_CODE);
+    }
+
+    protected void markMessagesRead()
+    {
+        dbManager.markRecentMessagesSeen();
     }
 
     protected void setHeaderItem(ExchangeItem exchange)

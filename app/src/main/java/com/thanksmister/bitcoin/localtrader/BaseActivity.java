@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.squareup.otto.Bus;
+import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
@@ -64,29 +65,37 @@ import butterknife.ButterKnife;
 import rx.functions.Action0;
 import timber.log.Timber;
 
-/** Base activity which sets up a per-activity object graph and performs injection. */
+/**
+ * Base activity which sets up a per-activity object graph and performs injection.
+ */
 public abstract class BaseActivity extends RxAppCompatActivity
 {
-    /** This activity requires authentication */
+    /**
+     * This activity requires authentication
+     */
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface RequiresAuthentication { }
+    public static @interface RequiresAuthentication
+    {
+    }
 
     @Inject
     protected Bus bus;
 
     @Inject
     protected DbManager dbManager;
-    
+
     @Inject
     protected DataService dataService;
-    
+
     @Inject
     protected SharedPreferences sharedPreferences;
-    
-    AlertDialog progressDialog;
 
-    @Override 
-    protected void onCreate(Bundle savedInstanceState) 
+    AlertDialog progressDialog;
+    AlertDialog alertDialog;
+    Snackbar snackBar;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         Injector.inject(this);
@@ -94,11 +103,26 @@ public abstract class BaseActivity extends RxAppCompatActivity
         setLocale("en", "US");
     }
 
-    @Override 
-    protected void onDestroy() 
+    @Override
+    protected void onDestroy()
     {
         super.onDestroy();
         ButterKnife.reset(this);
+        
+        if(alertDialog != null && alertDialog.isShowing()) {
+            alertDialog.dismiss();
+            alertDialog = null;
+        }
+
+        if(progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+
+        if(snackBar != null && snackBar.isShownOrQueued()) {
+            snackBar.dismiss();
+            snackBar = null;
+        }
     }
 
     @Override
@@ -107,22 +131,23 @@ public abstract class BaseActivity extends RxAppCompatActivity
         super.onPause();
 
         bus.unregister(this);
-        
+
         try {
-            unregisterReceiver(connReceiver); 
+            unregisterReceiver(connReceiver);
         } catch (IllegalArgumentException e) {
             Timber.e(e.getMessage());
         }
     }
 
     @Override
-    public void onResume() {
+    public void onResume()
+    {
 
         super.onResume();
         bus.register(BaseActivity.this);
         registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
-    
+
     public void launchScanner()
     {
         IntentIntegrator scanIntegrator = new IntentIntegrator(BaseActivity.this);
@@ -136,7 +161,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void showProgressDialog(ProgressDialogEvent event, boolean modal)
     {
-        if(progressDialog != null) {
+        if (progressDialog != null) {
             progressDialog.dismiss();
             progressDialog = null;
             return;
@@ -155,7 +180,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void hideProgressDialog()
     {
-        if(progressDialog != null) {
+        if (progressDialog != null) {
             progressDialog.dismiss();
             progressDialog = null;
         }
@@ -163,10 +188,10 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void showAlertDialog(AlertDialogEvent event)
     {
-         new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
-                 .setTitle(event.title)
-                 .setMessage(Html.fromHtml(event.message))
-                 .setPositiveButton(android.R.string.ok, null)
+        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+                .setTitle(event.title)
+                .setMessage(Html.fromHtml(event.message))
+                .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 
@@ -188,7 +213,13 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake, final Action0 cancelActionToTake)
     {
-        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+            return;
+        }
+
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setCancelable(false)
                 .setMessage(Html.fromHtml(event.message))
@@ -213,7 +244,13 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void logOutConfirmation()
     {
-        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+            return;
+        }
+        
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(R.string.dialog_logout_title)
                 .setMessage(R.string.dialog_logout_message)
                 .setNegativeButton(R.string.button_cancel, null)
@@ -233,29 +270,29 @@ public abstract class BaseActivity extends RxAppCompatActivity
         showProgressDialog(new ProgressDialogEvent("Logging out..."));
         onLoggedOut();
     }
-    
-    private void  onLoggedOut()
+
+    private void onLoggedOut()
     {
         String userName = AuthUtils.getUsername(sharedPreferences);
         SyncUtils.ClearSyncAccount(getApplicationContext(), userName);
 
         dataService.logout();
         dbManager.clearDbManager();
-        
+
         // clear preferences
         AuthUtils.resetCredentials(sharedPreferences);
-        
+
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         SharedPreferences.Editor prefEditor = settings.edit();
         prefEditor.clear();
         prefEditor.apply();
-        
+
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
-        
+
         hideProgressDialog();
-        
+
         Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
         startActivity(intent);
         finish();
@@ -263,7 +300,13 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     public void showConfirmationDialog(final ConfirmationDialogEvent event)
     {
-        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+            return;
+        }
+
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setNegativeButton(event.negative, null)
@@ -277,15 +320,18 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 })
                 .show();
     }
-
-    // TODO replace with RxAndroid
+    
     private BroadcastReceiver connReceiver = new BroadcastReceiver()
     {
-        public void onReceive(Context context, Intent intent) {
-            ConnectivityManager connectivityManager = ((ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        public void onReceive(Context context, Intent intent)
+        {
+            ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
             NetworkInfo currentNetworkInfo = connectivityManager.getActiveNetworkInfo();
-            if(currentNetworkInfo != null && currentNetworkInfo.isConnected()) {
-                //bus.post(NetworkEvent.CONNECTED);
+            if (currentNetworkInfo != null && currentNetworkInfo.isConnected()) {
+                if(snackBar != null && snackBar.isShown()) {
+                    snackBar.dismiss();
+                    snackBar = null;
+                }
             } else {
                 bus.post(NetworkEvent.DISCONNECTED);
             }
@@ -299,7 +345,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     protected void reportError(Throwable throwable)
     {
-        if(throwable != null && throwable.getLocalizedMessage() != null) {
+        if (throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.e(throwable.getLocalizedMessage());
             throwable.printStackTrace();
         } else if (throwable != null && throwable instanceof NetworkOnMainThreadException) {
@@ -309,58 +355,64 @@ public abstract class BaseActivity extends RxAppCompatActivity
             throwable.printStackTrace();
         }
     }
-    
-    protected void handleError(Throwable throwable) 
+
+    protected void handleError(Throwable throwable)
     {
         handleError(throwable, false);
     }
-    
+
     protected void handleError(Throwable throwable, boolean retry)
     {
-        if(DataServiceUtils.isConnectionError(throwable)) {
+        if (throwable instanceof NetworkConnectionException) {
+            snack(getString(R.string.error_no_internet), retry);
+            return;
+        }
+        
+        if (DataServiceUtils.isConnectionError(throwable)) {
             Timber.i("Connection Error");
             snack(getString(R.string.error_service_unreachable_error), retry);
-        } else if(DataServiceUtils.isTimeoutError(throwable)) {
+        } else if (DataServiceUtils.isTimeoutError(throwable)) {
             Timber.i("Timeout Error");
             snack(getString(R.string.error_service_timeout_error), retry);
-        } else if(DataServiceUtils.isNetworkError(throwable)) {
+        } else if (DataServiceUtils.isNetworkError(throwable)) {
             Timber.i("Data Error: " + "Code 503");
             snack(getString(R.string.error_no_internet), retry);
-        } else if(DataServiceUtils.isHttp42Error(throwable)) {
+        } else if (DataServiceUtils.isHttp42Error(throwable)) {
             Timber.i("Data Error: " + "Code 42");
             snack(getString(R.string.error_generic_error), retry);
-        } else if(DataServiceUtils.isHttp41Error(throwable)) {
+        } else if (DataServiceUtils.isHttp41Error(throwable)) {
             Timber.i("Data Error: " + "Code 41");
             snack(getString(R.string.error_authentication), retry);
-        } else if(DataServiceUtils.isHttp502Error(throwable)) {
+        } else if (DataServiceUtils.isHttp502Error(throwable)) {
             Timber.i("Data Error: " + "Code 502");
             snack(getString(R.string.error_service_error), retry);
-        } else if(DataServiceUtils.isConnectionError(throwable)) {
+        } else if (DataServiceUtils.isConnectionError(throwable)) {
             Timber.e("Connection Error: " + "Code ???");
             snack(getString(R.string.error_service_timeout_error), retry);
-        } else if(DataServiceUtils.isHttp403Error(throwable)) {
+        } else if (DataServiceUtils.isHttp403Error(throwable)) {
             Timber.i("Data Error: " + "Code 403");
             toast(getString(R.string.error_authentication));
-        } else if(DataServiceUtils.isHttp401Error(throwable)) {
+        } else if (DataServiceUtils.isHttp401Error(throwable)) {
             Timber.i("Data Error: " + "Code 401");
             snack(getString(R.string.error_no_internet), retry);
-        } else if(DataServiceUtils.isHttp500Error(throwable)) {
+        } else if (DataServiceUtils.isHttp500Error(throwable)) {
             Timber.i("Data Error: " + "Code 500");
             snack(getString(R.string.error_service_error), retry);
-        } else if(DataServiceUtils.isHttp404Error(throwable)) {
+        } else if (DataServiceUtils.isHttp404Error(throwable)) {
             Timber.i("Data Error: " + "Code 404");
             snack(getString(R.string.error_service_error), retry);
-        } else if(DataServiceUtils.isHttp400Error(throwable)) {
+        } else if (DataServiceUtils.isHttp400Error(throwable)) {
             Timber.e("Data Error: " + "Code 400");
             RetroError error = DataServiceUtils.createRetroError(throwable);
+            Timber.e("Data Error Message: " + error.getMessage());
             snack(error.getMessage(), retry);
-        } else if(throwable != null && throwable.getLocalizedMessage() != null) {
+        } else if (throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.i("Data Error: " + throwable.getLocalizedMessage());
             snack(throwable.getLocalizedMessage(), retry);
         } else {
             snack(R.string.error_unknown_error, retry);
         }
-        
+
         reportError(throwable);
     }
 
@@ -371,45 +423,55 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     protected void snackError(String message)
     {
+        if(snackBar != null && snackBar.isShownOrQueued()) {
+            snackBar.dismiss();
+            snackBar = null;
+            return;
+        }
+
         try {
             View view = findViewById(R.id.coordinatorLayout);
-            Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
-                        .setAction("Close", new View.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(View view)
-                            {
-                                //
-                            }
-                        })
-                        .show();
-            
+            snackBar = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE);
+            TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
+            textView.setTextColor(getResources().getColor(R.color.white));
+            snackBar.show();
         } catch (NullPointerException e) {
             // nothing
         }
     }
     
-    // TODO add action to this
     protected void snack(String message, boolean retry)
     {
-         try { 
-                View view = findViewById(R.id.coordinatorLayout);
-                if(retry){
-                    Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
-                            .setAction("Retry", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view)
-                                {
-                                    bus.post(RefreshEvent.RETRY);
-                                }
-                            })
-                            .show();
-                } else {
-                    Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
-                }
-            } catch (NullPointerException e) {
-                // nothing
+        if(snackBar != null && snackBar.isShownOrQueued()) {
+            snackBar.dismiss();
+            snackBar = null;
+            return;
+        }
+        
+        try {
+            View view = findViewById(R.id.coordinatorLayout);
+            
+            if (retry) {
+                snackBar = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
+                        .setAction("Retry", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                bus.post(RefreshEvent.RETRY);
+                            }
+                        });
+                TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
+                textView.setTextColor(getResources().getColor(R.color.white));
+                snackBar.show();
+            } else {
+                snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
+                TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
+                textView.setTextColor(getResources().getColor(R.color.white));
+                snackBar.show();
             }
+            
+        } catch (NullPointerException e) {
+            // nothing
+        }
     }
 
     protected void toast(int messageId)
@@ -419,28 +481,28 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     protected void toast(int messageId, boolean showLong)
     {
-        if(showLong){
+        if (showLong) {
             Toast.makeText(this, messageId, Toast.LENGTH_LONG).show();
         } else {
             toast(messageId);
         }
     }
 
-    protected void setLocale(String language, String country) 
+    protected void setLocale(String language, String country)
     {
         // create new local
         Locale locale = new Locale(language, country);
-        
+
         // here we update locale for date formatters
         Locale.setDefault(locale);
-        
+
         // here we update locale for app resources
-        
+
         Resources res = getResources();
-        
+
         Configuration config = res.getConfiguration();
         config.locale = locale;
-        
+
         res.updateConfiguration(config, res.getDisplayMetrics());
     }
 }
