@@ -370,12 +370,13 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     public void onRefresh()
     {
         onRefreshStart();
+        updateData();
     }
 
     public void onRefreshStart()
     {
         handler = new Handler();
-        handler.postDelayed(refreshRunnable, 1000);
+        handler.postDelayed(refreshRunnable, 50);
     }
 
     protected void onRefreshStop()
@@ -390,8 +391,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         public void run() {
             if(swipeLayout != null && !swipeLayout.isShown())
                 swipeLayout.setRefreshing(true);
-
-            updateData();
         }
     };
 

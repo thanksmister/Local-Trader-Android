@@ -165,9 +165,9 @@
     </string-array>
 
     <string-array name="login_registration_screens_description">
-        <item><![CDATA[Local Trader works with your <b>LocalBitcoins account</b> to create and update advertisements, manage trades, release or fund trades, send and receive messages, or to handle payments.<br><br>A <b>LocalBitcoins account</b> is required to use Local trader. If you need an account, please register for one at <a href=\'https://localbitcoins.com/?ch=2hbo\'>LocalBitcoins.com</a>.]]></item>
-        <item><![CDATA[Local Trader uses <b>HMAC authentication</b> for LocalBitcoins services. A unique <b>HMAC key and secret</b> is generated for each application with the specified permissions.<br><br>You can create a new <b>HMAC authentication</b> for Local Trader from your <a href=\'https://localbitcoins.com/accounts/api?ch=2hbo\'>LocalBitcoins Account</a> page.<br><br>Be sure to request permissions for read, write and money_pin (only set money_pin permission if you intend to send Bitcoin).]]></item>
-        <item><![CDATA[A <b>PIN code</b> is required to send Bitcoin from your wallet, fund trades, or release trades. You created a <b>PIN code</b> as part of the LocalBitcoins registration.<br><br>The <b>PIN code</b> is not the same as your 2-Factor Authentication (2FA).  View or manage your PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page.]]></item>
+        <item><![CDATA[Local Trader works with your <b>LocalBitcoins account</b> to create and update advertisements, manage trades, release or fund trades, send and receive messages, or to handle payments.<br><br>If you need an account, please register for one at <a href=\'https://localbitcoins.com/?ch=2hbo\'>LocalBitcoins.com</a> or use the mirror site <a href=\"https://localbitcoins.net/?ch=2hbo\">localbitcoins.net</a> for blocked regions.]]></item>
+        <item><![CDATA[Local Trader uses <b>HMAC authentication</b> for LocalBitcoins services. A unique <b>HMAC key and secret</b> is generated for each application with the specified permissions.<br><br>You can create a new <b>HMAC authentication</b> for Local Trader from your <a href=\'https://localbitcoins.com/accounts/api?ch=2hbo\'>LocalBitcoins Account</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/api?ch=2hbo\">localbitcoins.net</a> for blocked regions..<br><br>Be sure to request permissions for read, write and money_pin (only set money_pin permission if you intend to send Bitcoin).]]></item>
+        <item><![CDATA[A <b>PIN code</b> is required to send Bitcoin from your wallet, fund trades, or release trades. You created a <b>PIN code</b> as part of the LocalBitcoins registration.<br><br>The <b>PIN code</b> is not the same as your 2-Factor Authentication (2FA).  View or manage your PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo\">localbitcoins.net</a> for blocked regions.]]></item>
     </string-array>
 
     <string name="login_register_title0">@string/app_name</string>
@@ -182,7 +182,7 @@
     <string name="login_register_screen3">Search for online or local bitcoin buyers and sellers in your area.</string>
     <string name="login_register_screen4">Manage your active trades including messages and attachments.</string>
     <string name="login_register_screen5">Create your own advertisements to buy and sell bitcoins locally or online.</string>
-    <string name="login_register_screen6"><![CDATA[Register a new account or create a HMAC authentication from your <a href="https://localbitcoins.com/accounts/api/">LocalBitcoins Account</a> page.]]></string>
+    <string name="login_register_screen6"><![CDATA[Register a new account or create a HMAC authentication from your <a href="https://localbitcoins.com/accounts/api/?ch=2hbo">LocalBitcoins Account</a> page or use the mirror site <a href=\"https://localbitcoins.com/accounts/api/?ch=2hbo/\">localbitcoins.net</a> for blocked regions.]]></string>
     <string name="login_register_screen1">Use HMAC security to create a unique authentication with the permissions you choose.</string>
     <string name="login_authorizing">Authorizing…</string>
     <string name="setup_form_error">Please enter a valid key and secret.</string>
@@ -471,6 +471,7 @@
     <string name="list_unit_km">km</string>
     <string name="list_unit_mi">mi</string>
     <string name="pref_key_distance">distance_units</string>
+    <string name="pref_key_api">api_endpoint</string>
     <string name="trade_request_warning">The advertiser may have other restrictions on this advertisement. Please view the trade online to see all restrictions.</string>
     <string name="trade_request_minimum_volume">Minimum volume: <b>%1$s BTC</b></string>
     <string name="trade_request_new_buyer_limit">New buyer limit: <b>%1$s BTC</b></string>
@@ -484,12 +485,13 @@
     <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
     <string name="alert_permission_required">Permission Required</string>
     <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
-    <string name="setup_description"><![CDATA[Enter your Local Trader HMAC authentication key and secret or create a new authentication from your <a href=\"https://localbitcoins.com/accounts/api/\">LocalBitcoins Account</a> page.]]></string>
+    <string name="setup_description"><![CDATA[Enter your Local Trader HMAC authentication key and secret or create a new authentication from your <a href=\"https://localbitcoins.com/accounts/api/\">LocalBitcoins Account</a> page or use the mirror service endpoint <a href=\"https://localbitcoins.net/accounts/api/\">localbitcoins.net</a> for regions that may be blocked.]]></string>
     <string name="setup_hint_secret">SECRET</string>
     <string name="setup_hint_key">KEY</string>
     <string name="setup_credentials">Enter Authentication</string>
     <string name="error_authorization">Authentication error, please verify your key and secret are correct.</string>
     <string name="authentication_success">Authentication successful for %1$s</string>
-    <string name="send_form_description"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page.]]></string>
+    <string name="send_form_description"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo/\">localbitcoins.net</a> for blocked regions.]]></string>
+    <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
 
 </resources>

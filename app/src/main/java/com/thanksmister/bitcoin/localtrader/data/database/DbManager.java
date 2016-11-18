@@ -391,9 +391,7 @@ public class DbManager
         for (Transaction item : transactions) {
             entryMap.put(item.txid, item);
         }
-
-        db.beginTransaction();
-       
+        
         // Get list of all items
         Cursor cursor = db.query(TransactionItem.QUERY);
 
@@ -417,11 +415,9 @@ public class DbManager
             for (Transaction item : entryMap.values()) {
                 db.insert(TransactionItem.TABLE, TransactionItem.createBuilder(item).build());
             }
-
-            db.setTransactionSuccessful();
-
+            
         } finally {
-            db.endTransaction();
+          
             cursor.close();
         }
     }
@@ -588,8 +584,7 @@ public class DbManager
                 .bid(exchange.getBid())
                 .last(exchange.getLast())
                 .exchange(exchange.getDisplay_name());
-
-        db.beginTransaction();
+        
         Cursor cursor = db.query(ExchangeItem.QUERY);
         try {
             if (cursor.getCount() > 0) {
@@ -599,10 +594,7 @@ public class DbManager
             } else {
                 db.insert(ExchangeItem.TABLE, builder.build());
             }
-            db.setTransactionSuccessful();
-
         } finally {
-            db.endTransaction();
             cursor.close();
         }
     }
@@ -651,11 +643,8 @@ public class DbManager
 
                 db.insert(MethodItem.TABLE, builder.build());
             }
-
-            //db.setTransactionSuccessful();
-
+            
         } finally {
-            //db.endTransaction();
             cursor.close();
         }
     }
@@ -667,8 +656,6 @@ public class DbManager
         for (Advertisement item : advertisements) {
             entryMap.put(item.ad_id, item);
         }
-
-        //db.beginTransaction();
 
         // Get list of all items
         Cursor cursor = db.query(AdvertisementItem.QUERY);
@@ -801,11 +788,8 @@ public class DbManager
 
                 db.insert(AdvertisementItem.TABLE, builder.build());
             }
-
-            //db.setTransactionSuccessful();
-
+            
         } finally {
-            //db.endTransaction();
             cursor.close();
         }
         

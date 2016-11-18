@@ -62,6 +62,21 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+            android:key="api_category"
+            android:title="Service Endpoint"
+            android:summary="Change the LocalBitcoins service url">
+
+        <EditTextPreference
+                android:title="LocalBitcoins API endpoint"
+                android:defaultValue="https://localbitcoins.com"
+                android:dialogTitle="Update API Endpoint"
+                android:dialogMessage="After changing the LocalBitcoins API endpoint, restart the application for the changes to take effect."
+                android:summary="https://localbitcoins.com"
+                android:key="@string/pref_key_api"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
             android:key="application_category"
             android:title="Application Settings"
             android:summary="Application specific settings">

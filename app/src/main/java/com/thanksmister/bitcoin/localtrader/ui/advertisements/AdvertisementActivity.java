@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
@@ -133,6 +134,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     private String adId;
     private Menu menu;
     private AdvertisementData advertisementData;
+    private Handler handler;
 
     private class AdvertisementData
     {
@@ -159,6 +161,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         ButterKnife.inject(this);
 
+        handler = new Handler();
+
         if (savedInstanceState == null && getIntent().hasExtra(EXTRA_AD_ID)) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
         } else if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_AD_ID)) {
@@ -174,6 +178,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+
+        toast("Refreshing data...");
     }
 
     @Override
@@ -225,28 +231,40 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     public void onRefresh()
     {
         updateData();
-    }
-
-    public void onRefreshStart()
-    {
-        if (swipeLayout != null)
-            swipeLayout.setRefreshing(false);
+        onRefreshStart();
     }
 
     public void onRefreshStop()
     {
+        handler.removeCallbacks(refreshRunnable);
+
         if (swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
+
+    public void onRefreshStart()
+    {
+        handler = new Handler();
+        handler.postDelayed(refreshRunnable, 50);
+    }
+
+    private Runnable refreshRunnable = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            if(swipeLayout != null)
+                swipeLayout.setRefreshing(true);
+        }
+    };
 
     @Override
     public void onResume()
     {
         super.onResume();
-
-        onRefreshStart();
         subscribeData();
         updateData();
+        onRefreshStart();
     }
 
     @Override

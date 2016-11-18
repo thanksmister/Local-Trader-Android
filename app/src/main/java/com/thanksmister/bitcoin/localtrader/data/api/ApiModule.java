@@ -16,7 +16,10 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api;
 
+import android.content.SharedPreferences;
+
 import com.squareup.okhttp.OkHttpClient;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 
 import javax.inject.Singleton;
 
@@ -34,7 +37,7 @@ public final class ApiModule
 {
     private static final String BITSTAMP_API_ENDPOINT = "https://www.bitstamp.net";
     private static final String BITCOIN_AVERAGE_ENDPOINT = "https://api.bitcoinaverage.com";
-    public static final String BASE_URL = "https://localbitcoins.com/";
+    
 
     @Provides 
     @Singleton Client provideClient(OkHttpClient client) 
@@ -44,12 +47,13 @@ public final class ApiModule
 
     @Provides
     @Singleton
-    LocalBitcoins provideLocalBitcoins(Client client)
+    LocalBitcoins provideLocalBitcoins(Client client, SharedPreferences sharedPreferences)
     {
+        String baseUrl = AuthUtils.getServiceEndpoint(sharedPreferences);
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
                 .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setEndpoint(BASE_URL)
+                .setEndpoint(baseUrl)
                 .build();
         return restAdapter.create(LocalBitcoins.class);
     }

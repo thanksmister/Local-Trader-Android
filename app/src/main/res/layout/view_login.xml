@@ -86,6 +86,27 @@
 
                 </android.support.design.widget.TextInputLayout>
 
+                <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/activity_list_padding"/>
+
+                <android.support.design.widget.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:theme="@style/EditTextTheme">
+
+                    <EditText
+                            android:id="@+id/apiEndpoint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            android:hint="@string/setup_hint_servcie_endpoint"
+                            tools:text="http://localbitcoins.com"
+                            android:inputType="textMultiLine"
+                            android:maxLines="2"/>
+
+                </android.support.design.widget.TextInputLayout>
+
                 <TextView
                         android:id="@+id/editTextDescription"
                         style="@style/TextMedium.Secondary"

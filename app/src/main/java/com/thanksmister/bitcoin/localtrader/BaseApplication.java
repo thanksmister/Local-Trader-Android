@@ -20,15 +20,10 @@ import android.app.Application;
 import android.content.Context;
 
 import com.crashlytics.android.Crashlytics;
-import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
 
-import butterknife.ButterKnife;
-import dagger.ObjectGraph;
 import io.fabric.sdk.android.Fabric;
-import rx.plugins.RxJavaErrorHandler;
-import rx.plugins.RxJavaPlugins;
 import timber.log.Timber;
 
 public class BaseApplication extends Application
@@ -44,7 +39,7 @@ public class BaseApplication extends Application
             //ButterKnife.setDebug(BuildConfig.DEBUG);
             //LeakCanary.install(this);
             //refWatcher = LeakCanary.install(this);
-            
+
         } else {
             
             Fabric.with(this, new Crashlytics());

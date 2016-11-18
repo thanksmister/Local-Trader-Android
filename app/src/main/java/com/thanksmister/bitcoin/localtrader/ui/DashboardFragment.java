@@ -309,6 +309,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         super.onResume();
         subscribeData();
+        updateData();
         onRefreshStart();
     }
 
@@ -341,10 +342,10 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     @Override
     public void onRefresh()
     {
-        Timber.d("onRefresh");
-        onRefreshStart();
         String userName = AuthUtils.getUsername(sharedPreferences);
         SyncUtils.TriggerRefresh(getContext().getApplicationContext(), userName);
+        onRefreshStart();
+        updateData();
     }
 
     public void onRefreshStart()
@@ -360,9 +361,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         {
             if(swipeLayout != null && !swipeLayout.isShown())
                 swipeLayout.setRefreshing(true);
-
-
-            updateData();
         }
     };
 

@@ -135,7 +135,7 @@ public interface LocalBitcoins
                                          @Header("Apiauth-Signature") String signature,
                                          @Path("contact_id") String contact_id);
 
-    @POST(GET_AD + "{ad_id}/")
+    @GET(GET_AD + "{ad_id}/")
     Observable<Response> getAdvertisement(@Header("Apiauth-Key") String key,
                                           @Header("Apiauth-Nonce") String nonce,
                                           @Header("Apiauth-Signature") String signature,

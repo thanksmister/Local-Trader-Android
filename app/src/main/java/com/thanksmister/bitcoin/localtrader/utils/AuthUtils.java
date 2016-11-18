@@ -12,13 +12,25 @@ import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 
 public class AuthUtils
 {
-    //private final static String HMAC_PREFERENCES = "hmacPreferences";
     private final static String HMAC_KEY = "hmacKey";
     private final static String HMAC_SECRET = "hmacSecret";
     private static final String PREFS_USER = "userName";
     private static final String PREFS_USER_FEEDBACK = "userFeedback";
     private static final String PREFS_USER_TRADES = "userTrades";
-
+    private static final String PREFS_API_ENDPOINT = "apiEndpoint";
+    private static final String BASE_URL = "https://localbitcoins.com";
+    
+    /**
+     * Returns the api service endpoint
+     * @param sharedPreferences
+     * @return
+     */
+    public static String getServiceEndpoint(@NonNull SharedPreferences sharedPreferences)
+    {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_API_ENDPOINT, BASE_URL);
+        return stringPreference.get();
+    }
+    
     /**
      * Returns true if we have stored credentials
      * @param sharedPreferences
@@ -71,6 +83,17 @@ public class AuthUtils
     {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_TRADES);
         return stringPreference.get();
+    }
+
+    /**
+     * Set the api end point
+     * @param sharedPreferences
+     * @param trades
+     */
+    public static void setServiceEndPoint(@NonNull SharedPreferences sharedPreferences, @NonNull String trades)
+    {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_API_ENDPOINT);
+        stringPreference.set(trades);
     }
 
     /**

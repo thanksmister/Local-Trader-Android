@@ -133,9 +133,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             } else {
                 setContentFragment(position);
             }
+            
             String userName = AuthUtils.getUsername(sharedPreferences);
             SyncUtils.CreateSyncAccount(MainActivity.this, userName);
             SyncUtils.TriggerRefresh(getApplicationContext(), userName);
+            toast("Refreshing data...");
         }
     }
 
@@ -155,6 +157,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             boolean authenticated = AuthUtils.hasCredentials(sharedPreferences);
             if(!authenticated) {
                 launchPromoScreen();
+                return;
             }
         }
 

@@ -204,6 +204,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
         setupToolbar();
         setupFab();
+        toast("Refreshing data...");
     }
 
     @Override
@@ -242,6 +243,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         super.onResume();
         subscribeData();
         onRefreshStart();
+        updateData();
     }
 
     @Override
@@ -274,13 +276,14 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @Override
     public void onRefresh()
     {
+        updateData();
         onRefreshStart();
     }
 
     public void onRefreshStart()
     {
         handler = new Handler();
-        handler.postDelayed(refreshRunnable, 1000);
+        handler.postDelayed(refreshRunnable, 50);
     }
 
     private Runnable refreshRunnable = new Runnable()
@@ -290,8 +293,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             
             if(swipeLayout != null && !swipeLayout.isShown())
                 swipeLayout.setRefreshing(true);
-            
-            updateData();
         }
     };
 

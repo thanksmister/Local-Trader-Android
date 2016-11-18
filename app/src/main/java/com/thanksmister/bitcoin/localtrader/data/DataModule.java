@@ -62,11 +62,6 @@ public final class DataModule
     @Singleton
     OkHttpClient provideOkHttpClient(BaseApplication app)
     {
-        return createOkHttpClient(app);
-    }
-
-    static OkHttpClient createOkHttpClient(BaseApplication app)
-    {
         OkHttpClient client = new OkHttpClient();
 
         // Install an HTTP cache in the application cache directory.

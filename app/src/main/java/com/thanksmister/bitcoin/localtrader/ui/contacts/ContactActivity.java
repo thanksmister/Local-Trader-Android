@@ -100,8 +100,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     @Inject
     DbManager dbManager;
 
-    @InjectView(R.id.contactProgress)
-    View progress;
+    @InjectView(R.id.contactLayout)
+    View contactLayout;
 
     @InjectView(R.id.contactList)
     ListView content;
@@ -262,17 +262,16 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
         adapter = new MessageAdapter(this);
         setAdapter(adapter);
+        toast("Refreshing data...");
     }
 
     @Override
     public void onResume()
     {
         super.onResume();
-
         registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
         subscribeData();
-        
+        updateData();
         onRefreshStart();
     }
 
@@ -281,8 +280,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     {
         super.onPause();
         
-        if(progress != null)
-            progress.clearAnimation();
+        if(contactLayout != null)
+            contactLayout.clearAnimation();
 
         if(content != null)
             content.clearAnimation();
@@ -347,7 +346,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     @Override
     public void onRefresh()
     {
-        updateData();
+        onRefreshStart();
     }
 
     public void onRefreshStop()
@@ -361,7 +360,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     public void onRefreshStart()
     {
         handler = new Handler();
-        handler.postDelayed(refreshRunnable, 1000);
+        handler.postDelayed(refreshRunnable, 50);
     }
 
     private Runnable refreshRunnable = new Runnable()
@@ -371,8 +370,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         {
             if(swipeLayout != null)
                 swipeLayout.setRefreshing(true);
-            
-            updateData();
         }
     };
 
@@ -415,19 +412,19 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     public void showContent(final boolean show)
     {
-        if (progress == null || content == null)
+        if (contactLayout == null || content == null)
             return;
         
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-        progress.setVisibility(show ? View.GONE : View.VISIBLE);
-        progress.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
+        contactLayout.setVisibility(show ? View.GONE : View.VISIBLE);
+        contactLayout.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
         {
             @Override
             public void onAnimationEnd(Animator animation)
             {
-                if (progress != null)
-                    progress.setVisibility(show ? View.GONE : View.VISIBLE);
+                if (contactLayout != null)
+                    contactLayout.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 

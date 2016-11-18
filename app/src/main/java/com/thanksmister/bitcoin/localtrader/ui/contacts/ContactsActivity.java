@@ -21,6 +21,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -38,7 +39,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 
 import java.util.ArrayList;
@@ -82,6 +82,7 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
     private Subscription updateSubscription = Subscriptions.empty();
     private Subscription subscription = Subscriptions.empty();
+    private Handler handler;
     
     public static Intent createStartIntent(Context context, DashboardType dashboardType)
     {
@@ -98,6 +99,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
         setContentView(R.layout.view_contacts);
 
         ButterKnife.inject(this);
+
+        handler = new Handler();
 
         if (savedInstanceState == null) {
             dashboardType =  (DashboardType) getIntent().getSerializableExtra(EXTRA_TYPE);
@@ -143,6 +146,8 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
      
         adapter = new ContactAdapter(this);
         setAdapter(getAdapter());
+
+        toast("Refreshing data...");
     }
 
     @Override
@@ -176,7 +181,6 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
     public void onResume()
     {
         super.onResume();
-
         onRefreshStart();
         updateData(dashboardType);
     }
@@ -211,12 +215,25 @@ public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout
 
     public void onRefreshStart()
     {
-        if(swipeLayout != null)
-            swipeLayout.setRefreshing(false);
+        handler = new Handler();
+        handler.postDelayed(refreshRunnable, 1000);
     }
 
-    public void onRefreshStop()
+    private Runnable refreshRunnable = new Runnable()
     {
+        @Override
+        public void run() {
+
+            if(swipeLayout != null && !swipeLayout.isShown())
+                swipeLayout.setRefreshing(true);
+        }
+    };
+
+    protected void onRefreshStop()
+    {
+        if(handler != null)
+            handler.removeCallbacks(refreshRunnable);
+
         if(swipeLayout != null)
             swipeLayout.setRefreshing(false);
     }
