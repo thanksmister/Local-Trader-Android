@@ -332,9 +332,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     @Subscribe
     public void onRefreshEvent(RefreshEvent event)
     {
-        Timber.d("onRefreshEvent: " + event.name());
-        Timber.d("getTag: " + fragment.getTag());
-        
         switch (fragment.getTag()) {
             case DASHBOARD_FRAGMENT:
                 ((DashboardFragment) fragment).onRefresh();

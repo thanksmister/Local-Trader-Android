@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -136,7 +137,12 @@ public class AdvertisementsFragment extends BaseFragment
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v)
             {
-                showAdvertisement(getAdapter().getItemAt(position));
+                AdvertisementItem advertisement = getAdapter().getItemAt(position);
+                if(advertisement != null && !TextUtils.isEmpty(advertisement.ad_id())) {
+                    showAdvertisement(getAdapter().getItemAt(position));
+                } else {
+                    toast("There was a problem loading the selected avertisement.");
+                }
             }
         });
 
@@ -155,6 +161,24 @@ public class AdvertisementsFragment extends BaseFragment
             }
         });
     }
+
+    /*public void onActivityResult(int requestCode, int resultCode, Intent intent)
+    {
+        Timber.d("Request Code: " + requestCode);
+        Timber.d("Result Code: " + requestCode);
+        
+        super.onActivityResult(requestCode, resultCode, intent);
+        
+        if (requestCode == EditActivity.REQUEST_CODE) {
+            if (resultCode == EditActivity.RESULT_CREATED || resultCode == EditActivity.RESULT_UPDATED) {
+                updateData();
+            }
+        } else if (requestCode == AdvertisementActivity.REQUEST_CODE) {
+            if ( resultCode == AdvertisementActivity.RESULT_DELETED) {
+                updateData();
+            }
+        }
+    }*/
     
     @Override
     public void onResume()

@@ -125,7 +125,7 @@
     <string name="menu_action_search">Search</string>
     <string name="menu_action_wallet">Wallet</string>
     <string name="menu_action_advertisement">Advertisement</string>
-    <string name="menu_action_advertise">Post Trade</string>
+    <string name="menu_action_advertise">New Advertisement</string>
     <string name="menu_action_trades">Trade History</string>
     <string name="menu_action_messages">Mark Messages Read</string>
     <string name="menu_action_profile">Profile</string>

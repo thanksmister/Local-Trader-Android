@@ -412,6 +412,11 @@ public class EditActivity extends BaseActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBackPressed() {
+        cancelChanges(create);
+    }
+
     public void setToolBarMenu(Toolbar toolbar)
     {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener()
@@ -420,6 +425,7 @@ public class EditActivity extends BaseActivity
             public boolean onMenuItemClick(MenuItem menuItem)
             {
                 switch (menuItem.getItemId()) {
+                    case android.R.id.home:
                     case R.id.action_cancel:
                         cancelChanges(create);
                         return true;
@@ -495,6 +501,7 @@ public class EditActivity extends BaseActivity
 
                     if(permissionsDenied) {
                         toast("Edit canceled...");
+                        setResult(RESULT_CANCELED);
                         finish();
                     } else {
                         onResume(); // load our stuff
@@ -906,8 +913,8 @@ public class EditActivity extends BaseActivity
 
     public void cancelChanges(Boolean create)
     {
-        String message = (create) ? "New advertisement canceled" : "Advertisement update canceled";
-        toast(message);
+        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+        setResult(RESULT_CANCELED);
         finish();
     }
 
@@ -1109,6 +1116,7 @@ public class EditActivity extends BaseActivity
             @Override
             public void call()
             {
+                setResult(RESULT_CANCELED);
                 finish();
             }
         });
@@ -1244,8 +1252,6 @@ public class EditActivity extends BaseActivity
     // TODO let's clean this up and move to central location to get the errors
     private void handleLocalError(Throwable throwable)
     {
-        Timber.d("handleLocalError 404: " + DataServiceUtils.isHttp404Error(throwable));
-        
         if(DataServiceUtils.isHttp400Error(throwable)) {
 
             if (throwable instanceof RetrofitError) {
@@ -1281,7 +1287,6 @@ public class EditActivity extends BaseActivity
             Intent returnIntent = new Intent();
             returnIntent.putExtra(AdvertisementActivity.EXTRA_AD_ID, adId);
             setResult(RESULT_UPDATED, returnIntent);
-
             finish();
         }
     }

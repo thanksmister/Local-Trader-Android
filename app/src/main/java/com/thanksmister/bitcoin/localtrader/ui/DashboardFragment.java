@@ -52,7 +52,6 @@ import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
-import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
@@ -150,9 +149,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         
         // refresh handler
         handler = new Handler();
-        
         mTabNames = getResources().getStringArray(R.array.tab_items);
-        
         setHasOptionsMenu(true);
     }
 
@@ -251,8 +248,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         mViewPager.setCurrentItem(pagerPosition);
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent intent)
+    /*public void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
+        Timber.d("Request Code: " + requestCode);
+        Timber.d("Result Code: " + requestCode);
+        
         super.onActivityResult(requestCode, resultCode, intent);
         if (requestCode == EditActivity.REQUEST_CODE) {
             if (resultCode == EditActivity.RESULT_CREATED || resultCode == EditActivity.RESULT_UPDATED) {
@@ -263,7 +263,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 updateData();
             }
         }
-    }
+    }*/
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
@@ -309,8 +309,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         super.onResume();
         subscribeData();
-        updateData();
         onRefreshStart();
+        updateData();
     }
 
     @Override
@@ -344,6 +344,16 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     {
         String userName = AuthUtils.getUsername(sharedPreferences);
         SyncUtils.TriggerRefresh(getContext().getApplicationContext(), userName);
+        
+        // kind of a hack to get the advertisements to update on refresh
+        if(mViewPager != null) {
+            FragmentPagerAdapter a = (FragmentPagerAdapter) mViewPager.getAdapter();
+            Fragment fragment = (Fragment) a.instantiateItem(mViewPager, 0);
+            if(fragment instanceof  AdvertisementsFragment) {
+                ((AdvertisementsFragment)fragment).updateData();
+            }
+        }
+       
         onRefreshStart();
         updateData();
     }
@@ -351,7 +361,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     public void onRefreshStart()
     {
         handler = new Handler();
-        handler.postDelayed(refreshRunnable, 1000);
+        handler.postDelayed(refreshRunnable, 500);
     }
 
     private Runnable refreshRunnable = new Runnable()
