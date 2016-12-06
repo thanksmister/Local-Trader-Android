@@ -65,7 +65,7 @@ public class NotificationUtils
         builder.setSmallIcon(R.drawable.ic_stat_notification);
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            int resource =  R.drawable.ic_launcher;
+            int resource =  R.mipmap.ic_launcher;
             Bitmap bm = BitmapFactory.decodeResource(context.getResources(), resource);
             Resources res = context.getResources();
             int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
@@ -108,7 +108,7 @@ public class NotificationUtils
         builder.setSmallIcon(R.drawable.ic_stat_notification);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            int resource =  R.drawable.ic_launcher;
+            int resource =  R.mipmap.ic_launcher;
             Bitmap bm = BitmapFactory.decodeResource(context.getResources(), resource);
             Resources res = context.getResources();
             int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
@@ -152,7 +152,7 @@ public class NotificationUtils
         builder.setSmallIcon(R.drawable.ic_stat_notification);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            int resource =  R.drawable.ic_launcher;
+            int resource =  R.mipmap.ic_launcher;
             Bitmap bm = BitmapFactory.decodeResource(context.getResources(), resource);
             Resources res = context.getResources();
             int height = (int) res.getDimension(android.R.dimen.notification_large_icon_height);

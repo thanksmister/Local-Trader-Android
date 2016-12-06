@@ -24,7 +24,7 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 31;
+    private static final int DATABASE_VERSION = 32;
     private static final int DATABASE_VERSION_TRANSACTIONS = 29;
     private static final int DATABASE_VERSION_MESSAGES = 25;
     private static final int CONTACT_VERSION_MESSAGES = 27;
@@ -45,7 +45,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     WalletItem.QRCODE + TYPE_TEXT + ")";
 
     private static final String CREATE_METHOD = ""
-            + "CREATE TABLE " + MethodItem.TABLE + "("
+            + "CREATE TABLE IF NOT EXISTS " + MethodItem.TABLE + "("
             + MethodItem.ID + " INTEGER NOT NULL PRIMARY KEY,"
             + MethodItem.KEY + TYPE_TEXT_NOT_NULL + COMMA_SEP
             + MethodItem.CODE + TYPE_TEXT_NOT_NULL + COMMA_SEP
@@ -55,7 +55,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
             + ")";
 
     private static final String CREATE_CONTACTS =
-            "CREATE TABLE " + ContactItem.TABLE + " ("
+            "CREATE TABLE IF NOT EXISTS " + ContactItem.TABLE + " ("
                     + ContactItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
                     + ContactItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP
                     + ContactItem.ADVERTISEMENT_TRADE_TYPE + TYPE_TEXT + COMMA_SEP
@@ -110,7 +110,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     + ")";
 
     private static final String CREATE_MESSAGES =
-            "CREATE TABLE " + MessageItem.TABLE + " ("
+            "CREATE TABLE IF NOT EXISTS " + MessageItem.TABLE + " ("
                     + MessageItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
                     + MessageItem.CONTACT_LIST_ID + " INTEGER NOT NULL REFERENCES " + ContactItem.TABLE + "(" + ContactItem.ID + "),"
                     + MessageItem.MESSAGE + TYPE_TEXT + COMMA_SEP
@@ -128,7 +128,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     + ")";
 
     private static final String CREATE_RECENT_MESSAGES =
-            "CREATE TABLE " + RecentMessageItem.TABLE + " ("
+            "CREATE TABLE IF NOT EXISTS " + RecentMessageItem.TABLE + " ("
                     + RecentMessageItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
                     + RecentMessageItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP
                     + RecentMessageItem.MESSAGE + TYPE_TEXT + COMMA_SEP
@@ -193,7 +193,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     AdvertisementItem.BANK_NAME + TYPE_TEXT + ")";
 
     private static final String CREATE_TRANSACTIONS = ""
-            + "CREATE TABLE " + TransactionItem.TABLE + "("
+            + "CREATE TABLE IF NOT EXISTS " + TransactionItem.TABLE + "("
             + TransactionItem.ID + " INTEGER NOT NULL PRIMARY KEY,"
             + TransactionItem.TRANSACTION_ID + TYPE_TEXT_NOT_NULL + COMMA_SEP
             + TransactionItem.AMOUNT + TYPE_TEXT_NOT_NULL + COMMA_SEP
@@ -251,7 +251,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
         if (oldVersion < newVersion) {
-            db.delete("session_table", null, null);
+            db.execSQL("DROP TABLE IF EXISTS session_table");
             db.execSQL(CREATE_RECENT_MESSAGES);
         }
 

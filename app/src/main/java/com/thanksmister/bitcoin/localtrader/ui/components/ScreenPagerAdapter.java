@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.components;
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,6 +74,7 @@ public class ScreenPagerAdapter extends PagerAdapter
         
         holder.summaryText.setText(Html.fromHtml(summaryStrings[position]));
         holder.descriptionText.setText(Html.fromHtml(descriptionStrings[position]));
+        holder.descriptionText.setMovementMethod(LinkMovementMethod.getInstance());
         holder.headerText.setText(titleStrings[position]);
         
         holder.screenImage.setImageResource(res[position]);
