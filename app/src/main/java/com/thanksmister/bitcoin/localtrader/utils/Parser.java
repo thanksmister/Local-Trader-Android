@@ -57,10 +57,21 @@ import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtil
 
 public class Parser
 {
-    @Deprecated
     public static Authorization parseAuthorization(String response)
     {
-        return null;
+        JSONObject jsonObject;
+        Authorization authorization = new Authorization();
+        try {
+            jsonObject = new JSONObject(response);
+            authorization.access_token = jsonObject.getString("access_token");
+            authorization.refresh_token = jsonObject.getString("refresh_token");
+            authorization.expires_in = jsonObject.getString("expires_in");
+            return authorization;
+
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+            return null;
+        }
     }
 
     //{"data": {"message": "Ad deleted successfully!"}}

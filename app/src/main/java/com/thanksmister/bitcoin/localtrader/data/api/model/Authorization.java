@@ -18,6 +18,11 @@ package com.thanksmister.bitcoin.localtrader.data.api.model;
 
 public class Authorization
 {
+    @Deprecated
     public String hmac_key;
+    @Deprecated
     public String hmac_secret;
+    public String access_token;
+    public String refresh_token;
+    public String expires_in;
 }

@@ -16,11 +16,13 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Html;
@@ -28,21 +30,26 @@ import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Patterns;
 import android.view.View;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
@@ -53,13 +60,17 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class LoginActivity extends BaseActivity
 {
+    public String OAUTH_URL = "";
+    public final static String EXTRA_WHATS_NEW = "EXTRA_WHATS_NEW";
+    public final static String EXTRA_WEB_LOGIN = "EXTRA_WEB_LOGIN";
+    public final static String EXTRA_END_POINT = "EXTRA_END_POINT";
+    
     @Inject
     DataService dataService;
 
@@ -72,11 +83,11 @@ public class LoginActivity extends BaseActivity
     @InjectView(R.id.authenticateButton)
     Button authenticateButton;
 
-    @InjectView(R.id.hmacKey)
+    /*@InjectView(R.id.hmacKey)
     EditText hmacKey;
 
     @InjectView(R.id.hmacSecret)
-    EditText hmacSecret;
+    EditText hmacSecret;*/
     
     @InjectView(R.id.editTextDescription)
     TextView editTextDescription;
@@ -85,7 +96,10 @@ public class LoginActivity extends BaseActivity
     TextView apiEndpoint;
 
     private Subscription subscription = Subscriptions.unsubscribed();
-    private int retryLimit = 1;
+    private WebView webView;
+    private String endpoint;
+    private boolean whatsNewShown;
+    private boolean webViewLogin;
 
     public static Intent createStartIntent(Context context)
     {
@@ -101,13 +115,19 @@ public class LoginActivity extends BaseActivity
 
         ButterKnife.inject(this);
 
-        if (BuildConfig.DEBUG) {
-            hmacKey.setText(R.string.hmac_key);
-            hmacSecret.setText(R.string.hmac_secret);
+        if(savedInstanceState != null) {
+            whatsNewShown = savedInstanceState.getBoolean(EXTRA_WHATS_NEW);
+            webViewLogin = savedInstanceState.getBoolean(EXTRA_WEB_LOGIN);
+            endpoint = savedInstanceState.getString(EXTRA_END_POINT);
         }
 
+        webView = (WebView) findViewById(R.id.webView);
+        
         final String currentEndpoint = AuthUtils.getServiceEndpoint(sharedPreferences);
         apiEndpoint.setText(currentEndpoint);
+
+        OAUTH_URL = currentEndpoint + "/oauth2/authorize/?ch=2hbo&client_id="
+                + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
         
         editTextDescription.setText(Html.fromHtml(getString(R.string.setup_description)));
         editTextDescription.setMovementMethod(LinkMovementMethod.getInstance());
@@ -116,9 +136,18 @@ public class LoginActivity extends BaseActivity
             @Override
             public void onClick(View v)
             {
-                checkCredentials();
+                checkEndpoint();
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(EXTRA_WHATS_NEW, whatsNewShown);
+        outState.putBoolean(EXTRA_WEB_LOGIN, webViewLogin);
+        outState.putString(EXTRA_END_POINT, endpoint);
     }
 
     @Override
@@ -128,9 +157,9 @@ public class LoginActivity extends BaseActivity
         subscription.unsubscribe();
     }
 
-    private void checkCredentials()
+    private void checkEndpoint()
     {
-        final String endpoint = apiEndpoint.getText().toString();
+        endpoint = apiEndpoint.getText().toString();
         final String currentEndpoint = AuthUtils.getServiceEndpoint(sharedPreferences);
         
         if(TextUtils.isEmpty(endpoint)) {
@@ -172,15 +201,17 @@ public class LoginActivity extends BaseActivity
             return;
         }
         
-        String key = hmacKey.getText().toString();
-        String secret = hmacSecret.getText().toString();
-       
-        if (!TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret)) {
+        //String key = hmacKey.getText().toString();
+        //String secret = hmacSecret.getText().toString();
+        
+        setUpWebViewDefaults();
+        
+        /*if (!TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret)) {
             showProgressDialog(new ProgressDialogEvent(getString(R.string.login_authorizing)));
             getMyself(key, secret, endpoint);
         } else {
             showAlertDialog(new AlertDialogEvent(null, getString(R.string.setup_form_error)));
-        }
+        }*/
     }
     
     public Context getContext()
@@ -188,15 +219,87 @@ public class LoginActivity extends BaseActivity
         return this;
     }
 
-    public void setAuthorization(final String key, final String secret, final User user, final String endpoint)
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void setUpWebViewDefaults()
+    {
+        content.setVisibility(View.GONE);
+        webView.setVisibility(View.VISIBLE);
+        try {
+            webView = (WebView) findViewById(R.id.webView);
+
+            webView.setWebViewClient(new OauthWebViewClient());
+            webView.setWebChromeClient(new WebChromeClient());
+
+            WebSettings settings = webView.getSettings();
+
+            // Enable Javascript
+            settings.setJavaScriptEnabled(true);
+
+            // Use WideViewport and Zoom out if there is no viewport defined
+            settings.setUseWideViewPort(true);
+            settings.setLoadWithOverviewMode(true);
+
+            // Enable pinch to zoom without the zoom buttons
+            settings.setBuiltInZoomControls(true);
+
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
+                // Hide the zoom controls for HONEYCOMB+
+                settings.setDisplayZoomControls(false);
+            }
+
+            // Enable remote debugging via chrome://inspect
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                WebView.setWebContentsDebuggingEnabled(true);
+            }
+
+            // Load website
+            webView.loadUrl(OAUTH_URL);
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+            Crashlytics.log("WebView");
+            Crashlytics.logException(e);
+            content.setVisibility(View.VISIBLE);
+            webView.setVisibility(View.GONE);
+        }
+    }
+
+    public void setAuthorizationCode(final String code)
+    {
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.login_authorizing)));
+        
+        content.setVisibility(View.VISIBLE);
+        webView.setVisibility(View.GONE);
+        
+        Observable<Authorization> tokenObservable = dataService.getAuthorization(code);
+        subscription = tokenObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Authorization>()
+                {
+                    @Override
+                    public void call(Authorization authorization)
+                    {
+                        getMyself(authorization.access_token, authorization.refresh_token, endpoint);
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        toast(getString(R.string.error_authentication));
+                    }
+                });
+    }
+
+    public void setAuthorization(final String accessToken, final String refreshToken, final User user, final String endpoint)
     {
         // save for preference manager
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
         SharedPreferences.Editor prefEditor = preferences.edit();
         prefEditor.putString("pref_key_api", endpoint).apply();
         
-        AuthUtils.setHmacKey(sharedPreferences, key);
-        AuthUtils.setHmacSecret(sharedPreferences, secret);
+        AuthUtils.setAccessToken(sharedPreferences, accessToken);
+        AuthUtils.setRefreshToken(sharedPreferences, refreshToken);
         AuthUtils.setUsername(sharedPreferences, user.username);
         AuthUtils.setFeedbackScore(sharedPreferences, user.feedback_score);
         AuthUtils.setTrades(sharedPreferences, String.valueOf(user.trading_partners_count));
@@ -210,26 +313,11 @@ public class LoginActivity extends BaseActivity
         finish();
     }
 
-    public void getMyself(final String key, final String secret, final String endpoint)
+    public void getMyself(final String accessToken, final String refreshToken, final String endpoint)
     {
-        final String nonce = NetworkUtils.generateNonce();
-        final String signature = NetworkUtils.createSignature(LocalBitcoins.GET_MYSELF, nonce, key, secret);
-
-        subscription = dataService.getMyself(key, nonce, signature)
+        subscription = dataService.getMyself(accessToken)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends User>>()
-                {
-                    @Override
-                    public Observable<? extends User> call(Throwable throwable)
-                    {
-                        if (DataServiceUtils.isHttp41Error(throwable) && retryLimit > 0) {
-                            retryLimit--;
-                            return dataService.getMyself(key, nonce, signature);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                })
                 .subscribe(new Action1<User>()
                 {
                     @Override
@@ -237,7 +325,7 @@ public class LoginActivity extends BaseActivity
                     {
                         hideProgressDialog();
                         toast(getString(R.string.authentication_success, user.username));
-                        setAuthorization(key, secret, user, endpoint);
+                        setAuthorization(accessToken, refreshToken, user, endpoint);
                     }
                 }, new Action1<Throwable>()
                 {
@@ -246,11 +334,46 @@ public class LoginActivity extends BaseActivity
                     {
                         hideProgressDialog();
                         if (DataServiceUtils.isHttp403Error(throwable)) {
-                            showAlertDialog(new AlertDialogEvent(null, getString(R.string.setup_form_error)));
+                            showAlertDialog(new AlertDialogEvent(null, getString(R.string.error_invalid_credentials)));
                         } else {
                             handleError(throwable);
                         }
                     }
                 });
+    }
+
+    private class OauthWebViewClient extends WebViewClient
+    {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url)
+        {
+            hideProgressDialog();
+
+            //check if the login was successful and the access token returned
+            if (url.contains("thanksmr.com")) {
+                Pattern codePattern = Pattern.compile("code=([^&]+)?");
+                Matcher codeMatcher = codePattern.matcher(url);
+                if (codeMatcher.find()) {
+                    String code[] = codeMatcher.group().split("=");
+                    if (code.length > 0) {
+                        setAuthorizationCode(code[1]);
+                        return true;
+                    }
+                }
+
+            } else if (url.contains("authorize") || url.contains("oauth2") || url.contains("accounts") || url.contains("threefactor_login_verification")) {
+                hideProgressDialog();
+                return false;
+            } else if (url.contains("ads")) { // hack to get past 3 factor screen
+                webView.loadUrl(OAUTH_URL); // reload authentication page
+            } else if (url.contains("error=access_denied")) {
+                content.setVisibility(View.VISIBLE);
+                webView.setVisibility(View.GONE);
+                showAlertDialog(new AlertDialogEvent("Authentication Error", getString(R.string.error_invalid_credentials)));
+                return false;
+            }
+
+            return false;
+        }
     }
 }

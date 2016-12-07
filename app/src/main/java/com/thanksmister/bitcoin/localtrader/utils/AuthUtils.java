@@ -13,7 +13,9 @@ import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 public class AuthUtils
 {
     private final static String HMAC_KEY = "hmacKey";
+    private final static String ACCESS_TOKEN = "accessToken";
     private final static String HMAC_SECRET = "hmacSecret";
+    private final static String REFRESH_TOKEN = "refreshToken";
     private static final String PREFS_USER = "userName";
     private static final String PREFS_USER_FEEDBACK = "userFeedback";
     private static final String PREFS_USER_TRADES = "userTrades";
@@ -37,8 +39,8 @@ public class AuthUtils
      */
     public static boolean hasCredentials(@NonNull SharedPreferences sharedPreferences)
     {
-        String key = sharedPreferences.getString(HMAC_KEY, null);
-        String secret = sharedPreferences.getString(HMAC_SECRET, null);
+        String key = sharedPreferences.getString(ACCESS_TOKEN, null);
+        String secret = sharedPreferences.getString(REFRESH_TOKEN, null);
         return !TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret);
     }
     
@@ -47,6 +49,7 @@ public class AuthUtils
      * @param sharedPreferences
      * @return
      */
+    @Deprecated
     public static String getHmacKey(@NonNull SharedPreferences sharedPreferences)
     {
         return sharedPreferences.getString(HMAC_KEY, null);
@@ -57,9 +60,30 @@ public class AuthUtils
      * @param sharedPreferences
      * @return
      */
+    @Deprecated
     public static String getHmacSecret(@NonNull SharedPreferences sharedPreferences)
     {
         return sharedPreferences.getString(HMAC_SECRET, null);
+    }
+
+    /**
+     * Get the stored access token
+     * @param sharedPreferences
+     * @return
+     */
+    public static String getAccessToken(@NonNull SharedPreferences sharedPreferences)
+    {
+        return sharedPreferences.getString(ACCESS_TOKEN, null);
+    }
+
+    /**
+     * Get the stored refresh token
+     * @param sharedPreferences
+     * @return
+     */
+    public static String getRefreshToken(@NonNull SharedPreferences sharedPreferences)
+    {
+        return sharedPreferences.getString(REFRESH_TOKEN, null);
     }
 
     /**
@@ -117,6 +141,30 @@ public class AuthUtils
     {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(HMAC_SECRET, secret);
+        editor.apply();
+    }
+
+    /**
+     * Set the access token
+     * @param sharedPreferences
+     * @param key
+     */
+    public static void setAccessToken(@NonNull SharedPreferences sharedPreferences, @NonNull String key)
+    {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(ACCESS_TOKEN, key);
+        editor.apply();
+    }
+
+    /**
+     * Set the refresh token
+     * @param sharedPreferences
+     * @param secret
+     */
+    public static void setRefreshToken(@NonNull SharedPreferences sharedPreferences, @NonNull String secret)
+    {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(REFRESH_TOKEN, secret);
         editor.apply();
     }
     

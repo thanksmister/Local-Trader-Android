@@ -50,45 +50,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme">
-
-                    <EditText
-                            android:id="@+id/hmacKey"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/setup_hint_key"
-                            android:inputType="textMultiLine"
-                            android:maxLines="2"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_list_padding"/>
-
-                <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme">
-
-                    <EditText
-                            android:id="@+id/hmacSecret"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/setup_hint_secret"
-                            android:inputType="textMultiLine"
-                            android:maxLines="3"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_list_padding"/>
 
                 <android.support.design.widget.TextInputLayout
                         android:layout_width="match_parent"
@@ -143,5 +104,11 @@
         </LinearLayout>
 
     </LinearLayout>
+    
+    <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"/>
 
 </FrameLayout>

@@ -55,7 +55,7 @@
     <string name="error_service_timeout_error">The service is timed out and is unresponsive.</string>
     <string name="error_service_error">Service produced resource not found error.</string>
     <string name="error_generic_permission">You do not have permission to access this feature.</string>
-    <string name="error_authentication">Authentication error, please check that your HMAC authentication key and signature are correct.</string>
+    <string name="error_authentication">Authentication error, please check that your login credentials are correct.</string>
     <string name="error_data">There was an error with the data sent.</string>
 
     <!-- DRAWER -->
@@ -166,7 +166,7 @@
 
     <string-array name="login_registration_screens_description">
         <item><![CDATA[Local Trader works with your <b>LocalBitcoins account</b> to create and update advertisements, manage trades, release or fund trades, send and receive messages, or to handle payments.<br><br>If you need an account, please register for one at <a href=\'https://localbitcoins.com/?ch=2hbo\'>LocalBitcoins.com</a> or use the mirror site <a href=\"https://localbitcoins.net/?ch=2hbo\">localbitcoins.net</a> for blocked regions.]]></item>
-        <item><![CDATA[Local Trader uses <b>HMAC authentication</b> for LocalBitcoins services. A unique <b>HMAC key and secret</b> is generated for each application with the specified permissions.<br><br>You can create a new <b>HMAC authentication</b> for Local Trader from your <a href=\'https://localbitcoins.com/accounts/api?ch=2hbo\'>LocalBitcoins Account</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/api?ch=2hbo\">localbitcoins.net</a> for blocked regions..<br><br>Be sure to request permissions for read, write and money_pin (only set money_pin permission if you intend to send Bitcoin).]]></item>
+        <item><![CDATA[Local Trader uses <b>Oauth2 authentication</b> for LocalBitcoins services. For authentication you will be taken to the LocalBitcoins website where you will need to authenticate as you would when logging into LocalBitcoins. Upon successful authentication you will be returned to the Local Trader application.<br><br>Local Trader request permissions for read, write and money_pin during authentication, money_pin only allows you to send money using your LocalBitcions PIN code.]]></item>
         <item><![CDATA[A <b>PIN code</b> is required to send Bitcoin from your wallet, fund trades, or release trades. You created a <b>PIN code</b> as part of the LocalBitcoins registration.<br><br>The <b>PIN code</b> is not the same as your 2-Factor Authentication (2FA).  View or manage your PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo\">localbitcoins.net</a> for blocked regions.]]></item>
     </string-array>
 
@@ -438,14 +438,14 @@
     ]]></string>
     <string name="error_no_play_services">No Google Play Services</string>
     <string name="error_unable_load_address">Unable to get current address. Turn on location permissions.</string>
-    <string name="error_unable_load_address_retry">Unable to get current address, retry with WiFi enabled and turn onlocation permissions.</string>
+    <string name="error_unable_load_address_retry">Unable to get current address, retry with WiFi enabled and turn on location permissions.</string>
     <string name="error_no_trade_data">There are no trades.</string>
     <string name="dialog_logout_title">Logout</string>
     <string name="dialog_logout_message">Do you wish to logout and clear your data?</string>
     <string name="wallet_recent_activity_header">Recent Activity</string>
     <string name="wallet_my_address_share">My Bitcoin Address</string>
     <string name="share_using">Share using:</string>
-    <string name="error_invalid_credentials">Access denied, invalid credentials</string>
+    <string name="error_invalid_credentials">The authentication failed, please check that you have the correct credentials.</string>
     <string name="message_advertisement_changed">Advertisement changed successfully!</string>
     <string name="button_search_trades">Search Trades</string>
     <string name="dialog_send_message">Sending message…</string>
@@ -485,10 +485,10 @@
     <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
     <string name="alert_permission_required">Permission Required</string>
     <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
-    <string name="setup_description"><![CDATA[Enter your Local Trader HMAC authentication key and secret or create a new authentication from your <a href=\"https://localbitcoins.com/accounts/api/\">LocalBitcoins Account</a> page or use the mirror service endpoint <a href=\"https://localbitcoins.net/accounts/api/\">localbitcoins.net</a> for regions that may be blocked.]]></string>
+    <string name="setup_description"><![CDATA[For regions that may be blocked, change the default endpoint to the LocalBitcoins mirror site \"https://localbitcoins.net\".  For all others, just click "Authenticate"]]></string>
     <string name="setup_hint_secret">SECRET</string>
     <string name="setup_hint_key">KEY</string>
-    <string name="setup_credentials">Enter Authentication</string>
+    <string name="setup_credentials">Update Service Endpoint</string>
     <string name="error_authorization">Authentication error, please verify your key and secret are correct.</string>
     <string name="authentication_success">Authentication successful for %1$s</string>
     <string name="send_form_description"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo/\">localbitcoins.net</a> for blocked regions.]]></string>

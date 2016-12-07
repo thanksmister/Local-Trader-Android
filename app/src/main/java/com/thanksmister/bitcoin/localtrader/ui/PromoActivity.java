@@ -27,6 +27,7 @@ import android.view.View;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.components.ScreenPagerAdapter;
 import com.viewpagerindicator.CirclePageIndicator;
 
@@ -89,6 +90,8 @@ public class PromoActivity extends BaseActivity
         circlePageIndicator.setFillColor(getContext().getResources().getColor(R.color.red_light_pressed));
         circlePageIndicator.setStrokeColor(getContext().getResources().getColor(R.color.gray_pressed));
         circlePageIndicator.setRadius(12);
+
+        showAlertDialog(new AlertDialogEvent("What's New in v2.1.1", "The application uses Oauth2 authentication at the request of LocalBitcoins.<br><br>You will have to authenticate the application again and please remove any Local Trader HMAC authentication from your LocalBitcoins account.<br><br>The UI has been changed to use tabs for ads, trades, and the new recent messages.<br><br>Users can now switch the application to use one of LocalBitcoins new mirror sites.<br><br>Please join the new Reddit community in the About section for support and updates.<br><br>Sprinkled with sugar to get good reviews."));
     }
     
     public void showLoginView()

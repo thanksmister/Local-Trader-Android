@@ -26,7 +26,6 @@ import android.content.SyncResult;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Handler;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.BriteContentResolver;
@@ -76,17 +75,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     private static final String BITCOIN_AVERAGE_ENDPOINT = "https://api.bitcoinaverage.com";
     public static final String BASE_URL = "https://localbitcoins.com/";
     
-    private Subscription walletSubscription;
-    private Subscription contactsSubscription;
-    private Subscription messagesSubscription;
-
     private DataService dataService;
     private DbManager dbManager;
     private NotificationService notificationService;
     private SharedPreferences sharedPreferences;
     private ContentResolver contentResolver;
     private BriteContentResolver briteContentResolver;
-    private Handler handler;
    
     public SyncAdapter(Context context, boolean autoInitialize)
     {
@@ -104,8 +98,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
         LocalBitcoins localBitcoins = initLocalBitcoins();
         BitcoinAverage bitcoinAverage = initBitcoinAverage();
         dataService = new DataService(dbManager, (BaseApplication) context.getApplicationContext(), sharedPreferences, localBitcoins, bitcoinAverage);
-
-        handler = new Handler();
     }
 
     @Override
@@ -363,57 +355,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
-    /*private Observable<Wallet> getWalletBalance()
-    {
-        return getWalletBalanceObservable(retryLimit)
-                .map(new ResponseToWalletBalance())
-                .flatMap(new Func1<Wallet, Observable<Wallet>>()
-                {
-                    @Override
-                    public Observable<Wallet> call(final Wallet wallet)
-                    {
-                        return generateBitmap(wallet.address)
-                                .map(new Func1<Bitmap, Wallet>()
-                                {
-                                    @Override
-                                    public Wallet call(Bitmap bitmap)
-                                    {
-                                        wallet.qrImage = bitmap;
-                                        return wallet;
-                                    }
-                                }).onErrorReturn(new Func1<Throwable, Wallet>()
-                                {
-                                    @Override
-                                    public Wallet call(Throwable throwable)
-                                    {
-                                        return wallet;
-                                    }
-                                });
-                    }
-                });
-    }*/
-
-    /*private Observable<Response> getWalletBalanceObservable(final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_WALLET_BALANCE;
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getWalletBalance(key, nonce, signature)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if (DataServiceUtils.isHttp41Error(throwable) && retry > 0) {
-                            return getWalletBalanceObservable(retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }*/
-
     // TODO move this to util as its used in other locations
     private Observable<Bitmap> generateBitmap(final String address)
     {
@@ -457,117 +398,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     }
                 }).toBlocking().last());
     }
-
-    /*private Observable<Response> getContactObservable(final String contact_id, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_CONTACT + contact_id + "/";
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getContact(key, nonce, signature, contact_id)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if (DataServiceUtils.isHttp41Error(throwable) && retry > 0) {
-                            return getContactObservable(contact_id, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }*/
-
-    /*private Observable<List<Contact>> getContacts()
-    {
-        Timber.d("getContacts");
-        return getContactsObservable(retryLimit)
-                .map(new ResponseToContacts())
-                .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                {
-                    @Override
-                    public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                    {
-                        if(contacts.isEmpty()) {
-                            return Observable.just(contacts);
-                        } else {
-                            return getContactsMessage(contacts);
-                        }
-                    }
-                });
-    }*/
-
-    /*private Observable<Response> getContactsObservable(final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String signature = NetworkUtils.createSignature(LocalBitcoins.GET_DASHBOARD, nonce, key, secret);
-        return localBitcoins.getDashboard(key, nonce, signature)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if (DataServiceUtils.isHttp41Error(throwable) && retry > 0) {
-                            return getContactsObservable(retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }*/
-
-    /*private Observable<List<Contact>> getContactsMessage(final List<Contact> contacts)
-    {
-        return getContactsMessageObservable(contacts);
-    }*/
-
-    /*private Observable<List<Contact>> getContactsMessageObservable(final List<Contact> contacts)
-    {
-        return Observable.just(Observable.from(contacts)
-                .flatMap(new Func1<Contact, Observable<? extends List<Contact>>>()
-                {
-                    @Override
-                    public Observable<? extends List<Contact>> call(final Contact contact)
-                    {
-                        return getContactMessagesObservable(contact.contact_id, retryLimit)
-                                .map(new ResponseToMessages())
-                                .map(new Func1<List<Message>, List<Contact>>()
-                                {
-                                    @Override
-                                    public List<Contact> call(List<Message> messages)
-                                    {
-                                        for (Message message : messages) {
-                                            message.contact_id = contact.contact_id;
-                                        }
-                                        contact.messages = messages;
-                                        return contacts;
-                                    }
-                                });
-                    }
-                }).toBlocking().last());
-    }*/
-
-    /*private Observable<Response> getContactMessagesObservable(final String contact_id, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_CONTACT_MESSAGES + contact_id + "/";
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.contactMessages(key, nonce, signature, contact_id)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if (DataServiceUtils.isHttp41Error(throwable) && retry > 0) {
-                            return getContactMessagesObservable(contact_id, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }*/
 
     private BitcoinAverage initBitcoinAverage()
     {
@@ -702,92 +532,4 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             getDeletedContactsInfo(deletedContacts);
         }
     }
-    
-    /*public void updateMessages(final List<Contact> contacts)
-    {
-        final ArrayList<String> deletedMessages = new ArrayList<String>();
-        final ArrayList<Message> newMessages = new ArrayList<Message>();
-        final ArrayList<Message> deleteMessages = new ArrayList<Message>();
-        final HashMap<String, Contact> contactMap = new HashMap<String, Contact>();
-        final HashMap<String, Message> entryMap = new HashMap<String, Message>();
-        
-        for (Contact contact : contacts) {
-
-            //contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id});
-            //contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{contact.contact_id});
-
-            contact.messageCount = contact.messages.size(); // update item message count
-            contactMap.put(contact.contact_id, contact);
-
-            Timber.d("Message Contact Id: " + contact.contact_id);
-            Timber.d("Contact Message Count: " + contact.messageCount);
-
-            for (Message message : contact.messages) {
-                message.id = contact.contact_id + "_" + message.created_at;
-                message.contact_id = contact.contact_id;
-                entryMap.put(message.id, message);
-            }
-        }
-        
-        if(!entryMap.isEmpty()) {
-            
-            // get all the current messages
-            Subscription subscription = briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, null, null, null, false)
-                    .map(MessageItem.MAP)
-                    .subscribe(new Action1<List<MessageItem>>()
-                    {
-                        @Override
-                        public void call(List<MessageItem> messageItems)
-                        {
-                            for (MessageItem messageItem : messageItems) {
-
-                                String id = messageItem.contact_id() + "_" + messageItem.create_at();
-
-                                Message match = entryMap.get(id);
-
-                                if (match != null) {
-                                    entryMap.remove(id);
-                                } else {
-                                    deletedMessages.add(String.valueOf(messageItem.contact_id()));
-                                }
-                            }
-
-                            for (Message message : entryMap.values()) {
-                                newMessages.add(message);
-                            }
-
-                        }
-                    }, new Action1<Throwable>()
-                    {
-                        @Override
-                        public void call(Throwable throwable)
-                        {
-                            reportError(throwable);
-                        }
-                    });
-
-            subscription.unsubscribe();
-
-            String username = AuthUtils.getUsername(sharedPreferences);
-
-            for (Message item : newMessages) {
-
-                contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(item).build());
-                Contact contact = contactMap.get(item.contact_id);
-
-                if(!item.sender.username.equals(username)) {
-                    contact.hasUnseenMessages = true;
-                }
-            }
-
-            if(!newMessages.isEmpty())
-                notificationService.messageNotifications(newMessages);
-
-            for (String id : deletedMessages) {
-                contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
-            }
-        }
-        
-        updateContactsData(contactMap); // let's update contacts now
-    }*/
 }

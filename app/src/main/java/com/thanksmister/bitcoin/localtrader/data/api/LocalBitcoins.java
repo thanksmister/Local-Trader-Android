@@ -20,7 +20,6 @@ import retrofit.client.Response;
 import retrofit.http.Field;
 import retrofit.http.FormUrlEncoded;
 import retrofit.http.GET;
-import retrofit.http.Header;
 import retrofit.http.POST;
 import retrofit.http.Path;
 import retrofit.http.Query;
@@ -56,43 +55,37 @@ public interface LocalBitcoins
     String POST_CONTACT_CREATE = "/api/contact_create/";
     String POST_AD_CREATE = "/api/ad-create/";
     String DOWNLOAD_ATTACHMENT = "/api/download/";
+
+    @FormUrlEncoded
+    @POST("/oauth2/access_token/")
+    Observable<Response> getAuthorization(@Field("grant_type") String grant_type, @Field("code") String code, @Field("client_id") String client_id, @Field("client_secret") String client_secret);
+
+    @FormUrlEncoded
+    @POST("/oauth2/access_token/")
+    Observable<Response> refreshToken(@Field("grant_type") String grant_type, @Field("refresh_token") String refresh_token, @Field("client_id") String client_id, @Field("client_secret") String client_secret);
     
     @GET(GET_MYSELF)
-    Observable<Response> getMyself(@Header("Apiauth-Key") String key,
-                                   @Header("Apiauth-Nonce") String nonce,
-                                   @Header("Apiauth-Signature") String signature);
+    Observable<Response> getMyself(@Query("access_token") String token);
     
     @GET(GET_DASHBOARD)
-    Observable<Response> getDashboard(@Header("Apiauth-Key") String key,
-                                      @Header("Apiauth-Nonce") String nonce,
-                                      @Header("Apiauth-Signature") String signature);
+    Observable<Response> getDashboard(@Query("access_token") String token);
 
     @GET(GET_DASHBOARD + "{type}/")
-    Observable<Response> getDashboard(@Header("Apiauth-Key") String key,
-                                      @Header("Apiauth-Nonce") String nonce,
-                                      @Header("Apiauth-Signature") String signature, 
+    Observable<Response> getDashboard(@Query("access_token") String token, 
                                       @Path("type") String type);
 
     @GET(GET_ADS)
-    Observable<Response> getAds(@Header("Apiauth-Key") String key,
-                                @Header("Apiauth-Nonce") String nonce,
-                                @Header("Apiauth-Signature") String signature);
+    Observable<Response> getAds(@Query("access_token") String token);
 
     @GET(GET_WALLET)
-    Observable<Response> getWallet(@Header("Apiauth-Key") String key,
-                                   @Header("Apiauth-Nonce") String nonce,
-                                   @Header("Apiauth-Signature") String signature);
+    Observable<Response> getWallet(@Query("access_token") String token);
 
     @GET(GET_WALLET_BALANCE)
-    Observable<Response> getWalletBalance(@Header("Apiauth-Key") String key,
-                                          @Header("Apiauth-Nonce") String nonce,
-                                          @Header("Apiauth-Signature") String signature);
+    Observable<Response> getWalletBalance(@Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<Response> createContact(@Header("Apiauth-Key") String key,
-                                       @Header("Apiauth-Nonce") String nonce,
-                                       @Header("Apiauth-Signature") String signature,
+    Observable<Response> createContact(@Query("access_token") String token,
                                        @Path("ad_id") String ad_id,
                                        @Field("amount") String amount, 
                                        @Field("message") String message);
@@ -124,28 +117,20 @@ public interface LocalBitcoins
     Observable<Response> getOnlineProviders(@Path("countrycode") String countrycode);
 
     @GET(GET_CONTACT + "{contact_id}/")
-    Observable<Response> getContact(@Header("Apiauth-Key") String key,
-                                    @Header("Apiauth-Nonce") String nonce,
-                                    @Header("Apiauth-Signature") String signature,
+    Observable<Response> getContact(@Query("access_token") String token,
                                     @Path("contact_id") String contact_id);
 
     @GET(GET_CONTACT_MESSAGES + "{contact_id}/")
-    Observable<Response> contactMessages(@Header("Apiauth-Key") String key,
-                                         @Header("Apiauth-Nonce") String nonce,
-                                         @Header("Apiauth-Signature") String signature,
+    Observable<Response> contactMessages(@Query("access_token") String token,
                                          @Path("contact_id") String contact_id);
 
     @GET(GET_AD + "{ad_id}/")
-    Observable<Response> getAdvertisement(@Header("Apiauth-Key") String key,
-                                          @Header("Apiauth-Nonce") String nonce,
-                                          @Header("Apiauth-Signature") String signature,
+    Observable<Response> getAdvertisement(@Query("access_token") String token,
                                           @Path("ad_id") String ad_id);
     
     @FormUrlEncoded
     @POST(UPDATE_AD + "{ad_id}/")
-    Observable<Response> updateAdvertisement(@Header("Apiauth-Key") String key,
-                                             @Header("Apiauth-Nonce") String nonce,
-                                             @Header("Apiauth-Signature") String signature, 
+    Observable<Response> updateAdvertisement(@Query("access_token") String token,
                                              @Path("ad_id") String ad_id,
                                              @Field("account_info") String account_info,
                                              @Field("bank_name") String bank_name,
@@ -165,16 +150,12 @@ public interface LocalBitcoins
                                              @Field("visible") String visible);
 
     @POST(DELETE_AD + "{ad_id}/")
-    Observable<Response> deleteAdvertisement(@Header("Apiauth-Key") String key,
-                                             @Header("Apiauth-Nonce") String nonce,
-                                             @Header("Apiauth-Signature") String signature,
+    Observable<Response> deleteAdvertisement(@Query("access_token") String token,
                                              @Path("ad_id") String ad_id);
 
     @FormUrlEncoded
     @POST(POST_AD_CREATE)
-    Observable<Response> createAdvertisement(@Header("Apiauth-Key") String key,
-                                             @Header("Apiauth-Nonce") String nonce,
-                                             @Header("Apiauth-Signature") String signature,
+    Observable<Response> createAdvertisement(@Query("access_token") String token,
                                              @Field("min_amount") String min_amount, 
                                              @Field("max_amount") String max_amount, @Field("price_equation") String price_equation,
                                              @Field("trade_type") String trade_type, @Field("online_provider") String online_provider,
@@ -186,63 +167,45 @@ public interface LocalBitcoins
                                              @Field("currency") String currency);
 
     @POST(POST_CONTACT_DISPUTE + "{contact_id}/")
-    Observable<Response> contactDispute(@Header("Apiauth-Key") String key,
-                                        @Header("Apiauth-Nonce") String nonce,
-                                        @Header("Apiauth-Signature") String signature,
+    Observable<Response> contactDispute(@Query("access_token") String token,
                                         @Path("contact_id") String contact_id);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_MESSAGE + "{contact_id}/")
-    Observable<Response> contactMessagePost(@Header("Apiauth-Key") String key,
-                                            @Header("Apiauth-Nonce") String nonce,
-                                            @Header("Apiauth-Signature") String signature,
+    Observable<Response> contactMessagePost(@Query("access_token") String token,
                                             @Path("contact_id") String contact_id, 
                                             @Field("msg") String msg);
     
     @POST(POST_CONTACT_PAID + "{contact_id}/")
-    Observable<Response> markAsPaid(@Header("Apiauth-Key") String key,
-                                    @Header("Apiauth-Nonce") String nonce,
-                                    @Header("Apiauth-Signature") String signature,
+    Observable<Response> markAsPaid(@Query("access_token") String token,
                                     @Path("contact_id") String contact_id);
     
     @FormUrlEncoded
     @POST(POST_CONTACT_RELEASE + "{contact_id}/")
-    Observable<Response> releaseContactPinCode(@Header("Apiauth-Key") String key,
-                                               @Header("Apiauth-Nonce") String nonce,
-                                               @Header("Apiauth-Signature") String signature,
+    Observable<Response> releaseContactPinCode(@Query("access_token") String token,
                                                @Path("contact_id") String contact_id, 
                                                @Field("pincode") String pincode);
 
     @POST(POST_CONTACT_CANCEL + "{contact_id}/")
-    Observable<Response> contactCancel(@Header("Apiauth-Key") String key,
-                                       @Header("Apiauth-Nonce") String nonce,
-                                       @Header("Apiauth-Signature") String signature,
+    Observable<Response> contactCancel(@Query("access_token") String token,
                                        @Path("contact_id") String contact_id);
 
     @POST(POST_CONTACT_FUND + "{contact_id}/")
-    Observable<Response> contactFund(@Header("Apiauth-Key") String key,
-                                     @Header("Apiauth-Nonce") String nonce,
-                                     @Header("Apiauth-Signature") String signature,
+    Observable<Response> contactFund(@Query("access_token") String token,
                                      @Path("contact_id") String contact_id);
     
     @FormUrlEncoded
     @POST(CHECK_PINCODE)
-    Observable<Response> checkPinCode(@Header("Apiauth-Key") String key,
-                                      @Header("Apiauth-Nonce") String nonce,
-                                      @Header("Apiauth-Signature") String signature,
+    Observable<Response> checkPinCode(@Query("access_token") String token,
                                       @Field("pincode") String pin_code);
     
     @FormUrlEncoded
     @POST(POST_WALLET_SEND_PIN)
-    Observable<Response> walletSendPin(@Header("Apiauth-Key") String key,
-                                       @Header("Apiauth-Nonce") String nonce,
-                                       @Header("Apiauth-Signature") String signature,
+    Observable<Response> walletSendPin(@Query("access_token") String token,
                                        @Field("pincode") String pincode,
                                        @Field("address") String address, 
                                        @Field("amount") String amount);
 
     @GET(GET_RECENT_MESSAGES)
-    Observable<Response> recentMessages(@Header("Apiauth-Key") String key,
-                                        @Header("Apiauth-Nonce") String nonce,
-                                        @Header("Apiauth-Signature") String signature);
+    Observable<Response> recentMessages(@Query("access_token") String token);
 }

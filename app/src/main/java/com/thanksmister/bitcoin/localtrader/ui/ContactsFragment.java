@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -214,9 +215,13 @@ public class ContactsFragment extends BaseFragment
     
     protected void showContact(ContactItem contact)
     {
-        Intent intent = ContactActivity.createStartIntent(getActivity(), contact.contact_id());
-        intent.setClass(getActivity(), ContactActivity.class);
-        startActivity(intent);
+        if(contact != null && !TextUtils.isEmpty(contact.contact_id())) {
+            Intent intent = ContactActivity.createStartIntent(getActivity(), contact.contact_id());
+            intent.setClass(getActivity(), ContactActivity.class);
+            startActivity(intent); 
+        } else {
+            toast("That contact doesn't seem valid...");
+        }
     }
 
     protected void createAdvertisementScreen()
