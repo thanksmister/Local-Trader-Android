@@ -35,6 +35,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
@@ -81,12 +82,14 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
@@ -99,10 +102,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     @Inject
     DbManager dbManager;
-
-    @InjectView(R.id.contactLayout)
-    View contactLayout;
-
+    
     @InjectView(R.id.contactList)
     ListView content;
 
@@ -137,6 +137,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private boolean messageScroll = false;
     private Handler handler;
+
+    private Subscription subscription = Subscriptions.empty();
+    private CompositeSubscription updateSubscription = new CompositeSubscription();
 
     public static Intent createStartIntent(Context context, String contactId)
     {
@@ -279,10 +282,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     public void onPause()
     {
         super.onPause();
-        
-        if(contactLayout != null)
-            contactLayout.clearAnimation();
 
+        updateSubscription.unsubscribe();
+        subscription.unsubscribe();
+        
         if(content != null)
             content.clearAnimation();
     }
@@ -347,6 +350,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     public void onRefresh()
     {
         onRefreshStart();
+        updateData();
     }
 
     public void onRefreshStop()
@@ -412,21 +416,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     
     public void showContent(final boolean show)
     {
-        if (contactLayout == null || content == null)
+        if ( content == null)
             return;
         
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-        contactLayout.setVisibility(show ? View.GONE : View.VISIBLE);
-        contactLayout.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
-        {
-            @Override
-            public void onAnimationEnd(Animator animation)
-            {
-                if (contactLayout != null)
-                    contactLayout.setVisibility(show ? View.GONE : View.VISIBLE);
-            }
-        });
 
         content.setVisibility(show ? View.VISIBLE : View.GONE);
         content.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter()
@@ -454,7 +447,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     {
                         if (contactItem != null) {
                             showContent(true);
-                            onRefreshStop();
                             setContact(contactItem);
                         }
                     }
@@ -463,7 +455,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     @Override
                     public void call(Throwable throwable)
                     {
-                        reportError(throwable);
+                        //reportError(throwable);
                     }
                 });
 
@@ -482,7 +474,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     @Override
                     public void call(Throwable throwable)
                     {
-                        reportError(throwable);
+                        //reportError(throwable);
                     }
                 });
     }
@@ -497,9 +489,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             return;
         }
 
-        CompositeSubscription subscriptions = new CompositeSubscription();
+        updateSubscription = new CompositeSubscription();
 
-        subscriptions.add(dataService.getContact(contactId)
+        updateSubscription.add(dataService.getContact(contactId)
                 .doOnUnsubscribe(new Action0()
                 {
                     @Override
@@ -517,13 +509,10 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     public void call(Contact contact)
                     {
                         showContent(true);
-                        hideProgressDialog();
-                        onRefreshStop();
-
                         setContact(ContactItem.convertContact(contact));
                         getAdapter().replaceWith(MessageItem.convertMessages(contact.messages, contact.contact_id));
-
                         updateContact(contact);
+                        onRefreshStop();
                     }
                 }, new Action1<Throwable>()
                 {
@@ -531,7 +520,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     public void call(Throwable throwable)
                     {
                         reportError(throwable);
-                        hideProgressDialog();
                         onRefreshStop();
                         toast("Unable to retrieve contact.");
                     }
@@ -540,8 +528,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private void updateContact(final Contact contact)
     {
-        if (contact.contact_id == null)
-            throw new Error("Contact has no valid ID");
+        if (contact == null || TextUtils.isEmpty(contact.contact_id))
+            return;
 
         final int messageCount = contact.messages.size();
         
@@ -561,7 +549,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     public Object call(final ContactItem contactItem)
                     {
                         if (contactItem != null) {
-
                             dbManager.updateContact(contact, messageCount, false, new ContentResolverAsyncHandler.AsyncQueryListener()
                             {
                                 @Override
@@ -581,6 +568,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private void updateMessages(Contact contact)
     {
+        onRefreshStart();
+        
         dbManager.updateMessages(contact.contact_id, contact.messages, new ContentResolverAsyncHandler.AsyncQueryListener()
         {
             @Override
@@ -590,8 +579,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     content.smoothScrollToPosition(1);
                     messageScroll = false;
                 }
-
-                hideProgressDialog();
+               
                 onRefreshStop();
             }
         });

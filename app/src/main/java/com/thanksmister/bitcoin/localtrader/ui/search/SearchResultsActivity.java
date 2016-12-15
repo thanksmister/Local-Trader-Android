@@ -301,7 +301,7 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
                                 {
                                     onRefreshStop();
                                     reportError(throwable);
-                                    handleError(throwable, true);
+                                    handleError(throwable);
                                 }
                             });
                         }

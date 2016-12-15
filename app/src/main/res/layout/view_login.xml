@@ -50,7 +50,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-
                 <android.support.design.widget.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -69,7 +68,7 @@
                 </android.support.design.widget.TextInputLayout>
 
                 <TextView
-                        android:id="@+id/editTextDescription"
+                        android:id="@+id/urlTextDescription"
                         style="@style/TextMedium.Secondary"
                         android:layout_margin="@dimen/view_padding_small"
                         android:layout_width="match_parent"
@@ -77,6 +76,69 @@
                         android:linksClickable="true"
                         android:text="@string/setup_description"
                         tools:visibility="visible"/>
+
+               <!-- <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/activity_list_padding"/>
+                
+                <CheckBox
+                        android:id="@+id/hmacCheckBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/use_hmac_authentication"
+                        android:theme="@style/EditTextTheme"/>
+
+                <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"/>
+                
+                <android.support.design.widget.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:theme="@style/EditTextTheme">
+
+                    <EditText
+                            android:id="@+id/hmacKey"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            android:hint="@string/setup_hint_key"
+                            android:enabled="false"
+                            android:inputType="textMultiLine"
+                            android:maxLines="2"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/activity_list_padding"/>
+
+                <android.support.design.widget.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:theme="@style/EditTextTheme">
+
+                    <EditText
+                            android:id="@+id/hmacSecret"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            android:enabled="false"
+                            android:hint="@string/setup_hint_secret"
+                            android:inputType="textMultiLine"
+                            android:maxLines="3"/>
+
+                </android.support.design.widget.TextInputLayout>
+
+                <TextView
+                        android:id="@+id/hmacTextDescription"
+                        style="@style/TextMedium.Secondary"
+                        android:layout_margin="@dimen/view_padding_small"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:linksClickable="true"
+                        android:text="@string/setup_description_hmac"
+                        tools:visibility="visible"/>-->
 
             </LinearLayout>
 
@@ -99,7 +161,8 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="48dp"
-                    android:text="Authenticate"/>
+                    android:textAllCaps="true"
+                    android:text="@string/button_authenticate"/>
 
         </LinearLayout>
 

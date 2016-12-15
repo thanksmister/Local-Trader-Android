@@ -175,9 +175,9 @@ public class DataServiceUtils
     public static int getStatusCode(RetrofitError error) 
     {
         try {
-            Timber.e("Status Kind: " + error.getKind());
+            Timber.w("Status Kind: " + error.getKind());
         } catch(Throwable e){
-            Timber.e("Error Status: " + e.getMessage());
+            Timber.w("Error Status: " + e.getMessage());
         }
         
         try {
@@ -185,15 +185,17 @@ public class DataServiceUtils
                 return 503; // Use another code if you'd prefer
             } 
         } catch (Exception e){
-            Timber.e(e.getLocalizedMessage());
+            Timber.w(e.getLocalizedMessage());
             return 503; // Use another code if you'd prefer
         }
         
         try {
-            Timber.e("Error Code: " + error.getResponse().getStatus());
-            return error.getResponse().getStatus();
+            if(error.getResponse() != null) {
+                Timber.w("Error Code: " + error.getResponse().getStatus());
+                return error.getResponse().getStatus();
+            }
         } catch(Throwable e){
-            Timber.e("Error Status: " + e.getMessage());
+            Timber.w("Error Status: " + e.getMessage());
         }
         
         return 0;

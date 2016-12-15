@@ -21,45 +21,34 @@
         android:id="@+id/coordinatorLayout"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
-
-    <include
-            android:id="@+id/advertiserProgress"
-            layout="@layout/view_progress"
-            android:visibility="visible"
-            tools:visibility="gone"/>
-
+    
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-    <android.support.design.widget.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true">
-
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_height="wrap_content"
+        <android.support.design.widget.AppBarLayout
                 android:layout_width="match_parent"
-                android:minHeight="?android:attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true">
 
-    </android.support.design.widget.AppBarLayout>
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:minHeight="?android:attr/actionBarSize"
+                    android:background="@color/colorPrimary"
+                    app:popupTheme="@style/Theme.AppCompat.Light"/>
 
-    <!-- Your Scrollable View -->
-    <android.support.v4.widget.SwipeRefreshLayout
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:id="@+id/swipeLayout"
-            android:layout_weight="1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/white">
+        </android.support.design.widget.AppBarLayout>
+
 
         <android.support.v4.widget.NestedScrollView
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/white"
                 android:fillViewport="true">
 
             <FrameLayout
@@ -279,7 +268,7 @@
                         </LinearLayout>
 
                     </LinearLayout>
-                    
+
                     <LinearLayout
                             android:id="@+id/requirementsLayout"
                             android:layout_width="match_parent"
@@ -421,29 +410,33 @@
 
 
                 </LinearLayout>
-                
+
 
             </FrameLayout>
 
         </android.support.v4.widget.NestedScrollView>
 
-    </android.support.v4.widget.SwipeRefreshLayout>
 
         <View
                 android:id="@+id/divider"
                 android:background="?android:attr/dividerHorizontal"
                 android:layout_height="1dp"
                 android:layout_width="match_parent"/>
+        
+        <Button
+                style="@style/ButtonGreen.Small"
+                android:id="@+id/requestButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:textAllCaps="true"
+                android:text="Request Trade"/>
 
-        
-            <Button
-                    style="@style/ButtonGreen.Small"
-                    android:id="@+id/requestButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Request Trade"/>
-        
     </LinearLayout>
 
+    <include
+            android:id="@+id/advertiserProgress"
+            layout="@layout/view_progress"
+            android:visibility="visible"
+            tools:visibility="gone"/>
     
 </android.support.design.widget.CoordinatorLayout>

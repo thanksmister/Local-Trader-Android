@@ -4,14 +4,23 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.thanksmister.bitcoin.localtrader.data.prefs.IntPreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
+
+import timber.log.Timber;
 
 public class AuthUtils
 {
+    
+    private final static String PREFS_UPGRADE_VERSION = "upgradeVersion";
+    private final static String UPGRADE_VERSION = "2.1.2";
     private final static String HMAC_KEY = "hmacKey";
     private final static String ACCESS_TOKEN = "accessToken";
     private final static String HMAC_SECRET = "hmacSecret";
@@ -21,6 +30,41 @@ public class AuthUtils
     private static final String PREFS_USER_TRADES = "userTrades";
     private static final String PREFS_API_ENDPOINT = "apiEndpoint";
     private static final String BASE_URL = "https://localbitcoins.com";
+
+    /**
+     * Returns the api service endpoint
+     * @param sharedPreferences
+     * @return
+     */
+    public static boolean showUpgradedMessage(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
+    {
+        int currentVersion = getCurrentVersion(context, sharedPreferences);
+        IntPreference preference = new IntPreference(sharedPreferences, PREFS_UPGRADE_VERSION, 0);
+        int storedVersion = preference.get();
+        return currentVersion > storedVersion;
+    }
+
+    public static int getCurrentVersion(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
+    {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            return packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            Timber.e(e.getMessage());
+        }
+        return 0;
+    }
+
+    public static String getCurrentVersionName(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
+    {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            return "v" + packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            Timber.e(e.getMessage());
+        }
+        return "!";
+    }
     
     /**
      * Returns the api service endpoint
@@ -39,9 +83,22 @@ public class AuthUtils
      */
     public static boolean hasCredentials(@NonNull SharedPreferences sharedPreferences)
     {
-        String key = sharedPreferences.getString(ACCESS_TOKEN, null);
-        String secret = sharedPreferences.getString(REFRESH_TOKEN, null);
-        return !TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret);
+        String accessToken = sharedPreferences.getString(ACCESS_TOKEN, null);
+        String refreshToken = sharedPreferences.getString(REFRESH_TOKEN, null);
+        //String key = sharedPreferences.getString(HMAC_KEY, null);
+        //String secret = sharedPreferences.getString(HMAC_SECRET, null);
+        return !TextUtils.isEmpty(accessToken) && !TextUtils.isEmpty(refreshToken);
+    }
+    /**
+     * Returns true if we have stored HMAC credentials 
+     * @param sharedPreferences
+     */
+    public static boolean hasCredentialsHmac(@NonNull SharedPreferences sharedPreferences)
+    {
+        String key = sharedPreferences.getString(HMAC_KEY, null);
+        String secret = sharedPreferences.getString(HMAC_SECRET, null);
+        //return !TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret);
+        return false;
     }
     
     /**
@@ -49,7 +106,6 @@ public class AuthUtils
      * @param sharedPreferences
      * @return
      */
-    @Deprecated
     public static String getHmacKey(@NonNull SharedPreferences sharedPreferences)
     {
         return sharedPreferences.getString(HMAC_KEY, null);
@@ -60,7 +116,6 @@ public class AuthUtils
      * @param sharedPreferences
      * @return
      */
-    @Deprecated
     public static String getHmacSecret(@NonNull SharedPreferences sharedPreferences)
     {
         return sharedPreferences.getString(HMAC_SECRET, null);
@@ -107,6 +162,17 @@ public class AuthUtils
     {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_TRADES);
         return stringPreference.get();
+    }
+
+    /**
+     * Set current version number
+     * @param sharedPreferences
+     */
+    public static void setUpgradeVersion(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
+    {
+        int version = getCurrentVersion(context, sharedPreferences);
+        IntPreference preference = new IntPreference(sharedPreferences, PREFS_UPGRADE_VERSION, 0);
+        preference.set(version);
     }
 
     /**

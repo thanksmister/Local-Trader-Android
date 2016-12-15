@@ -17,10 +17,8 @@
 package com.thanksmister.bitcoin.localtrader;
 
 import android.app.Application;
-import android.content.Context;
 
 import com.crashlytics.android.Crashlytics;
-import com.squareup.leakcanary.RefWatcher;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
 
 import io.fabric.sdk.android.Fabric;
@@ -40,6 +38,10 @@ public class BaseApplication extends Application
             //LeakCanary.install(this);
             //refWatcher = LeakCanary.install(this);
 
+           /* Stetho.initialize(Stetho.newInitializerBuilder(this)
+                    .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
+                    .build());*/
+
         } else {
             
             Fabric.with(this, new Crashlytics());
@@ -58,11 +60,4 @@ public class BaseApplication extends Application
         
         Injector.init(this);
     }
-
-    public static RefWatcher getRefWatcher(Context context) {
-        BaseApplication application = (BaseApplication) context.getApplicationContext();
-        return application.refWatcher;
-    }
-
-    private RefWatcher refWatcher;
 }

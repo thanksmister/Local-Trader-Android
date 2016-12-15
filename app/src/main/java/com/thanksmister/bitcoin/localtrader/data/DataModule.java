@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
 import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
@@ -63,7 +64,9 @@ public final class DataModule
     OkHttpClient provideOkHttpClient(BaseApplication app)
     {
         OkHttpClient client = new OkHttpClient();
-
+        if(BuildConfig.DEBUG) {
+            //client.networkInterceptors().add(new StethoInterceptor()); 
+        }
         // Install an HTTP cache in the application cache directory.
         try {
             File cacheDir = new File(app.getCacheDir(), "http");

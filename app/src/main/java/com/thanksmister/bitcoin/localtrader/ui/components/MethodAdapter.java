@@ -25,7 +25,6 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
 import java.util.Collections;
@@ -58,8 +57,10 @@ public class MethodAdapter extends ArrayAdapter<MethodItem>
             convertView = mInflater.inflate(R.layout.spinner_transactions_header_layout, null);
         }
 
-        TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).name());
+        if(position < getCount()) {
+            TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
+            spinnerTarget.setText(items.get(position).name());
+        }
 
         return convertView;
     }
@@ -71,10 +72,12 @@ public class MethodAdapter extends ArrayAdapter<MethodItem>
             LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
             convertView = mInflater.inflate(R.layout.spinner_layout, null);
         }
-
-        TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).name());
-
+        
+        if(position < getCount()) {
+            TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
+            spinnerTarget.setText(items.get(position).name());
+        }
+        
         return convertView;
     }
 }

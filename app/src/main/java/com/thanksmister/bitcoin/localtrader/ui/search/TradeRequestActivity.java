@@ -22,35 +22,45 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.Html;
 import android.text.InputFilter;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
+import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
+import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 public class TradeRequestActivity extends BaseActivity
 {
     public static final String EXTRA_AD_ID = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ID";
     public static final String EXTRA_AD_PRICE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PRICE";
+    public static final String EXTRA_AD_COUNTRY_CODE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_COUNTRY_CODE";
+    public static final String EXTRA_AD_ONLINE_PROVIDER = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ONLINE_PROVIDER";
+    public static final String EXTRA_AD_TRADE_TYPE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_TRADE_TYPE";
     public static final String EXTRA_AD_MIN_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MIN_AMOUNT";
     public static final String EXTRA_AD_MAX_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MAX_AMOUNT";
     public static final String EXTRA_AD_CURRENCY = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_CURRENCY";
@@ -68,9 +78,6 @@ public class TradeRequestActivity extends BaseActivity
     @InjectView(R.id.editBitcoinText)
     EditText editBitcoinText;
 
-    @InjectView(R.id.messageText)
-    EditText messageText;
-
     @InjectView(R.id.tradeAmountTitle)
     TextView tradeAmountTitle;
 
@@ -79,6 +86,48 @@ public class TradeRequestActivity extends BaseActivity
 
     @InjectView(R.id.tradeCurrency)
     TextView tradeCurrency;
+
+    @InjectView(R.id.detailsPhoneNumberLayout)
+    View detailsPhoneNumberLayout;
+
+    @InjectView(R.id.detailsPhoneNumber)
+    EditText detailsPhoneNumber;
+
+    @InjectView(R.id.detailsReceiverEmailLayout)
+    View detailsReceiverEmailLayout;
+
+    @InjectView(R.id.detailsReceiverEmail)
+    EditText detailsReceiverEmail;
+
+    @InjectView(R.id.detailsReceiverNameLayout)
+    View detailsReceiverNameLayout;
+
+    @InjectView(R.id.detailsReceiverName)
+    EditText detailsReceiverName;
+
+    @InjectView(R.id.detailsIbanLayout)
+    View detailsIbanLayout;
+
+    @InjectView(R.id.detailsIbanName)
+    EditText detailsIbanName;
+
+    @InjectView(R.id.detailsSwiftBicLayout)
+    View detailsSwiftBicLayout;
+
+    @InjectView(R.id.detailsSwiftBic)
+    EditText detailsSwiftBic;
+
+    @InjectView(R.id.detailsReferenceLayout)
+    View detailsReferenceLayout;
+
+    @InjectView(R.id.detailsReference)
+    EditText detailsReference;
+
+    @InjectView(R.id.detailsMessageLayout)
+    View detailsMessageLayout;
+
+    @InjectView(R.id.detailsMessage)
+    EditText detailsMessage;
 
     @OnClick(R.id.sendButton)
     public void sendButtonClicked()
@@ -92,11 +141,18 @@ public class TradeRequestActivity extends BaseActivity
     private String adMax;
     private String currency;
     private String profileName;
+    private TradeType tradeType;
+    private String countryCode;
+    private String onlineProvider;
 
-    public static Intent createStartIntent(Context context, String adId, String adPrice, String adMin, String adMax, String currency, String profileName)
+    public static Intent createStartIntent(Context context, String adId, TradeType tradeType, String countryCode, String onlineProvider,
+                                           String adPrice, String adMin, String adMax, String currency, String profileName)
     {
         Intent intent = new Intent(context, TradeRequestActivity.class);
         intent.putExtra(EXTRA_AD_ID, adId);
+        intent.putExtra(EXTRA_AD_TRADE_TYPE, tradeType.name());
+        intent.putExtra(EXTRA_AD_COUNTRY_CODE, countryCode);
+        intent.putExtra(EXTRA_AD_ONLINE_PROVIDER, onlineProvider);
         intent.putExtra(EXTRA_AD_PRICE, adPrice);
         intent.putExtra(EXTRA_AD_MIN_AMOUNT, adMin);
         intent.putExtra(EXTRA_AD_MAX_AMOUNT, adMax);
@@ -116,6 +172,9 @@ public class TradeRequestActivity extends BaseActivity
 
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
+            tradeType = TradeType.valueOf(getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE));
+            countryCode = getIntent().getStringExtra(EXTRA_AD_COUNTRY_CODE);
+            onlineProvider = getIntent().getStringExtra(EXTRA_AD_ONLINE_PROVIDER);
             adPrice = getIntent().getStringExtra(EXTRA_AD_PRICE);
             adMin = getIntent().getStringExtra(EXTRA_AD_MIN_AMOUNT);
             adMax = getIntent().getStringExtra(EXTRA_AD_MAX_AMOUNT);
@@ -123,6 +182,9 @@ public class TradeRequestActivity extends BaseActivity
             profileName = getIntent().getStringExtra(EXTRA_AD_PROFILE_NAME);
         } else {
             adId = savedInstanceState.getString(EXTRA_AD_ID);
+            tradeType = TradeType.valueOf(savedInstanceState.getString(EXTRA_AD_TRADE_TYPE));
+            countryCode = savedInstanceState.getString(EXTRA_AD_COUNTRY_CODE);
+            onlineProvider = savedInstanceState.getString(EXTRA_AD_ONLINE_PROVIDER);
             adPrice = savedInstanceState.getString(EXTRA_AD_PRICE);
             adMin = savedInstanceState.getString(EXTRA_AD_MIN_AMOUNT);
             adMax = savedInstanceState.getString(EXTRA_AD_MAX_AMOUNT);
@@ -136,6 +198,10 @@ public class TradeRequestActivity extends BaseActivity
             getSupportActionBar().setTitle("Request trade with " + profileName);
         }
 
+        TextView tradeDescription = (TextView) findViewById(R.id.tradeDescription);
+        tradeDescription.setText(Html.fromHtml(getString(R.string.trade_request_description)));
+        tradeDescription.setMovementMethod(LinkMovementMethod.getInstance());
+        
         tradeAmountTitle.setText(getString(R.string.trade_request_title, currency));
         tradeLimit.setText(getString(R.string.trade_request_limit, adMin, adMax, currency));
         tradeCurrency.setText(currency);
@@ -185,6 +251,8 @@ public class TradeRequestActivity extends BaseActivity
                 }
             }
         });
+
+        showOptions();
     }
 
     @Override
@@ -208,23 +276,71 @@ public class TradeRequestActivity extends BaseActivity
         outState.putString(EXTRA_AD_MAX_AMOUNT, adMax);
         outState.putString(EXTRA_AD_CURRENCY, currency);
         outState.putString(EXTRA_AD_PROFILE_NAME, profileName);
+        outState.putString(EXTRA_AD_TRADE_TYPE, tradeType.name());
+        outState.putString(EXTRA_AD_COUNTRY_CODE, countryCode);
+        outState.putString(EXTRA_AD_ONLINE_PROVIDER, onlineProvider);
+    }
+    
+    /*
+    if(tradeType == TradeType.ONLINE_SELL) {
+            switch(onlineProvider) {
+                case TradeUtils.QIWI:
+                case TradeUtils.SWISH:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
+                    detailsPhoneNumberLayout.setVisibility(View.VISIBLE);
+                    break;
+            }
+        } else 
+     */
+    private void showOptions()
+    {
+        if (tradeType == TradeType.ONLINE_BUY) {
+            switch(onlineProvider) {
+                case TradeUtils.NATIONAL_BANK:
+                    detailsReceiverNameLayout.setVisibility(View.VISIBLE);
+                    detailsIbanLayout.setVisibility(View.VISIBLE);
+                    detailsSwiftBicLayout.setVisibility(View.VISIBLE);
+                    detailsReferenceLayout.setVisibility(View.VISIBLE);
+                    detailsMessageLayout.setVisibility(View.VISIBLE);
+                case TradeUtils.VIPPS:
+                case TradeUtils.EASYPAISA:
+                case TradeUtils.HAL_CASH:
+                case TradeUtils.QIWI:
+                case TradeUtils.SWISH:
+                    detailsPhoneNumberLayout.setVisibility(View.VISIBLE);
+                case TradeUtils.PAYPAL:
+                case TradeUtils.NETELLER:
+                case TradeUtils.INTERAC:
+                case TradeUtils.ALIPAY:
+                    detailsReceiverEmailLayout.setVisibility(View.VISIBLE);
+                    break;
+                case TradeUtils.SEPA:
+                    detailsReceiverNameLayout.setVisibility(View.VISIBLE);
+                    detailsIbanLayout.setVisibility(View.VISIBLE);
+                    detailsSwiftBicLayout.setVisibility(View.VISIBLE);
+                    detailsReferenceLayout.setVisibility(View.VISIBLE);
+                    break;
+            }
+
+            detailsMessage.setHint("Message");
+        } else {
+            detailsMessage.setHint("Message (Optional)");
+            detailsMessageLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     private void validateChangesAndSend()
     {
         String amount = editAmountText.getText().toString();
-        String message = messageText.getText().toString();
         
-        if(message.isEmpty())  {
-            message = null;
-        }
-
         boolean cancel = false;
         try{
             if (Strings.isBlank(amount)) {
                 toast("Enter a valid amount for the trade.");
                 cancel = true;
-            } else if ( Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
+            } else if (Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
                 toast("Enter an amount lower than " + adMax + " " + currency);
                 cancel = true;
             } else if (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) {
@@ -232,19 +348,73 @@ public class TradeRequestActivity extends BaseActivity
                 cancel = true;
             }
         } catch (Exception e) {
-            reportError(e);
+            Timber.e(e.getMessage());
             cancel = true;
         }
 
+        String phone = detailsPhoneNumber.getText().toString();
+        String email = detailsReceiverEmail.getText().toString();
+        String name = detailsReceiverName.getText().toString();
+        String reference = detailsReference.getText().toString();
+        String bic = detailsSwiftBic.getText().toString();
+        String iban = detailsIbanName.getText().toString();
+        String message = detailsMessage.getText().toString();
+
+        if (tradeType == TradeType.ONLINE_BUY) {
+            switch(onlineProvider) {
+                case TradeUtils.NATIONAL_BANK:
+                    if(TextUtils.isEmpty(name) || TextUtils.isEmpty(iban)
+                            || TextUtils.isEmpty(bic) || TextUtils.isEmpty(reference)
+                            || TextUtils.isEmpty(message)) {
+                        toast("Please complete all fields.");
+                        cancel = true;
+                    }
+                case TradeUtils.VIPPS:
+                case TradeUtils.EASYPAISA:
+                case TradeUtils.HAL_CASH:
+                case TradeUtils.QIWI:
+                case TradeUtils.SWISH:
+                    if(TextUtils.isEmpty(phone)) {
+                        toast("Please complete all fields.");
+                        cancel = true;
+                    }
+                case TradeUtils.PAYPAL:
+                case TradeUtils.NETELLER:
+                case TradeUtils.INTERAC:
+                case TradeUtils.ALIPAY:
+                    if(TextUtils.isEmpty(email)) {
+                        toast("Please complete all fields.");
+                        cancel = true;
+                    }
+                    break;
+                case TradeUtils.SEPA:
+                    detailsReceiverNameLayout.setVisibility(View.VISIBLE);
+                    detailsIbanLayout.setVisibility(View.VISIBLE);
+                    detailsSwiftBicLayout.setVisibility(View.VISIBLE);
+                    detailsReferenceLayout.setVisibility(View.VISIBLE);
+                    if(TextUtils.isEmpty(name) || TextUtils.isEmpty(iban)
+                            || TextUtils.isEmpty(bic) || TextUtils.isEmpty(reference)) {
+                        toast("Please complete all fields.");
+                        cancel = true;
+                    }
+                    break;
+            }
+        }
+        
         if (!cancel) {
-            sendTradeRequest(adId, amount, message);
+            sendTradeRequest(adId, amount, name, phone, email, iban, bic, reference, message);
         }
     }
 
-    public void sendTradeRequest(String adId, String amount, String message)
+    public void sendTradeRequest(String adId, String amount, String name, String phone, 
+                                 String email, String iban, String bic, String reference, String message)
     {
-        Observable<ContactRequest> contactRequestObservable = dataService.createContact(adId, amount, message);
-        contactRequestObservable
+        showProgressDialog(new ProgressDialogEvent("Sending trade request...."));
+        
+        dataService.createContact(
+                adId, tradeType, countryCode, onlineProvider,
+                amount, name, phone, email, 
+                iban, bic, reference, message)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<ContactRequest>()
@@ -252,16 +422,33 @@ public class TradeRequestActivity extends BaseActivity
                     @Override
                     public void call(ContactRequest contactRequest)
                     {
-                        snack("Contact request sent to " + profileName + "!", false);
-                        finish();
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                hideProgressDialog();
+                                toast("Trade request sent to " + profileName + "!");
+                                finish();
+                            }
+                        });
                     }
                 }, new Action1<Throwable>()
                 {
                     @Override
-                    public void call(Throwable throwable)
+                    public void call(final Throwable throwable)
                     {
-                        handleError(new Throwable("Unable to send trade request."), false);
-                    }
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                reportError(throwable);
+                                handleError(throwable);
+                            }
+                        });
+                    }  
+                    
                 });
     }
 
@@ -287,7 +474,7 @@ public class TradeRequestActivity extends BaseActivity
                 editAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
             }
         } catch (Exception e) {
-            reportError(e);
+            Timber.e(e.getMessage());
         }
     }
 
@@ -309,7 +496,7 @@ public class TradeRequestActivity extends BaseActivity
                 editAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
             }
         } catch (Exception e) {
-            reportError(e);
+            Timber.e(e.getMessage());
         }
     }
 }

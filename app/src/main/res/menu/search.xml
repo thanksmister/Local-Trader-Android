@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -17,11 +17,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:tools="http://schemas.android.com/tools"
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
-      tools:context=".EditActivity">
-
+      tools:context=".MainActivity">
+    
     <item android:id="@+id/action_location"
           android:title="My Location"
           android:icon="@drawable/ic_action_location_2"
           thanksmister:showAsAction="ifRoom"/>
-
+    
 </menu>

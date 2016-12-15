@@ -33,11 +33,13 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.zxing.android.IntentIntegrator;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
@@ -62,6 +64,7 @@ import java.util.Locale;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
+import retrofit.RetrofitError;
 import rx.functions.Action0;
 import timber.log.Timber;
 
@@ -192,6 +195,21 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setPositiveButton(android.R.string.ok, null)
+                .setCancelable(event.cancelable)
+                .show();
+    }
+    
+    public void showAlertDialogLinks(AlertDialogEvent event)
+    {
+        View view = View.inflate(BaseActivity.this, R.layout.dialog_about, null);
+        TextView textView = (TextView) view.findViewById(R.id.message);
+        textView.setText(Html.fromHtml(event.message));
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
+        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+                .setTitle(event.title)
+                .setView(view)
+                .setPositiveButton(android.R.string.ok, null)
+                .setCancelable(event.cancelable)
                 .show();
     }
 
@@ -200,6 +218,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
         new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
+                .setCancelable(event.cancelable)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener()
                 {
                     @Override
@@ -223,6 +242,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .setTitle(event.title)
                 .setCancelable(false)
                 .setMessage(Html.fromHtml(event.message))
+                .setCancelable(event.cancelable)
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener()
                 {
                     @Override
@@ -345,13 +365,20 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     protected void reportError(Throwable throwable)
     {
-        if (throwable != null && throwable.getLocalizedMessage() != null) {
-            Timber.e(throwable.getLocalizedMessage());
-            throwable.printStackTrace();
-        } else if (throwable != null && throwable instanceof NetworkOnMainThreadException) {
+        if(throwable instanceof RetrofitError) {
+            if(DataServiceUtils.isHttp400Error(throwable)) {
+                return;
+            }
+        }
+        
+        if (throwable != null && throwable instanceof NetworkOnMainThreadException) {
             NetworkOnMainThreadException exception = (NetworkOnMainThreadException) throwable;
             Timber.e(exception.getMessage());
         } else if (throwable != null) {
+            Timber.e(throwable.getMessage());
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(throwable);
+            }
             throwable.printStackTrace();
         }
     }
@@ -406,14 +433,12 @@ public abstract class BaseActivity extends RxAppCompatActivity
             RetroError error = DataServiceUtils.createRetroError(throwable);
             Timber.e("Data Error Message: " + error.getMessage());
             snack(error.getMessage(), retry);
-        } else if (throwable != null && throwable.getLocalizedMessage() != null) {
-            Timber.i("Data Error: " + throwable.getLocalizedMessage());
-            snack(throwable.getLocalizedMessage(), retry);
+        } else if (throwable != null && throwable.getMessage() != null) {
+            Timber.i("Data Error: " + throwable.getMessage());
+            snack(throwable.getMessage(), retry);
         } else {
             snack(R.string.error_unknown_error, retry);
         }
-
-        reportError(throwable);
     }
 
     protected void snack(int message, boolean retry)

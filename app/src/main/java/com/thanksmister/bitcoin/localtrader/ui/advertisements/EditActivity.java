@@ -20,6 +20,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -34,8 +35,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -44,15 +43,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationRequest;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -76,6 +79,7 @@ import com.thanksmister.bitcoin.localtrader.ui.components.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.SpinnerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
+import com.thanksmister.bitcoin.localtrader.utils.SearchUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.trello.rxlifecycle.ActivityEvent;
@@ -93,6 +97,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.Optional;
+import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import retrofit.RetrofitError;
 import rx.Observable;
 import rx.Observer;
@@ -100,10 +105,14 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
+
+import static com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService.MAX_ADDRESSES;
+import static com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment.REQUEST_CHECK_SETTINGS;
 
 public class EditActivity extends BaseActivity
 {
@@ -111,7 +120,7 @@ public class EditActivity extends BaseActivity
     public static final String EXTRA_CREATE = "com.thanksmister.extras.EXTRA_CREATE";
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
     public static final String EXTRA_ADVERTISEMENT = "com.thanksmister.extras.EXTRA_ADVERTISEMENT";
-
+    public static final int REQUEST_GOOGLE_PLAY_SERVICES = 1972;
     public static final int REQUEST_CODE = 10937;
     public static final int RESULT_UPDATED = 72322;
     public static final int RESULT_CREATED = 72323;
@@ -123,19 +132,16 @@ public class EditActivity extends BaseActivity
     ExchangeService exchangeService;
 
     @Inject
-    DbManager dbManager;
-
-    @Inject
-    BriteDatabase db;
-
-    @InjectView(R.id.swipeLayout)
-    SwipeRefreshLayout swipeLayout;
-
-    @Inject
     GeoLocationService geoLocationService;
 
     @Inject
+    DbManager dbManager;
+
+    @Inject
     LocationManager locationManager;
+
+    @Inject
+    BriteDatabase db;
 
     @Optional
     @InjectView(R.id.editToolBar)
@@ -152,21 +158,18 @@ public class EditActivity extends BaseActivity
 
     @InjectView(R.id.activeCheckBox)
     CheckBox activeCheckBox;
-
-    @InjectView(R.id.currentLocation)
-    TextView currentLocation;
-
-    @InjectView(R.id.mapLayout)
-    View mapLayout;
-
-    @InjectView(R.id.searchLayout)
-    View searchLayout;
     
     @InjectView(R.id.currencyLayout)
     View currencyLayout;
 
-    @InjectView(R.id.editLocation)
+    @InjectView(R.id.editLocationText)
     AutoCompleteTextView editLocation;
+
+    @InjectView(R.id.locationText)
+    TextView locationText;
+
+    @InjectView(R.id.editLocationLayout)
+    View editLocationLayout;
 
     @InjectView(R.id.editPriceEquation)
     EditText editPriceEquation;
@@ -228,18 +231,20 @@ public class EditActivity extends BaseActivity
     @InjectView(R.id.editContent)
     View content;
     
+    @InjectView(R.id.saveButton)
+    Button saveButton;
+    
     @OnClick(R.id.clearButton)
     public void clearButtonClicked()
     {
-        showSearchLayout();
+        showEditTextLayout();
+        editLocation.setText("");
     }
-
-    @OnClick(R.id.mapButton)
-    public void mapButtonClicked()
+    
+    @OnClick(R.id.saveButton)
+    public void saveButtonClicked()
     {
-        showMapLayout();
-        currentLocation.setText("- - - -");
-        startLocationCheck(); // get new location
+        validateChangesAndSend();
     }
 
     private boolean create;
@@ -249,8 +254,8 @@ public class EditActivity extends BaseActivity
     private AdvertisementItem advertisementItem;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
-    private Subscription geoLocalSubscription = Subscriptions.empty();
-    private Subscription geoDecodeSubscription = Subscriptions.empty();
+    private Subscription geoLocationFromNameSubscription = Subscriptions.empty();
+    private Subscription geoLocationSubscription;
     private Subscription advertisementSubscription = Subscriptions.empty();
     private Observable<List<ExchangeCurrency>> currencyObservable;
     
@@ -286,7 +291,6 @@ public class EditActivity extends BaseActivity
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle((create) ? "Post new advertisement" : "Edit advertisement");
-            setToolBarMenu(toolbar);
         }
 
         String[] typeTitles = getResources().getStringArray(R.array.list_advertisement_type_spinner);
@@ -333,9 +337,8 @@ public class EditActivity extends BaseActivity
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
             {
                 Address address1 = predictAdapter.getItem(i);
-                showMapLayout();
-                setAddress(address1);
                 editLocation.setText("");
+                setAddress(address1);
             }
         });
 
@@ -376,16 +379,24 @@ public class EditActivity extends BaseActivity
             @Override
             public void afterTextChanged(Editable editable)
             {
-
             }
         });
 
         predictAdapter = new PredictAdapter(EditActivity.this, new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
         
-        swipeLayout.setEnabled(false); // freeze swipe ability
-
         currencyObservable = exchangeService.getGlobalTickers().cache();
+
+        String addressString = SearchUtils.getSearchAddress(sharedPreferences);
+        if(!TextUtils.isEmpty(addressString) && create) {
+            Address address = SearchUtils.stringToAddress(addressString);
+            setAddress(address);
+        } else if (create) {
+            editLocationLayout.setVisibility(View.VISIBLE);
+            editLocation.requestFocus();
+        }
+
+        saveButton.setText(create? "CREATE":"UPDATE");
     }
 
     @Override
@@ -407,6 +418,8 @@ public class EditActivity extends BaseActivity
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
+        } else if (item.getItemId() == R.id.action_location) {
+            getLasKnownLocation();
         }
 
         return super.onOptionsItemSelected(item);
@@ -416,27 +429,7 @@ public class EditActivity extends BaseActivity
     public void onBackPressed() {
         cancelChanges(create);
     }
-
-    public void setToolBarMenu(Toolbar toolbar)
-    {
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener()
-        {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem)
-            {
-                switch (menuItem.getItemId()) {
-                    case android.R.id.home:
-                    case R.id.action_cancel:
-                        cancelChanges(create);
-                        return true;
-                    case R.id.action_save:
-                        validateChangesAndSend();
-                        return true;
-                }
-                return false;
-            }
-        });
-    }
+    
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -452,31 +445,43 @@ public class EditActivity extends BaseActivity
     {
         super.onResume();
 
-        if(!checkPermissions()){
-            showRequestPermissionsDialog();
+        if(!isNetworkConnected()) {
+            handleError(new Throwable(getString(R.string.error_no_internet)));
             return;
         }
 
-        if (create) {
-            if (geoLocationService.isGooglePlayServicesAvailable()) {
-                subScribeData();
-            } else {
-                startLocationCheck();
-            }
-        } else {
-            subScribeData();
+        if(!checkPlayServices()) {
+            showGoogleAPIResolveError();
+            return;
         }
+
+        subScribeData();
     }
 
     @Override
     public void onPause()
     {
         super.onPause();
+        
+        if (subscriptions != null) {
+            subscriptions.unsubscribe();
+            subscriptions = null;
+        }
+        
+        if (advertisementSubscription != null) {
+            advertisementSubscription.unsubscribe();
+            advertisementSubscription = null;
+        }
 
-        subscriptions.unsubscribe();
-        geoLocalSubscription.unsubscribe();
-        geoDecodeSubscription.unsubscribe();
-        advertisementSubscription.unsubscribe();
+        if (geoLocationSubscription != null) {
+            geoLocationSubscription.unsubscribe();
+            geoLocationSubscription = null;
+        }
+
+        if (geoLocationFromNameSubscription != null) {
+            geoLocationFromNameSubscription.unsubscribe();
+            geoLocationFromNameSubscription = null;
+        }
 
         if(progress != null)
             progress.clearAnimation();
@@ -486,57 +491,57 @@ public class EditActivity extends BaseActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
-    {
-        switch (requestCode) {
-            case Constants.REQUEST_PERMISSIONS: {
-                if (grantResults.length > 0) {
-                    boolean permissionsDenied = false;
-                    for (int permission : grantResults) {
-                        if(permission != PackageManager.PERMISSION_GRANTED) {
-                            permissionsDenied = true;
-                            break;
-                        }
-                    }
-
-                    if(permissionsDenied) {
-                        toast("Edit canceled...");
-                        setResult(RESULT_CANCELED);
-                        finish();
-                    } else {
-                        onResume(); // load our stuff
-                    }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode) {
+            case REQUEST_GOOGLE_PLAY_SERVICES:
+                if (resultCode == Activity.RESULT_OK) {
+                    //
+                } else {
+                    toast("Edit canceled...");
+                    finish();
                 }
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    protected void showEditTextLayout()
+    {
+        if(locationText.isShown()) {
+            locationText.startAnimation(AnimationUtils.loadAnimation(EditActivity.this, android.R.anim.slide_out_right));
+            editLocationLayout.startAnimation(AnimationUtils.loadAnimation(EditActivity.this, android.R.anim.slide_in_left));
+            locationText.setVisibility(View.GONE);
+            editLocationLayout.setVisibility(View.VISIBLE);
+            editLocation.requestFocus();
+            try{
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(editLocation, InputMethodManager.SHOW_IMPLICIT);
+            } catch (NullPointerException e) {
+                Timber.w("Error opening keyboard");
             }
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    public boolean checkPermissions()
+    protected void showLocationLayout()
     {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return false;
+        if(editLocationLayout.isShown()) {
+            editLocationLayout.startAnimation(AnimationUtils.loadAnimation(EditActivity.this, android.R.anim.slide_out_right));
+            locationText.startAnimation(AnimationUtils.loadAnimation(EditActivity.this, android.R.anim.slide_in_left));
+            editLocationLayout.setVisibility(View.GONE);
+            locationText.setVisibility(View.VISIBLE);
+            try{
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            } catch (NullPointerException e) {
+                Timber.w("Error closing keyboard");
             }
         }
-        return true;
-    }
-
-    public void showRequestPermissionsDialog()
-    {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required), getString(R.string.require_location_permission)), new Action0() {
-            @Override
-            public void call() {
-                ActivityCompat.requestPermissions(EditActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
-            }
-        });
     }
 
     public void subScribeData()
     {
         subscriptions = new CompositeSubscription(); // must initiate each time
-      
         subscriptions.add(dbManager.methodSubSetQuery().subscribe(new Action1<List<MethodItem>>()
         {
             @Override
@@ -547,7 +552,6 @@ public class EditActivity extends BaseActivity
         }));
 
         if (create) {
-            
             subscriptions.add(currencyObservable
                     .timeout(20, TimeUnit.SECONDS)
                     .subscribeOn(Schedulers.newThread())
@@ -556,11 +560,10 @@ public class EditActivity extends BaseActivity
                     {
                         @Override
                         public void call(List<ExchangeCurrency> currencies)
-                        {
-                            //showContent(true);
+                        {   
+                            showContent(true);
                             createAdvertisement();
                             setCurrencies(currencies, null);
-                            startLocationCheck(); // start location check
                         }
                     }, new Action1<Throwable>()
                     {
@@ -568,13 +571,13 @@ public class EditActivity extends BaseActivity
                         public void call(Throwable throwable)
                         {
                             snackError("Unable to load currencies, using default...");
+                            showContent(true);
                             createAdvertisement();
                             setCurrencies(new ArrayList<ExchangeCurrency>(), null);
                         }
                     }));
             
         } else {
-
             subscriptions.add(dbManager.advertisementItemQuery(adId).subscribe(new Action1<AdvertisementItem>()
             {
                 @Override
@@ -591,6 +594,7 @@ public class EditActivity extends BaseActivity
                 {
                     snackError("No advertisement data.");
                     reportError(throwable);
+                    finish();
                 }
             }));
         }
@@ -693,7 +697,8 @@ public class EditActivity extends BaseActivity
      */
     private void setAdvertisement(AdvertisementItem advertisement)
     {
-        currentLocation.setText(advertisement.location_string());
+        locationText.setText(advertisement.location_string());
+        showLocationLayout();
 
         liquidityCheckBox.setChecked(advertisement.track_max_amount());
         smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required());
@@ -760,7 +765,7 @@ public class EditActivity extends BaseActivity
             try {
                 marginValue = Doubles.convertToDouble(margin);
             } catch (Exception e) {
-                reportError(e);
+                Timber.e(e.getMessage());
             }
             
             double marginPercent = 1.0;
@@ -779,7 +784,7 @@ public class EditActivity extends BaseActivity
 
     public void validateChangesAndSend()
     {
-        if (create && !geoLocationService.isGooglePlayServicesAvailable()) {
+        if (create && !checkPlayServices()) {
             snackError(getString(R.string.error_no_play_services));
             return;
         }
@@ -789,7 +794,6 @@ public class EditActivity extends BaseActivity
         String max = editMaximumAmount.getText().toString();
         String equation = editPriceEquation.getText().toString();
         String accountInfo = editPaymentDetails.getText().toString();
-        String msg = messageText.getText().toString();
 
         if (TextUtils.isEmpty(equation)) {
             toast("Price equation can't be blank.");
@@ -810,7 +814,7 @@ public class EditActivity extends BaseActivity
         if (create) {
 
             if (address == null) {
-                snackError("Unable to save changes.");
+                snackError("Unable to save changes, no address set.");
                 return;
             }
           
@@ -818,12 +822,7 @@ public class EditActivity extends BaseActivity
             editedAdvertisement.currency =  ((ExchangeCurrency) currencySpinner.getSelectedItem()).getName();
             editedAdvertisement.trade_type = tradeType;
             
-            Timber.d("Trade Type: " + tradeType.name());
-            
             String onlineProvider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code();
-            
-            Timber.d("Online Provider: " + onlineProvider);
-            
             if(tradeType == TradeType.ONLINE_BUY || tradeType ==TradeType.ONLINE_SELL) {
                 editedAdvertisement.online_provider = onlineProvider;
             } else {
@@ -831,7 +830,6 @@ public class EditActivity extends BaseActivity
             }
             
         } else {
-
             if (advertisementItem == null) {
                 snackError("Unable to save changes.");
                 return;
@@ -842,15 +840,16 @@ public class EditActivity extends BaseActivity
             editedAdvertisement.ad_id = adId;
             editedAdvertisement.visible = activeCheckBox.isChecked();
         }
-
-        editedAdvertisement.message = msg;
+        
+        String msg = messageText.getText().toString();
+        if(!TextUtils.isEmpty(msg)) {
+            editedAdvertisement.message = msg;
+        }
+        
         editedAdvertisement.price_equation = equation;
         editedAdvertisement.min_amount = String.valueOf(TradeUtils.convertCurrencyAmount(min));
         editedAdvertisement.max_amount = String.valueOf(TradeUtils.convertCurrencyAmount(max));
         
-        Timber.d("Min: " +  editedAdvertisement.min_amount);
-        Timber.d("Max: " + editedAdvertisement.max_amount);
-
         // only online trades have these values
         if(tradeType == TradeType.ONLINE_BUY || tradeType ==TradeType.ONLINE_SELL) {
             editedAdvertisement.bank_name = bankName;
@@ -860,16 +859,20 @@ public class EditActivity extends BaseActivity
         editedAdvertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
         editedAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
         editedAdvertisement.trusted_required = trustedCheckBox.isChecked();
-
-        // we can only add the address if its available and it should be
+        
         if (address != null) {
-            
-            editedAdvertisement.location = TradeUtils.getAddressShort(address);
+            editedAdvertisement.location = SearchUtils.getAddressShort(address);
             editedAdvertisement.city = address.getLocality();
             editedAdvertisement.country_code = address.getCountryCode();
             editedAdvertisement.lon = address.getLongitude();
             editedAdvertisement.lat = address.getLatitude();
-            
+        }
+
+        try{
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        } catch (NullPointerException e) {
+            Timber.w("Error closing keyboard");
         }
 
         updateAdvertisement(editedAdvertisement, create);
@@ -877,29 +880,17 @@ public class EditActivity extends BaseActivity
 
     public void setAddress(Address address)
     {
-        if (address == null || currentLocation == null) return;
-
-        this.address = address;
-
-        currentLocation.setText(TradeUtils.getAddressShort(address));
+        if(address != null) {
+            this.address = address;
+            SearchUtils.setSearchAddress(sharedPreferences, SearchUtils.addressToString(address));
+            locationText.setText(SearchUtils.getAddressShort(address));
+            showLocationLayout();
+        } else {
+            this.address = null;
+            toast("Unable to set address...");
+        }
     }
-
-    public void showSearchLayout()
-    {
-        mapLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right));
-        searchLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_in_left));
-        mapLayout.setVisibility(View.GONE);
-        searchLayout.setVisibility(View.VISIBLE);
-    }
-
-    public void showMapLayout()
-    {
-        mapLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_in_left));
-        searchLayout.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right));
-        mapLayout.setVisibility(View.VISIBLE);
-        searchLayout.setVisibility(View.GONE);
-    }
-
+    
     protected void setEditLocationAdapter(PredictAdapter adapter)
     {
         if (editLocation != null)
@@ -917,180 +908,7 @@ public class EditActivity extends BaseActivity
         setResult(RESULT_CANCELED);
         finish();
     }
-
-    public void startLocationCheck()
-    {
-        if (!geoLocationService.isGooglePlayServicesAvailable()) {
-            showGooglePlayServicesError();
-            return;
-        }
-
-        if (!isNetworkConnected()) {
-            handleError(new Throwable(getString(R.string.error_no_internet)), true);
-            return;
-        }
-
-        if (hasLocationServices()) {
-            getCurrentLocation();
-        } else {
-            showEnableLocationDialog();
-        }
-    }
     
-    private void getCurrentLocation()
-    {
-        Timber.d("getCurrentLocation");
-
-        geoLocationService.getUpdatedLocation()
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Current Location subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Location>bindUntilEvent(ActivityEvent.PAUSE))
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.newThread())
-                .subscribe(new Action1<Location>()
-                {
-                    @Override
-                    public void call(final Location location)
-                    {
-
-                        runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                if(location != null) {
-                                    getAddressFromLocation(location);
-                                } else {
-                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                                }
-                            }
-                        });
-
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(final Throwable throwable)
-                    {
-
-                        runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                reportError(throwable);
-                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                            }
-                        });
-
-                    }
-                });
-    }
-
-    private void getAddressFromLocation(final Location location)
-    {
-        geoLocationService.getAddressFromLocation(location)
-                .timeout(20, TimeUnit.SECONDS, Observable.<Address>just(null))
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Get Address From Location subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Address>bindUntilEvent(ActivityEvent.PAUSE))
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.newThread())
-                .subscribe(new Action1<Address>()
-                {
-                    @Override
-                    public void call(final Address address)
-                    {
-                        runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                if(address != null) {
-                                    showContent(true);
-                                    setAddress(address);
-                                } else {
-                                    getAddressFromLocationFallback(location);
-                                }
-                            }
-                        });
-
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(final Throwable throwable)
-                    {
-                        runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                reportError(throwable);
-                                getAddressFromLocationFallback(location);
-                            }
-                        });
-
-                    }
-                });
-    }
-
-    private void getAddressFromLocationFallback(final Location location)
-    {
-        Timber.d("getAddressFromLocationFallback Location: " + location.getLongitude());
-
-        geoLocationService.getUpdatedAddressFallback(location)
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Get Address From Location Fallback subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Address>bindUntilEvent(ActivityEvent.PAUSE))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Address>()
-                {
-                    @Override
-                    public void call(Address address)
-                    {
-                        if (address != null) {
-                            showContent(true);
-                            setAddress(address);
-                        } else {
-                            handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                        }
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        reportError(throwable);
-                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                    }
-                });
-    }
-
-    private void showEnableLocationDialog()
-    {
-        createAlert(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active), false);
-    }
-
     private boolean isNetworkConnected()
     {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -1098,52 +916,6 @@ public class EditActivity extends BaseActivity
         return networkInfo != null;
     }
     
-    public void createAlert(String title, String message, final boolean googlePlay)
-    {
-        showAlertDialog(new AlertDialogEvent(title, message), new Action0()
-        {
-            @Override
-            public void call()
-            {
-                if (googlePlay) {
-                    installGooglePlayServices();
-                } else {
-                    openLocationServices();
-                }
-            }
-        }, new Action0()
-        {
-            @Override
-            public void call()
-            {
-                setResult(RESULT_CANCELED);
-                finish();
-            }
-        });
-    }
-
-    private void openLocationServices()
-    {
-        Intent viewIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-        startActivity(viewIntent);
-    }
-
-    private void installGooglePlayServices()
-    {
-        final String appPackageName = "com.google.android.gms"; // getPackageName() from Context or Activity object
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-        } catch (android.content.ActivityNotFoundException anfe) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appPackageName)));
-        }
-    }
-
-    public boolean hasLocationServices()
-    {
-        return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
-    }
-
     public void updateAdvertisement(final Advertisement advertisement, final Boolean create)
     {
         if (create) {
@@ -1291,12 +1063,22 @@ public class EditActivity extends BaseActivity
         }
     }
 
-    public void doAddressLookup(String locationName)
+    protected void doAddressLookup(String locationName)
     {
-        Observable<List<Address>> geoLocationObservable = geoLocationService.geoGetLocationFromName(locationName);
-        geoLocalSubscription = geoLocationObservable
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        Timber.d("doAddressLookup");
+
+        geoLocationFromNameSubscription = geoGetLocationFromName(locationName)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("geoGetLocationFromName Method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<Address>>bindUntilEvent(ActivityEvent.PAUSE))
+                .observeOn(Schedulers.computation())
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Address>>()
                 {
                     @Override
@@ -1323,12 +1105,69 @@ public class EditActivity extends BaseActivity
                             @Override
                             public void run()
                             {
-                                Timber.d(throwable.getLocalizedMessage());
-                                handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                try{
+                                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                                } catch (NullPointerException e) {
+                                    Timber.w("Error closing keyboard");
+                                }
+                                
+                                reportError(throwable);
+                                showAlertDialog(new AlertDialogEvent("Address Error", getString(R.string.error_unable_load_address)), new Action0()
+                                {
+                                    @Override
+                                    public void call()
+                                    {
+                                        getLasKnownLocation();
+                                    }
+                                }, new Action0()
+                                {
+                                    @Override
+                                    public void call()
+                                    {
+                                        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                                        finish();
+                                    }
+                                });
                             }
                         });
                     }
                 });
+    }
+
+    protected Observable<List<Address>> geoGetLocationFromName(final String searchQuery)
+    {
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(EditActivity.this);
+        return locationProvider.getGeocodeObservable(searchQuery, MAX_ADDRESSES);
+    }
+
+    private boolean checkPlayServices()
+    {
+        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+        int result = googleAPI.isGooglePlayServicesAvailable(EditActivity.this);
+        return result == ConnectionResult.SUCCESS;
+    }
+
+    private void showGoogleAPIResolveError()
+    {
+        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+        int result = googleAPI.isGooglePlayServicesAvailable(EditActivity.this);
+        if(googleAPI.isUserResolvableError(result)) {
+            showGooglePlayServicesError();
+        } else {
+            toast(getString(R.string.warning_no_google_play_services));
+            finish();
+        }
+    }
+
+    private void installGooglePlayServices()
+    {
+        final String appPackageName = "com.google.android.gms"; // getPackageName() from Context or Activity object
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+        } catch (android.content.ActivityNotFoundException anfe) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appPackageName)));
+        }
     }
 
     private void showGooglePlayServicesError()
@@ -1337,14 +1176,247 @@ public class EditActivity extends BaseActivity
 
         switch (result) {
             case ConnectionResult.SERVICE_MISSING:
-                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services), true);
+                showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services)), new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        installGooglePlayServices();
+                    }
+                }, new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        toast(getString(R.string.warning_no_google_play_services));
+                        finish();
+                    }
+                });
                 break;
             case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
-                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_location_active), true);
+                showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_update_google_play_services)), new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        installGooglePlayServices();
+                    }
+                }, new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        toast(getString(R.string.warning_no_google_play_services));
+                        finish();
+                    }
+                });
                 break;
             case ConnectionResult.SERVICE_DISABLED:
-                createAlert(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_disabled_google_play_services), false);
+                showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services)), new Action0()
+                        {
+                            @Override
+                            public void call()
+                            {
+                                installGooglePlayServices();
+                            }
+                        }, new Action0()
+                        {
+                            @Override
+                            public void call()
+                            {
+                                toast(getString(R.string.warning_no_google_play_services));
+                                finish();
+                            }
+                        });
                 break;
         }
     }
+
+    // ------  LOCATION SERVICES ---------
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private void getLasKnownLocation()
+    {
+        Timber.d("getLasKnownLocation");
+        
+        if(geoLocationSubscription != null)
+            return;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED 
+                    && ActivityCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                showRequestPermissionsDialog();
+                return;
+            }
+        }
+        
+        if (!hasLocationServices()) {
+            showNoLocationServicesWarning();
+            return;
+        }
+        
+        LocationRequest request = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setNumUpdates(5)
+                .setInterval(100);
+
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(EditActivity.this);
+        geoLocationSubscription = locationProvider.getUpdatedLocation(request)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("geoGetLocationFromName Method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Location>bindUntilEvent(ActivityEvent.PAUSE))
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("geoGetLocationFromName Method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Location>bindUntilEvent(ActivityEvent.DESTROY))
+                .flatMap(new Func1<Location, Observable<List<Address>>>()
+                {
+                    @Override
+                    public Observable<List<Address>> call(Location location)
+                    {
+                        try {
+                            return locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
+                                    .observeOn(Schedulers.io())
+                                    .subscribeOn(AndroidSchedulers.mainThread());
+                        } catch (Exception exception) {
+                            return Observable.just(null);
+                        }
+                    }
+                })
+                .map(new Func1<List<Address>, Address>()
+                {
+                    @Override
+                    public Address call(List<Address> addresses)
+                    {
+                        return (addresses != null && !addresses.isEmpty()) ? addresses.get(0) : null;
+                    }
+                })
+                .subscribe(new Action1<Address>()
+                {
+                    @Override
+                    public void call(final Address address)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                if (address != null) {
+                                    setAddress(address);
+                                } else {
+                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                }
+
+                                geoLocationSubscription.unsubscribe();
+                                geoLocationSubscription = null;
+                            }
+                        });
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(final Throwable throwable)
+                    {
+                        runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    reportError(throwable);
+                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+
+                                    geoLocationSubscription.unsubscribe();
+                                    geoLocationSubscription = null;
+                                }
+                            });
+                        }
+                });
+    }
+
+    private boolean hasLocationServices()
+    {
+        return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
+    }
+
+    public void showRequestPermissionsDialog()
+    {
+        showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required), getString(R.string.require_location_permission)),
+                new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+                        }
+                    }
+                }, new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                        finish();
+                    }
+                });
+    }
+
+    private void showNoLocationServicesWarning()
+    {
+        showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active)), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivityForResult(myIntent, REQUEST_CHECK_SETTINGS);
+            }
+        }, new Action0()
+        {
+            @Override
+            public void call()
+            {
+                toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                finish();
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
+    {
+        switch (requestCode) {
+            case Constants.REQUEST_PERMISSIONS: {
+                if (grantResults.length > 0) {
+                    boolean permissionsDenied = false;
+                    for (int permission : grantResults) {
+                        if (permission != PackageManager.PERMISSION_GRANTED) {
+                            permissionsDenied = true;
+                            break;
+                        }
+                    }
+
+                    if (permissionsDenied) {
+                        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                        finish();
+                    } else {
+                        getLasKnownLocation();
+                    }
+                }
+            }
+        }
+    }
+
 }

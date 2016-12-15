@@ -382,8 +382,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     @Override
                     public void call(Throwable throwable)
                     {
-                        reportError(throwable);
                         snackError("Unable to retrieve advertisement data.");
+                        reportError(throwable);
                     }
                 });
     }

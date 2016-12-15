@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -38,6 +39,8 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 
 import java.lang.reflect.Field;
 
+import javax.inject.Inject;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -47,7 +50,11 @@ public class AboutFragment extends BaseFragment
 {
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
-    
+
+    @Inject
+    SharedPreferences sharedPreferences;
+
+
     @OnClick(R.id.sendFeedbackButton)
     public void sendButtonClicked()
     {

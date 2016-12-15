@@ -20,10 +20,19 @@ public class AlertDialogEvent
 {
     public final String message;
     public final String title;
+    public final boolean cancelable;
 
     public AlertDialogEvent(final String title, final String message)
     {
         this.title = title;
         this.message = message;
+        this.cancelable = true;
+    }
+
+    public AlertDialogEvent(final String title, final String message, final boolean cancelable)
+    {
+        this.title = title;
+        this.message = message;
+        this.cancelable = cancelable;
     }
 }

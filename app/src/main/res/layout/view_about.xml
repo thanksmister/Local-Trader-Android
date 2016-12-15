@@ -102,7 +102,7 @@
                     android:layout_height="wrap_content"
                     android:padding="@dimen/view_padding"
                     android:orientation="horizontal"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                 <ImageView
                         android:layout_width="36dp"
@@ -115,7 +115,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Provide feedback"/>
+                        android:text="Contact me"/>
 
             </LinearLayout>
 

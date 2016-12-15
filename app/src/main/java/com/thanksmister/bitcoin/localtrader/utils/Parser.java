@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.utils;
 import android.net.Uri;
 
 import com.crashlytics.android.Crashlytics;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
@@ -490,8 +491,11 @@ public class Parser
         } catch (JSONException e) {
             
             Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Message", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + messageObj.toString()));
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Message", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + messageObj.toString()));
+            }
+           
         }
 
         return null;
@@ -616,8 +620,12 @@ public class Parser
         } catch (Exception e) {
            
             Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Wallet", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing wallet: " + response));
+           
+
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Wallet", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing wallet: " + response));
+            }
         }
 
         return null;
@@ -762,7 +770,7 @@ public class Parser
     public static Advertisement parseAdvertisement(String response)
     {
         JSONObject jsonObject;
-        JSONObject object;
+        JSONObject object = null;
         try {
             jsonObject = new JSONObject(response);
             object = jsonObject.getJSONObject("data");
@@ -770,11 +778,14 @@ public class Parser
             JSONArray ad_list = object.getJSONArray("ad_list");
             JSONObject obj = ad_list.getJSONObject(0);
             return parseAdvertisement(obj, null);
+            
         } catch (JSONException e) {
             Timber.e(e.getMessage());
-            Crashlytics.setString("Advertisement", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + response));
             
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Advertisement", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+            }
             return null;
         }
     }
@@ -897,8 +908,10 @@ public class Parser
         } catch (JSONException e) {
             
             Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Advertisement", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Advertisement", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+            }
         }
 
         return null;

@@ -18,12 +18,11 @@ package com.thanksmister.bitcoin.localtrader.ui.advertisements;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -61,7 +60,7 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
+public class AdvertiserActivity extends BaseActivity
 {
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
 
@@ -85,10 +84,7 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
     
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
-
-    @InjectView(R.id.swipeLayout)
-    SwipeRefreshLayout swipeLayout;
-
+    
     @InjectView(R.id.tradePrice)
     TextView tradePrice;
 
@@ -147,7 +143,6 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
     private String adId;
     
     private AdvertisementData advertisementData;
-    private Handler handler;
 
     private class AdvertisementData {
         public Advertisement advertisement;
@@ -169,9 +164,7 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
         setContentView(R.layout.view_advertiser);
 
         ButterKnife.inject(this);
-
-        handler = new Handler();
-
+        
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
         } else {
@@ -184,9 +177,8 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
             getSupportActionBar().setTitle("");
             setToolBarMenu(toolbar);
         }
-
-        swipeLayout.setOnRefreshListener(this);
-        swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+        
+        subscribeData();
     }
 
     @Override
@@ -221,8 +213,9 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
     public void onResume()
     {
         super.onResume();
-        
-        onRefreshStart();
+
+        if(toolbar != null)
+            subscribeData();
     }
 
     @Override
@@ -236,38 +229,6 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
         if(content != null)
             content.clearAnimation();
     }
-
-    @Override
-    public void onRefresh()
-    {
-        subscribeData();
-    }
-
-    public void onRefreshStop()
-    {
-        handler.removeCallbacks(refreshRunnable);
-
-        if (swipeLayout != null)
-            swipeLayout.setRefreshing(false);
-    }
-
-    public void onRefreshStart()
-    {
-        handler = new Handler();
-        handler.postDelayed(refreshRunnable, 1000);
-    }
-
-    private Runnable refreshRunnable = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            if (swipeLayout != null)
-                swipeLayout.setRefreshing(true);
-            
-            subscribeData();
-        }
-    };
     
     public void setToolBarMenu(Toolbar toolbar)
     {
@@ -350,9 +311,7 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
                     @Override
                     public void call(AdvertisementData advertisementData)
                     {
-                        onRefreshStop();
                         showContent(true);
-
                         if (TradeUtils.isOnlineTrade(advertisementData.advertisement)) {
                             setAdvertisement(advertisementData.advertisement, advertisementData.method);
                         } else {
@@ -364,7 +323,6 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
                     @Override
                     public void call(Throwable throwable)
                     {
-                        onRefreshStop();
                         reportError(throwable);
                         toast("Unable to retrieve advertisement.");
                     }
@@ -497,14 +455,19 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
                 break;
         }
 
-        toolbar.setTitle(header);
+        if(toolbar != null)
+            toolbar.setTitle(header);
     }
     
     public void showTradeRequest()
     {
         if(advertisementData == null) return;
         Advertisement advertisement = advertisementData.advertisement;
-        Intent intent = TradeRequestActivity.createStartIntent(this, advertisement.ad_id, advertisement.temp_price, advertisement.min_amount, advertisement.max_amount_available, advertisement.currency, advertisement.profile.username);
+        Intent intent = TradeRequestActivity.createStartIntent(this, advertisement.ad_id, 
+                advertisement.trade_type, advertisement.country_code, advertisement.online_provider,
+                advertisement.temp_price, advertisement.min_amount, 
+                advertisement.max_amount_available, advertisement.currency, 
+                advertisement.profile.username);
         startActivity(intent);
     }
     
@@ -535,7 +498,11 @@ public class AdvertiserActivity extends BaseActivity implements SwipeRefreshLayo
         } else {
             geoUri = "geo:0,0?q=" + advertisement.location;
         }
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
-        startActivity(intent);
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
+            startActivity(intent);
+        } catch (ActivityNotFoundException exception) {
+            toast("There is no activity to handle this action (no maps).");
+        }
     }
 }

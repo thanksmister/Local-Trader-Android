@@ -66,12 +66,6 @@
                         tools:visibility="visible"
                         android:visibility="gone"/>
 
-                <include
-                        android:id="@+id/contactLayout"
-                        layout="@layout/view_progress"
-                        android:visibility="visible"
-                        tools:visibility="gone"/>
-
             </FrameLayout>
 
         </android.support.v4.widget.SwipeRefreshLayout>

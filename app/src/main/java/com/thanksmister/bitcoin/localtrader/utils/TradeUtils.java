@@ -37,6 +37,22 @@ import java.util.List;
 
 public class TradeUtils
 {
+    public static final String PAYPAL = "PAYPAL";
+    public static final String NETELLER = "NETELLER";
+    public static final String QIWI = "QIWI";
+    public static final String SEPA = "SEPA";
+    public static final String NATIONAL_BANK = "NATIONAL_BANK";
+    public static final String BPAY = "BPAY";
+    public static final String INTERAC = "INTERAC";
+    public static final String ALIPAY = "ALIPAY";
+    public static final String EASYPAISA = "EASYPAISA";
+    public static final String HAL_CASH = "HAL_CASH";
+    public static final String SWISH = "SWISH";
+    public static final String MOBILEPAY_DANSKE_BANK_DK = "MOBILEPAY_DANSKE_BANK_DK";
+    public static final String MOBILEPAY_DANSKE_BANK = "MOBILEPAY_DANSKE_BANK";
+    public static final String MOBILEPAY_DANSKE_BANK_NO = "MOBILEPAY_DANSKE_BANK_NO";
+    public static final String VIPPS = "VIPPS";
+    
     public static String getContactDescription(ContactItem contact, Context context)
     {
         if(isCanceledTrade(contact)) {
@@ -552,11 +568,11 @@ public class TradeUtils
 
         return  addressText;
     }
-
-    // TODO unit tests
+    
+    @Deprecated
     public static String getAddressShort(Address address)
     {
-        String addressText = "No location...";
+        String addressText = "";
 
         String addressLine = "0";
         String locality = "0";

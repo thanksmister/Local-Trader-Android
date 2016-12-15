@@ -39,9 +39,10 @@
     <!-- ERRORS & WARNINGS -->
     <string name="toast_warning_no_location">Couldn\'t determine current location, using last known…</string>
     <string name="warning_no_location_active">Location services are required to use the search function, please enable location services to continue.</string>
-    <string name="warning_no_google_play_services">Google Play Services are required to use the search function, please install the services to continue.</string>
-    <string name="warning_update_google_play_services">Google Play Services are out of date, please update the services to continue.</string>
+    <string name="warning_no_google_play_services">Google Play Services are required, please install the services.</string>
+    <string name="warning_update_google_play_services">Google Play Services are out of date, please update the services.</string>
     <string name="warning_disabled_google_play_services">Google Play Services is disabled, please enable the services to continue.</string>
+    <string name="warning_required_google_play_services">Google Play Services are required to create or edit advertisements or search advertisements.</string>
     <string name="warning_no_location_services_title">Location Services</string>
     <string name="warning_no_google_play_services_title">Google Play Services</string>
     <string name="error_generic_server_down">Service temporarily down or unreachable.</string>
@@ -57,6 +58,7 @@
     <string name="error_generic_permission">You do not have permission to access this feature.</string>
     <string name="error_authentication">Authentication error, please check that your login credentials are correct.</string>
     <string name="error_data">There was an error with the data sent.</string>
+    <string name="address_no_location">No location…</string>
 
     <!-- DRAWER -->
     <array name="drawer_items">
@@ -184,7 +186,7 @@
     <string name="login_register_screen5">Create your own advertisements to buy and sell bitcoins locally or online.</string>
     <string name="login_register_screen6"><![CDATA[Register a new account or create a HMAC authentication from your <a href="https://localbitcoins.com/accounts/api/?ch=2hbo">LocalBitcoins Account</a> page or use the mirror site <a href=\"https://localbitcoins.com/accounts/api/?ch=2hbo/\">localbitcoins.net</a> for blocked regions.]]></string>
     <string name="login_register_screen1">Use HMAC security to create a unique authentication with the permissions you choose.</string>
-    <string name="login_authorizing">Authorizing…</string>
+    <string name="login_authorizing">Authenticating…</string>
     <string name="setup_form_error">Please enter a valid key and secret.</string>
 
     <!-- TRADES -->
@@ -437,8 +439,9 @@
         limitations under the License.
     ]]></string>
     <string name="error_no_play_services">No Google Play Services</string>
-    <string name="error_unable_load_address">Unable to get current address. Turn on location permissions.</string>
-    <string name="error_unable_load_address_retry">Unable to get current address, retry with WiFi enabled and turn on location permissions.</string>
+    <string name="error_unable_load_address">Unable to use the address lookup service, want to use your current location?</string>
+    <string name="error_unable_load_address_location">Unable to use the address lookup service, want to use your current location?</string>
+    <string name="error_unable_load_address_retry">Unable to use the Google address lookup service, please try again later.</string>
     <string name="error_no_trade_data">There are no trades.</string>
     <string name="dialog_logout_title">Logout</string>
     <string name="dialog_logout_message">Do you wish to logout and clear your data?</string>
@@ -447,7 +450,7 @@
     <string name="share_using">Share using:</string>
     <string name="error_invalid_credentials">The authentication failed, please check that you have the correct credentials.</string>
     <string name="message_advertisement_changed">Advertisement changed successfully!</string>
-    <string name="button_search_trades">Search Trades</string>
+    <string name="button_search_trades">Search</string>
     <string name="dialog_send_message">Sending message…</string>
     <string name="dashboard_active_trades_header">Active Trades</string>
     <string name="dashboard_advertisements_header">Advertisements</string>
@@ -485,13 +488,18 @@
     <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
     <string name="alert_permission_required">Permission Required</string>
     <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
-    <string name="setup_description"><![CDATA[For regions that may be blocked, change the default endpoint to the LocalBitcoins mirror site \"https://localbitcoins.net\".  For all others, just click "Authenticate"]]></string>
+    <string name="setup_description"><![CDATA[For regions that may be blocked, change the default endpoint to the LocalBitcoins mirror site \"https://localbitcoins.net\".]]></string>
+    <string name="setup_description_hmac"><![CDATA[Create a HMAC authentication for Local Trader from your <a href=\"https://localbitcoins.com/accounts/api/\">LocalBitcoins.com</a> account page or mirror site <a href=\"https://localbitcoins.net/accounts/api/\">Localbitcoins.net</a> with the permissions for read, write, and money_pin (optional) and enter the key/secret values here to authenticate. Only use this if Oauth2 fails for you. ]]></string>
     <string name="setup_hint_secret">SECRET</string>
     <string name="setup_hint_key">KEY</string>
-    <string name="setup_credentials">Update Service Endpoint</string>
+    <string name="setup_credentials">Authentication Settings</string>
     <string name="error_authorization">Authentication error, please verify your key and secret are correct.</string>
     <string name="authentication_success">Authentication successful for %1$s</string>
     <string name="send_form_description"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo/\">localbitcoins.net</a> for blocked regions.]]></string>
     <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
+    <string name="use_hmac_authentication">Use HMAC instead of Oauth2 Authentication</string>
+    <string name="button_authenticate">Authenticate</string>
+    <string name="trade_request_description"><![CDATA[All fields are required unless otherwise marked as optional. Please see <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">the online buying guide</a> for requirements by payment type.]]></string>
+    <string name="whats_new_message"><![CDATA[<br><br>Bug fixes and stability enhancements.<br><br>Authentication flow now better handles links.<br><br>Optional location used if address lookup from Google fails.<br><br>Removed support for HMAC authentication.<br><br>Please join the new <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>Added baked cookies to help get reviews. <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">Please submit your review now!</a>.]]></string>
 
 </resources>

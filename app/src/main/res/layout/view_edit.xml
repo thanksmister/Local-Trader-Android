@@ -21,6 +21,11 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
     <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,196 +40,176 @@
                 app:popupTheme="@style/Theme.AppCompat.Light"/>
 
     </android.support.design.widget.AppBarLayout>
-
-    <android.support.v4.widget.SwipeRefreshLayout
-            android:id="@+id/swipeLayout"
+    
+        
+    <!-- Your Scrollable View -->
+    <android.support.v4.widget.NestedScrollView
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
-        <!-- Your Scrollable View -->
-        <android.support.v4.widget.NestedScrollView
+        <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true">
+                android:layout_height="match_parent">
 
-            <FrameLayout
+            <LinearLayout
+                    android:id="@+id/editContent"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:paddingTop="@dimen/activity_padding"
+                    android:paddingBottom="@dimen/activity_padding"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
 
                 <LinearLayout
-                        android:id="@+id/editContent"
+                        android:id="@+id/advertisementTypeLayout"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:paddingTop="@dimen/activity_padding"
-                        android:paddingBottom="@dimen/activity_padding"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        tools:visibility="visible">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
-                    <LinearLayout
-                            android:id="@+id/advertisementTypeLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginLeft="@dimen/activity_padding"
-                                android:layout_marginRight="@dimen/activity_padding"
-                                android:text="I want to..."
-                                android:gravity="left"/>
-
-                        <View
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/view_padding_small"/>
-
-                        <Spinner
-                                android:id="@+id/typeSpinner"
-                                android:theme="@style/SpinnerTheme"
-                                android:layout_width="match_parent"
-                                android:layout_marginLeft="@dimen/activity_padding"
-                                android:layout_marginRight="@dimen/activity_padding"
-                                android:layout_height="match_parent"/>
-
-                        <View
-                                style="@style/DividerHorizontal"
-                                android:layout_marginBottom="@dimen/activity_padding"
-                                android:layout_marginTop="@dimen/activity_padding"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                            android:id="@+id/activeLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginLeft="@dimen/activity_padding"
-                                android:layout_marginRight="@dimen/activity_padding"
-                                android:text="Status"/>
-
-                        <View
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/view_padding_small"/>
-
-                        <CheckBox
-                                style="@style/TextLarge.SmallAction"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:id="@+id/activeCheckBox"
-                                android:gravity="center_vertical"
-                                android:layout_gravity="center_vertical"
-                                android:layout_marginLeft="@dimen/activity_padding"
-                                android:layout_marginRight="@dimen/activity_padding"
-                                android:paddingLeft="2dp"
-                                android:theme="@style/EditTextTheme"
-                                android:text="@string/ad_status_edit_description"/>
-
-                        <View
-                                style="@style/DividerHorizontal"
-                                android:layout_marginBottom="@dimen/activity_padding"
-                                android:layout_marginTop="@dimen/activity_padding"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="@dimen/activity_padding"
-                            android:orientation="vertical">
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:text="I want to..."
+                            android:gravity="left"/>
 
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/view_padding_small"/>
+
+                    <Spinner
+                            android:id="@+id/typeSpinner"
+                            android:theme="@style/SpinnerTheme"
+                            android:layout_width="match_parent"
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:layout_height="match_parent"/>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_marginBottom="@dimen/activity_padding"
+                            android:layout_marginTop="@dimen/activity_padding"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/activeLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:text="Status"/>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/view_padding_small"/>
+
+                    <CheckBox
+                            style="@style/TextLarge.SmallAction"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/activeCheckBox"
+                            android:gravity="center_vertical"
+                            android:layout_gravity="center_vertical"
+
+                            android:paddingLeft="2dp"
+                            android:theme="@style/EditTextTheme"
+                            android:text="@string/ad_status_edit_description"/>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_marginBottom="@dimen/activity_padding"
+                            android:layout_marginTop="@dimen/activity_padding"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:layout_marginRight="@dimen/activity_padding"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Location"/>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/view_padding_small"/>
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingRight="8dp">
+
+                        <FrameLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Location"/>
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:layout_weight="1">
 
-                        <View
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/view_padding_small"/>
-
-                        <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="48dp"
-                                android:orientation="horizontal">
-
-                            <FrameLayout
+                            <android.support.design.widget.TextInputLayout
+                                    android:id="@+id/editLocationLayout"
                                     android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:layout_weight="1">
+                                    android:layout_height="wrap_content"
+                                    android:theme="@style/EditTextTheme"
+                                    android:visibility="gone">
 
-                                <LinearLayout
-                                        android:id="@+id/searchLayout"
+                                <AutoCompleteTextView
+                                        android:theme="@style/EditTextTheme"
+                                        style="@style/TextMedium"
+                                        android:id="@+id/editLocationText"
                                         android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:orientation="horizontal"
-                                        android:layout_gravity="center_vertical"
-                                        android:visibility="gone">
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="center"
+                                        tools:text="Los Angeles, California, Los Angeles, United States"
+                                        tools:background="@color/blue"
+                                        android:maxLines="3"
+                                        android:hint=""/>
 
-                                    <AutoCompleteTextView
-                                            style="@style/TextMedium.Secondary"
-                                            android:theme="@style/EditTextTheme"
-                                            android:id="@+id/editLocation"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:layout_gravity="center"
-                                            android:hint="Enter address or use current location"
-                                            android:layout_weight="1"/>
+                            </android.support.design.widget.TextInputLayout>
 
-                                    <ImageButton
-                                            android:id="@+id/mapButton"
-                                            style="@style/BorderlessButtonStyle"
-                                            android:contentDescription="@string/desc"
-                                            android:layout_height="match_parent"
-                                            android:layout_width="48dp"
-                                            android:src="@drawable/ic_action_location_2"
-                                            android:layout_gravity="center"
-                                            android:layout_weight="0"/>
+                            <TextView
+                                    style="@style/TextMedium"
+                                    android:id="@+id/locationText"
+                                    android:paddingTop="16dp"
+                                    android:paddingLeft="0dp"
+                                    android:paddingRight="4dp"
+                                    android:paddingBottom="16dp"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:singleLine="false"
+                                    android:maxLines="3"
+                                    tools:text="Los Angeles, California, Los Angeles, United States"
+                                    android:visibility="visible"/>
 
-                                </LinearLayout>
+                        </FrameLayout>
 
-                                <LinearLayout
-                                        android:id="@+id/mapLayout"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent"
-                                        android:orientation="horizontal"
-                                        android:visibility="visible">
-
-                                    <TextView
-                                            style="@style/TextLarge.SmallAction"
-                                            android:id="@+id/currentLocation"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:maxLines="2"
-                                            android:ellipsize="end"
-                                            android:text="- - - -"
-                                            android:layout_gravity="center_vertical"
-                                            android:textIsSelectable="true"
-                                            android:layout_weight="1"/>
-
-
-                                    <ImageButton
-                                            style="@style/BorderlessButtonStyle"
-                                            android:id="@+id/clearButton"
-                                            android:contentDescription="@string/desc"
-                                            android:layout_height="match_parent"
-                                            android:layout_width="48dp"
-                                            android:layout_gravity="center_vertical"
-                                            android:src="@drawable/ic_action_content_clear"
-                                            android:layout_weight="0"/>
-
-                                </LinearLayout>
-
-                            </FrameLayout>
-
-                        </LinearLayout>
+                        <ImageButton
+                                style="@style/BorderlessButtonStyle"
+                                android:id="@+id/clearButton"
+                                android:contentDescription="@string/desc"
+                                android:layout_height="36dp"
+                                android:layout_width="36dp"
+                                android:layout_gravity="center_vertical"
+                                android:src="@drawable/ic_action_content_clear"
+                                android:layout_weight="0"/>
 
                     </LinearLayout>
 
@@ -473,15 +458,6 @@
                                     android:layout_marginBottom="2dp"/>
 
                         </LinearLayout>
-
-                        <!--<TextView
-                                style="@style/TextSmall.Light"
-                                android:layout_height="wrap_content"
-                                android:layout_width="match_parent"
-                                android:text="@string/min_description_edit_text"
-                                android:linksClickable="true"
-                                android:autoLink="web"
-                                android:textColorLink="@color/body_text_blue_1"/>-->
 
                     </LinearLayout>
 
@@ -832,16 +808,32 @@
 
                 </LinearLayout>
 
-                <include
-                        android:id="@+id/editProgress"
-                        layout="@layout/view_progress"
-                        android:visibility="visible"
-                        tools:visibility="visible"/>
+            </LinearLayout>
 
-            </FrameLayout>
+            <include
+                    android:id="@+id/editProgress"
+                    layout="@layout/view_progress"
+                    android:visibility="visible"
+                    tools:visibility="visible"/>
 
-        </android.support.v4.widget.NestedScrollView>
+        </FrameLayout>
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+    <View
+            android:id="@+id/divider"
+            android:background="?android:attr/dividerHorizontal"
+            android:layout_height="1dp"
+            android:layout_width="match_parent"/>
+    
+    <Button
+            style="@style/ButtonGreen.Small"
+            android:id="@+id/saveButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:textAllCaps="true"
+            android:text="Update"/>
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

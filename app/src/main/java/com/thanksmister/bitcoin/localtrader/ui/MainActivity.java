@@ -158,6 +158,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
             if(!authenticated) {
                 launchPromoScreen();
                 return;
+            } else if(AuthUtils.showUpgradedMessage(getApplicationContext(), sharedPreferences)) {
+                String title = "What's new in " + AuthUtils.getCurrentVersionName(getApplicationContext(), sharedPreferences);
+                showAlertDialogLinks(new AlertDialogEvent(title, getString(R.string.whats_new_message)));
+                AuthUtils.setUpgradeVersion(getApplicationContext(), sharedPreferences);
             }
         }
 
