@@ -269,68 +269,27 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="@dimen/activity_padding"
-            android:paddingRight="@dimen/activity_padding"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
         <TextView
                 style="@style/TextSmall"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_marginLeft="@dimen/activity_padding"
                 android:gravity="left|center_vertical"
                 android:text="Messages"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-            android:id="@+id/messagesLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="@dimen/activity_padding"
-            android:orientation="vertical">
-
-        <LinearLayout
-                android:layout_width="match_parent"
+        
+        <ImageButton
+                android:id="@+id/messageButton"
+                style="@style/BorderlessButtonStyle"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="8dp"
-                android:orientation="horizontal">
-
-            <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:layout_weight="1">
-
-                <EditText
-                        android:id="@+id/newMessageText"
-                        android:theme="@style/EditTextTheme"
-                        style="@style/TextMedium.Secondary"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textMultiLine"
-                        android:lines="4"
-                        android:minLines="1"
-                        android:gravity="left|center_vertical"
-                        android:hint="@string/hint_send_message"/>
-
-            </FrameLayout>
-
-            <ImageButton
-                    android:contentDescription="@string/desc"
-                    style="@style/BorderlessButtonStyle"
-                    android:id="@+id/sendMessage"
-                    android:layout_width="48dp"
-                    android:layout_marginTop="4dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="right|center"
-                    android:src="@drawable/ic_action_send_dark"/>
-
-        </LinearLayout>
+                android:layout_weight="0"
+                android:src="@drawable/ic_action_new_message_dark"/>
 
     </LinearLayout>
-
 
 </LinearLayout>
 

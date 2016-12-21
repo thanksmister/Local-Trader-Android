@@ -534,10 +534,14 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     private void viewOnlineAdvertisement()
     {
         if (advertisementData == null) return;
-        ;
-        AdvertisementItem advertisement = advertisementData.advertisement;
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.action_public_view()));
-        startActivity(intent);
+      
+        try {
+            AdvertisementItem advertisement = advertisementData.advertisement;
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.action_public_view()));
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+           toast(getString(R.string.toast_error_no_installed_ativity));
+        }
     }
 
     private void deleteAdvertisement()

@@ -122,7 +122,7 @@ public abstract class AdvertisementItem implements Parcelable
     public abstract String profile_trade_count();
     public abstract String profile_last_online();
     public abstract String profile_feedback_score();
-    public abstract String bank_name();
+    @Nullable public abstract String bank_name();
     @Nullable public abstract String message();
     public abstract boolean sms_verification_required();
     public abstract boolean track_max_amount();

@@ -90,6 +90,11 @@
                   android:screenOrientation="portrait"
                   android:windowSoftInputMode="stateHidden"
                   android:configChanges="locale"/>
+
+        <activity android:name=".ui.contacts.MessageActivity"
+                  android:screenOrientation="portrait"
+                  android:windowSoftInputMode="stateHidden"
+                  android:configChanges="locale"/>
                 
         <activity
             android:name=".ui.advertisements.AdvertisementActivity"

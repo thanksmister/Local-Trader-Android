@@ -502,7 +502,7 @@ public class AdvertiserActivity extends BaseActivity
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
             startActivity(intent);
         } catch (ActivityNotFoundException exception) {
-            toast("There is no activity to handle this action (no maps).");
+            toast(getString(R.string.toast_error_no_installed_ativity));
         }
     }
 }

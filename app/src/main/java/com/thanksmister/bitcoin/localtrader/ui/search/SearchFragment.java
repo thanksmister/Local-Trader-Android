@@ -525,11 +525,39 @@ public class SearchFragment extends BaseFragment
     public void setAddress(Address address)
     {
         if (address != null) {
-            SearchUtils.setSearchAddress(sharedPreferences, SearchUtils.addressToString(address));
-            locationText.setText(SearchUtils.getAddressShort(address));
-            searchButton.setEnabled(true);
-            showLocationLayout();
+            String addressString = SearchUtils.addressToString(address);
+            if(addressString == null) {
+                showAddressError();
+            } else {
+                SearchUtils.setSearchAddress(sharedPreferences, addressString);
+                locationText.setText(SearchUtils.getAddressShort(address));
+                searchButton.setEnabled(true);
+                showLocationLayout();
+            }
+        } else {
+            showAddressError();
         }
+    }
+
+    private void showAddressError()
+    {
+        // TODO allow lat lon manually entered
+        showAlertDialog(new AlertDialogEvent("Address Error", getString(R.string.error_dialog_bad_address)), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                getLasKnownLocation();
+            }
+        }, new Action0()
+        {
+            @Override
+            public void call()
+            {
+                showEditTextLayout();
+                editLocation.setText("");
+            }
+        });
     }
 
     protected void showEditTextLayout()
@@ -617,7 +645,7 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(Throwable throwable)
                     {
-                        reportError(throwable);
+                        handleError(throwable);
                         dataServiceSubscription = null;
                     }
                 });

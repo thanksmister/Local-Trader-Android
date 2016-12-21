@@ -415,7 +415,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
                     public void call(Throwable throwable)
                     {
                         onRefreshStop();
-                        reportError(throwable);
+                        handleError(throwable);
                     }
                 }));
     }

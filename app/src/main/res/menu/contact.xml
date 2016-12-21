@@ -19,6 +19,11 @@
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
       tools:context=".MainActivity">
 
+    <item android:id="@+id/action_send"
+          android:title="@string/menu_action_send_message"
+          android:icon="@drawable/ic_action_new_message"
+          thanksmister:showAsAction="withText|always"/>
+
     <item android:id="@+id/action_profile"
           android:title="@string/menu_action_profile"
           android:icon="@drawable/ic_action_social_person"

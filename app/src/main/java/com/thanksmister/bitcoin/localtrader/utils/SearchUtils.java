@@ -27,6 +27,8 @@ import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
+import timber.log.Timber;
+
 public class SearchUtils
 {
     private static final String PREFS_SEARCH_ADDRESS = "searchAddress";
@@ -51,20 +53,26 @@ public class SearchUtils
             addressLine = address.getAddressLine(0);
         }
         
-        if(!TextUtils.isEmpty(addressLine)) {
-            return addressLine
-                    + "|" + address.getLocality()
+        try {
+            if(!TextUtils.isEmpty(addressLine)) {
+                return addressLine
+                        + "|" + address.getLocality()
+                        + "|" + address.getCountryCode()
+                        + "|" + address.getCountryName()
+                        + "|" + address.getLongitude()
+                        + "|" + address.getLatitude();
+            }
+
+            return address.getLocality()
                     + "|" + address.getCountryCode()
                     + "|" + address.getCountryName()
                     + "|" + address.getLongitude()
                     + "|" + address.getLatitude();
+            
+        } catch (IllegalStateException e) {
+            Timber.e(e, "Address has no lat/lon: " + address.toString());
+            return null;
         }
-
-        return address.getLocality()
-                + "|" + address.getCountryCode()
-                + "|" + address.getCountryName()
-                + "|" + address.getLongitude()
-                + "|" + address.getLatitude();
     }
 
     public static Address stringToAddress(String value)

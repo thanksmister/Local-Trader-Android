@@ -119,6 +119,7 @@
     <string name="menu_action_visibility">Visibility</string>
     <string name="menu_action_scan">Scan</string>
     <string name="menu_action_send">Send</string>
+    <string name="menu_action_send_message">Message</string>
     <string name="menu_action_copy">COPY</string>
     <string name="menu_action_delete">Delete</string>
     <string name="menu_action_edit">Edit</string>
@@ -489,7 +490,7 @@
     <string name="alert_permission_required">Permission Required</string>
     <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
     <string name="setup_description"><![CDATA[For regions that may be blocked, change the default endpoint to the LocalBitcoins mirror site \"https://localbitcoins.net\".]]></string>
-    <string name="setup_description_hmac"><![CDATA[Create a HMAC authentication for Local Trader from your <a href=\"https://localbitcoins.com/accounts/api/\">LocalBitcoins.com</a> account page or mirror site <a href=\"https://localbitcoins.net/accounts/api/\">Localbitcoins.net</a> with the permissions for read, write, and money_pin (optional) and enter the key/secret values here to authenticate. Only use this if Oauth2 fails for you. ]]></string>
+    <string name="setup_description_hmac"><![CDATA[Create a HMAC authentication for Local Trader from your <a href=\"https://localbitcoins.com/accounts/api/?ch=2hbo\">LocalBitcoins.com</a> account page or mirror site <a href=\"https://localbitcoins.net/accounts/api/\">Localbitcoins.net</a> with the permissions for read, write, and money_pin (optional) and enter the key/secret values here to authenticate. Only use this if Oauth2 fails for you.]]></string>
     <string name="setup_hint_secret">SECRET</string>
     <string name="setup_hint_key">KEY</string>
     <string name="setup_credentials">Authentication Settings</string>
@@ -500,6 +501,9 @@
     <string name="use_hmac_authentication">Use HMAC instead of Oauth2 Authentication</string>
     <string name="button_authenticate">Authenticate</string>
     <string name="trade_request_description"><![CDATA[All fields are required unless otherwise marked as optional. Please see <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">the online buying guide</a> for requirements by payment type.]]></string>
-    <string name="whats_new_message"><![CDATA[<br><br>Bug fixes and stability enhancements.<br><br>Authentication flow now better handles links.<br><br>Optional location used if address lookup from Google fails.<br><br>Removed support for HMAC authentication.<br><br>Please join the new <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>Added baked cookies to help get reviews. <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">Please submit your review now!</a>.]]></string>
+    <string name="whats_new_message"><![CDATA[<br><br>More bug fixes and stability enhancements just in time for the holidays.<br><br>Please join the new <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review as a gift for the holidays!</a>.]]></string>
+    <string name="dialog_missing_activity">You don\'t have an application to handle web urls. Please visit https://localbitcoins.com/register/?ch=2hbo/ to register.</string>
+    <string name="error_dialog_bad_address">That address is invalid, enter a different address (like just country or city) or use your location. Want to use your current location?</string>
+    <string name="toast_error_no_installed_ativity">There is no installed application to handle the request.</string>
 
 </resources>

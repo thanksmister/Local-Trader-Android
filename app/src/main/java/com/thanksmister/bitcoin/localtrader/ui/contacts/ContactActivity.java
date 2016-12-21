@@ -33,19 +33,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
 import android.text.Html;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -56,6 +52,7 @@ import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -82,6 +79,7 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -124,8 +122,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private View contactHeaderLayout;
     private TextView dealPrice;
     private Button contactButton;
-    private ImageButton sendMessage;
-    private EditText newMessageText;
     private MessageAdapter adapter;
     private String message;
 
@@ -134,12 +130,13 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     private DownloadManager downloadManager;
     private MenuItem cancelItem;
     private MenuItem disputeItem;
-
+    
     private boolean messageScroll = false;
     private Handler handler;
 
     private Subscription subscription = Subscriptions.empty();
     private CompositeSubscription updateSubscription = new CompositeSubscription();
+    private Subscription advertisementSubscription = Subscriptions.empty();
 
     public static Intent createStartIntent(Context context, String contactId)
     {
@@ -176,7 +173,16 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
         View headerView = View.inflate(this, R.layout.view_contact_header, null);
-
+        ImageButton messageButton = (ImageButton) headerView.findViewById(R.id.messageButton);
+        messageButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                sendNewMessage();
+            }
+        });
+        
         tradePrice = (TextView) headerView.findViewById(R.id.tradePrice);
         tradeAmount = (TextView) headerView.findViewById(R.id.tradeAmount);
         traderName = (TextView) headerView.findViewById(R.id.traderName);
@@ -187,17 +193,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         dealPrice = (TextView) headerView.findViewById(R.id.dealPrice);
         lastSeenIcon = headerView.findViewById(R.id.lastSeenIcon);
         contactHeaderLayout = headerView.findViewById(R.id.contactHeaderLayout);
-
-        sendMessage = (ImageButton) headerView.findViewById(R.id.sendMessage);
-        sendMessage.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                validateMessage(message);
-            }
-        });
-
+        
         buttonLayout = findViewById(R.id.buttonLayout);
         contactButton = (Button) findViewById(R.id.contactButton);
         contactButton.setOnClickListener(new View.OnClickListener()
@@ -216,27 +212,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                 }
             }
         });
-
-        newMessageText = (EditText) headerView.findViewById(R.id.newMessageText);
-        newMessageText.addTextChangedListener(new TextWatcher()
-        {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable)
-            {
-                message = editable.toString();
-            }
-        });
-
+        
         content.addHeaderView(headerView, null, false);
         content.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
@@ -283,6 +259,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     {
         super.onPause();
 
+        advertisementSubscription.unsubscribe();
         updateSubscription.unsubscribe();
         subscription.unsubscribe();
         
@@ -319,8 +296,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        Timber.d("onCreateOptionsMenu");
-        
         if (toolbar != null)
             toolbar.inflateMenu(R.menu.contact);
         
@@ -384,6 +359,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             releaseTradeWithPin(pinCode);
         } else if (resultCode == PinCodeActivity.RESULT_CANCELED) {
             toast(R.string.toast_pin_code_canceled);
+        } else if (resultCode == MessageActivity.RESULT_MESSAGE_SENT) {
+            toast(R.string.toast_message_sent);
+            onRefreshStart();
+            updateData();
+        } else if (resultCode == MessageActivity.RESULT_MESSAGE_CANCELED) {
+            toast("Message canceled...");
         }
     }
 
@@ -396,6 +377,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             {
 
                 switch (menuItem.getItemId()) {
+                    case R.id.action_send:
+                        sendNewMessage();
+                        return true;
                     case R.id.action_profile:
                         showProfile();
                         return true;
@@ -650,35 +634,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         content.setAdapter(adapter);
     }
 
-    private void validateMessage(String message)
-    {
-        if (Strings.isBlank(message)) {
-            return;
-        }
-
-        postMessage(message);
-    }
-
-    public void resetMessageAndRefresh()
-    {
-        message = null;
-        newMessageText.setText("");
-        messageScroll = true; // tells our system to scroll when loading new messages
-
-        // hide keyboard and notify
-        try{
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-        } catch (NullPointerException e) {
-            Timber.e("Error closing keyboard");
-        }
-        
-        toast(R.string.toast_message_sent);
-
-        onRefreshStart();
-        updateData();
-    }
-
     public void downloadAttachment(final MessageItem message)
     {
         final String key = AuthUtils.getHmacKey(sharedPreferences);
@@ -712,58 +667,9 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             i.setAction(DownloadManager.ACTION_VIEW_DOWNLOADS);
             startActivity(i); 
         } catch (ActivityNotFoundException exception ) {
-            snack("No application installed to handle the download file.", false);
+            toast(getString(R.string.toast_error_no_installed_ativity));
         }
         
-    }
-
-    public void postMessage(String message)
-    {
-        showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_send_message)));
-
-        dataService.postMessage(contactId, message)
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Post message subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<JSONObject>()
-                {
-                    @Override
-                    public void call(JSONObject jsonObject)
-                    {
-                        runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                hideProgressDialog();
-                                resetMessageAndRefresh();
-                            }
-                        });
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                hideProgressDialog();
-                                toast(R.string.toast_error_message);
-                            }
-                        });
-                    }
-                });
     }
 
     public void disputeContact()
@@ -787,7 +693,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     public void releaseTrade()
     {
         Intent intent = PinCodeActivity.createStartIntent(ContactActivity.this);
-        startActivityForResult(intent, PinCodeActivity.RESULT_VERIFIED);
+        startActivityForResult(intent, PinCodeActivity.REQUEST_CODE);
     }
 
     public void releaseTradeWithPin(String pinCode)
@@ -891,26 +797,74 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             toast(R.string.message_copied_toast);
         }
     }
+    
+    private void sendNewMessage()
+    {
+        if(contact != null) {
+            String contactName = (contact.is_buying()) ? contact.seller_username() : contact.buyer_username();
+            startActivityForResult(MessageActivity.createStartIntent(ContactActivity.this, contactId, contactName), MessageActivity.REQUEST_MESSAGE_CODE);
+        }
+    }
 
     public void showProfile()
     {
         if (contact == null) {
             return;
         }
-        
-        String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying()) ? contact.seller_username() : contact.buyer_username()) + "/";
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        startActivity(browserIntent);
+
+        try {
+            String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying()) ? contact.seller_username() : contact.buyer_username()) + "/";
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
+        } catch (ActivityNotFoundException e) {
+            toast(getString(R.string.toast_error_no_installed_ativity));
+        }
     }
 
     public void showAdvertisement()
     {
-        if (contact == null) {
+        if (contact == null) 
             return;
-        }
-        
-        Intent intent = AdvertisementActivity.createStartIntent(this, contact.advertisement_id());
+
+        Observable<AdvertisementItem> updateAdvertisementObservable = dbManager.advertisementItemQuery(contact.advertisement_id());
+        advertisementSubscription = updateAdvertisementObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<AdvertisementItem>()
+                {
+                    @Override
+                    public void call(AdvertisementItem advertisement)
+                    {
+                        if(advertisement != null) {
+                            loadAdvertisementView(contact);
+                        } else {
+                            launchAdvertisementLink(contact);
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        launchAdvertisementLink(contact);
+                    }
+                });
+    }
+    
+    private void loadAdvertisementView(ContactItem contact)
+    {
+        Intent intent = AdvertisementActivity.createStartIntent(ContactActivity.this, contact.advertisement_id());
         startActivity(intent);
+    }
+    
+    private void launchAdvertisementLink(ContactItem contact)
+    {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(contact.advertisement_public_view()));
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            toast(getString(R.string.toast_error_no_installed_ativity));
+        }
     }
 
     protected void setTitle(Contact contact)
@@ -927,7 +881,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                 break;
         }
 
-        getSupportActionBar().setTitle(title);
+        if(getSupportActionBar() != null)
+            getSupportActionBar().setTitle(title);
     }
 
     private BroadcastReceiver receiver = new BroadcastReceiver()

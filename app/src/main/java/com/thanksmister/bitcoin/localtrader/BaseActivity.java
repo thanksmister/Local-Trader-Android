@@ -62,6 +62,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
 
 import javax.inject.Inject;
+import javax.net.ssl.SSLHandshakeException;
 
 import butterknife.ButterKnife;
 import retrofit.RetrofitError;
@@ -368,7 +369,14 @@ public abstract class BaseActivity extends RxAppCompatActivity
         if(throwable instanceof RetrofitError) {
             if(DataServiceUtils.isHttp400Error(throwable)) {
                 return;
+            } else if (DataServiceUtils.isHttp500Error(throwable)) {
+                return;
             }
+        }
+        
+        if(throwable instanceof SSLHandshakeException) {
+            Timber.e(throwable.getMessage());
+            return;
         }
         
         if (throwable != null && throwable instanceof NetworkOnMainThreadException) {

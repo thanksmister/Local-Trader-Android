@@ -880,15 +880,41 @@ public class EditActivity extends BaseActivity
 
     public void setAddress(Address address)
     {
-        if(address != null) {
-            this.address = address;
-            SearchUtils.setSearchAddress(sharedPreferences, SearchUtils.addressToString(address));
-            locationText.setText(SearchUtils.getAddressShort(address));
-            showLocationLayout();
+        if (address != null) {
+            String addressString = SearchUtils.addressToString(address);
+            if(addressString == null) {
+                showAddressError();
+            } else {
+                this.address = address;
+                SearchUtils.setSearchAddress(sharedPreferences, addressString);
+                locationText.setText(SearchUtils.getAddressShort(address));
+                showLocationLayout();
+            }
         } else {
             this.address = null;
-            toast("Unable to set address...");
+            showAddressError();
         }
+    }
+    
+    private void showAddressError()
+    {
+        showAlertDialog(new AlertDialogEvent("Address Error", getString(R.string.error_dialog_bad_address)), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                getLasKnownLocation();
+            }
+        }, new Action0()
+        {
+            @Override
+            public void call()
+            {
+                address = null;
+                showEditTextLayout();
+                editLocation.setText("");
+            }
+        });
     }
     
     protected void setEditLocationAdapter(PredictAdapter adapter)

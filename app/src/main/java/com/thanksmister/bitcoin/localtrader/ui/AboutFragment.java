@@ -30,6 +30,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
@@ -64,7 +65,7 @@ public class AboutFragment extends BaseFragment
     @OnClick(R.id.tipBitcoinButton)
     public void tipButtonClicked()
     {
-        tipMe();
+        blockchainTipMe();
     }
 
     @OnClick(R.id.rateApplicationButton)
@@ -171,17 +172,6 @@ public class AboutFragment extends BaseFragment
         }
     }
 
-    protected void tipMe()
-    {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("bitcoin:" + Constants.BITCOIN_ADDRESS + "?amount=" + ".01")));
-        } catch (android.content.ActivityNotFoundException ex) {
-            blockchainTipMe();
-        } catch (Exception e) {
-            Timber.e(e.getLocalizedMessage());
-        }
-    }
-
     protected void blockchainTipMe()
     {
         try {
@@ -209,7 +199,7 @@ public class AboutFragment extends BaseFragment
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.reddit.com/r/LocalTrader/")));
         } catch (android.content.ActivityNotFoundException ex) {
-            blockchainTipMe();
+            Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Timber.e(e.getLocalizedMessage());
         }

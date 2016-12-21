@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -108,9 +109,15 @@ public class PromoActivity extends BaseActivity
     
     public void showRegistration()
     {
-        String url = Constants.REGISTRATION_URL;
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        getContext().startActivity(browserIntent);
+        try {
+            String url = Constants.REGISTRATION_URL;
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            getContext().startActivity(browserIntent);
+        } catch (ActivityNotFoundException e) {
+            showAlertDialogLinks(new AlertDialogEvent("Link Error",
+                    getString(R.string.toast_error_no_installed_ativity)));
+        }
+        
     }
     
     public Context getContext()
