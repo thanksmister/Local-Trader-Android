@@ -854,9 +854,6 @@ public class SearchFragment extends BaseFragment
     {
         Timber.d("getLasKnownLocation");
         
-        if(geoLocationSubscription != null)
-            return;
-        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 showRequestPermissionsDialog();
@@ -871,7 +868,7 @@ public class SearchFragment extends BaseFragment
         
         LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setNumUpdates(5)
+                .setNumUpdates(3)
                 .setInterval(100);
 
         final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());
@@ -924,8 +921,10 @@ public class SearchFragment extends BaseFragment
                                         handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
                                     }
 
-                                    geoLocationSubscription.unsubscribe();
-                                    geoLocationSubscription = null;
+                                    if(geoLocationSubscription != null) {
+                                        geoLocationSubscription.unsubscribe();
+                                        geoLocationSubscription = null; 
+                                    }
                                 }
                             });
                         }
@@ -943,8 +942,11 @@ public class SearchFragment extends BaseFragment
                                 {
                                     reportError(throwable);
                                     handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
-                                    geoLocationSubscription.unsubscribe();
-                                    geoLocationSubscription = null;
+                                    
+                                    if(geoLocationSubscription != null) {
+                                        geoLocationSubscription.unsubscribe();
+                                        geoLocationSubscription = null;
+                                    }
                                 }
                             });
                         }

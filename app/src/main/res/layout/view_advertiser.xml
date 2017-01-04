@@ -405,7 +405,6 @@
                             android:paddingLeft="@dimen/activity_padding"
                             android:paddingRight="@dimen/activity_padding"
                             android:paddingBottom="@dimen/activity_padding"
-                            android:autoLink="all"
                             android:textIsSelectable="true"/>
 
 

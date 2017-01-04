@@ -226,9 +226,13 @@ public class MessagesFragment extends BaseFragment
     
     protected void showContact(RecentMessageItem recentMessage)
     {
-        Intent intent = ContactActivity.createStartIntent(getActivity(), recentMessage.contact_id());
-        intent.setClass(getActivity(), ContactActivity.class);
-        startActivity(intent);
+        if(recentMessage != null) {
+            Intent intent = ContactActivity.createStartIntent(getActivity(), recentMessage.contact_id());
+            intent.setClass(getActivity(), ContactActivity.class);
+            startActivity(intent);
+        } else {
+            toast("Error opening contact...");
+        }
     }
 
     protected void createAdvertisementScreen()

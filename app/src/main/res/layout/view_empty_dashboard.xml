@@ -39,7 +39,7 @@
             android:paddingBottom="8dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="You can buy or sell Bitcoin by searching for traders in your local area or creating your own advertisement."/>
+            android:text="You can buy or sell Bitcoin by searching for traders in your local area or creating your own trade."/>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -67,7 +67,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:layout_weight="1"
-                android:text="Advertise"/>
+                android:text="Post Trade"/>
 
     </LinearLayout>
 

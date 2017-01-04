@@ -575,6 +575,8 @@ public class LoginActivity extends BaseActivity
                 try {
                     final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                     startActivity(intent);
+                } catch (SecurityException e) {
+                    showAlertDialog(new AlertDialogEvent("Security Error", "It appears your traffic is being rerouted, you may want to try LocalBitcions.net. Here is the information: " + e.getMessage()));
                 } catch (ActivityNotFoundException e) {
                     toast("Can't open external links from authentication flow.");
                 }

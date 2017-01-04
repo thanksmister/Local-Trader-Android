@@ -24,7 +24,8 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 32;
+    private static final int DATABASE_VERSION = 33;
+    private static final int DATABASE_FIRST_TIME_BTC_LIMIT = 32;
     private static final int DATABASE_VERSION_TRANSACTIONS = 29;
     private static final int DATABASE_VERSION_MESSAGES = 25;
     private static final int CONTACT_VERSION_MESSAGES = 27;
@@ -171,6 +172,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     AdvertisementItem.ATM_MODEL + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.REQUIRE_FEEDBACK_SCORE + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.REQUIRE_TRADE_VOLUME + TYPE_TEXT + COMMA_SEP +
+                    AdvertisementItem.FIRST_TIME_LIMIT_BTC + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.REFERENCE_TYPE + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.CURRENCY + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.ACCOUNT_INFO + TYPE_TEXT + COMMA_SEP +
@@ -188,6 +190,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     AdvertisementItem.PROFILE_FEEDBACK_SCORE + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.PROFILE_TRADE_COUNT + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.TRUSTED_REQUIRED + TYPE_INTEGER + COMMA_SEP +
+                    AdvertisementItem.REQUIRE_IDENTIFICATION + TYPE_INTEGER + COMMA_SEP +
                     AdvertisementItem.MESSAGE + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.TRACK_MAX_AMOUNT + TYPE_INTEGER + COMMA_SEP +
                     AdvertisementItem.BANK_NAME + TYPE_TEXT + ")";
@@ -251,6 +254,20 @@ public class DbOpenHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
         if (oldVersion < newVersion) {
+            final String ALTER_TBL =
+                    "ALTER TABLE " + AdvertisementItem.TABLE +
+                            " ADD COLUMN " + AdvertisementItem.FIRST_TIME_LIMIT_BTC + TYPE_TEXT;
+
+            db.execSQL(ALTER_TBL);
+            
+            final String ALTER_TBL1 =
+                    "ALTER TABLE " + AdvertisementItem.TABLE +
+                            " ADD COLUMN " + AdvertisementItem.REQUIRE_IDENTIFICATION + TYPE_INTEGER;
+
+            db.execSQL(ALTER_TBL1);
+        }
+        
+        if (oldVersion < DATABASE_FIRST_TIME_BTC_LIMIT) {
             db.execSQL("DROP TABLE IF EXISTS session_table");
             db.execSQL(CREATE_RECENT_MESSAGES);
         }

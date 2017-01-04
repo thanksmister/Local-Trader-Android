@@ -48,6 +48,10 @@ public class Advertisement
     public boolean sms_verification_required = false;
     public boolean trusted_required = false;
     public boolean require_identification = false;
+    public boolean require_trusted_by_advertiser = false;
+    public boolean is_local_office = false;
+    public boolean hidden_by_opening_hours = false;
+    public boolean is_low_risk = false;
     
     public String online_provider;
     public Profile profile = new Profile();
@@ -57,6 +61,9 @@ public class Advertisement
     public String first_time_limit_btc;
     public String require_feedback_score;
     public String reference_type;
+
+    public int payment_window_minutes;
+    public String age_days_coefficient_limit;
 
     public boolean isATM()
     {

@@ -128,7 +128,7 @@
     <string name="menu_action_search">Search</string>
     <string name="menu_action_wallet">Wallet</string>
     <string name="menu_action_advertisement">Advertisement</string>
-    <string name="menu_action_advertise">New Advertisement</string>
+    <string name="menu_action_advertise">Post Trade</string>
     <string name="menu_action_trades">Trade History</string>
     <string name="menu_action_messages">Mark Messages Read</string>
     <string name="menu_action_profile">Profile</string>
@@ -501,7 +501,7 @@
     <string name="use_hmac_authentication">Use HMAC instead of Oauth2 Authentication</string>
     <string name="button_authenticate">Authenticate</string>
     <string name="trade_request_description"><![CDATA[All fields are required unless otherwise marked as optional. Please see <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">the online buying guide</a> for requirements by payment type.]]></string>
-    <string name="whats_new_message"><![CDATA[<br><br>More bug fixes and stability enhancements just in time for the holidays.<br><br>Please join the new <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review as a gift for the holidays!</a>.]]></string>
+    <string name="whats_new_message"><![CDATA[<br><br>Happy New Year!<br><br>More bug fixes and stability enhancements.<br><br>Fixed issue updating message or details for existing trades.<br><br>Fixed issue saving trade terms and payment details for advertisements.<br><br>Fixed crash when selecting text of trade terms or payment details that contained links.<br><br>Fixed bug with last online indicator for contact that always showed them as online.<br><br>Added new options for online sells.<br><br>Please join the new <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
     <string name="dialog_missing_activity">You don\'t have an application to handle web urls. Please visit https://localbitcoins.com/register/?ch=2hbo/ to register.</string>
     <string name="error_dialog_bad_address">That address is invalid, enter a different address (like just country or city) or use your location. Want to use your current location?</string>
     <string name="toast_error_no_installed_ativity">There is no installed application to handle the request.</string>

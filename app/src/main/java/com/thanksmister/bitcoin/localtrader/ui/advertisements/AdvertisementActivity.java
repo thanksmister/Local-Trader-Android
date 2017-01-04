@@ -49,6 +49,7 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
+import com.thanksmister.bitcoin.localtrader.ui.components.SelectableLinkMovementMethod;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -127,6 +128,27 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     @InjectView(R.id.advertisementToolBar)
     Toolbar toolbar;
+
+    @InjectView(R.id.requirementsLayout)
+    View requirementsLayout;
+
+    @InjectView(R.id.trustedTextView)
+    TextView trustedTextView;
+
+    @InjectView(R.id.identifiedTextView)
+    TextView identifiedTextView;
+
+    @InjectView(R.id.smsTextView)
+    TextView smsTextView;
+
+    @InjectView(R.id.feedbackText)
+    TextView feedbackText;
+
+    @InjectView(R.id.limitText)
+    TextView limitText;
+
+    @InjectView(R.id.volumeText)
+    TextView volumeText;
 
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
@@ -493,17 +515,63 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 */
         if (!Strings.isBlank(advertisement.message())) {
             tradeTerms.setText(advertisement.message().trim());
-            tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
+            tradeTerms.setMovementMethod(SelectableLinkMovementMethod.getInstance());
         }
 
         if (tradeType == TradeType.ONLINE_SELL) {
             String paymentMethod = TradeUtils.getPaymentMethodName(advertisement, method);
             onlineProvider.setText(paymentMethod);
             paymentDetails.setText(advertisement.account_info().trim());
-            paymentDetails.setMovementMethod(LinkMovementMethod.getInstance());
+            paymentDetails.setMovementMethod(SelectableLinkMovementMethod.getInstance());
         }
 
+        setTradeRequirements(advertisement);
         updateAdvertisement(advertisement);
+    }
+
+    /**
+     * Toggles the trader requirements and options visibility
+     * @param advertisement <code>AdvertisementItem</code>
+     */
+    public void setTradeRequirements(AdvertisementItem advertisement)
+    {
+        boolean showLayout = false;
+        if(advertisement.trusted_required()
+                || advertisement.sms_verification_required()
+                || advertisement.require_identification()) {
+
+            showLayout = true;
+        }
+
+        trustedTextView.setVisibility(advertisement.trusted_required()? View.VISIBLE:View.GONE);
+        identifiedTextView.setVisibility(advertisement.require_identification()? View.VISIBLE:View.GONE);
+        smsTextView.setVisibility(advertisement.sms_verification_required()? View.VISIBLE:View.GONE);
+
+        if(!Strings.isBlank(advertisement.require_feedback_score()) && TradeUtils.isOnlineTrade(advertisement)) {
+            feedbackText.setVisibility(View.VISIBLE);
+            feedbackText.setText(Html.fromHtml(getString(R.string.trade_request_minimum_feedback_score, advertisement.require_feedback_score())));
+            showLayout = true;
+        } else {
+            feedbackText.setVisibility(View.GONE);
+        }
+
+        if(!Strings.isBlank(advertisement.require_trade_volume()) && TradeUtils.isOnlineTrade(advertisement)) {
+            volumeText.setVisibility(View.VISIBLE);
+            volumeText.setText(Html.fromHtml(getString(R.string.trade_request_minimum_volume, advertisement.require_trade_volume())));
+            showLayout = true;
+        } else {
+            volumeText.setVisibility(View.GONE);
+        }
+
+        if(!Strings.isBlank(advertisement.first_time_limit_btc()) && TradeUtils.isOnlineTrade(advertisement)) {
+            limitText.setVisibility(View.VISIBLE);
+            limitText.setText(Html.fromHtml(getString(R.string.trade_request_new_buyer_limit, advertisement.first_time_limit_btc())));
+            showLayout = true;
+        } else {
+            limitText.setVisibility(View.GONE);
+        }
+
+        requirementsLayout.setVisibility(showLayout? View.VISIBLE:View.GONE);
     }
 
     public void updateAdvertisement(AdvertisementItem advertisement)

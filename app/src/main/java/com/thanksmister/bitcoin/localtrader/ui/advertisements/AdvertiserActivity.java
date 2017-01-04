@@ -25,7 +25,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
-import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,6 +37,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.ui.components.SelectableLinkMovementMethod;
 import com.thanksmister.bitcoin.localtrader.ui.search.TradeRequestActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -171,7 +171,7 @@ public class AdvertiserActivity extends BaseActivity
             adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
         
-        if(toolbar != null) {
+        if(toolbar != null && getSupportActionBar() != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
@@ -184,9 +184,8 @@ public class AdvertiserActivity extends BaseActivity
     @Override
     public void onSaveInstanceState(Bundle outState)
     {
+        outState.putString(EXTRA_AD_ID, adId);
         super.onSaveInstanceState(outState);
-        
-        outState.putSerializable(EXTRA_AD_ID, adId);
     }
     
     @Override
@@ -384,7 +383,7 @@ public class AdvertiserActivity extends BaseActivity
         
         if(!Strings.isBlank(advertisement.message)){
             tradeTerms.setText(advertisement.message.trim());
-            tradeTerms.setMovementMethod(LinkMovementMethod.getInstance());
+            tradeTerms.setMovementMethod(SelectableLinkMovementMethod.getInstance());
         }
 
         tradeFeedback.setText(advertisement.profile.feedback_score);
@@ -475,8 +474,12 @@ public class AdvertiserActivity extends BaseActivity
     {
         if(advertisementData == null) return;
         Advertisement advertisement = advertisementData.advertisement;
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.actions.public_view));
-        startActivity(browserIntent);
+        try {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.actions.public_view));
+            startActivity(browserIntent);
+        } catch (ActivityNotFoundException exception) {
+            toast(getString(R.string.toast_error_no_installed_ativity));
+        }
     }
     
     public void showProfile()
@@ -484,8 +487,12 @@ public class AdvertiserActivity extends BaseActivity
         if(advertisementData == null) return;
         Advertisement advertisement = advertisementData.advertisement;
         String url = "https://localbitcoins.com/accounts/profile/" + advertisement.profile.username + "/";
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        startActivity(browserIntent);
+        try {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
+        } catch (ActivityNotFoundException exception) {
+            toast(getString(R.string.toast_error_no_installed_ativity));
+        }
     }
     
     public void showAdvertisementOnMap()

@@ -28,6 +28,8 @@ import android.widget.TextView;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.utils.Conversions;
+import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.Collections;
@@ -35,7 +37,6 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import timber.log.Timber;
 
 public class AdvertiseAdapter extends BaseAdapter
 {
@@ -109,18 +110,7 @@ public class AdvertiseAdapter extends BaseAdapter
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
             String units_prefs = preferences.getString(context.getString(R.string.pref_key_distance), "0");
             String unit = (units_prefs.equals("0")? context.getString(R.string.list_unit_km):context.getString(R.string.list_unit_mi));
-            String distance = advertisement.distance;
-            
-            if(units_prefs.equals("1")) {
-                Timber.d("Distance KM: " + advertisement.distance);
-                
-                distance = TradeUtils.kilometersToMiles(advertisement.distance);
-                
-                Timber.d("Distance Miles: " + distance);
-                
-                unit = context.getString(R.string.list_unit_mi);
-            }
-            
+            String distance = (units_prefs.equals("0"))? Conversions.formatDecimalToString(Doubles.convertToDouble(advertisement.distance), Conversions.TWO_DECIMALS):Conversions.kilometersToMiles(Doubles.convertToDouble(advertisement.distance));
             holder.tradLocation.setText(distance + " " + unit + " → " + advertisement.location);
         }
 

@@ -37,6 +37,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -155,6 +157,9 @@ public class EditActivity extends BaseActivity
 
     @InjectView(R.id.smsVerifiedCheckBox)
     CheckBox smsVerifiedCheckBox;
+    
+    @InjectView(R.id.identifiedCheckBox)
+    CheckBox identifiedCheckBox;
 
     @InjectView(R.id.activeCheckBox)
     CheckBox activeCheckBox;
@@ -191,6 +196,24 @@ public class EditActivity extends BaseActivity
 
     @InjectView(R.id.editPaymentDetailsLayout)
     View editPaymentDetailsLayout;
+
+    @InjectView(R.id.newBuyerLimitLayout)
+    View newBuyerLimitLayout;
+
+    @InjectView(R.id.newBuyerLimitText)
+    EditText newBuyerLimitText;
+
+    @InjectView(R.id.minimumFeedbackLayout)
+    View minimumFeedbackLayout;
+
+    @InjectView(R.id.minimumFeedbackText)
+    EditText minimumFeedbackText;
+    
+    @InjectView(R.id.minimumVolumeLayout)
+    View minimumVolumeLayout;
+
+    @InjectView(R.id.minimumVolumeText)
+    EditText minimumVolumeText;
 
     @InjectView(R.id.editMinimumAmountCurrency)
     TextView editMinimumAmountCurrency;
@@ -290,7 +313,7 @@ public class EditActivity extends BaseActivity
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle((create) ? "Post new advertisement" : "Edit advertisement");
+            getSupportActionBar().setTitle((create) ? "Post trade" : "Edit trade");
         }
 
         String[] typeTitles = getResources().getStringArray(R.array.list_advertisement_type_spinner);
@@ -394,9 +417,12 @@ public class EditActivity extends BaseActivity
         } else if (create) {
             editLocationLayout.setVisibility(View.VISIBLE);
             editLocation.requestFocus();
-        }
+        } 
 
         saveButton.setText(create? "CREATE":"UPDATE");
+
+        // set filter to restrict minimum feedback score
+        minimumFeedbackText.setFilters(new InputFilter[]{ new InputFilterMinMax("0", "100")});
     }
 
     @Override
@@ -678,6 +704,7 @@ public class EditActivity extends BaseActivity
     {
         liquidityCheckBox.setChecked(false);
         smsVerifiedCheckBox.setChecked(false);
+        identifiedCheckBox.setChecked(false);
         trustedCheckBox.setChecked(false);
         activeCheckBox.setChecked(true);
 
@@ -702,6 +729,7 @@ public class EditActivity extends BaseActivity
 
         liquidityCheckBox.setChecked(advertisement.track_max_amount());
         smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required());
+        identifiedCheckBox.setChecked(advertisement.require_identification());
         trustedCheckBox.setChecked(advertisement.trusted_required());
         activeCheckBox.setChecked(advertisement.visible());
 
@@ -711,19 +739,38 @@ public class EditActivity extends BaseActivity
         editMaximumAmount.setText(advertisement.max_amount());
         editPaymentDetails.setText(advertisement.account_info());
         
+        if(!TextUtils.isEmpty(advertisement.require_feedback_score())) {
+            minimumFeedbackText.setText(advertisement.require_feedback_score());
+        }
+
+        if(!Strings.isBlank(advertisement.require_trade_volume())) {
+            minimumVolumeText.setText(advertisement.require_trade_volume());
+        }
+
+        if(!Strings.isBlank(advertisement.first_time_limit_btc())) {
+            newBuyerLimitText.setText(advertisement.first_time_limit_btc());
+        }
+        
         advertisementTypeLayout.setVisibility(View.GONE);
         currencyLayout.setVisibility(View.GONE);
 
         TradeType tradeType = TradeType.valueOf(advertisement.trade_type());
+        setTradeType(tradeType);
 
         if (tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
             editPaymentDetailsLayout.setVisibility(View.GONE);
             bankNameLayout.setVisibility(View.GONE);
             paymentMethodLayout.setVisibility(View.GONE);
+            newBuyerLimitLayout.setVisibility(View.GONE);
+            minimumVolumeLayout.setVisibility(View.GONE);
+            minimumFeedbackLayout.setVisibility(View.GONE);
         } else {
             editPaymentDetailsLayout.setVisibility(View.VISIBLE);
-            paymentMethodLayout.setVisibility(View.GONE);
-            bankNameLayout.setVisibility(View.GONE);
+            paymentMethodLayout.setVisibility(create ? View.VISIBLE : View.GONE);
+            bankNameLayout.setVisibility(create ? View.VISIBLE : View.GONE);
+            newBuyerLimitLayout.setVisibility((tradeType == TradeType.ONLINE_SELL)?View.VISIBLE : View.GONE);
+            minimumVolumeLayout.setVisibility((tradeType == TradeType.ONLINE_SELL)?View.VISIBLE : View.GONE);
+            minimumFeedbackLayout.setVisibility((tradeType == TradeType.ONLINE_SELL)?View.VISIBLE : View.GONE);
         }
 
         editMinimumAmountCurrency.setText(advertisement.currency());
@@ -743,6 +790,9 @@ public class EditActivity extends BaseActivity
             editPaymentDetailsLayout.setVisibility(View.VISIBLE);
             paymentMethodLayout.setVisibility(create ? View.VISIBLE : View.GONE);
             bankNameLayout.setVisibility(create ? View.VISIBLE : View.GONE);
+            newBuyerLimitLayout.setVisibility((tradeType == TradeType.ONLINE_SELL)?View.VISIBLE : View.GONE);
+            minimumVolumeLayout.setVisibility((tradeType == TradeType.ONLINE_SELL)?View.VISIBLE : View.GONE);
+            minimumFeedbackLayout.setVisibility((tradeType == TradeType.ONLINE_SELL)?View.VISIBLE : View.GONE);
         }
     }
 
@@ -808,11 +858,10 @@ public class EditActivity extends BaseActivity
 
         // used to store values for service call
         Advertisement editedAdvertisement = new Advertisement();
-
         TradeType tradeType = TradeType.values()[typeSpinner.getSelectedItemPosition()];
-
+        
         if (create) {
-
+            
             if (address == null) {
                 snackError("Unable to save changes, no address set.");
                 return;
@@ -823,13 +872,14 @@ public class EditActivity extends BaseActivity
             editedAdvertisement.trade_type = tradeType;
             
             String onlineProvider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code();
-            if(tradeType == TradeType.ONLINE_BUY || tradeType ==TradeType.ONLINE_SELL) {
+            if(tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) {
                 editedAdvertisement.online_provider = onlineProvider;
             } else {
                 editedAdvertisement.online_provider = "NATIONAL_BANK";
             }
             
         } else {
+            
             if (advertisementItem == null) {
                 snackError("Unable to save changes.");
                 return;
@@ -842,21 +892,34 @@ public class EditActivity extends BaseActivity
         }
         
         String msg = messageText.getText().toString();
-        if(!TextUtils.isEmpty(msg)) {
-            editedAdvertisement.message = msg;
-        }
+        editedAdvertisement.message = msg;
         
         editedAdvertisement.price_equation = equation;
         editedAdvertisement.min_amount = String.valueOf(TradeUtils.convertCurrencyAmount(min));
         editedAdvertisement.max_amount = String.valueOf(TradeUtils.convertCurrencyAmount(max));
         
         // only online trades have these values
-        if(tradeType == TradeType.ONLINE_BUY || tradeType ==TradeType.ONLINE_SELL) {
+        if(tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) {
             editedAdvertisement.bank_name = bankName;
             editedAdvertisement.account_info = accountInfo;
-        } 
+        }
+
+        if(tradeType == TradeType.ONLINE_SELL) {
+            if(!TextUtils.isEmpty(newBuyerLimitText.getText().toString())) {
+                editedAdvertisement.first_time_limit_btc = newBuyerLimitText.getText().toString();
+            }
+            
+            if(!TextUtils.isEmpty(minimumFeedbackText.getText().toString())) {
+                editedAdvertisement.require_feedback_score = minimumFeedbackText.getText().toString();
+            }
+           
+            if(!TextUtils.isEmpty(minimumVolumeText.getText().toString())) {
+                editedAdvertisement.require_trade_volume = minimumVolumeText.getText().toString();
+            }
+        }
 
         editedAdvertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
+        editedAdvertisement.require_identification = identifiedCheckBox.isChecked();
         editedAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
         editedAdvertisement.trusted_required = trustedCheckBox.isChecked();
         
@@ -1445,4 +1508,31 @@ public class EditActivity extends BaseActivity
         }
     }
 
+    public class InputFilterMinMax implements InputFilter {
+        private int min, max;
+
+        public InputFilterMinMax(int min, int max) {
+            this.min = min;
+            this.max = max;
+        }
+
+        public InputFilterMinMax(String min, String max) {
+            this.min = Integer.parseInt(min);
+            this.max = Integer.parseInt(max);
+        }
+
+        @Override
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+            try {
+                int input = Integer.parseInt(dest.toString() + source.toString());
+                if (isInRange(min, max, input))
+                    return null;
+            } catch (NumberFormatException nfe) { }
+            return "";
+        }
+
+        private boolean isInRange(int a, int b, int c) {
+            return b > a ? c >= a && c <= b : c >= b && c <= a;
+        }
+    }
 }

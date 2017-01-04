@@ -182,7 +182,11 @@ public interface LocalBitcoins
                                              @Field("require_trusted_by_advertiser") String require_trusted_by_advertiser,
                                              @Field("sms_verification_required") String sms_verification_required,
                                              @Field("track_max_amount") String track_max_amount,
-                                             @Field("visible") String visible);
+                                             @Field("visible") String visible,
+                                             @Field("require_identification") String require_identification,
+                                             @Field("require_feedback_score") String require_feedback_score,
+                                             @Field("require_trade_volume") String require_trade_volume,
+                                             @Field("first_time_limit_btc") String first_time_limit_btc);
     @POST(DELETE_AD + "{ad_id}/")
     Observable<Response> deleteAdvertisement(@Query("access_token") String token,
                                              @Path("ad_id") String ad_id);
@@ -195,7 +199,8 @@ public interface LocalBitcoins
                                              @Field("price_equation") String price_equation,
                                              @Field("trade_type") String trade_type, 
                                              @Field("online_provider") String online_provider,
-                                             @Field("lat") String lat, @Field("lon") String lon, 
+                                             @Field("lat") String lat, 
+                                             @Field("lon") String lon, 
                                              @Field("city") String city,
                                              @Field("location_string") String location_string, 
                                              @Field("countrycode") String countrycode,
@@ -204,6 +209,10 @@ public interface LocalBitcoins
                                              @Field("sms_verification_required") String sms_verification_required, 
                                              @Field("track_max_amount") String track_max_amount,
                                              @Field("require_trusted_by_advertiser") String require_trusted_by_advertiser, 
+                                             @Field("require_identification") String require_identification, 
+                                             @Field("require_feedback_score") String require_feedback_score, 
+                                             @Field("require_trade_volume") String require_trade_volume, 
+                                             @Field("first_time_limit_btc") String first_time_limit_btc, 
                                              @Field("msg") String msg, 
                                              @Field("currency") String currency);
 

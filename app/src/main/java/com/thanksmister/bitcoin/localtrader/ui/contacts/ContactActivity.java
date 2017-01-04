@@ -600,8 +600,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         tradeFeedback.setText((contact.is_buying()) ? contact.seller_feedback_score() : contact.buyer_feedback_score());
         tradeCount.setText((contact.is_buying()) ? contact.seller_trade_count() : contact.buyer_trade_count());
 
-        lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.advertiser_last_online()));
-
+        if(contact.is_buying()) {
+            lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.seller_last_online()));
+        } else if (contact.is_selling()) {
+            lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.buyer_last_online()));
+        }
+        
         int buttonTag = TradeUtils.getTradeActionButtonLabel(contact);
         if (buttonTag > 0)
             contactButton.setText(getString(buttonTag));

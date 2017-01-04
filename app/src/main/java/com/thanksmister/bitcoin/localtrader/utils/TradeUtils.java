@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.utils;
 
 import android.content.Context;
 import android.location.Address;
+import android.support.annotation.NonNull;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -521,24 +522,7 @@ public class TradeUtils
         }
     }
 
-    public static int determineLastSeenIcon(Contact contact)
-    {
-        String lasOnline = (contact.is_selling) ? contact.seller.last_online : contact.buyer.last_online;
-
-        Date now = new Date();
-        Date lastSeen = Dates.parseLocalDate(lasOnline);
-
-        long diff = now.getTime() - lastSeen.getTime();
-
-        if ((diff > 1800000) && (diff < 10800000)) {
-            return R.drawable.last_seen_shortly;
-        } else if (diff > 10800000) {
-            return R.drawable.last_seen_long;
-        }
-        return R.drawable.last_seen_recently;
-    }
-
-    public static int determineLastSeenIcon(String lasOnline)
+    public static int determineLastSeenIcon(@NonNull String lasOnline)
     {
         Date now = new Date();
         Date lastSeen = Dates.parseLastSeenDate(lasOnline);
@@ -550,10 +534,10 @@ public class TradeUtils
         } else if (diff > 10800000) {
             return R.drawable.last_seen_long;
         }
-        
+
         return R.drawable.last_seen_recently;
     }
-
+    
     public static String getAddress(Address address)
     {
         String addressText = String.format(

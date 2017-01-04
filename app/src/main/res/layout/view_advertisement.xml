@@ -218,7 +218,7 @@
                             android:gravity="left"
                             android:layout_marginLeft="@dimen/activity_padding"
                             android:paddingBottom="@dimen/view_padding_small"
-                            android:text="Message"/>
+                            android:text="Terms of trade"/>
 
 
                     <FrameLayout
@@ -237,6 +237,101 @@
                                 android:textIsSelectable="true"/>
 
                     </FrameLayout>
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_marginTop="@dimen/activity_padding"
+                            android:layout_marginBottom="@dimen/activity_padding"/>
+
+                    <LinearLayout
+                            android:id="@+id/requirementsLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                        
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="left"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:paddingBottom="@dimen/view_padding_small"
+                                android:text="Requirements"/>
+
+                        <TextView
+                                android:id="@+id/trustedTextView"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:text="@string/trade_request_trusted_people"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/identifiedTextView"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_identified_people"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/smsTextView"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_sms_required"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/feedbackText"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_minimum_feedback_score"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/limitText"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_new_buyer_limit"
+                                android:layout_gravity="center_vertical"/>
+
+                        <TextView
+                                android:id="@+id/volumeText"
+                                style="@style/TextMedium.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:drawableLeft="@drawable/ic_navigation_check"
+                                android:drawablePadding="4dp"
+                                android:text="@string/trade_request_minimum_volume"
+                                android:layout_gravity="center_vertical"/>
+                        
+                    </LinearLayout>
 
                     <LinearLayout
                             android:id="@+id/onlinePaymentLayout"
@@ -308,7 +403,6 @@
                                     style="@style/TextMedium.SmallAction"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:autoLink="all"
                                     android:textIsSelectable="true"/>
 
                         </FrameLayout>

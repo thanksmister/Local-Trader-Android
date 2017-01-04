@@ -63,6 +63,7 @@ public abstract class AdvertisementItem implements Parcelable
     public static final String MAX_AMOUNT_AVAILABLE = "max_amount_available";
     public static final String REQUIRE_FEEDBACK_SCORE = "require_feedback_score";
     public static final String REQUIRE_TRADE_VOLUME = "require_trade_volume";
+    public static final String FIRST_TIME_LIMIT_BTC = "first_time_limit_btc";
     public static final String ACTION_PUBLIC_VIEW = "action_public_view";
     public static final String PROFILE_NAME = "profile_name";
     public static final String PROFILE_USERNAME = "profile_username";
@@ -72,6 +73,7 @@ public abstract class AdvertisementItem implements Parcelable
     public static final String BANK_NAME = "bank_name";
     public static final String MESSAGE = "message";
     public static final String TRUSTED_REQUIRED = "trusted_required";
+    public static final String REQUIRE_IDENTIFICATION = "require_identification";
     public static final String TRACK_MAX_AMOUNT = "track_max_amount";
     public static final String SMS_VERIFICATION_REQUIRED = "sms_verification_required";
 //34
@@ -114,8 +116,9 @@ public abstract class AdvertisementItem implements Parcelable
     @Nullable public abstract String min_amount();
     @Nullable public abstract String max_amount();
     @Nullable public abstract String max_amount_available();
-    public abstract String require_trade_volume();
+    @Nullable public abstract String require_trade_volume();
     public abstract String require_feedback_score();
+    @Nullable public abstract String first_time_limit_btc();
     public abstract String action_public_view();
     public abstract String profile_name();
     public abstract String profile_username();
@@ -127,6 +130,7 @@ public abstract class AdvertisementItem implements Parcelable
     public abstract boolean sms_verification_required();
     public abstract boolean track_max_amount();
     public abstract boolean trusted_required();
+    public abstract boolean require_identification();
 // 33
     
     public static final Func1<Query, List<AdvertisementItem>> MAP = new Func1<Query, List<AdvertisementItem>>() {
@@ -160,6 +164,7 @@ public abstract class AdvertisementItem implements Parcelable
                     String max_amount_available = Db.getString(cursor, MAX_AMOUNT_AVAILABLE);
                     String require_trade_volume = Db.getString(cursor, REQUIRE_TRADE_VOLUME);
                     String require_feedback_score = Db.getString(cursor, REQUIRE_FEEDBACK_SCORE);
+                    String first_time_limit_btc = Db.getString(cursor, FIRST_TIME_LIMIT_BTC);
                     String action_public_view = Db.getString(cursor, ACTION_PUBLIC_VIEW);
                     String profile_name = Db.getString(cursor, PROFILE_NAME);
                     String profile_username = Db.getString(cursor, PROFILE_USERNAME);
@@ -171,12 +176,13 @@ public abstract class AdvertisementItem implements Parcelable
                     boolean sms_verification_required = Db.getBoolean(cursor, SMS_VERIFICATION_REQUIRED);
                     boolean track_max_amount = Db.getBoolean(cursor, TRACK_MAX_AMOUNT);
                     boolean trusted_required = Db.getBoolean(cursor, TRUSTED_REQUIRED);
+                    boolean require_identification = Db.getBoolean(cursor, REQUIRE_IDENTIFICATION);
                     
                     values.add(new AutoParcel_AdvertisementItem(id, ad_id, created_at, visible, email, location_string, country_code, city,
                             trade_type, online_provider, temp_price, temp_price_usd, price_equation, reference_type, atm_model,
                             currency, account_info, lat, lon, min_amount, max_amount, max_amount_available, require_trade_volume,
-                            require_feedback_score, action_public_view, profile_name, profile_username, profile_trade_count, profile_last_online,
-                            profile_feedback_score, bank_name, message, sms_verification_required, track_max_amount, trusted_required));
+                            require_feedback_score, first_time_limit_btc, action_public_view, profile_name, profile_username, profile_trade_count, profile_last_online,
+                            profile_feedback_score, bank_name, message, sms_verification_required, track_max_amount, trusted_required, require_identification));
                 }
                 return values;
             } finally {
@@ -216,6 +222,7 @@ public abstract class AdvertisementItem implements Parcelable
                     String max_amount_available = Db.getString(cursor, MAX_AMOUNT_AVAILABLE);
                     String require_trade_volume = Db.getString(cursor, REQUIRE_TRADE_VOLUME);
                     String require_feedback_score = Db.getString(cursor, REQUIRE_FEEDBACK_SCORE);
+                    String first_time_limit_btc = Db.getString(cursor, FIRST_TIME_LIMIT_BTC);
                     String action_public_view = Db.getString(cursor, ACTION_PUBLIC_VIEW);
                     String profile_name = Db.getString(cursor, PROFILE_NAME);
                     String profile_username = Db.getString(cursor, PROFILE_USERNAME);
@@ -227,12 +234,13 @@ public abstract class AdvertisementItem implements Parcelable
                     boolean sms_verification_required = Db.getBoolean(cursor, SMS_VERIFICATION_REQUIRED);
                     boolean track_max_amount = Db.getBoolean(cursor, TRACK_MAX_AMOUNT);
                     boolean trusted_required = Db.getBoolean(cursor, TRUSTED_REQUIRED);
+                    boolean require_identification = Db.getBoolean(cursor, REQUIRE_IDENTIFICATION);
 
                     return new AutoParcel_AdvertisementItem(id, ad_id, created_at, visible, email, location_string, country_code, city,
                             trade_type, online_provider, temp_price, temp_price_usd, price_equation, reference_type, atm_model,
                             currency, account_info, lat, lon, min_amount, max_amount, max_amount_available, require_trade_volume,
-                            require_feedback_score, action_public_view, profile_name, profile_username, profile_trade_count, profile_last_online,
-                            profile_feedback_score, bank_name, message, sms_verification_required, track_max_amount, trusted_required);
+                            require_feedback_score, first_time_limit_btc, action_public_view, profile_name, profile_username, profile_trade_count, profile_last_online,
+                            profile_feedback_score, bank_name, message, sms_verification_required, track_max_amount, trusted_required, require_identification);
                 }
 
                 return null;
@@ -261,6 +269,7 @@ public abstract class AdvertisementItem implements Parcelable
                 .online_provider(item.online_provider)
                 .require_trade_volume(item.require_trade_volume)
                 .require_feedback_score(item.require_feedback_score)
+                .first_time_limit_btc(item.first_time_limit_btc)
                 .atm_model(item.atm_model)
                 .temp_price(item.temp_price)
                 .temp_price_usd(item.temp_price_usd)
@@ -279,7 +288,8 @@ public abstract class AdvertisementItem implements Parcelable
                 .bank_name(item.bank_name)
                 .message(item.message)
                 .track_max_amount(item.track_max_amount)
-                .trusted_required(item.trusted_required);
+                .trusted_required(item.trusted_required)
+                .require_identification(item.require_identification);
     }
     
     public static final class Builder {
@@ -406,6 +416,11 @@ public abstract class AdvertisementItem implements Parcelable
             return this;
         }
 
+        public Builder first_time_limit_btc(String value) {
+            values.put(FIRST_TIME_LIMIT_BTC, value);
+            return this;
+        }
+
         public Builder action_public_view(String value) {
             values.put(ACTION_PUBLIC_VIEW, value);
             return this;
@@ -458,6 +473,11 @@ public abstract class AdvertisementItem implements Parcelable
 
         public Builder trusted_required(boolean value) {
             values.put(TRUSTED_REQUIRED, value);
+            return this;
+        }
+
+        public Builder require_identification(boolean value) {
+            values.put(REQUIRE_IDENTIFICATION, value);
             return this;
         }
         

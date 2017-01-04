@@ -109,10 +109,12 @@ public class PromoActivity extends BaseActivity
     
     public void showRegistration()
     {
+        String url = Constants.REGISTRATION_URL;
         try {
-            String url = Constants.REGISTRATION_URL;
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             getContext().startActivity(browserIntent);
+        } catch (SecurityException e) {
+            showAlertDialogLinks(new AlertDialogEvent("Security Error", "It appears that your connection is being rerouted, you may want to try LocalBitcoins.net. Here is the information: " + e.getMessage()));
         } catch (ActivityNotFoundException e) {
             showAlertDialogLinks(new AlertDialogEvent("Link Error",
                     getString(R.string.toast_error_no_installed_ativity)));

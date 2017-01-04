@@ -408,7 +408,8 @@ public class DataService
                 accessToken, advertisement.ad_id, advertisement.account_info, advertisement.bank_name, city, advertisement.country_code, advertisement.currency,
                 String.valueOf(advertisement.lat), advertisement.location, String.valueOf(advertisement.lon), advertisement.max_amount, advertisement.min_amount,
                 advertisement.message, advertisement.price_equation, String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.sms_verification_required),
-                String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.visible));
+                String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.visible), String.valueOf(advertisement.require_identification),
+                advertisement.require_feedback_score, advertisement.require_trade_volume, advertisement.first_time_limit_btc);
     }
 
     public Observable<JSONObject> createAdvertisement(final Advertisement advertisement)
@@ -438,7 +439,9 @@ public class DataService
                 String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
                 String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
-                String.valueOf(advertisement.trusted_required), advertisement.message, advertisement.currency);
+                String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.require_identification), 
+                advertisement.require_feedback_score, advertisement.require_trade_volume, 
+                advertisement.first_time_limit_btc, advertisement.message, advertisement.currency);
     }
 
     public Observable<JSONObject> postMessage(final String contact_id, final String message)

@@ -39,7 +39,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.google.zxing.android.IntentIntegrator;
 import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
@@ -59,6 +58,7 @@ import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.net.UnknownHostException;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -379,14 +379,17 @@ public abstract class BaseActivity extends RxAppCompatActivity
             return;
         }
         
+        if(throwable instanceof UnknownHostException) {
+            //Timber.e(throwable.getMessage());
+            toast(getString(R.string.error_no_internet));
+            return;
+        }
+        
         if (throwable != null && throwable instanceof NetworkOnMainThreadException) {
             NetworkOnMainThreadException exception = (NetworkOnMainThreadException) throwable;
             Timber.e(exception.getMessage());
         } else if (throwable != null) {
             Timber.e(throwable.getMessage());
-            if(!BuildConfig.DEBUG) {
-                Crashlytics.logException(throwable);
-            }
             throwable.printStackTrace();
         }
     }
