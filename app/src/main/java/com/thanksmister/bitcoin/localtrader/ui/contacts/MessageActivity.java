@@ -373,8 +373,8 @@ public class MessageActivity extends BaseActivity
         }
     }
 
-    public String getDocumentName(Uri uri) {
-
+    public String getDocumentName(Uri uri) 
+    {
         // The query, since it only applies to a single document, will only return
         // one row. There's no need to filter, sort, or select fields, since we want
         // all fields for one document.
@@ -464,13 +464,10 @@ public class MessageActivity extends BaseActivity
             Uri uri = uris[0];
             Bitmap bitmap = null;
             try {
-                //input = context.getContentResolver().openInputStream(uri);
-                //bitmap = BitmapFactory.decodeStream(input);
                 BitmapFactory.Options outDimens = getBitmapDimensions(context, uri);
                 int sampleSize = calculateSampleSize(outDimens.outWidth, outDimens.outHeight, 1200, 1200);
                 bitmap = downSampleBitmap(context, uri, sampleSize);
-                //return bitmap;
-                
+               
                 File file = new File(context.getCacheDir(), Strings.removeExtension(mFileName));
                 file.createNewFile();
 
