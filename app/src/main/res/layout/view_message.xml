@@ -24,7 +24,7 @@
     <TextView
             android:id="@+id/messageTitle"
             style="@style/TextExtraLarge"
-            android:text="@string/setup_credentials"
+            tools:text="Message to ThanksMister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="16dp"
@@ -50,7 +50,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:theme="@style/EditTextTheme"
-                    android:minLines="5"
+                    android:minLines="3"
                     android:gravity="left|top"
                     android:scrollHorizontally="false"
                     android:hint="Enter message"
@@ -61,7 +61,72 @@
             </EditText>
 
         </android.support.design.widget.TextInputLayout>
+        
+        <android.support.v4.widget.Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp"/>
+        
+        <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+        
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/gray_color">
+        
+            <LinearLayout
+                    android:id="@+id/attachButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:foreground="?android:attr/selectableItemBackground">
+                
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_attached_file"/>
+    
+                <TextView
+                        style="@style/TextMedium.Blue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="Attach file"/>
+                
+            </LinearLayout>
 
+            <LinearLayout
+                    android:id="@+id/attachmentLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:paddingLeft="3dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                <ImageButton
+                        android:id="@+id/removeAttachmentButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_action_content_clear"
+                        android:background="?android:attr/selectableItemBackground"/>
+
+                <TextView
+                        style="@style/TextMedium"
+                        android:id="@+id/attachmentName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="1dp"
+                        android:layout_gravity="center_vertical"
+                        tools:text="File name here"/>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        </ScrollView>
+        
     </LinearLayout>
     
     <LinearLayout

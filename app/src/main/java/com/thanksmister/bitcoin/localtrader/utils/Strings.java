@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
+import android.text.TextUtils;
+
 public final class Strings
 {
     private Strings()
@@ -31,6 +33,16 @@ public final class Strings
     public static String valueOrDefault(String string, String defaultString)
     {
         return isBlank(string) ? defaultString : string;
+    }
+
+    public static String removeExtension(String fileName)
+    {
+        if(TextUtils.isEmpty(fileName) ) {
+            return "document";
+        } else  if(fileName.contains(".")) {
+            return fileName.substring(0, fileName.lastIndexOf('.'));
+        } 
+        return fileName;
     }
 
     public static String truncateAt(String string, int length)

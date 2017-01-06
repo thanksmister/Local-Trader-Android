@@ -640,20 +640,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     public void downloadAttachment(final MessageItem message)
     {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        
-        String url = message.attachment_url();
-        String shortUrl = url.replace("https://localbitcoins.com", "");
-        String nonce = NetworkUtils.generateNonce();
-        String uri = Uri.parse(shortUrl).toString();
-        String signature = NetworkUtils.createSignature(uri, nonce, key, secret);
-
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.addRequestHeader("Apiauth-Key", key);
-        request.addRequestHeader("Apiauth-Nonce", nonce);
-        request.addRequestHeader("Apiauth-Signature", signature);
-
+        String token = AuthUtils.getAccessToken(sharedPreferences);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(message.attachment_url() + "?access_token=" + token));
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
         request.setVisibleInDownloadsUi(true);
         request.setMimeType(message.attachment_type());
@@ -673,7 +661,6 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         } catch (ActivityNotFoundException exception ) {
             toast(getString(R.string.toast_error_no_installed_ativity));
         }
-        
     }
 
     public void disputeContact()

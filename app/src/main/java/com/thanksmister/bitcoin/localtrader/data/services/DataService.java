@@ -59,12 +59,15 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import retrofit.client.Response;
+import retrofit.mime.TypedFile;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action1;
@@ -455,11 +458,27 @@ public class DataService
                 .onErrorResumeNext(refreshTokenAndRetry(postMessageObservable(contact_id, message)))
                 .map(new ResponseToJSONObject());
     }
+    
+    public Observable<JSONObject> postMessageWithAttachment(final String contact_id, final String message, final File file)
+    {
+        return postMessageWithAttachmentObservable(contact_id, message, file)
+                .onErrorResumeNext(refreshTokenAndRetry(postMessageWithAttachmentObservable(contact_id, message, file)))
+                .map(new ResponseToJSONObject());
+    }
 
     private Observable<Response> postMessageObservable(final String contact_id, final String message)
     {
         final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
         return localBitcoins.contactMessagePost(accessToken, contact_id, message);
+    }
+
+    private Observable<Response> postMessageWithAttachmentObservable(final String contact_id, final String message, final File file)
+    {
+        TypedFile typedFile = new TypedFile("multipart/form-data", file);
+        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
+        params.put("msg", message);
+        return localBitcoins.contactMessagePostWithAttachment(accessToken, contact_id, params, typedFile);
     }
 
     public Observable<User> getMyself(String accessToken)

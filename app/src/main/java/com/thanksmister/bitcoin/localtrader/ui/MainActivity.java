@@ -326,7 +326,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         fragment = SendFragment.newInstance(bitcoinAddress, bitcoinAmount);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_frame, fragment, SEARCH_FRAGMENT)
+                .replace(R.id.content_frame, fragment, SEND_FRAGMENT)
                 .commit();
         
         navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);

@@ -16,14 +16,20 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api;
 
+import java.util.LinkedHashMap;
+
 import retrofit.client.Response;
 import retrofit.http.Field;
 import retrofit.http.FormUrlEncoded;
 import retrofit.http.GET;
 import retrofit.http.Header;
+import retrofit.http.Multipart;
 import retrofit.http.POST;
+import retrofit.http.Part;
+import retrofit.http.PartMap;
 import retrofit.http.Path;
 import retrofit.http.Query;
+import retrofit.mime.TypedFile;
 import rx.Observable;
 
 public interface LocalBitcoins
@@ -225,6 +231,13 @@ public interface LocalBitcoins
     Observable<Response> contactMessagePost(@Query("access_token") String token,
                                             @Path("contact_id") String contact_id, 
                                             @Field("msg") String msg);
+    
+    @Multipart
+    @POST(POST_CONTACT_MESSAGE + "{contact_id}/")
+    Observable<Response> contactMessagePostWithAttachment(@Query("access_token") String token,
+                                            @Path("contact_id") String contact_id,
+                                            @PartMap LinkedHashMap<String,String> params,
+                                            @Part("document") TypedFile document);
     
     @POST(POST_CONTACT_PAID + "{contact_id}/")
     Observable<Response> markAsPaid(@Query("access_token") String token,
