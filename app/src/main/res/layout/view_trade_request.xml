@@ -171,7 +171,7 @@
                             tools:visibility="visible"
                             android:visibility="gone">
 
-                        <EditText
+                        <android.support.v7.widget.AppCompatEditText
                                 android:id="@+id/detailsPhoneNumber"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -189,7 +189,7 @@
                             tools:visibility="visible"
                             android:visibility="gone">
 
-                        <EditText
+                        <android.support.v7.widget.AppCompatEditText
                                 android:id="@+id/detailsReceiverEmail"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -207,7 +207,7 @@
                             tools:visibility="visible"
                             android:visibility="gone">
 
-                        <EditText
+                        <android.support.v7.widget.AppCompatEditText
                                 android:id="@+id/detailsReceiverName"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -224,7 +224,7 @@
                             tools:visibility="visible"
                             android:visibility="gone">
 
-                        <EditText
+                        <android.support.v7.widget.AppCompatEditText
                                 android:id="@+id/detailsIbanName"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -241,7 +241,7 @@
                             tools:visibility="visible"
                             android:visibility="gone">
 
-                        <EditText
+                        <android.support.v7.widget.AppCompatEditText
                                 android:id="@+id/detailsSwiftBic"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -258,7 +258,7 @@
                             tools:visibility="visible"
                             android:visibility="gone">
 
-                        <EditText
+                        <android.support.v7.widget.AppCompatEditText
                                 android:id="@+id/detailsReference"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -277,7 +277,7 @@
                         tools:visibility="visible"
                         android:visibility="gone">
 
-                    <EditText
+                    <android.support.v7.widget.AppCompatEditText
                             android:id="@+id/detailsMessage"
                             android:layout_marginTop="@dimen/activity_padding"
                             android:textColorHint="@android:color/transparent"

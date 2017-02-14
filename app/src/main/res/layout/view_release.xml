@@ -40,53 +40,75 @@
     </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:gravity="center"
             android:layout_weight="1">
 
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode1"
-                android:src="@drawable/ic_pin_code_off"/>
-
-        <View
-                android:layout_width="4dp"
-                android:layout_height="match_parent"/>
-
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode2"
-                android:src="@drawable/ic_pin_code_off"/>
-
-        <View
-                android:layout_width="4dp"
-                android:layout_height="match_parent"/>
-
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode3"
-                android:src="@drawable/ic_pin_code_off"/>
-
-        <View
-                android:layout_width="4dp"
-                android:layout_height="match_parent"/>
-
-
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode4"
-                android:src="@drawable/ic_pin_code_off"/>
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode1"
+                    android:src="@drawable/ic_pin_code_off"/>
+    
+            <View
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode2"
+                    android:src="@drawable/ic_pin_code_off"/>
+    
+            <View
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode3"
+                    android:src="@drawable/ic_pin_code_off"/>
+    
+            <View
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+    
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode4"
+                    android:src="@drawable/ic_pin_code_off"/>
+            
+        </LinearLayout>
         
+        <android.support.v4.widget.Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp"/>
+
+        <TextView
+                android:id="@+id/descriptionText"
+                style="?android:textAppearanceSmallInverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColorLink="@color/white"
+                tools:text="@string/pin_code_trade"/>
+
     </LinearLayout>
 
     <LinearLayout
@@ -105,7 +127,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -138,7 +160,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -172,7 +194,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -212,7 +234,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -245,7 +267,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -280,7 +302,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -319,7 +341,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -353,7 +375,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -387,7 +409,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -425,7 +447,7 @@
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -458,7 +480,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -485,7 +507,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"

@@ -150,6 +150,16 @@ public class DataServiceUtils
         return false;
     }
 
+    public static boolean isHttp504Error(Throwable throwable)
+    {
+        if (throwable instanceof RetrofitError) {
+            RetrofitError retroError = (RetrofitError) throwable;
+            return (getStatusCode(retroError) == 504);
+        }
+
+        return false;
+    }
+
     /*
    Added because service now always returns 400 error and have to check valid code
    {"error": {"message": "Invalid or expired access token for scope 2. 

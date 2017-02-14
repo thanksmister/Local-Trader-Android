@@ -46,6 +46,7 @@ import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -416,7 +417,9 @@ public class AdvertisementsFragment extends BaseFragment
                     @Override
                     public void call(List<Method> results)
                     {
-                        Timber.d("methodUpdateObservable");
+                        if(results == null)
+                            results = new ArrayList<Method>();
+                        
                         Method method = new Method();
                         method.code = "all";
                         method.name = "All";

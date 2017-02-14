@@ -22,9 +22,12 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -76,6 +79,9 @@ public class PinCodeActivity extends BaseActivity
 
     @InjectView(R.id.pinCode4)
     ImageView pinCode4;
+    
+    @InjectView(R.id.descriptionText)
+    TextView description;
 
     @OnClick(R.id.button0)
     public void button0Clicked()
@@ -192,6 +198,9 @@ public class PinCodeActivity extends BaseActivity
             if (getIntent().hasExtra(EXTRA_ADDRESS))
                 address = getIntent().getStringExtra(EXTRA_ADDRESS);
         }
+
+        description.setText(Html.fromHtml(getString(R.string.pin_code_trade)));
+        description.setMovementMethod(LinkMovementMethod.getInstance());
 
         setupToolbar();
     }

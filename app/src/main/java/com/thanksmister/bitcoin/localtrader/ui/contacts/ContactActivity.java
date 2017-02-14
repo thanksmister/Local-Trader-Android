@@ -687,10 +687,17 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         startActivityForResult(intent, PinCodeActivity.REQUEST_CODE);
     }
 
-    public void releaseTradeWithPin(String pinCode)
+    public void releaseTradeWithPin(final String pinCode)
     {
-        showProgressDialog(new ProgressDialogEvent("Releasing trade..."));
-        contactAction(contactId, pinCode, ContactAction.RELEASE);
+        showConfirmationDialog(new ConfirmationDialogEvent("Release Trade", "Are you sure you want to release this trade?", getString(R.string.button_ok), getString(R.string.button_cancel), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                showProgressDialog(new ProgressDialogEvent("Releasing trade..."));
+                contactAction(contactId, pinCode, ContactAction.RELEASE);
+            }
+        }));
     }
 
     public void cancelContact()

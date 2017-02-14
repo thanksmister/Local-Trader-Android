@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.Html;
@@ -124,7 +125,7 @@ public class TradeRequestActivity extends BaseActivity
     EditText detailsReference;
 
     @InjectView(R.id.detailsMessageLayout)
-    View detailsMessageLayout;
+    TextInputLayout detailsMessageLayout;
 
     @InjectView(R.id.detailsMessage)
     EditText detailsMessage;
@@ -324,9 +325,11 @@ public class TradeRequestActivity extends BaseActivity
                     break;
             }
 
-            detailsMessage.setHint("Message");
+            detailsMessage.setHint("");
+            detailsMessageLayout.setHint("Message");
         } else {
-            detailsMessage.setHint("Message (Optional)");
+            detailsMessage.setHint("");
+            detailsMessageLayout.setHint("Message (Optional)");
             detailsMessageLayout.setVisibility(View.VISIBLE);
         }
     }

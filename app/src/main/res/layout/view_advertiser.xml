@@ -33,7 +33,7 @@
                 android:fitsSystemWindows="true">
 
             <android.support.v7.widget.Toolbar
-                    android:id="@+id/toolbar"
+                    android:id="@+id/advertiserToolbar"
                     android:layout_height="wrap_content"
                     android:layout_width="match_parent"
                     android:minHeight="?android:attr/actionBarSize"

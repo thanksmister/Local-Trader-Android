@@ -415,6 +415,9 @@ public abstract class BaseActivity extends RxAppCompatActivity
         } else if (DataServiceUtils.isNetworkError(throwable)) {
             Timber.i("Data Error: " + "Code 503");
             snack(getString(R.string.error_no_internet), retry);
+        } else if (DataServiceUtils.isHttp504Error(throwable)) {
+            Timber.i("Data Error: " + "Code 504");
+            snack(getString(R.string.error_service_timeout_error), retry);
         } else if (DataServiceUtils.isHttp42Error(throwable)) {
             Timber.i("Data Error: " + "Code 42");
             snack(getString(R.string.error_generic_error), retry);

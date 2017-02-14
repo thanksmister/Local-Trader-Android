@@ -485,8 +485,13 @@ public class SearchFragment extends BaseFragment
         dbManager.updateMethods(methods);
     }
 
-    private void setMethods(List<MethodItem> methods)
+    private void setMethods(final List<MethodItem> methods)
     {
+        if(methods == null || methods.isEmpty()) {
+            toast("Error getting methods...");
+            return;
+        }
+        
         if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
             paymentMethodLayout.setVisibility(View.GONE);
         } else {
@@ -505,14 +510,21 @@ public class SearchFragment extends BaseFragment
             position++;
         }
 
-        paymentMethodSpinner.setSelection(position);
+        if(position <= methods.size()) {
+            paymentMethodSpinner.setSelection(position);
+        }
+        
         paymentMethodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3)
             {
-                MethodItem methodItem = (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
-                SearchUtils.setSearchPaymentMethod(sharedPreferences, methodItem.code());
+                try {
+                    MethodItem methodItem = (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
+                    SearchUtils.setSearchPaymentMethod(sharedPreferences, methodItem.code());
+                } catch (IndexOutOfBoundsException e) {
+                    Timber.e("Error setting methods: " + methods.toString() + " Error message: " + e.getMessage());
+                }
             }
 
             @Override
@@ -630,13 +642,14 @@ public class SearchFragment extends BaseFragment
                     @Override
                     public void call(List<Method> methods)
                     {
-                        if (!methods.isEmpty()) {
-                            Method method = new Method();
-                            method.code = "all";
-                            method.name = "All";
-                            methods.add(0, method);
-                            updateMethods(methods);
-                        }
+                        if(methods == null)
+                            methods = new ArrayList<Method>();
+                        
+                        Method method = new Method();
+                        method.code = "all";
+                        method.name = "All";
+                        methods.add(0, method);
+                        updateMethods(methods);
 
                         dataServiceSubscription = null;
                     }

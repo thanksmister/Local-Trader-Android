@@ -53,7 +53,7 @@
     <string name="error_generic_error">Service unreachable, check network connection.</string>
     <string name="error_unknown_error">An unknown error has occurred.</string>
     <string name="error_service_unreachable_error">The service is unreachable or not responding.</string>
-    <string name="error_service_timeout_error">The service is timed out and is unresponsive.</string>
+    <string name="error_service_timeout_error">The service has timed out and is unresponsive.</string>
     <string name="error_service_error">Service produced resource not found error.</string>
     <string name="error_generic_permission">You do not have permission to access this feature.</string>
     <string name="error_authentication">Authentication error, please check that your login credentials are correct.</string>
@@ -501,9 +501,10 @@
     <string name="use_hmac_authentication">Use HMAC instead of Oauth2 Authentication</string>
     <string name="button_authenticate">Authenticate</string>
     <string name="trade_request_description"><![CDATA[All fields are required unless otherwise marked as optional. Please see <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">the online buying guide</a> for requirements by payment type.]]></string>
-    <string name="whats_new_message"><![CDATA[<br><br>Happy New Year!<br><br>More bug fixes and stability enhancements.<br><br>Fixed issue updating message or details for existing trades.<br><br>Fixed issue saving trade terms and payment details for advertisements.<br><br>Fixed crash when selecting text of trade terms or payment details that contained links.<br><br>Fixed bug with last online indicator for contact that always showed them as online.<br><br>Added new options for online sells.<br><br>Please join the new <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
+    <string name="whats_new_message"><![CDATA[<br><br>More bug fixes and stability enhancements.<br><br>Added catch for search crash in some areas.<br><br>Additional confirmation dialog added for sending payments and releasing trades.<br><br>Please join the new <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
     <string name="dialog_missing_activity">You don\'t have an application to handle web urls. Please visit https://localbitcoins.com/register/?ch=2hbo/ to register.</string>
     <string name="error_dialog_bad_address">That address is invalid, enter a different address (like just country or city) or use your location. Want to use your current location?</string>
     <string name="toast_error_no_installed_ativity">There is no installed application to handle the request.</string>
+    <string name="pin_code_trade"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page.]]></string>
 
 </resources>

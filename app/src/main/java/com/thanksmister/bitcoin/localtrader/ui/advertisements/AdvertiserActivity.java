@@ -82,7 +82,7 @@ public class AdvertiserActivity extends BaseActivity
     @InjectView(R.id.priceLayoutDivider)
     View priceLayoutDivider;
     
-    @InjectView(R.id.toolbar)
+    @InjectView(R.id.advertiserToolbar)
     Toolbar toolbar;
     
     @InjectView(R.id.tradePrice)
@@ -171,7 +171,7 @@ public class AdvertiserActivity extends BaseActivity
             adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
         
-        if(toolbar != null && getSupportActionBar() != null) {
+        if(toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
