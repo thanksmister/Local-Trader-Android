@@ -85,8 +85,6 @@ public class AuthUtils
     {
         String accessToken = sharedPreferences.getString(ACCESS_TOKEN, null);
         String refreshToken = sharedPreferences.getString(REFRESH_TOKEN, null);
-        //String key = sharedPreferences.getString(HMAC_KEY, null);
-        //String secret = sharedPreferences.getString(HMAC_SECRET, null);
         return !TextUtils.isEmpty(accessToken) && !TextUtils.isEmpty(refreshToken);
     }
     /**
@@ -274,6 +272,8 @@ public class AuthUtils
     public static void resetCredentials(@NonNull SharedPreferences sharedPreferences)
     {
         SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(ACCESS_TOKEN, null);
+        editor.putString(REFRESH_TOKEN, null);
         editor.clear();
         editor.apply();
     }

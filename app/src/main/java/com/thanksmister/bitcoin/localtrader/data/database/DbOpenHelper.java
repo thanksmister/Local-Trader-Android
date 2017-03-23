@@ -24,8 +24,9 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 33;
-    private static final int DATABASE_FIRST_TIME_BTC_LIMIT = 32;
+    private static final int DATABASE_VERSION = 34;
+    private static final int DATABASE_NOTIFICATIONS = 33;
+    private static final int DATABASE_VERSION_FIRST_TIME_BTC_LIMIT = 32;
     private static final int DATABASE_VERSION_TRANSACTIONS = 29;
     private static final int DATABASE_VERSION_MESSAGES = 25;
     private static final int CONTACT_VERSION_MESSAGES = 27;
@@ -154,6 +155,18 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     ExchangeItem.ASK + TYPE_TEXT + COMMA_SEP +
                     ExchangeItem.LAST + TYPE_TEXT +
                     ")";
+    
+    private static final String CREATE_NOTIFICATIONS =
+            "CREATE TABLE IF NOT EXISTS " + NotificationItem.TABLE + " (" 
+                    + NotificationItem.ID + " INTEGER PRIMARY KEY," 
+                    + NotificationItem.NOTIFICATION_ID + TYPE_TEXT + COMMA_SEP 
+                    + NotificationItem.URL + TYPE_TEXT + COMMA_SEP 
+                    + NotificationItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP 
+                    + NotificationItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP 
+                    + NotificationItem.MESSAGE + TYPE_TEXT + COMMA_SEP 
+                    + NotificationItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
+                    + NotificationItem.READ + " INTEGER NOT NULL DEFAULT 0"
+                    + ")";
 
     private static final String CREATE_ADVERTISEMENTS =
             "CREATE TABLE IF NOT EXISTS " + AdvertisementItem.TABLE + " (" +
@@ -224,6 +237,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
         db.execSQL(CREATE_TRANSACTIONS);
         db.execSQL(CREATE_CONTACT_LIST_ID_INDEX);
         db.execSQL(CREATE_RECENT_MESSAGES);
+        db.execSQL(CREATE_NOTIFICATIONS);
         
         /*
 
@@ -254,6 +268,10 @@ public class DbOpenHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
         if (oldVersion < newVersion) {
+            db.execSQL(CREATE_NOTIFICATIONS);
+        }
+        
+        if (oldVersion < DATABASE_NOTIFICATIONS) {
             final String ALTER_TBL =
                     "ALTER TABLE " + AdvertisementItem.TABLE +
                             " ADD COLUMN " + AdvertisementItem.FIRST_TIME_LIMIT_BTC + TYPE_TEXT;
@@ -267,7 +285,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
             db.execSQL(ALTER_TBL1);
         }
         
-        if (oldVersion < DATABASE_FIRST_TIME_BTC_LIMIT) {
+        if (oldVersion < DATABASE_VERSION_FIRST_TIME_BTC_LIMIT) {
             db.execSQL("DROP TABLE IF EXISTS session_table");
             db.execSQL(CREATE_RECENT_MESSAGES);
         }

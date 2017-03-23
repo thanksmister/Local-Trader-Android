@@ -42,17 +42,19 @@ public interface LocalBitcoins
     String GET_AD = "/api/ad-get/";
     String GET_CONTACT = "/api/contact_info/";
     String GET_RECENT_MESSAGES = "/api/recent_messages/";
+    String GET_NOTIFICATIONS = "/api/notifications/";
     String GET_CONTACT_MESSAGES = "/api/contact_messages/";
     String GET_CURRENCIES = "/api/currencies/";
     String DELETE_AD = "/api/ad-delete/";
     String UPDATE_AD = "/api/ad/";
-    String POST_CONTACT_MESSAGE = "/api/contact_message_post/";
     String CHECK_PINCODE = "/api/pincode/";
     String GET_PAYMENT_METHODS = "/api/payment_methods/";
     String GET_COUNTRY_CODES = "/api/countrycodes/";
     String GET_ADS_BY_PLACE = "/get/ads/by/place/";
     String GET_ONLINE_ADS = "/get/online/ads/";
     String GET_ADS_PLACES = "/api/places/";
+    String POST_NOTIFICATIONS_MARK_READ = "/api/notifications/mark_as_read/";
+    String POST_CONTACT_MESSAGE = "/api/contact_message_post/";
     String POST_CONTACT_RELEASE = "/api/contact_release_pin/";
     String POST_CONTACT_FUND = "/api/contact_fund/";
     String POST_CONTACT_CANCEL = "/api/contact_cancel/";
@@ -272,6 +274,13 @@ public interface LocalBitcoins
     @GET(GET_RECENT_MESSAGES)
     Observable<Response> recentMessages(@Query("access_token") String token);
 
+    @GET(GET_NOTIFICATIONS)
+    Observable<Response> getNotifications(@Query("access_token") String token);
+
+    
+    @POST(POST_NOTIFICATIONS_MARK_READ + "{notification_id}/")
+    Observable<Response> markNotificationRead(@Query("access_token") String token,
+                                       @Path("notification_id") String notification_id);
 
     @GET(GET_MYSELF)
     Observable<Response> getMyself(@Header("Apiauth-Key") String key,

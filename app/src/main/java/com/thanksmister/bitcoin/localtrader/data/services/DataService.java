@@ -32,6 +32,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.User;
@@ -45,6 +46,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContac
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToJSONObject;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMethod;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToNotifications;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToUser;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
@@ -368,8 +370,6 @@ public class DataService
 
         return Observable.error(new Error("Unable to perform action on contact"));
     }
-
-    
     
     public Observable<JSONObject> updateAdvertisement(final Advertisement advertisement)
     {
@@ -565,6 +565,32 @@ public class DataService
         return localBitcoins.contactMessages(accessToken, contact_id);
     }
 
+    public Observable<List<Notification>> getNotifications()
+    {
+        return getNotificationsObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getNotificationsObservable()))
+                .map(new ResponseToNotifications());
+    }
+
+    private Observable<Response> getNotificationsObservable()
+    {
+        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        return localBitcoins.getNotifications(accessToken);
+    }
+
+    public Observable<JSONObject> markNotificationRead(final String notificationId)
+    {
+        return markNotificationReadObservable(notificationId)
+                .onErrorResumeNext(refreshTokenAndRetry(markNotificationReadObservable(notificationId)))
+                .map(new ResponseToJSONObject());
+    }
+    
+    private Observable<Response> markNotificationReadObservable(final String notificationId)
+    {
+        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        return localBitcoins.markNotificationRead(accessToken, notificationId);
+    }
+    
     public Observable<List<Contact>> getContacts(final DashboardType dashboardType)
     {
         if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
@@ -644,11 +670,7 @@ public class DataService
 
     public Observable<Advertisement> getAdvertisement(final String adId)
     {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return getAdvertisementObservable(adId, retryLimit)
-                    .map(new ResponseToAd());
-        }
-        
+        Timber.d("getAdvertisement");
         return getAdvertisementObservable(adId)
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementObservable(adId)))
                 .map(new ResponseToAd());

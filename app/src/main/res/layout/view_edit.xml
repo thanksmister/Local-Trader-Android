@@ -340,7 +340,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                                android:id="@+id/editPriceEquationLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
@@ -429,7 +428,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                                android:id="@+id/editMaximumAmountLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
@@ -495,7 +493,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                                android:id="@+id/editMinimumAmountLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
@@ -878,7 +875,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                                android:id="@+id/identifiedLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical">
@@ -917,7 +913,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                                android:id="@+id/smsVerifiedLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical">
@@ -956,7 +951,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                                android:id="@+id/trustedOnlyLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical">
@@ -998,7 +992,6 @@
                         </LinearLayout>
 
                         <LinearLayout
-                                android:id="@+id/trackLiquidityLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical">

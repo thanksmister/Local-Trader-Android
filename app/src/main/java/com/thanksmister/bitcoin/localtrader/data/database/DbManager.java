@@ -81,6 +81,7 @@ public class DbManager
         db.delete(AdvertisementItem.TABLE, null);
         db.delete(TransactionItem.TABLE, null);
         db.delete(RecentMessageItem.TABLE, null);
+        db.delete(NotificationItem.TABLE, null);
     }
 
     public void clearWallet()
@@ -328,7 +329,7 @@ public class DbManager
         return briteContentResolver.createQuery(SyncProvider.RECENT_MESSAGE_TABLE_URI, null, null, null, RecentMessageItem.CREATED_AT + " DESC", false)
                 .map(RecentMessageItem.MAP);
     }
-
+    
     public void markRecentMessagesSeen()
     {
         Timber.d("markRecentMessagesSeen");
@@ -376,6 +377,40 @@ public class DbManager
                         }
                     }
                 });
+    }
+
+    public Observable<List<NotificationItem>> notificationsQuery()
+    {
+        return briteContentResolver.createQuery(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, NotificationItem.CREATED_AT + " DESC", false)
+                .map(NotificationItem.MAP);
+    }
+
+    public void markNotificationsRead()
+    {
+        Timber.d("markNotificationsRead");
+        synchronized (this) {
+            Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(NotificationItem.READ, true);
+                contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, contentValues, null, null);
+                cursor.close();
+            }
+        }
+    }
+
+    public void markNotificationRead(String notificationId)
+    {
+        Timber.d("markNotificationSeen notificationId: " + notificationId);
+        synchronized (this) {
+            Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, NotificationItem.NOTIFICATION_ID + " = ?", new String[]{String.valueOf(notificationId)}, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(NotificationItem.READ, true);
+                contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, contentValues, NotificationItem.NOTIFICATION_ID + " = ?", new String[]{String.valueOf(notificationId)});
+                cursor.close();
+            }
+        }
     }
 
     public Observable<List<TransactionItem>> transactionsQuery()
@@ -528,7 +563,7 @@ public class DbManager
     {
         Timber.d("updateWallet: " + wallet);
         
-        final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
+        //final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
         
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
@@ -541,7 +576,6 @@ public class DbManager
                             
                             if (!walletItem.address().equals(wallet.address)
                                     || !walletItem.balance().equals(wallet.balance)
-                                    || !walletItem.receivable().equals(wallet.received)
                                     || !walletItem.sendable().equals(wallet.sendable)) {
 
                                 

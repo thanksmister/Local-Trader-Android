@@ -57,6 +57,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
+import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
@@ -67,6 +68,7 @@ import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.trello.rxlifecycle.ActivityEvent;
@@ -93,7 +95,7 @@ import timber.log.Timber;
 public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
     public static final String EXTRA_ID = "com.thanksmister.extras.EXTRA_ID";
-    public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_TYPE";
+    public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_NOTIFICATION_TYPE";
 
     @Inject
     DataService dataService;
@@ -112,6 +114,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     private TextView tradePrice;
     private TextView tradeAmount;
+    private TextView tradeReference;
+    private TextView tradeId;
     private TextView traderName;
     private TextView tradeFeedback;
     private TextView tradeCount;
@@ -185,6 +189,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         
         tradePrice = (TextView) headerView.findViewById(R.id.tradePrice);
         tradeAmount = (TextView) headerView.findViewById(R.id.tradeAmount);
+        tradeReference = (TextView) headerView.findViewById(R.id.tradeReference);
+        tradeId = (TextView) headerView.findViewById(R.id.tradeId);
         traderName = (TextView) headerView.findViewById(R.id.traderName);
         tradeFeedback = (TextView) headerView.findViewById(R.id.tradeFeedback);
         tradeType = (TextView) headerView.findViewById(R.id.tradeType);
@@ -312,11 +318,11 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         if(contact != null) {
             int buttonTag = TradeUtils.getTradeActionButtonLabel(contact);
             if(TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact) && disputeItem != null) {
-                disputeItem.setVisible(buttonTag != R.string.button_dispute);
+                disputeItem.setVisible(buttonTag == R.string.button_dispute);
             }
 
             if(TradeUtils.canCancelTrade(contact) && cancelItem != null) {
-                cancelItem.setVisible(buttonTag != R.string.button_cancel);
+                cancelItem.setVisible(buttonTag == R.string.button_cancel);
             }
         }
     }
@@ -508,6 +514,65 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                         toast("Unable to retrieve contact.");
                     }
                 }));
+
+        // Mark any unread notifications matching the contact Id as read
+        updateSubscription.add(dbManager.notificationsQuery()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Notifications subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<NotificationItem>>bindUntilEvent(ActivityEvent.PAUSE))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<NotificationItem>>()
+                {
+                    @Override
+                    public void call(final List<NotificationItem> notificationItems)
+                    {
+                        for (NotificationItem notificationItem : notificationItems) {
+                            final String notificationId = notificationItem.notification_id();
+                            final String notificationContactId = notificationItem.contact_id();
+                            final boolean read = notificationItem.read();
+                            if(contactId.equals(notificationContactId) && !read) {
+                                dataService.markNotificationRead(notificationId)
+                                        .doOnUnsubscribe(new Action0() {
+                                            @Override
+                                            public void call() {
+                                                Timber.i("Mark notification read safely unsubscribed");
+                                            }
+                                        })
+                                        .compose(ContactActivity.this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
+                                        .subscribeOn(Schedulers.newThread())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(new Action1<JSONObject>() {
+                                            @Override
+                                            public void call(JSONObject result) {
+                                                if(!Parser.containsError(result)) {
+                                                    dbManager.markNotificationRead(notificationId);
+                                                }
+                                            }
+                                        }, new Action1<Throwable>() {
+                                            @Override
+                                            public void call(Throwable throwable) {
+                                                Timber.e(throwable.getMessage());
+                                            }
+                                        });
+                            }
+                        }
+
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        Timber.e(throwable.getMessage());
+                    }
+                }));
     }
 
     private void updateContact(final Contact contact)
@@ -593,6 +658,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
         tradeType.setText(Html.fromHtml(type));
         tradePrice.setText(getString(R.string.trade_price, contact.amount(), contact.currency()));
         tradeAmount.setText(contact.amount_btc() + " " + getString(R.string.btc));
+        tradeReference.setText(contact.reference_code());
+        tradeId.setText(contact.contact_id());
         dealPrice.setText(Conversions.formatDealAmount(contact.amount_btc(), contact.amount()) + " " + contact.currency());
 
         tradeAmount.setText(contact.amount_btc() + " " + getString(R.string.btc));
@@ -611,12 +678,12 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             contactButton.setText(getString(buttonTag));
 
         contactButton.setTag(buttonTag);
-
-        buttonLayout.setVisibility((buttonTag == 0) ? View.GONE : View.VISIBLE);
-
-        if (buttonTag == R.string.button_cancel) {
+        
+        if (buttonTag == R.string.button_cancel || buttonTag == 0) {
+            buttonLayout.setVisibility(View.GONE);
             contactButton.setBackgroundResource(R.drawable.button_red_small_selector);
         } else {
+            buttonLayout.setVisibility(View.VISIBLE);
             contactButton.setBackgroundResource(R.drawable.button_green_small_selector);
         }
 
@@ -702,7 +769,15 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
     public void cancelContact()
     {
-        createAlert("Cancel Trade", getString(R.string.contact_cancel_confirm), contactId, null, ContactAction.CANCEL);
+        showConfirmationDialog(new ConfirmationDialogEvent("Cancel Trade", getString(R.string.contact_cancel_confirm), getString(R.string.button_ok), getString(R.string.button_cancel), new Action0()
+        {
+            @Override
+            public void call()
+            {
+                showProgressDialog(new ProgressDialogEvent("Canceling trade..."));
+                contactAction(contactId, null, ContactAction.CANCEL);
+            }
+        }));
     }
 
     public void createAlert(String title, String message, final String contactId, final String pinCode, final ContactAction action)
@@ -736,6 +811,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                     @Override
                     public void call(JSONObject jsonObject)
                     {
+                        hideProgressDialog();
+                        
                         if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
                             deleteContact(contactId, action);
                         } else {

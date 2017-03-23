@@ -80,7 +80,6 @@
                 tools:visibility="visible">
 
             <View
-                    android:id="@+id/divider"
                     android:background="?android:attr/dividerHorizontal"
                     android:layout_height="1dp"
                     android:layout_width="match_parent"/>

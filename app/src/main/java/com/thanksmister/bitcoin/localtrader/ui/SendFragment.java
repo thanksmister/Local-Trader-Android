@@ -427,7 +427,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 if (exchange != null && wallet != null) {
                     walletData = new WalletData();
                     walletData.setAddress(wallet.address());
-                    walletData.setBalance(wallet.balance());
+                    walletData.setBalance(wallet.sendable()); // only have sendable balance available to send
                     walletData.setRate(Calculations.calculateAverageBidAskFormatted(exchange.ask(), exchange.bid()));
                 }
 
@@ -761,7 +761,7 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
             balance.setText(Html.fromHtml(getString(R.string.form_balance_positive, btcBalance, value, currency)));
         }
 
-        balanceTitle.setText(getString(R.string.form_balance_label));
+        balanceTitle.setText(getString(R.string.form_sendable_label));
     }
 
     private void calculateBitcoinAmount(String fiat)

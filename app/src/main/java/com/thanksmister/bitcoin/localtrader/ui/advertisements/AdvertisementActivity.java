@@ -28,7 +28,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
-import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,6 +43,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
@@ -59,6 +59,7 @@ import com.trello.rxlifecycle.ActivityEvent;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 
@@ -71,6 +72,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
@@ -113,6 +115,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
     @InjectView(R.id.noteText)
     TextView noteText;
+
+    @InjectView(R.id.advertisementId)
+    TextView advertisementId;
 
     @InjectView(R.id.noteLayout)
     View noteLayout;
@@ -165,7 +170,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     }
 
     private Subscription subscription = Subscriptions.empty();
-    private Subscription updateSubscription = Subscriptions.empty();
+    private CompositeSubscription updateSubscription = new CompositeSubscription();
 
     public static Intent createStartIntent(Context context, String adId)
     {
@@ -215,10 +220,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     {
         if (requestCode == EditActivity.REQUEST_CODE) {
             if (resultCode == EditActivity.RESULT_UPDATED) {
-                this.adId = intent.getStringExtra(EXTRA_AD_ID);
+                Timber.d("onActivityResult");
                 setResult(resultCode);
-                onRefresh();
-                onRefreshStart();
+                //toast("Refreshing data...");
             }
         }
     }
@@ -253,7 +257,6 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     public void onRefresh()
     {
         updateData();
-        onRefreshStart();
     }
 
     public void onRefreshStop()
@@ -284,9 +287,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     public void onResume()
     {
         super.onResume();
+        Timber.d("onResume");
         subscribeData();
         updateData();
-        onRefreshStart();
     }
 
     @Override
@@ -308,7 +311,6 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     public void onRefreshEvent(RefreshEvent event)
     {
         if (event == RefreshEvent.RETRY) {
-            onRefreshStart();
             updateData();
         }
     }
@@ -395,9 +397,9 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     public void call(AdvertisementData advertisementData)
                     {
                         showContent(true);
-
-                        if (advertisementData.advertisement != null)
+                        if (advertisementData.advertisement != null) {
                             setAdvertisement(advertisementData.advertisement, advertisementData.method);
+                        }
                     }
                 }, new Action1<Throwable>()
                 {
@@ -417,9 +419,25 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             handleError(new NetworkConnectionException());
             return;
         }
+
+        Timber.d("updateData");
+
+        // display the refresh animation
+        onRefreshStart();
+
+        updateSubscription = new CompositeSubscription();
         
-        Observable<Advertisement> updateAdvertisementObservable = dataService.getAdvertisement(adId);
-        updateSubscription = updateAdvertisementObservable
+        // Refresh the advertisement
+        updateSubscription.add(dataService.getAdvertisement(adId)
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Advertisement subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Advertisement>bindUntilEvent(ActivityEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Advertisement>()
@@ -428,8 +446,11 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     public void call(Advertisement advertisement)
                     {
                         onRefreshStop();
-
-                        dbManager.updateAdvertisement(advertisement);
+                        if(advertisement == null) {
+                            handleError(new TimeoutException("Advertisement failed to update."), true);
+                        } else {
+                            dbManager.updateAdvertisement(advertisement);
+                        }
 
                     }
                 }, new Action1<Throwable>()
@@ -438,10 +459,68 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
                     public void call(Throwable throwable)
                     {
                         onRefreshStop();
-
                         handleError(throwable, true);
                     }
-                });
+                }));
+        
+        // Mark any unread notifications matching the advertisement Id as read
+        updateSubscription.add(dbManager.notificationsQuery()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Notifications subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<NotificationItem>>bindUntilEvent(ActivityEvent.PAUSE))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<NotificationItem>>()
+                {
+                    @Override
+                    public void call(final List<NotificationItem> notificationItems)
+                    {
+                        for (NotificationItem notificationItem : notificationItems) {
+                            final String notificationId = notificationItem.notification_id();
+                            final String notificationAdId = notificationItem.advertisement_id();
+                            final boolean read = notificationItem.read();
+                            if(adId.equals(notificationAdId) && !read) {
+                                dataService.markNotificationRead(notificationId)
+                                        .doOnUnsubscribe(new Action0() {
+                                            @Override
+                                            public void call() {
+                                                Timber.i("Mark notification read safely unsubscribed");
+                                            }
+                                        })
+                                        .compose(AdvertisementActivity.this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
+                                        .subscribeOn(Schedulers.newThread())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(new Action1<JSONObject>() {
+                                            @Override
+                                            public void call(JSONObject result) {
+                                                if(!Parser.containsError(result)) {
+                                                    dbManager.markNotificationRead(notificationId);
+                                                }
+                                            }
+                                        }, new Action1<Throwable>() {
+                                            @Override
+                                            public void call(Throwable throwable) {
+                                                Timber.e(throwable.getMessage());
+                                            }
+                                        });
+                            }
+                        }
+
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        Timber.e(throwable.getMessage());
+                    }
+                }));
     }
 
     public void setAdvertisement(AdvertisementItem advertisement, @Nullable MethodItem method)
@@ -525,6 +604,8 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
             paymentDetails.setMovementMethod(SelectableLinkMovementMethod.getInstance());
         }
 
+        advertisementId.setText(advertisement.ad_id());
+        
         setTradeRequirements(advertisement);
         updateAdvertisement(advertisement);
     }

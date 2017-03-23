@@ -57,7 +57,7 @@ import timber.log.Timber;
 
 public class ContactsActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener
 {
-    public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_TYPE";
+    public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_NOTIFICATION_TYPE";
    
     @Inject
     DataService dataService;

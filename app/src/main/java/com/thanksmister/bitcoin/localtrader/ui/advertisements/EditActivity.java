@@ -1066,45 +1066,27 @@ public class EditActivity extends BaseActivity
             advertisementSubscription = updateAdvertisementObservable
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<JSONObject>()
+                    .subscribe(new Action1<JSONObject>()
                     {
                         @Override
-                        public void onCompleted()
+                        public void call(final JSONObject jsonObject)
                         {
                             hideProgressDialog();
+                            
+                            if (Parser.containsError(jsonObject)) {
+                                RetroError error = Parser.parseError(jsonObject);
+                                showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
+                            } else {
+                                updateAdvertisement(advertisement);
+                            }
                         }
-
+                    }, new Action1<Throwable>()
+                    {
                         @Override
-                        public void onError(final Throwable e)
+                        public void call(Throwable throwable)
                         {
-                            runOnUiThread(new Runnable()
-                            {
-                                @Override
-                                public void run()
-                                {
-                                    hideProgressDialog();
-                                    handleLocalError(e);
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onNext(final JSONObject jsonObject)
-                        {
-                            Timber.d("Updated JSON: " + jsonObject.toString());
-                            runOnUiThread(new Runnable()
-                            {
-                                @Override
-                                public void run()
-                                {
-                                    if (Parser.containsError(jsonObject)) {
-                                        RetroError error = Parser.parseError(jsonObject);
-                                        showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
-                                    } else {
-                                        updateAdvertisement(advertisement);
-                                    }
-                                }
-                            });
+                            hideProgressDialog();
+                            handleLocalError(throwable);
                         }
                     });
         }

@@ -18,5 +18,5 @@ package com.thanksmister.bitcoin.localtrader.events;
 
 public enum NavigateEvent
 {
-    SEARCH, SEND, WALLET, LOGOUT, LOGOUT_CONFIRM, QRCODE, ADVERTISE, DASHBOARD
+    SEARCH, SEND, WALLET, LOGOUT, LOGOUT_CONFIRM, QRCODE, ADVERTISE, DASHBOARD, NOTIFICATIONS
 }

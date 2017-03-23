@@ -16,6 +16,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -25,6 +26,8 @@ import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+
+import static com.thanksmister.bitcoin.localtrader.R.menu.contact;
 
 public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder>
 {
@@ -153,6 +156,10 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
             } else {
                 ((AdvertisementViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_action_visibility_off_dark);
             }
+
+            String date = Dates.parseLocaleDate(advertisement.created_at());
+            ((AdvertisementViewHolder) viewHolder).advertisementId.setText(advertisement.ad_id());
+            ((AdvertisementViewHolder) viewHolder).advertisementDate.setText(date);
         }
     }
 
@@ -186,6 +193,12 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
 
         @InjectView(R.id.advertisementDetails)
         public TextView advertisementDetails;
+
+        @InjectView(R.id.advertisementId)
+        public TextView advertisementId;
+
+        @InjectView(R.id.advertisementDate)
+        public TextView advertisementDate;
 
         public AdvertisementViewHolder(View itemView)
         {

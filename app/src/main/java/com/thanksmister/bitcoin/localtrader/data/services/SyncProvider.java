@@ -24,6 +24,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
 
 /*
@@ -42,13 +43,13 @@ public class SyncProvider extends ContentProvider
      */
     public static final Uri CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     
-
     public static final Uri METHOD_TABLE_URI = CONTENT_URI.buildUpon().appendPath("method_item").build();
     public static final Uri EXCHANGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath("exchange_item").build();
     public static final Uri CONTACT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("contact_item").build();
     public static final Uri ADVERTISEMENT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("advertisement_item").build();
     public static final Uri MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath("message_item").build();
     public static final Uri RECENT_MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath(RecentMessageItem.TABLE).build();
+    public static final Uri NOTIFICATION_TABLE_URI = CONTENT_URI.buildUpon().appendPath(NotificationItem.TABLE).build();
     public static final Uri WALLET_TABLE_URI = CONTENT_URI.buildUpon().appendPath("wallet_item").build();
    
     DbOpenHelper dbOpenHelper;

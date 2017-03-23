@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.utils;
 
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,13 +48,23 @@ public class Dates
     public static Date parseLocalDateISO(String dateTime)
     {
         try {
+            if (dateTime.contains(".")) {
+                int period = dateTime.indexOf(".");
+                Timber.d("Date: " + dateTime);
+                Timber.d("period: " + period);
+                
+                if (period > 0) {
+                    String replace = dateTime.substring(period, period + 5);
+                    Timber.d("replace: " + replace);
+                    dateTime = dateTime.replace(replace, "");
+                }
+            }
             return ISO8601.toCalendar(dateTime).getTime();
-        } catch (ParseException e) {
+        } catch (Exception e) {
             Timber.e(e.getMessage());
         }
 
-        Date date = new Date();
-        return date;
+        return new Date();
     }
 
     public static String parseLocalDateStringShort(String dateTime)
@@ -100,6 +111,36 @@ public class Dates
             dateString = (dateFormat.format(date.getTime()));
         }
 
+        return dateString ;
+    }
+
+    public static String parseLocaleDate(String dateTime)
+    {
+        String dateString;
+
+        // Date
+        DateFormat dateFormat = SimpleDateFormat.getDateInstance(DateFormat.SHORT);
+        try {
+            dateString = (dateFormat.format(ISO8601.toCalendar(dateTime).getTime()));
+        } catch (ParseException e) {
+            Date date = new Date();
+            dateString = (dateFormat.format(date.getTime()));
+        }
+        return dateString ;
+    }
+
+    public static String parseLocaleDateTime(String dateTime)
+    {
+        String dateString;
+
+        // Date
+        DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+        try {
+            dateString = (dateFormat.format(ISO8601.toCalendar(dateTime).getTime()));
+        } catch (ParseException e) {
+            Date date = new Date();
+            dateString = (dateFormat.format(date.getTime()));
+        }
         return dateString ;
     }
 

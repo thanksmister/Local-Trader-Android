@@ -37,12 +37,14 @@ import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.Db;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
+import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
@@ -105,9 +107,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
         Timber.d("onPerformSync: " + hasCredentials);
-        if (hasCredentials) {
-            getContacts();
-        }
+        getContacts();
     }
 
     @Override
@@ -115,10 +115,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         super.onSyncCanceled();
     }
-
+    
     private void getContacts()
     {
         Timber.d("getContacts");
+
+        boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
+        if (!hasCredentials) {
+            return;
+        }
         
         dataService.getContacts(DashboardType.ACTIVE)
                 .subscribe(new Action1<List<Contact>>()
@@ -128,7 +133,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     {
                         dbManager.updateContacts(contacts);
                         updateContacts(contacts);
-                        getRecentMessages();
+                        getNotifications();
                     }
 
                 }, new Action1<Throwable>()
@@ -137,7 +142,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     public void call(Throwable throwable)
                     {
                         handleError(throwable);
-                        getRecentMessages();
+                        getNotifications();
                     }
                 });
     }
@@ -145,6 +150,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     private void getWalletBalance()
     {
         Timber.d("getWalletBalance");
+
+        boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
+        if (!hasCredentials) {
+            return;
+        }
         
         dataService.getWalletBalance()
                 .flatMap(new Func1<Wallet, Observable<Wallet>>()
@@ -166,6 +176,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                     @Override
                                     public Wallet call(Throwable throwable)
                                     {
+                                        reportError(throwable);
                                         return wallet;
                                     }
                                 });
@@ -188,6 +199,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
+    @Deprecated
     private void getRecentMessages()
     {
         Timber.d("getRecentMessages");
@@ -212,6 +224,35 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                 });
     }
 
+    private void getNotifications()
+    {
+        Timber.d("getNotifications");
+
+        boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
+        if (!hasCredentials) {
+            return;
+        }
+
+        dataService.getNotifications()
+                .subscribe(new Action1<List<Notification>>()
+                {
+                    @Override
+                    public void call(List<Notification> notifications)
+                    {
+                        updateNotifications(notifications);
+                        getWalletBalance();
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        handleError(throwable);
+                        getWalletBalance();
+                    }
+                });
+    }
+
     protected void reportError(Throwable throwable)
     {
         if (throwable != null && throwable.getMessage() != null) {
@@ -223,6 +264,59 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     protected void handleError(Throwable throwable)
     {
         reportError(throwable);
+    }
+
+    /**
+     * Updates the notifications list by adding only the newest
+     * notifications, updating the current notifications status
+     */
+    private void updateNotifications(final List<Notification> notifications)
+    {
+        Timber.d("updateNotifications : " + notifications.size());
+
+        boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
+        if (!hasCredentials) {
+            return;
+        }
+        
+        final HashMap<String, Notification> entryMap = new HashMap<>();
+        for (Notification notification : notifications) {
+            entryMap.put(notification.notification_id, notification);
+        }
+
+       
+        Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, null);
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                long id = Db.getLong(cursor, NotificationItem.ID);
+                String notificationId = Db.getString(cursor, NotificationItem.NOTIFICATION_ID);
+                boolean notificationRead = Db.getBoolean(cursor, NotificationItem.READ);
+                Notification match = entryMap.get(notificationId);
+                if (match != null) {
+                    entryMap.remove(notificationId);
+                    if(match.read != notificationRead) {
+                        NotificationItem.Builder builder = NotificationItem.createBuilder(match);
+                        contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, builder.build(), NotificationItem.ID + " = ?", new String[]{String.valueOf(id)});
+                    }
+                } else {
+                    contentResolver.delete(SyncProvider.NOTIFICATION_TABLE_URI, NotificationItem.ID + " = ?", new String[]{String.valueOf(id)});
+                }
+            }
+            cursor.close();
+        }
+        
+        List<Notification> newNotifications = new ArrayList<>();
+        if (!entryMap.isEmpty()) {
+            for (Notification notification : entryMap.values()) {
+                newNotifications.add(notification);
+                contentResolver.insert(SyncProvider.NOTIFICATION_TABLE_URI, NotificationItem.createBuilder(notification).build());
+            }
+        }
+
+        Timber.d("updateNotifications newNotifications: " + newNotifications.size());
+        if(!newNotifications.isEmpty()) {
+            notificationService.createNotifications(newNotifications);
+        }
     }
 
     /**
@@ -275,7 +369,48 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     
     private void updateWalletBalance(final Wallet wallet)
     {
-        Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+        Timber.d("updateWalletBalance");
+
+        boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
+        if (!hasCredentials) {
+            return;
+        }
+        
+        Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            long id = Db.getLong(cursor, WalletItem.ID);
+            String address = Db.getString(cursor, WalletItem.ADDRESS);
+            String balance = Db.getString(cursor, WalletItem.BALANCE);
+            if (!address.equals(wallet.address) || !balance.equals(wallet.balance)){
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+                contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(id)});
+                try {
+                    double newBalance = Doubles.convertToDouble(wallet.balance);
+                    double oldBalance = Doubles.convertToDouble(balance);
+                    String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
+                    Timber.d("updateWalletBalance newBalance: " + newBalance);
+                    Timber.d("updateWalletBalance oldBalance: " + oldBalance);
+                    if (newBalance > oldBalance) {
+                        notificationService.balanceUpdateNotification("Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC");
+                    }
+                } catch (Exception e) {
+                    reportError(e);
+                }
+            }
+            cursor.close();
+        } else {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+            contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
+            Timber.d("updateWalletBalance Init Balance: " + wallet.balance);
+            notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.balance + " BTC");
+        }
+        
+        /*Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
                 .subscribe(new Action1<WalletItem>()
                 {
@@ -287,10 +422,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                         if (walletItem != null) {
 
-                            if (!walletItem.address().equals(wallet.address)
-                                    || !walletItem.balance().equals(wallet.balance)
-                                    || !walletItem.receivable().equals(wallet.received)
-                                    || !walletItem.sendable().equals(wallet.sendable)) {
+                            if (!walletItem.address().equals(wallet.address) || !walletItem.balance().equals(wallet.balance)){
 
                                 WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
                                 contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
@@ -304,6 +436,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
                         if (walletItem == null) {
 
+                            Timber.d("updateWalletBalance Init Balance: " + wallet.balance);
+                         
                             notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.balance + " BTC");
 
                         } else {
@@ -313,11 +447,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                 double oldBalance = Doubles.convertToDouble(walletItem.balance());
                                 String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
 
+                                Timber.d("updateWalletBalance newBalance: " + newBalance);
+                                Timber.d("updateWalletBalance oldBalance: " + oldBalance);
+
                                 if (newBalance > oldBalance) {
                                     notificationService.balanceUpdateNotification("Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC");
                                 }
+                                
                             } catch (Exception e) {
-                                Timber.e(e.getMessage());
+                                reportError(e);
                             }
                         }
 
@@ -331,7 +469,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                     }
                 });
 
-        subscription.unsubscribe();
+        subscription.unsubscribe();*/
     }
 
     private void getDeletedContactsInfo(List<String> contacts)
@@ -427,6 +565,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
     {
         Timber.d("Update Contacts Data Size: " + contacts.size());
 
+        boolean hasCredentials = AuthUtils.hasCredentials(sharedPreferences);
+        if (!hasCredentials) {
+            return;
+        }
+
         final HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
         for (Contact contact : contacts) {
             entryMap.put(contact.contact_id, contact);
@@ -434,9 +577,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
 
         final ArrayList<Contact> newContacts = new ArrayList<Contact>();
         final ArrayList<String> deletedContacts = new ArrayList<String>();
-        final ArrayList<Contact> updatedNotifyContacts = new ArrayList<Contact>();
         final ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
-
+        
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
                 .map(ContactItem.MAP)
                 .subscribe(new Action1<List<ContactItem>>()
@@ -463,8 +605,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
                                         || (match.canceled_at != null && !match.canceled_at.equals(contactItem.canceled_at()))
                                         || (match.actions.fund_url != null && !match.actions.fund_url.equals(contactItem.funded_at()))
                                         || (match.is_funded != contactItem.is_funded())) {
-
-                                    updatedNotifyContacts.add(match);
+                                    
                                     updatedContacts.add(match);
 
                                 } else if ((match.seller.last_online != null && !match.seller.last_online.equals(contactItem.seller_last_online()))
@@ -519,17 +660,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter
             Timber.d("Delete Contact Id: " + id);
             contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{id});
             contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_LIST_ID + " = ?", new String[]{id});
-        }
-
-        if (!newContacts.isEmpty())
-            notificationService.contactNewNotification(newContacts);
-
-        if (!updatedNotifyContacts.isEmpty())
-            notificationService.contactUpdateNotification(updatedNotifyContacts);
-
-        // look up deleted trades and find the reason
-        if (!deletedContacts.isEmpty()) {
-            getDeletedContactsInfo(deletedContacts);
         }
     }
 }

@@ -46,20 +46,27 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
+import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.trello.rxlifecycle.FragmentEvent;
 
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -288,8 +295,8 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             case R.id.action_advertise:
                 createAdvertisementScreen();
                 return true;
-            case R.id.action_clear_messages:
-                markMessagesRead();
+            case R.id.action_clear_notifications:
+                getUnreadNotifications();
                 return true;
             default:
                 break;
@@ -345,12 +352,14 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         String userName = AuthUtils.getUsername(sharedPreferences);
         SyncUtils.TriggerRefresh(getContext().getApplicationContext(), userName);
         
-        // kind of a hack to get the advertisements to update on refresh
+        // kind of a hack to get the fragments to update on refresh
         if(mViewPager != null) {
             FragmentPagerAdapter a = (FragmentPagerAdapter) mViewPager.getAdapter();
             Fragment fragment = (Fragment) a.instantiateItem(mViewPager, 0);
             if(fragment instanceof  AdvertisementsFragment) {
                 ((AdvertisementsFragment)fragment).updateData();
+            } else if (fragment instanceof ContactsFragment) {
+                ((ContactsFragment)fragment).updateData();
             }
         }
        
@@ -374,7 +383,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         }
     };
 
-    protected void onRefreshStop()
+    private void onRefreshStop()
     {
         if(handler != null)
             handler.removeCallbacks(refreshRunnable);
@@ -383,7 +392,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             swipeLayout.setRefreshing(false);
     }
 
-    protected void subscribeData()
+    private void subscribeData()
     {
         Timber.d("subscribeData");
 
@@ -418,7 +427,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 });
     }
 
-    protected void updateData()
+    private void updateData()
     {
         Timber.d("UpdateData");
 
@@ -463,11 +472,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 }));
     }
 
-    public static class DashboardPagerAdapter extends FragmentPagerAdapter
+    private static class DashboardPagerAdapter extends FragmentPagerAdapter
     {
         private static int NUM_ITEMS = 3;
 
-        public DashboardPagerAdapter(FragmentManager fragmentManager)
+        private DashboardPagerAdapter(FragmentManager fragmentManager)
         {
             super(fragmentManager);
         }
@@ -489,7 +498,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
                 case 1:
                     return ContactsFragment.newInstance();
                 case 2:
-                    return MessagesFragment.newInstance();
+                    return NotificationsFragment.newInstance();
                 default:
                     return null;
             }
@@ -502,37 +511,108 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             return mTabNames[position];
         }
     }
-    
-    protected void showSendScreen()
+
+    private void showSendScreen()
     {
         bus.post(NavigateEvent.SEND);
     }
 
-    protected void showSearchScreen()
+    private void showSearchScreen()
     {
         bus.post(NavigateEvent.SEARCH);
     }
-    
-    protected void showTradesScreen()
+
+    private void showTradesScreen()
     {
         Intent intent = ContactsActivity.createStartIntent(getActivity(), DashboardType.RELEASED);
         intent.setClass(getActivity(), ContactsActivity.class);
         startActivity(intent);
     }
-    
-    protected void createAdvertisementScreen()
+
+    private void createAdvertisementScreen()
     {
         Intent intent = EditActivity.createStartIntent(getActivity(), true, null);
         intent.setClass(getActivity(), EditActivity.class);
         startActivityForResult(intent, EditActivity.REQUEST_CODE);
     }
 
-    protected void markMessagesRead()
+    private void getUnreadNotifications()
     {
-        dbManager.markRecentMessagesSeen();
+        showProgressDialog(new ProgressDialogEvent("Marking notifications read..."));
+        dbManager.notificationsQuery()
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("Notification subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<NotificationItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<NotificationItem>>()
+                {
+                    @Override
+                    public void call(List<NotificationItem> notificationItems)
+                    {
+                        final List<NotificationItem> unreadNotifications = new ArrayList<NotificationItem>();
+                        for (NotificationItem notificationItem : notificationItems) {
+                            if(!notificationItem.read()) {
+                                unreadNotifications.add(notificationItem);
+                            }
+                        }
+                        if(!unreadNotifications.isEmpty()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    markNotificationsRead(unreadNotifications);  
+                                }
+                            });
+                        }
+                    }
+                }, new Action1<Throwable>()
+                {
+                    @Override
+                    public void call(Throwable throwable)
+                    {
+                        hideProgressDialog();
+                        reportError(throwable);
+                    }
+                });
+    }
+    
+    private void markNotificationsRead(List<NotificationItem> notificationItems)
+    {
+        for (NotificationItem notificationItem : notificationItems) {
+            final String notificationId = notificationItem.notification_id();
+             dataService.markNotificationRead(notificationId)
+                    .doOnUnsubscribe(new Action0() {
+                        @Override
+                        public void call() {
+                            Timber.i("Mark notification read safely unsubscribed");
+                        }
+                    })
+                    .compose(this.<JSONObject>bindUntilEvent(FragmentEvent.PAUSE))
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<JSONObject>() {
+                        @Override
+                        public void call(JSONObject result) {
+                            if(!Parser.containsError(result)) {
+                                dbManager.markNotificationRead(notificationId);
+                            }
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            Timber.e(throwable.getMessage());
+                        }
+                    });
+        }
+        
+        hideProgressDialog();
     }
 
-    protected void setHeaderItem(ExchangeItem exchange)
+    private void setHeaderItem(ExchangeItem exchange)
     {
         String currency = exchangeService.getExchangeCurrency();
         String value = Calculations.calculateAverageBidAskFormatted(exchange.bid(), exchange.ask());

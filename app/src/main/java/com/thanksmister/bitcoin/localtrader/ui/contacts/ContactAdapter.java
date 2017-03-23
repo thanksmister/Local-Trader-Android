@@ -107,16 +107,19 @@ public class ContactAdapter extends BaseAdapter
         String amount =  contact.amount() + " " + contact.currency();
         String btc =  contact.amount_btc() + context.getString(R.string.btc);
         String person = (contact.is_buying())? contact.seller_username():contact.buyer_username();
-        String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
-
+       
         holder.tradeType.setText(type + " - " + amount);
-        holder.tradeDetails.setText("With " + person + " (" + date + ")");
-        //holder.contactMessageCount.setText(String.valueOf(contact.messageCount()));
+        holder.tradeDetails.setText("With " + person);
+       
         if(contact.messageCount() > 0) {
             holder.contactMessageCount.setText(String.valueOf(contact.messageCount()));
         } else {
             holder.contactMessageCount.setText("");
         }
+
+        String date = Dates.parseLocaleDateTime(contact.created_at());
+        holder.contactId.setText(contact.contact_id());
+        holder.contactDate.setText(date);
         
         return view;
     }
@@ -131,6 +134,10 @@ public class ContactAdapter extends BaseAdapter
         public TextView tradeDetails;
         @InjectView(R.id.contactMessageCount)
         public TextView contactMessageCount;
+        @InjectView(R.id.contactId)
+        public TextView contactId;
+        @InjectView(R.id.contactDate)
+        public TextView contactDate;
         
         public ViewHolder(View view) {
             ButterKnife.inject(this, view);

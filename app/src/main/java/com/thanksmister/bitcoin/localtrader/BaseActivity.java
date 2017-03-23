@@ -294,9 +294,6 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
     private void onLoggedOut()
     {
-        String userName = AuthUtils.getUsername(sharedPreferences);
-        SyncUtils.ClearSyncAccount(getApplicationContext(), userName);
-
         dataService.logout();
         dbManager.clearDbManager();
 
@@ -311,6 +308,10 @@ public abstract class BaseActivity extends RxAppCompatActivity
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
+
+        String userName = AuthUtils.getUsername(sharedPreferences);
+        SyncUtils.CancelSync(userName);
+        SyncUtils.ClearSyncAccount(getApplicationContext(), userName);
 
         hideProgressDialog();
 

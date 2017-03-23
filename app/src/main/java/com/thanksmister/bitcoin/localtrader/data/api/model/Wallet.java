@@ -17,7 +17,6 @@ package com.thanksmister.bitcoin.localtrader.data.api.model;
 
 import android.graphics.Bitmap;
 
-import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.ISO8601;
 
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ public class Wallet
     public List<Transaction> sent_transactions = Collections.emptyList();
     public List<Transaction> receiving_transactions = Collections.emptyList();
     public String address;
-    public String received;
     public String balance;
     public String sendable;
     

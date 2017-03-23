@@ -109,10 +109,12 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
             String amount = contact.amount() + " " + contact.currency();
             String person = (contact.is_buying()) ? contact.seller_username() : contact.buyer_username();
-            String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
-
+            String date = Dates.parseLocaleDateTime(contact.created_at());
+            
             ((ItemViewHolder) viewHolder).tradeType.setText(type + " - " + amount);
-            ((ItemViewHolder) viewHolder).tradeDetails.setText("With " + person + " (" + date + ")");
+            ((ItemViewHolder) viewHolder).tradeDetails.setText("With " + person);
+            ((ItemViewHolder) viewHolder).contactId.setText(contact.contact_id());
+            ((ItemViewHolder) viewHolder).contactDate.setText(date);
         }
     }
 
@@ -143,6 +145,12 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
         @InjectView(R.id.tradeDetails)
         public TextView tradeDetails;
+
+        @InjectView(R.id.contactId)
+        public TextView contactId;
+
+        @InjectView(R.id.contactDate)
+        public TextView contactDate;
 
         public ItemViewHolder(View itemView)
         {

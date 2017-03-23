@@ -17,15 +17,11 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
 
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import auto.parcel.AutoParcel;
 import rx.functions.Func1;
@@ -48,14 +44,11 @@ public abstract class WalletItem implements Parcelable
     public static final String RECEIVABLE = "receivable";
     public static final String QRCODE = "qrcode";
     
-    public static final String QUERY = "SELECT * FROM " + WalletItem.TABLE + " LIMIT 1";
-    
     public abstract long id();
     public abstract String message();
     public abstract String balance();
     public abstract String sendable();
     public abstract String address();
-    public abstract String receivable();
     public abstract byte[] qrcode();
 
     public static final Func1<Query, WalletItem> MAP = new Func1<Query, WalletItem>() {
@@ -70,9 +63,8 @@ public abstract class WalletItem implements Parcelable
                     String balance = Db.getString(cursor, BALANCE);
                     String sendable = Db.getString(cursor, SENDABLE);
                     String address = Db.getString(cursor, ADDRESS);
-                    String receivable = Db.getString(cursor, RECEIVABLE);
                     byte[] qrcode = Db.getBlob(cursor, QRCODE);
-                    return new AutoParcel_WalletItem(id, message, balance, sendable, address, receivable, qrcode);
+                    return new AutoParcel_WalletItem(id, message, balance, sendable, address, qrcode);
                 }
                 
                 return null;
@@ -90,7 +82,6 @@ public abstract class WalletItem implements Parcelable
                 .balance(wallet.balance)
                 .sendable(wallet.sendable)
                 .address(wallet.address)
-                .receivable(wallet.received)
                 .qrcode(baos.toByteArray());
     }
 
@@ -117,10 +108,6 @@ public abstract class WalletItem implements Parcelable
         }
         public Builder address(String value) {
             values.put(ADDRESS, value);
-            return this;
-        }
-        public Builder receivable(String value) {
-            values.put(RECEIVABLE, value);
             return this;
         }
         public Builder qrcode(byte[] value) {

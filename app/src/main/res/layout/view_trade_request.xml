@@ -157,7 +157,6 @@
                 </LinearLayout>
 
                 <LinearLayout
-                        android:id="@+id/additionalOptionsLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:divider="@drawable/empty_list_divider"
@@ -308,7 +307,6 @@
         </android.support.v4.widget.NestedScrollView>
 
         <View
-                android:id="@+id/divider"
                 android:background="?android:attr/dividerHorizontal"
                 android:layout_height="1dp"
                 android:layout_width="match_parent"/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2016 ThanksMister LLC
+  ~ Copyright (c) 2017 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -28,45 +28,47 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingTop="16dp"
-            android:paddingBottom="16dp"
-            android:paddingRight="16dp">
+            android:paddingRight="16dp"
+            android:paddingBottom="16dp">
 
         <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:layout_gravity="center_vertical">
-            
+
             <ImageView
                     android:id="@+id/itemIcon"
                     android:contentDescription="@string/desc"
                     android:layout_width="72dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_action_contact"/>
+                    android:src="@drawable/ic_action_notification"/>
 
         </FrameLayout>
-
+        
         <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_weight="1">
 
-            <TextView
-                    android:id="@+id/tradeType"
-                    style="@style/TextLarge.SmallAction.Green"
+            <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:text="Online Trade - $7000 ARS"
-                    android:singleLine="false"/>
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
 
-            <TextView
-                    android:id="@+id/tradeDetails"
-                    style="@style/TextMedium.Secondary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="With ThanksMister using Galicia"/>
+                <TextView
+                        style="@style/TextLarge.SmallAction.Green"
+                        android:id="@+id/messageBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        tools:text="New message from kuutech (7; 100%)"
+                        android:textIsSelectable="false"/>
+                
+            </LinearLayout>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -74,24 +76,23 @@
                     android:paddingTop="3dp"
                     android:orientation="horizontal">
 
-                <TextView
-                        android:id="@+id/contactDate"
-                        style="@style/TextMedium.SmallAction.Light"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="left"
-                        android:layout_weight="1"
-                        android:text="11/23/99"/>
-
-                <TextView
-                        android:id="@+id/contactId"
-                        style="@style/TextMedium.SmallAction.Light"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textIsSelectable="true"
-                        android:gravity="right"
-                        android:layout_weight="1"
-                        android:text="#559595"/>
+                    <TextView
+                            android:id="@+id/contactId"
+                            style="@style/TextMedium.SmallAction.Light"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textIsSelectable="true"
+                            tools:text="#2343453"/>
+        
+                    <TextView
+                            android:id="@+id/createdAt"
+                            style="@style/TextMedium.SmallAction.Light"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="right"
+                            android:layout_weight="1"
+                            tools:text="Two days ago"/>
 
             </LinearLayout>
 
@@ -101,7 +102,7 @@
 
     <View
             style="@style/DividerHorizontal"
-            android:layout_gravity="bottom" 
+            android:layout_gravity="bottom"
             android:layout_marginBottom="0dp"/>
 
 </FrameLayout>

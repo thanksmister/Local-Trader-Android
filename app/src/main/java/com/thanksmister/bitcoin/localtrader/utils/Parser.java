@@ -29,6 +29,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Place;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
@@ -436,6 +437,50 @@ public class Parser
     return null;
     }
 
+    public static ArrayList<Notification> parseNotifications(String response)
+    {
+        JSONObject jsonObject;
+        ArrayList<Notification> results = new ArrayList<Notification>();
+        try {
+            jsonObject = new JSONObject(response);
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+            return results;
+        }
+
+        try {
+            JSONArray notifications_list = jsonObject.getJSONArray("data");
+
+            for (int i = 0; i < notifications_list.length(); i++) {
+                JSONObject notificationObj = notifications_list.getJSONObject(i);
+                Notification notification = parseNotification(notificationObj);
+                if (notification != null) results.add(notification);
+            }
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+        }
+        
+        return results;
+    }
+    
+    private static Notification parseNotification(JSONObject jsonObject)
+    {
+        Notification notification = new Notification();
+        try {
+            if (jsonObject.has("url")) notification.url = (jsonObject.getString("url"));
+            if (jsonObject.has("created_at")) notification.created_at = (jsonObject.getString("created_at"));
+            if (jsonObject.has("contact_id")) notification.contact_id = (jsonObject.getString("contact_id"));
+            if (jsonObject.has("advertisement_id")) notification.advertisement_id = (jsonObject.getString("advertisement_id"));
+            if (jsonObject.has("read")) notification.read = (jsonObject.getBoolean("read"));
+            if (jsonObject.has("msg")) notification.msg = jsonObject.getString("msg");
+            if (jsonObject.has("id")) notification.notification_id = (jsonObject.getString("id"));
+            return notification;
+        } catch (JSONException e) {
+            Timber.e("Error Parsing Notification: " + e.getMessage());
+        }
+
+        return null;
+    }
     
     public static ArrayList<Message> parseMessages(String response)
     {
@@ -518,11 +563,13 @@ public class Parser
             JSONObject data = jsonObject.getJSONObject("data");
 
             wallet.message = (data.getString("message"));
-
+            wallet.address = data.getString("receiving_address");
+            
             JSONObject total = data.getJSONObject("total");
+            
             wallet.balance = (total.getString("balance"));
             wallet.sendable = (total.getString("sendable"));
-
+            
             JSONArray sent_transactions = data.getJSONArray("sent_transactions_30d");
 
             ArrayList<Transaction> sentTransactions = new ArrayList<>();
@@ -610,21 +657,20 @@ public class Parser
             wallet.receiving_transactions = receivedTransactions;
 
             // just get the first address
-            JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
+            /*JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
             JSONObject object = (JSONObject) receiving_address_list.get(receiving_address_list.length() - 1);
             wallet.address = (object.getString("address"));
-            wallet.received = (object.getString("received"));
+            wallet.received = (object.getString("received"))*/;
 
             return wallet;
 
         } catch (Exception e) {
            
             Timber.e("Error Parsing: " + e.getMessage());
-           
-
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("Wallet", "Parsing error discovered");
-                Crashlytics.logException(new Throwable("Error parsing wallet: " + response));
+                Crashlytics.logException(new Throwable("Error parsing wallet: " + e.getMessage()));
+                //Timber.e("Error Parsing: " + e.getMessage());
             }
         }
 
@@ -647,16 +693,12 @@ public class Parser
 
             JSONObject data = jsonObject.getJSONObject("data");
             wallet.message = (data.getString("message"));
-
+            wallet.address = (data.getString("receiving_address"));
+            
             JSONObject total = data.getJSONObject("total");
+            
             wallet.balance = (total.getString("balance"));
             wallet.sendable = (total.getString("sendable"));
-
-            // just get the first address
-            JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
-            JSONObject object = (JSONObject) receiving_address_list.get(0);
-            wallet.address = (object.getString("address"));
-            wallet.received = (object.getString("received"));
 
             return wallet;
 
@@ -1058,6 +1100,7 @@ public class Parser
     public static Exchange parseMarket(String response)
     {
         JSONObject jsonObject;
+        Timber.d("Calculations" + response);
 
         try {
             jsonObject = new JSONObject(response);

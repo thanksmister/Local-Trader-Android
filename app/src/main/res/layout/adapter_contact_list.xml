@@ -73,6 +73,33 @@
                 android:ellipsize="end"
                 tools:text="With ThanksMister in Buenos Aires"/>
 
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="3dp"
+                android:orientation="horizontal">
+
+            <TextView
+                    android:id="@+id/contactDate"
+                    style="@style/TextMedium.SmallAction.Light"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    android:layout_weight="1"
+                    android:text="11/23/99"/>
+
+            <TextView
+                    android:id="@+id/contactId"
+                    style="@style/TextMedium.SmallAction.Light"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textIsSelectable="true"
+                    android:gravity="right"
+                    android:layout_weight="1"
+                    android:text="#559595"/>
+
+        </LinearLayout>
+
     </LinearLayout>
 
   

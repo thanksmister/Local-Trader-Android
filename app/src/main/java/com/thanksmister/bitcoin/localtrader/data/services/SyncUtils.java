@@ -112,4 +112,9 @@ public class SyncUtils
         b.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         ContentResolver.requestSync(AuthenticatorService.GetAccount(accountName), Constants.AUTHORITY, b);  
     }
+
+    public static void CancelSync(String accountName)
+    {
+        ContentResolver.cancelSync(AuthenticatorService.GetAccount(accountName), Constants.AUTHORITY);
+    }
 }

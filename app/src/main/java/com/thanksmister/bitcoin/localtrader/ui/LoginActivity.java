@@ -90,22 +90,10 @@ public class LoginActivity extends BaseActivity
     
     @InjectView(R.id.authenticateButton)
     Button authenticateButton;
-
-   /* @InjectView(R.id.hmacKey)
-    EditText hmacKey;
-
-    @InjectView(R.id.hmacSecret)
-    EditText hmacSecret;*/
-    
-    /*@InjectView(R.id.hmacCheckBox)
-    CheckBox hmacCheckBox;*/
     
     @InjectView(R.id.urlTextDescription)
     TextView editTextDescription;
     
-    /*@InjectView(R.id.hmacTextDescription)
-    TextView hmacTextDescription;*/
-
     @InjectView(R.id.apiEndpoint)
     TextView apiEndpoint;
 
@@ -114,7 +102,7 @@ public class LoginActivity extends BaseActivity
     private String endpoint;
     private boolean whatsNewShown;
     private boolean webViewLogin;
-    private boolean useHmacAuthentication;
+   
 
     public static Intent createStartIntent(Context context)
     {
@@ -129,11 +117,6 @@ public class LoginActivity extends BaseActivity
         setContentView(R.layout.view_login);
 
         ButterKnife.inject(this);
-
-        /*if (BuildConfig.DEBUG) {
-            hmacKey.setText(R.string.hmac_key);
-            hmacSecret.setText(R.string.hmac_secret);
-        }*/
         
         if(savedInstanceState != null) {
             whatsNewShown = savedInstanceState.getBoolean(EXTRA_WHATS_NEW);
@@ -151,9 +134,7 @@ public class LoginActivity extends BaseActivity
         
         editTextDescription.setText(Html.fromHtml(getString(R.string.setup_description)));
         editTextDescription.setMovementMethod(LinkMovementMethod.getInstance());
-
-        //hmacTextDescription.setText(Html.fromHtml(getString(R.string.setup_description_hmac)));
-        //hmacTextDescription.setMovementMethod(LinkMovementMethod.getInstance());
+        
         authenticateButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -162,25 +143,6 @@ public class LoginActivity extends BaseActivity
                 checkCredentials();
             }
         });
-
-        /*hmacCheckBox.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                useHmacAuthentication = hmacCheckBox.isChecked();
-                
-                if(hmacCheckBox.isChecked()) {
-                    showAlertDialog(new AlertDialogEvent("Warning", "Be aware of the security risks when using HMAC if your device is ever compromised.<br/><br/>You may mitigate the risks by creating an authentication with only read/write permissions.<br/><br/>However adding the money_pin permissions means an attacker that can guess your PIN code may be able to access your funds."));
-                } else {
-                    hmacKey.setText("");
-                    hmacSecret.setText("");
-                }
-
-                hmacKey.setEnabled(useHmacAuthentication);
-                hmacSecret.setEnabled(useHmacAuthentication);
-            }
-        });*/
     }
 
     @Override
@@ -533,8 +495,7 @@ public class LoginActivity extends BaseActivity
                     || path.equals("/oauth2/redirect")
                     || path.contains("/oauth2")
                     || path.contains("/accounts")
-                    || path.contains("threefactor_login_verification")
-                    || path.contains("/accounts/threefactor_login_verification/")) {
+                    || path.contains("threefactor_login_verification")) {
 
                 hideProgressDialog();
                 return false;
@@ -569,6 +530,11 @@ public class LoginActivity extends BaseActivity
                 showAlertDialog(new AlertDialogEvent("Authentication Error", getString(R.string.error_invalid_credentials)));
                 return false;
 
+            } else if (path.contains("cdn-cgi/l/chk_jschl")){
+
+                //webView.loadUrl(OAUTH_URL); // reload authentication page
+                return false;
+                
             } else {
                 // Returning true means that you need to handle what to do with the url
                 // e.g. open web page in a Browser

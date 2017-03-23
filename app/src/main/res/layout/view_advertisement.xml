@@ -140,8 +140,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
-
-
+                            
                             <TextView
                                     style="@style/TextSmall"
                                     android:layout_width="match_parent"
@@ -171,8 +170,51 @@
 
                     </LinearLayout>
 
+                    <View style="@style/DividerHorizontal"/>
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingBottom="8dp"
+                            android:paddingTop="@dimen/activity_padding"
+                            android:gravity="top">
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                            <TextView
+                                    style="@style/TextSmall"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="@dimen/activity_padding"
+                                    android:gravity="left"
+                                    android:text="Advertisement Id"/>
+
+                            <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/view_padding_small"/>
+
+                            <TextView
+                                    android:id="@+id/advertisementId"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    tools:text="KDJ839080983LKJD"
+                                    android:layout_marginLeft="@dimen/activity_padding"
+                                    android:selectAllOnFocus="true"
+                                    android:textIsSelectable="true"
+                                    android:ellipsize="end"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
                     <View
                             style="@style/DividerHorizontal"
+                            android:layout_marginTop="8dp"
                             android:layout_marginBottom="@dimen/activity_padding"/>
 
                     <TextView

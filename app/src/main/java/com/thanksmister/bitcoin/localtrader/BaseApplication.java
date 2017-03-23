@@ -16,7 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader;
 
-import android.app.Application;
+import android.support.multidex.MultiDexApplication;
 
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
@@ -24,7 +24,7 @@ import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
 import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;
 
-public class BaseApplication extends Application
+public class BaseApplication extends MultiDexApplication
 {
     @Override
     public void onCreate() 

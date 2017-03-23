@@ -40,6 +40,7 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
+import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment;
 import com.thanksmister.bitcoin.localtrader.ui.settings.SettingsActivity;
@@ -64,7 +65,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     private static final String WALLET_FRAGMENT = "com.thanksmister.fragment.WALLET_FRAGMENT";
     
     public static String EXTRA_CONTACT = "extra_contact";
-    public static String EXTRA_TYPE = "extra_type";
+    public static String EXTRA_NOTIFICATION_ID = "extra_notification_id";
+    public static String EXTRA_NOTIFICATION_TYPE = "extra_notification_type";
     public static String EXTRA_FRAGMENT = "extra_fragment";
 
     public static final int DRAWER_DASHBOARD = 0;
@@ -421,10 +423,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     {
         String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
         String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
-    
-        Timber.d("Bitcoin Address: " + bitcoinAddress);
-        Timber.d("Bitcoin Amount: " + bitcoinAmount);
-
+        
         if(bitcoinAddress == null) {
             return false;
         } else if(!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
@@ -451,22 +450,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     protected void onNewIntent(Intent intent)
     {
         super.onNewIntent(intent);
-
-        Bundle extras = intent.getExtras();
-
-        int type = extras.getInt(EXTRA_TYPE, 0);
         
-        if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT || type == NotificationUtils.NOTIFICATION_TYPE_MESSAGE ) {
-            
-           String contactId = extras.getString(EXTRA_CONTACT);
-            
-            if(contactId != null) {
-                Intent contactIntent = ContactActivity.createStartIntent(this, contactId);
-                startActivity(contactIntent);
+        Bundle extras = intent.getExtras();
+        int type = extras.getInt(EXTRA_NOTIFICATION_TYPE, 0);
+        
+        if(type == NotificationUtils.NOTIFICATION_TYPE_CONTACT) {
+            String id = extras.getString(EXTRA_NOTIFICATION_ID);
+            if(id != null) {
+                Intent launchIntent = ContactActivity.createStartIntent(this, id);
+                startActivity(launchIntent);
             }
-            
+        } else if (type == NotificationUtils.NOTIFICATION_TYPE_ADVERTISEMENT) {
+            String id = extras.getString(EXTRA_NOTIFICATION_ID);
+            if(id != null) {
+                Intent launchIntent = AdvertisementActivity.createStartIntent(this, id);
+                startActivity(launchIntent);
+            }
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_BALANCE) {
-            bus.post(NavigateEvent.WALLET);
+            setContentFragment(DRAWER_WALLET);
+            navigationView.getMenu().findItem(R.id.navigationItemWallet).setChecked(true);
         }
     }
 

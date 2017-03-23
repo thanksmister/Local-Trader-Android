@@ -16,6 +16,4 @@
   -->
 
 <resources>
-    <string name="accountType">com.thanksmister.bitcoin.localtrader.sync</string>
-    <string name="authority">com.thanksmister.bitcoin.localtrader.provider</string>
 </resources>
