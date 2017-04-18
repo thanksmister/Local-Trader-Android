@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
@@ -97,6 +98,9 @@ public class AuthenticatorService extends Service
      */
     public static Account GetAccount(String accountName)
     {
+        if(TextUtils.isEmpty(accountName))
+            accountName = Constants.ACCOUNT_NAME;
+                    
         // This string should *not* be localized. If the user switches locale, we would not be
         // able to locate the old account, and may erroneously register multiple accounts.
         return new Account(accountName, Constants.ACCOUNT_TYPE);

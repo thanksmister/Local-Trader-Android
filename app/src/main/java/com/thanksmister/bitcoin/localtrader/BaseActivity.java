@@ -134,7 +134,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
     {
         super.onPause();
 
-        bus.unregister(this);
+        bus.unregister(BaseActivity.this);
 
         try {
             unregisterReceiver(connReceiver);

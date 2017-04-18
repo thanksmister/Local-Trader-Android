@@ -59,6 +59,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PinCodeActivity;
@@ -891,6 +892,8 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
             String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying()) ? contact.seller_username() : contact.buyer_username()) + "/";
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             startActivity(browserIntent);
+        } catch (SecurityException e) {
+            showAlertDialog(new AlertDialogEvent("Security Error", "Your phone is was trying to hijack the link, here is the security error: " + e.getMessage()));
         } catch (ActivityNotFoundException e) {
             toast(getString(R.string.toast_error_no_installed_ativity));
         }

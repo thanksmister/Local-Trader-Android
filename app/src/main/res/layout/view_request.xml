@@ -44,7 +44,7 @@
                 android:id="@+id/swipeLayout"
                 android:layout_weight="1"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="0dp">
 
             <android.support.v4.widget.NestedScrollView
                     android:layout_width="match_parent"
@@ -73,7 +73,7 @@
                                     style="@style/TextSmall"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Bitcoin amount"/>
+                                    android:text="@string/form_bitcoin_amount"/>
 
                             <View
                                     android:layout_width="match_parent"
@@ -91,12 +91,10 @@
                                         style="@style/TextLarge.SmallAction"
                                         android:inputType="numberDecimal"
                                         android:digits="0123456789."
-                                        android:singleLine="true"
                                         android:layout_weight="1"
                                         android:gravity="center"
                                         android:theme="@style/EditTextTheme"
-                                        android:hint="@string/hint_bitcoin"
-                                        android:nextFocusDown="@+id/buttonLayout"/>
+                                        android:hint="@string/hint_bitcoin"/>
 
                                 <View
                                         android:layout_width="8dp"
@@ -128,11 +126,9 @@
                                         style="@style/TextLarge.SmallAction"
                                         android:inputType="numberDecimal"
                                         android:digits="0123456789."
-                                        android:singleLine="true"
                                         android:layout_weight="1"
                                         android:gravity="center"
-                                        android:hint="@string/hint_amount"
-                                        android:nextFocusForward="@+id/buttonLayout"/>
+                                        android:hint="@string/hint_amount"/>
 
                                 <View
                                         android:layout_width="8dp"

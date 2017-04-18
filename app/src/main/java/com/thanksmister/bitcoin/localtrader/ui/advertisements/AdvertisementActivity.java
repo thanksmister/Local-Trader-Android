@@ -209,11 +209,13 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
         toast("Refreshing data...");
     }
 
+    // Bug: http://stackoverflow.com/questions/7575921/illegalstateexception-can-not-perform-this-action-after-onsaveinstancestate-wit
     @Override
     public void onSaveInstanceState(Bundle outState)
     {
-        super.onSaveInstanceState(outState);
+        //No call for super(). Bug on API Level > 11.
         outState.putString(EXTRA_AD_ID, adId);
+        super.onSaveInstanceState(outState);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent)
@@ -241,7 +243,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
 
         return true;
     }
-
+    
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {

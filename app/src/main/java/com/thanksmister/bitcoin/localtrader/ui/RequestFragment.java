@@ -20,7 +20,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -216,22 +215,17 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         amountText.addTextChangedListener(new TextWatcher()
         {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
             }
-
             @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3)
-            {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable)
-            {
-                if (amountText.hasFocus()) {
-                    String bitcoin = editable.toString();
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+                if (amountText != null && amountText.hasFocus()) {
+                    String bitcoin = charSequence.toString();
                     calculateCurrencyAmount(bitcoin);
                 }
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {
             }
         });
 
@@ -241,14 +235,12 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             }
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i2, int i3){
+                if(fiatEditText != null && fiatEditText.hasFocus()) {
+                    calculateBitcoinAmount(charSequence.toString());
+                }
             }
             @Override
             public void afterTextChanged(Editable editable){
-
-                if(fiatEditText.hasFocus()) {
-                    String amount = editable.toString();
-                    calculateBitcoinAmount(amount);
-                }
             }
         });
         
@@ -444,20 +436,22 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
     private String getClipboardText()
     {
-        String clipText = "";
-        ClipboardManager clipboardManager = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        try {
+            String clipText = "";
+            ClipboardManager clipboardManager = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = clipboardManager.getPrimaryClip();
             if(clip != null) {
                 ClipData.Item item = clip.getItemAt(0);
                 if(item.getText() != null)
                     clipText = item.getText().toString();
             }
-        } else {
-            clipText = clipboardManager.getText().toString();
-        }
 
-        return  clipText;
+            return  clipText;
+        } catch (Exception e) {
+            reportError(e);
+        }
+        
+        return "";
     }
     
     public void setAmount(String bitcoinAmount, ExchangeItem exchangeItem)
@@ -483,13 +477,17 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             toast("No valid address to receive bitcoin...");
             return;
         }
-        
-        if(Strings.isBlank(amountText.getText())) {
-            toast(getString(R.string.error_missing_amount));
-            return;
-        }
 
-        String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString());
+        String amount = "";
+        if(amountText != null) {
+            amount = amountText.getText().toString();
+            if(Strings.isBlank(amount)) {
+                toast(getString(R.string.error_missing_amount));
+                return;
+            }
+        }
+        
+        String bitcoinAmount = Conversions.formatBitcoinAmount(amount);
         showGeneratedQrCodeActivity(walletItem.address(), bitcoinAmount);
     }
 
@@ -500,14 +498,10 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         }
 
         Timber.d("calculateBitcoinAmount: " + requestAmount);
-        
-        try {
-            if(Doubles.convertToDouble(requestAmount) == 0) {
+
+        if(Doubles.convertToDouble(requestAmount) == 0) {
+            if(amountText != null)
                 amountText.setText("");
-                return;
-            }
-        } catch (Exception e) {
-            reportError(e);
             return;
         }
     
@@ -521,7 +515,8 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
 
         Timber.d("Bitcoin amount: " + amount);
 
-        amountText.setText(amount);
+        if(amountText != null)
+            amountText.setText(amount);
     }
 
     private void calculateCurrencyAmount(String bitcoin)
@@ -530,18 +525,15 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             return;
         }
 
-        try {
-            if( Doubles.convertToDouble(bitcoin) == 0) {
+        if( Doubles.convertToDouble(bitcoin) == 0) {
+            if(fiatEditText != null)
                 fiatEditText.setText("");
-                return;
-            }
-        } catch (Exception e) {
-            reportError(e);
             return;
         }
         
         String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
         String value = Calculations.computedValueOfBitcoin(rate, bitcoin);
-        fiatEditText.setText(value);
+        if(fiatEditText != null)
+            fiatEditText.setText(value);
     }
 }

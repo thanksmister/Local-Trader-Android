@@ -148,6 +148,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     {
         //No call for super(). Bug on API Level > 11.
         outState.putInt(EXTRA_FRAGMENT, position);
+        super.onSaveInstanceState(outState);
     }
     
     @Override
@@ -289,37 +290,40 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         } catch (NullPointerException e) {
             Timber.w("Error closing keyboard");
         }
-        
-        if (position == DRAWER_WALLET) {
-            fragment = WalletFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-            .replace(R.id.content_frame, fragment, WALLET_FRAGMENT)
-                    .commitAllowingStateLoss();
-        } else if (position == DRAWER_SEARCH) {
-            fragment = SearchFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, fragment, SEARCH_FRAGMENT)
-                    .commitAllowingStateLoss();
-        } else if (position == DRAWER_SEND) {
-            fragment = SendFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, fragment, SEND_FRAGMENT)
-                    .commitAllowingStateLoss();
-        } else if (position == DRAWER_RECEIVE) {
-            fragment = RequestFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, fragment, RECEIVE_FRAGMENT)
-                    .commitAllowingStateLoss();
-        } else if (position == DRAWER_DASHBOARD) {
-            fragment = DashboardFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, fragment, DASHBOARD_FRAGMENT)
-                    .commitAllowingStateLoss();
-        } else if (position == DRAWER_ABOUT) {
-            fragment = AboutFragment.newInstance();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, fragment, ABOUT_FRAGMENT)
-                    .commitAllowingStateLoss();
+
+
+        if(!isFinishing()) {
+            if (position == DRAWER_WALLET) {
+                fragment = WalletFragment.newInstance();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, fragment, WALLET_FRAGMENT)
+                        .commitAllowingStateLoss();
+            } else if (position == DRAWER_SEARCH) {
+                fragment = SearchFragment.newInstance();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, fragment, SEARCH_FRAGMENT)
+                        .commitAllowingStateLoss();
+            } else if (position == DRAWER_SEND) {
+                fragment = SendFragment.newInstance();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, fragment, SEND_FRAGMENT)
+                        .commitAllowingStateLoss();
+            } else if (position == DRAWER_RECEIVE) {
+                fragment = RequestFragment.newInstance();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, fragment, RECEIVE_FRAGMENT)
+                        .commitAllowingStateLoss();
+            } else if (position == DRAWER_DASHBOARD) {
+                fragment = DashboardFragment.newInstance();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, fragment, DASHBOARD_FRAGMENT)
+                        .commitAllowingStateLoss();
+            } else if (position == DRAWER_ABOUT) {
+                fragment = AboutFragment.newInstance();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, fragment, ABOUT_FRAGMENT)
+                        .commitAllowingStateLoss();
+            }
         }
     }
     
@@ -329,7 +333,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_frame, fragment, SEND_FRAGMENT)
-                .commit();
+                .commitAllowingStateLoss();
         
         navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);
         position = DRAWER_SEND;
@@ -450,6 +454,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     protected void onNewIntent(Intent intent)
     {
         super.onNewIntent(intent);
+        
+        if(intent == null)
+            return;
         
         Bundle extras = intent.getExtras();
         int type = extras.getInt(EXTRA_NOTIFICATION_TYPE, 0);
