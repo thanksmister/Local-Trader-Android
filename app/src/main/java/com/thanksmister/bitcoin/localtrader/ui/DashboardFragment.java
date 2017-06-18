@@ -43,9 +43,9 @@ import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
@@ -57,7 +57,6 @@ import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.trello.rxlifecycle.FragmentEvent;
@@ -392,33 +391,35 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             swipeLayout.setRefreshing(false);
     }
 
-    private void subscribeData()
-    {
+    private void subscribeData() {
+        
         Timber.d("subscribeData");
 
         //dbManager.clearDashboard();
 
         dbManager.exchangeQuery()
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call()
                     {
                         Timber.i("Exchange subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<ExchangeItem>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<ExchangeItem>()
-                {
+                .compose(this.<List<ExchangeRateItem>> bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<ExchangeRateItem>>() {
                     @Override
-                    public void call(ExchangeItem exchangeItem)
-                    {
-                        if (exchangeItem != null) {
-                            setHeaderItem(exchangeItem);
+                    public void call(List<ExchangeRateItem> exchanges) {
+                        if (!exchanges.isEmpty()) {
+                            String currency = exchangeService.getExchangeCurrency();
+                            for (ExchangeRateItem rateItem : exchanges) {
+                                if(rateItem.currency().equals(currency)) {
+                                    setHeaderItem(rateItem);
+                                    break;
+                                }
+                            }
                         }
                     }
-                }, new Action1<Throwable>()
-                {
+                }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable)
                     {
@@ -437,39 +438,37 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             return;
         }
         
-        CompositeSubscription updateSubscriptions = new CompositeSubscription();
-
-        updateSubscriptions.add(exchangeService.getMarket()
-                .timeout(20, TimeUnit.SECONDS)
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Update Exchange subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Exchange>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Exchange>()
-                {
-                    @Override
-                    public void call(Exchange exchange)
-                    {
-                        Timber.d("exchangeUpdateObservable");
-                        dbManager.updateExchange(exchange);
-                        onRefreshStop();
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        snackError("Unable to update currency rate...");
-                        onRefreshStop();
-                    }
-                }));
+        if(exchangeService.needToRefreshExchanges()) {
+            CompositeSubscription updateSubscriptions = new CompositeSubscription();
+            updateSubscriptions.add(exchangeService.getSpotPrice()
+                    .timeout(20, TimeUnit.SECONDS)
+                    .doOnUnsubscribe(new Action0() {
+                        @Override
+                        public void call() {
+                            Timber.i("Update Exchange subscription safely unsubscribed");
+                        }
+                    })
+                    .compose(this.<ExchangeRate>bindUntilEvent(FragmentEvent.PAUSE))
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<ExchangeRate>() {
+                        @Override
+                        public void call(ExchangeRate exchange) {
+                            dbManager.updateExchange(exchange);
+                            exchangeService.setExchangeExpireTime();
+                            onRefreshStop();
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            snackError("Unable to update currency rate...");
+                            exchangeService.setExchangeExpireTime();
+                            onRefreshStop();
+                        }
+                    }));
+        } else {
+            onRefreshStop();
+        }
     }
 
     private static class DashboardPagerAdapter extends FragmentPagerAdapter
@@ -612,12 +611,11 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         hideProgressDialog();
     }
 
-    private void setHeaderItem(ExchangeItem exchange)
-    {
-        String currency = exchangeService.getExchangeCurrency();
-        String value = Calculations.calculateAverageBidAskFormatted(exchange.bid(), exchange.ask());
+    private void setHeaderItem(ExchangeRateItem exchange) {
+        String currency = exchange.currency();
+        String rate = exchange.rate();
         bitcoinTitle.setText("MARKET PRICE");
-        bitcoinPrice.setText("$" + value + " / BTC");
+        bitcoinPrice.setText(rate + " " + exchange.currency() +"/BTC");
         bitcoinValue.setText("Source " + exchange.exchange() + " (" + currency + ")");
     }
 

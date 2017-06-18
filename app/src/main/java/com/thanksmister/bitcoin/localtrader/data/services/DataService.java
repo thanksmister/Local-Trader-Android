@@ -22,7 +22,6 @@ import android.net.Uri;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
@@ -30,6 +29,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
@@ -43,6 +43,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToAuthor
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContact;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToContacts;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToCurrencies;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToJSONObject;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMessages;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToMethod;
@@ -50,7 +51,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToNotifi
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToUser;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
@@ -116,19 +116,15 @@ public class DataService
     
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
-    private final BitcoinAverage bitcoinAverage;
     private final BaseApplication baseApplication;
-    private final DbManager dbManager;
     private int retryLimit = 1;
     
     @Inject
-    public DataService(DbManager dbManager, BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins, BitcoinAverage bitcoinAverage)
+    public DataService(BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins)
     {
         this.baseApplication = baseApplication;
         this.localBitcoins = localBitcoins;
         this.sharedPreferences = sharedPreferences;
-        this.bitcoinAverage = bitcoinAverage;
-        this.dbManager = dbManager;
     }
     
     public void logout()
@@ -196,6 +192,13 @@ public class DataService
                         return Observable.just(authorization.access_token);
                     }
                 });
+    }
+
+    public Observable<List<ExchangeCurrency>> getCurrencies()
+    {
+        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        return  localBitcoins.getCurrencies(accessToken)
+                .map(new ResponseToCurrencies());
     }
     
     public Observable<ContactRequest> createContact(final String adId, final TradeType tradeType, final String countryCode, 

@@ -67,6 +67,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
@@ -91,7 +92,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -280,7 +280,7 @@ public class EditActivity extends BaseActivity
     private Subscription geoLocationFromNameSubscription = Subscriptions.empty();
     private Subscription geoLocationSubscription;
     private Subscription advertisementSubscription = Subscriptions.empty();
-    private Observable<List<ExchangeCurrency>> currencyObservable;
+    private Observable<List<CurrencyItem>> currencyObservable;
     
     public static Intent createStartIntent(Context context, Boolean create, String adId)
     {
@@ -342,8 +342,8 @@ public class EditActivity extends BaseActivity
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
                 ExchangeCurrency exchange = (ExchangeCurrency) currencySpinner.getAdapter().getItem(i);
-                editMinimumAmountCurrency.setText(exchange.getName());
-                editMaximumAmountCurrency.setText(exchange.getName());
+                editMinimumAmountCurrency.setText(exchange.getCurrency());
+                editMaximumAmountCurrency.setText(exchange.getCurrency());
                 if (create)
                     setPriceEquation();
             }
@@ -408,7 +408,7 @@ public class EditActivity extends BaseActivity
         predictAdapter = new PredictAdapter(EditActivity.this, new ArrayList<Address>());
         setEditLocationAdapter(predictAdapter);
         
-        currencyObservable = exchangeService.getGlobalTickers().cache();
+        currencyObservable = dbManager.currencyQuery();
 
         String addressString = SearchUtils.getSearchAddress(sharedPreferences);
         if(!TextUtils.isEmpty(addressString) && create) {
@@ -426,8 +426,7 @@ public class EditActivity extends BaseActivity
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState)
-    {
+    public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(EXTRA_ADDRESS, address);
         outState.putBoolean(EXTRA_CREATE, create);
@@ -439,8 +438,7 @@ public class EditActivity extends BaseActivity
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
+    public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
@@ -458,8 +456,7 @@ public class EditActivity extends BaseActivity
     
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    public boolean onCreateOptionsMenu(Menu menu) {
         if (toolbar != null)
             toolbar.inflateMenu(R.menu.edit);
 
@@ -579,23 +576,18 @@ public class EditActivity extends BaseActivity
 
         if (create) {
             subscriptions.add(currencyObservable
-                    .timeout(20, TimeUnit.SECONDS)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<List<ExchangeCurrency>>()
-                    {
+                    .subscribe(new Action1<List<CurrencyItem>>() {
                         @Override
-                        public void call(List<ExchangeCurrency> currencies)
-                        {   
+                        public void call(List<CurrencyItem> currencies) {   
                             showContent(true);
                             createAdvertisement();
-                            setCurrencies(currencies, null);
+                            setCurrencies(CurrencyItem.getCurrencies(currencies), null);
                         }
-                    }, new Action1<Throwable>()
-                    {
+                    }, new Action1<Throwable>() {
                         @Override
-                        public void call(Throwable throwable)
-                        {
+                        public void call(Throwable throwable) {
                             snackError("Unable to load currencies, using default...");
                             showContent(true);
                             createAdvertisement();
@@ -613,11 +605,9 @@ public class EditActivity extends BaseActivity
                     advertisementItem = advertisement; // save reference
                     setAdvertisement(advertisementItem);
                 }
-            }, new Action1<Throwable>()
-            {
+            }, new Action1<Throwable>() {
                 @Override
-                public void call(Throwable throwable)
-                {
+                public void call(Throwable throwable) {
                     snackError("No advertisement data.");
                     reportError(throwable);
                     finish();
@@ -680,21 +670,21 @@ public class EditActivity extends BaseActivity
         String defaultCurrency = (create) ? currencyPreference : (advertisement != null) ? advertisement.currency() : this.getString(R.string.usd);
 
         if(currencies.isEmpty()) {
-            ExchangeCurrency exchangeCurrency = new ExchangeCurrency(currencyPreference, "https://api.bitcoinaverage.com/ticker/" + defaultCurrency);
+            ExchangeCurrency exchangeCurrency = new ExchangeCurrency(currencyPreference);
             currencies.add(exchangeCurrency); // just revert back to USD if we can
         }
+        
+        CurrencyAdapter typeAdapter = new CurrencyAdapter(this, R.layout.spinner_layout, currencies);
+        currencySpinner.setAdapter(typeAdapter);
 
         int i = 0;
         for (ExchangeCurrency currency : currencies) {
-            if (currency.getName().equals(defaultCurrency)) {
+            if (currency.getCurrency().equals(defaultCurrency)) {
                 currencySpinner.setSelection(i);
                 break;
             }
             i++;
         }
-        
-        CurrencyAdapter typeAdapter = new CurrencyAdapter(this, R.layout.spinner_layout, currencies);
-        currencySpinner.setAdapter(typeAdapter);
     }
 
     /**
@@ -804,8 +794,8 @@ public class EditActivity extends BaseActivity
         ExchangeCurrency currency = (ExchangeCurrency) currencySpinner.getSelectedItem();
         if (currency == null) return; // currency values may not yet be set
 
-        if (!currency.getName().equals(Constants.DEFAULT_CURRENCY)) {
-            equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency.getName();
+        if (!currency.getCurrency().equals(Constants.DEFAULT_CURRENCY)) {
+            equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency.getCurrency();
         }
 
         String margin = marginText.getText().toString();
@@ -868,7 +858,7 @@ public class EditActivity extends BaseActivity
             }
           
             editedAdvertisement.visible = true;
-            editedAdvertisement.currency =  ((ExchangeCurrency) currencySpinner.getSelectedItem()).getName();
+            editedAdvertisement.currency =  ((ExchangeCurrency) currencySpinner.getSelectedItem()).getCurrency();
             editedAdvertisement.trade_type = tradeType;
             
             String onlineProvider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code();
@@ -1278,7 +1268,7 @@ public class EditActivity extends BaseActivity
                     public void call()
                     {
                         toast(getString(R.string.warning_no_google_play_services));
-                        finish();
+                        //finish();
                     }
                 });
                 break;
@@ -1308,11 +1298,6 @@ public class EditActivity extends BaseActivity
     @TargetApi(Build.VERSION_CODES.M)
     private void getLasKnownLocation()
     {
-        Timber.d("getLasKnownLocation");
-        
-        if(geoLocationSubscription != null)
-            return;
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED 
                     && ActivityCompat.checkSelfPermission(EditActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -1328,13 +1313,12 @@ public class EditActivity extends BaseActivity
         
         LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setNumUpdates(5)
+                .setNumUpdates(10)
                 .setInterval(100);
 
         final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(EditActivity.this);
         geoLocationSubscription = locationProvider.getUpdatedLocation(request)
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call()
                     {
@@ -1342,8 +1326,7 @@ public class EditActivity extends BaseActivity
                     }
                 })
                 .compose(this.<Location>bindUntilEvent(ActivityEvent.PAUSE))
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call()
                     {
@@ -1351,11 +1334,9 @@ public class EditActivity extends BaseActivity
                     }
                 })
                 .compose(this.<Location>bindUntilEvent(ActivityEvent.DESTROY))
-                .flatMap(new Func1<Location, Observable<List<Address>>>()
-                {
+                .flatMap(new Func1<Location, Observable<List<Address>>>() {
                     @Override
-                    public Observable<List<Address>> call(Location location)
-                    {
+                    public Observable<List<Address>> call(Location location) {
                         try {
                             return locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
                                     .observeOn(Schedulers.io())

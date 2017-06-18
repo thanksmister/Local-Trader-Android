@@ -622,9 +622,6 @@ public class SearchFragment extends BaseFragment
             return;
         }
 
-        if (dataServiceSubscription != null)
-            return;
-
         dataServiceSubscription = dataService.getMethods()
                 .doOnUnsubscribe(new Action0()
                 {
@@ -835,7 +832,7 @@ public class SearchFragment extends BaseFragment
                     public void call()
                     {
                         toast(getString(R.string.warning_no_google_play_services));
-                        getActivity().finish();
+                        //getActivity().finish();
                     }
                 });
                 break;
@@ -881,7 +878,7 @@ public class SearchFragment extends BaseFragment
         
         LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setNumUpdates(3)
+                .setNumUpdates(10)
                 .setInterval(100);
 
         final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());

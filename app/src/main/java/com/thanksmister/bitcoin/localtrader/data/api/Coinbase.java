@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2017 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. 
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.data.api.model;
+package com.thanksmister.bitcoin.localtrader.data.api;
 
-public class ExchangeCurrency
-{
-    private String currency;
+import retrofit.client.Response;
+import retrofit.http.GET;
+import retrofit.http.Path;
+import rx.Observable;
 
-    public ExchangeCurrency(String name) {
-        this.currency = name;
-    }
-
-    public String getCurrency()
-    {
-        return currency;
-    }
+public interface Coinbase {
+    
+    @GET("/v2/exchange-rates?currency=BTC")
+    Observable<Response> exchangeRates();
+    
+    @GET("/v2/currencies")
+    Observable<Response> currencies();
+   
+    @GET("/v2/prices/BTC-{currency}/spot")
+    Observable<Response> spotPrice(@Path("currency") String currency);
 }

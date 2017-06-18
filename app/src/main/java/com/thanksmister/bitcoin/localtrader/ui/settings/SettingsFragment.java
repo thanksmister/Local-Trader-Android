@@ -41,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.LoginActivity;
@@ -52,7 +53,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -81,8 +81,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     private Subscription subscription = Subscriptions.empty();
     private Subscription currencySubscription = Subscriptions.empty();
     
-    private Observable<List<ExchangeCurrency>> currencyObservable;
-
     ListPreference marketCurrencyPreference;
     ListPreference unitsPreference;
     EditTextPreference apiPreference;
@@ -131,7 +129,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         marketCurrencyPreference.setEntryValues(currencyValues);
 
         currencyPreference = (ListPreference) findPreference("currency");
-        currencyObservable = exchangeService.getGlobalTickers().cache();
     }
 
     @Override
@@ -231,47 +228,54 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         }
     }
     
-    private void subscribeData()
-    {
-        currencySubscription = currencyObservable
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<ExchangeCurrency>>()
-                {
+    private void subscribeData() {
+        db.exchangeCurrencyQuery()
+                .subscribe(new Action1<List<ExchangeCurrencyItem>>() {
                     @Override
-                    public void call(List<ExchangeCurrency> currencies)
-                    {
-                        updateCurrencies(currencies);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        // TODO default to USD always
-                        Timber.e(throwable.getLocalizedMessage());
-                        Toast.makeText(getActivity(), "Unable to load currencies...", Toast.LENGTH_LONG).show();
+                    public void call(List<ExchangeCurrencyItem> currencyItems) {
+                        if(currencyItems == null || currencyItems.isEmpty()) {
+                            currencySubscription = exchangeService.getCurrencies()
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new Action1<List<ExchangeCurrency>>() {
+                                        @Override
+                                        public void call(List<ExchangeCurrency> currencies) {
+                                            db.insertExchangeCurrencies(currencies);
+                                            updateCurrencies(currencies);
+                                        }
+                                    }, new Action1<Throwable>() {
+                                        @Override
+                                        public void call(Throwable throwable) {
+                                            Timber.e(throwable.getMessage());
+                                            Toast.makeText(getActivity(), "Unable to load currencies...", Toast.LENGTH_LONG).show();
+                                        }
+                                    });
+                        } else {
+                            List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
+                            exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
+                            updateCurrencies(exchangeCurrencies);
+                        }
                     }
                 });
     }
 
-    private void updateCurrencies(List<ExchangeCurrency> currencies)
-    {
+    private void updateCurrencies(List<ExchangeCurrency> currencies) {
+        
         ArrayList<String> currencyList = new ArrayList<>();
         ArrayList<String> currencyValues = new ArrayList<>();
         String exchangeCurrency = exchangeService.getExchangeCurrency();
 
         if(currencies.isEmpty()) {
-            ExchangeCurrency tempCurrency = new ExchangeCurrency(exchangeCurrency, "https://api.bitcoinaverage.com/ticker/USD");
-            currencies.add(tempCurrency); // just revert back to USD if we can
+            ExchangeCurrency exchangeRate = new ExchangeCurrency("USD");
+            currencies.add(exchangeRate); 
         }
 
         int value = 0;
         int selectedValue = 0;
         for (ExchangeCurrency item : currencies) {
-            currencyList.add(item.getName());
+            currencyList.add(item.getCurrency());
             currencyValues.add(String.valueOf(value));
-            if(exchangeCurrency.equals(item.getName())) {
+            if(exchangeCurrency.equals(item.getCurrency())) {
                 selectedValue = value;
             }
             value++;
@@ -283,6 +287,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         String[] stringValues = new String[currencyValues.size()];
         stringValues = currencyValues.toArray(stringValues);
 
+        exchangeService.clearExchangeExpireTime();
         marketCurrencyPreference.setEntries(stringExchanges);
         marketCurrencyPreference.setDefaultValue("0");
         marketCurrencyPreference.setEntryValues(stringValues);
@@ -303,4 +308,23 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     {
         ((SettingsActivity) getActivity()).logOutConfirmation();
     }
+
+    public void setCurrencyExpireTime() {
+        synchronized (this) {
+            long expire = System.currentTimeMillis() + CHECK_CURRENCY_DATA; // 1 hours
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong(PREFS_CURRENCY_EXPIRE_TIME, expire);
+            editor.apply();
+        }
+    }
+
+    public boolean needToRefreshCurrencies() {
+        synchronized (this) {
+            long expiresAt = sharedPreferences.getLong(PREFS_CURRENCY_EXPIRE_TIME, -1);
+            return System.currentTimeMillis() >= expiresAt;
+        }
+    }
+
+    public static final String PREFS_CURRENCY_EXPIRE_TIME = "pref_exchange_expire";
+    public static final int CHECK_CURRENCY_DATA = 24 * 60 * 60 * 1000;// 24 hours
 }

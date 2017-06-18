@@ -38,6 +38,7 @@ public class Constants
     
     public static final String BLOCKCHAIN_INFO_ADDRESS = "https://blockchain.info/address/";
     public static final String REGISTRATION_URL = "https://localbitcoins.com/register/?ch=2hbo";
+    public static final String SUPPORT_URL = "https://localbitcoins.com/support/request/?ch=2hbo";
 
     public static final int LOCATION_SETTINGS_REQUEST = 5;
     public static final int REQUEST_PERMISSIONS = 6;

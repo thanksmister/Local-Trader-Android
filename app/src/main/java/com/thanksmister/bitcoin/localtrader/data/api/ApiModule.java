@@ -37,6 +37,7 @@ public final class ApiModule
 {
     private static final String BITSTAMP_API_ENDPOINT = "https://www.bitstamp.net";
     private static final String BITCOIN_AVERAGE_ENDPOINT = "https://api.bitcoinaverage.com";
+    private static final String COINBASE_ENDPOINT = "https://api.coinbase.com";
     
 
     @Provides 
@@ -80,5 +81,17 @@ public final class ApiModule
                 .setEndpoint(BITCOIN_AVERAGE_ENDPOINT)
                 .build();
         return restAdapter.create(BitcoinAverage.class);
+    }
+    
+    @Provides
+    @Singleton
+    Coinbase provideCoinbase(Client client)
+    {
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setClient(client)
+                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setEndpoint(COINBASE_ENDPOINT)
+                .build();
+        return restAdapter.create(Coinbase.class);
     }
 }

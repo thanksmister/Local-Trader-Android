@@ -45,6 +45,8 @@ public class SyncProvider extends ContentProvider
     
     public static final Uri METHOD_TABLE_URI = CONTENT_URI.buildUpon().appendPath("method_item").build();
     public static final Uri EXCHANGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath("exchange_item").build();
+    public static final Uri EXCHANGE_RATE_TABLE_URI = CONTENT_URI.buildUpon().appendPath("exchange_rate_item").build();
+    public static final Uri EXCHANGE_CURRENCY_TABLE_URI = CONTENT_URI.buildUpon().appendPath("exchange_currency_item").build();
     public static final Uri CONTACT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("contact_item").build();
     public static final Uri ADVERTISEMENT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("advertisement_item").build();
     public static final Uri MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath("message_item").build();

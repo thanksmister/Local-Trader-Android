@@ -25,7 +25,6 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 
 import java.util.List;
@@ -57,7 +56,7 @@ public class CurrencyAdapter extends ArrayAdapter
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).getName());
+        spinnerTarget.setText(items.get(position).getCurrency());
 
         return convertView;
     }
@@ -71,7 +70,7 @@ public class CurrencyAdapter extends ArrayAdapter
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).getName());
+        spinnerTarget.setText(items.get(position).getCurrency());
 
         return convertView;
     }

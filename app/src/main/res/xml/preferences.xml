@@ -23,8 +23,8 @@
     
     <PreferenceCategory
             android:key="exchange_category"
-            android:title="BitcoinAverage Settings"
-            android:summary="Currency used to set market price">
+            android:title="Currency Settings"
+            android:summary="Currency used to set market price (from Coinbase)">
 
         <!--<ListPreference
                 android:key="exchange"
@@ -68,7 +68,7 @@
 
         <EditTextPreference
                 android:title="LocalBitcoins API endpoint"
-                android:defaultValue="https://localbitcoins.com"
+                android:defaultValue="@string/local_bitcoins_url"
                 android:dialogTitle="Update API Endpoint"
                 android:dialogMessage="After changing the LocalBitcoins API endpoint, restart the application for the changes to take effect."
                 android:summary="https://localbitcoins.com"

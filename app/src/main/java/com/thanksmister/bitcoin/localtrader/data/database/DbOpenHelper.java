@@ -24,7 +24,8 @@ import android.content.Context;
 public class DbOpenHelper extends SQLiteOpenHelper
 {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 34;
+    private static final int DATABASE_VERSION = 37;
+    private static final int ADDED_DATABASE_NOTIFICATIONS = 34;
     private static final int DATABASE_NOTIFICATIONS = 33;
     private static final int DATABASE_VERSION_FIRST_TIME_BTC_LIMIT = 32;
     private static final int DATABASE_VERSION_TRANSACTIONS = 29;
@@ -147,13 +148,24 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     + RecentMessageItem.SEEN + " INTEGER NOT NULL DEFAULT 0"
                     + ")";
 
-    private static final String CREATE_EXCHANGES =
-            "CREATE TABLE IF NOT EXISTS " + ExchangeItem.TABLE + " (" +
-                    ExchangeItem.ID + " INTEGER PRIMARY KEY," +
-                    ExchangeItem.EXCHANGE + TYPE_TEXT + COMMA_SEP +
-                    ExchangeItem.BID + TYPE_TEXT + COMMA_SEP +
-                    ExchangeItem.ASK + TYPE_TEXT + COMMA_SEP +
-                    ExchangeItem.LAST + TYPE_TEXT +
+    private static final String CREATE_CURRENCIES =
+            "CREATE TABLE IF NOT EXISTS " + CurrencyItem.TABLE + " (" +
+                    CurrencyItem.ID + " INTEGER PRIMARY KEY," +
+                    CurrencyItem.CURRENCY + TYPE_TEXT +
+                    ")";
+    
+    private static final String CREATE_EXCHANGE_CURRENCIES =
+            "CREATE TABLE IF NOT EXISTS " + ExchangeCurrencyItem.TABLE + " (" +
+                    ExchangeCurrencyItem.ID + " INTEGER PRIMARY KEY," +
+                    ExchangeCurrencyItem.CURRENCY + TYPE_TEXT +
+                    ")";
+
+    private static final String CREATE_EXCHANGE_RATES =
+            "CREATE TABLE IF NOT EXISTS " + ExchangeRateItem.TABLE + " (" +
+                    ExchangeRateItem.ID + " INTEGER PRIMARY KEY," +
+                    ExchangeRateItem.EXCHANGE + TYPE_TEXT + COMMA_SEP +
+                    ExchangeRateItem.CURRENCY + TYPE_TEXT + COMMA_SEP +
+                    ExchangeRateItem.RATE + TYPE_TEXT +
                     ")";
     
     private static final String CREATE_NOTIFICATIONS =
@@ -231,14 +243,15 @@ public class DbOpenHelper extends SQLiteOpenHelper
         db.execSQL(CREATE_METHOD);
         db.execSQL(CREATE_CONTACTS);
         db.execSQL(CREATE_MESSAGES);
-        db.execSQL(CREATE_EXCHANGES);
+        db.execSQL(CREATE_EXCHANGE_RATES);
         db.execSQL(CREATE_WALLET);
         db.execSQL(CREATE_ADVERTISEMENTS);
         db.execSQL(CREATE_TRANSACTIONS);
         db.execSQL(CREATE_CONTACT_LIST_ID_INDEX);
         db.execSQL(CREATE_RECENT_MESSAGES);
         db.execSQL(CREATE_NOTIFICATIONS);
-        
+        db.execSQL(CREATE_EXCHANGE_CURRENCIES);
+        db.execSQL(CREATE_CURRENCIES);
         /*
 
     long workListId = db.insert(TodoList.TABLE, null, new TodoList.Builder()
@@ -260,7 +273,6 @@ public class DbOpenHelper extends SQLiteOpenHelper
         .listId(workListId)
         .description("Publish SqlBrite to GitHub")
         .build());
-
          */
     }
 
@@ -268,6 +280,13 @@ public class DbOpenHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
         if (oldVersion < newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS exchange_item");
+            db.execSQL(CREATE_EXCHANGE_RATES);
+            db.execSQL(CREATE_EXCHANGE_CURRENCIES);
+            db.execSQL(CREATE_CURRENCIES);
+        }
+        
+        if (oldVersion < ADDED_DATABASE_NOTIFICATIONS) {
             db.execSQL(CREATE_NOTIFICATIONS);
         }
         

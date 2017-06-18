@@ -23,7 +23,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
+import com.thanksmister.bitcoin.localtrader.data.api.Coinbase;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 
 import java.io.File;
@@ -54,9 +54,9 @@ public final class DataModule
 
     @Provides
     @Singleton
-    ExchangeService provideExchangeService(SharedPreferences preferences, BitcoinAverage average)
+    ExchangeService provideExchangeService(SharedPreferences preferences, Coinbase coinbase)
     {
-        return new ExchangeService(preferences, average);
+        return new ExchangeService(preferences, coinbase);
     }
     
     @Provides

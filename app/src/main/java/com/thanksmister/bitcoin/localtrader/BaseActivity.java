@@ -471,7 +471,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
 
         try {
             View view = findViewById(R.id.coordinatorLayout);
-            snackBar = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE);
+            snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
             TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
             textView.setTextColor(getResources().getColor(R.color.white));
             snackBar.show();

@@ -7,11 +7,12 @@ repositories {
 
 buildscript {
     repositories {
+        jcenter()
         mavenCentral()
         maven { url 'https://maven.fabric.io/public' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:2.3.3'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
         classpath 'io.fabric.tools:gradle:1.+'
     }
@@ -22,40 +23,35 @@ apply plugin: 'io.fabric'
 apply plugin: 'com.neenbedankt.android-apt'
 
 def versionMajor = 2
-def versionMinor = 1
-def versionPatch = 9
+def versionMinor = 2
+def versionPatch = 6
 def versionBuild = 0 // bump for dog food builds, public betas, etc.
 
 android {
     signingConfigs {
         release {
-            keyAlias ''
-            keyPassword ''
+            keyAlias 'mister'
+            keyPassword 'rdaneel11'
             storeFile file('/Users/mritchie/local-trader-1.0-hmac/keystore/mister.keystore')
-            storePassword ''
+            storePassword 'rdaneel11'
+            v2SigningEnabled false
         }
     }
     compileSdkVersion 25
-    buildToolsVersion "25.0.1"
+    buildToolsVersion "25.0.2"
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 25
         applicationId 'com.thanksmister.bitcoin.localtrader'
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
+        multiDexEnabled true
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
+    
     buildTypes {
         debug {
-            resValue "string", "hmac_key", "0ff7ef0e8119249a919a66af70285f7a"
-            resValue "string", "hmac_secret", "6ee61105dfa39779fc68aaad53e45c4a408cf3344082fffa8503ffe6904fac25"
         }
         release {
-            resValue "string", "hmac_key", ""
-            resValue "string", "hmac_secret", ""
             signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -83,10 +79,11 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:support-annotations:25.0.1'
-    compile 'com.android.support:appcompat-v7:25.0.1'
-    compile 'com.android.support:design:25.0.1'
-    compile 'com.android.support:recyclerview-v7:25.0.1'
+    compile 'com.android.support:support-annotations:25.3.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:recyclerview-v7:25.3.1'
+    compile 'com.android.support:multidex:1.0.1'
     
     compile 'com.trello:rxlifecycle:0.3.0'
     compile 'com.trello:rxlifecycle-components:0.3.0'
@@ -108,7 +105,7 @@ dependencies {
     apt 'com.github.frankiesardo:auto-parcel-processor:0.3'
     
     // used for crypto libraries
-    compile 'com.google.guava:guava:18.0'
+    compile 'com.google.guava:guava:20.0'
     compile 'fr.baloomba:viewpagerindicator:2.4.2'
 
     // RxLocation
@@ -119,7 +116,7 @@ dependencies {
     //compile 'com.facebook.stetho:stetho-okhttp:1.0.0'
     
     // Google Play Support Libraries
-    compile 'com.google.android.gms:play-services-location:8.4.0'
+    compile 'com.google.android.gms:play-services-location:11.0.1'
     
     compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') {
         transitive = true;

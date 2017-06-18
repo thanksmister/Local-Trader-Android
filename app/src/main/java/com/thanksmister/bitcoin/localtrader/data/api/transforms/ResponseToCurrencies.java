@@ -16,7 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.transforms;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 
 import java.io.BufferedReader;
@@ -26,13 +26,13 @@ import java.util.List;
 
 import retrofit.client.Response;
 import rx.functions.Func1;
+import timber.log.Timber;
 
-public class ResponseToCurrencyList implements Func1<Response, List<Currency>>
+public class ResponseToCurrencies implements Func1<Response, List<ExchangeCurrency>>
 {
     @Override
-    public List<Currency> call(Response response)
+    public List<ExchangeCurrency> call(Response response)
     {
-        //Try to get response body
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
         try {
@@ -50,7 +50,7 @@ public class ResponseToCurrencyList implements Func1<Response, List<Currency>>
         }
 
         String result = sb.toString();
-        List<Currency> currencies = Parser.parseCurrencies(result);
-        return currencies;
+        Timber.d("Currencies: " + result);
+        return Parser.parseExchangeCurrencies(result);
     }
 }

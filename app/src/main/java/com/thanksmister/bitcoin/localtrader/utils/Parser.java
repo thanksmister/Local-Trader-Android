@@ -27,6 +27,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
@@ -1068,35 +1069,76 @@ public class Parser
         }
     }
 
-    public static List<ExchangeCurrency> parseExchangeCurrencies(String response)
-    {
+    public static List<ExchangeCurrency> parseExchangeCurrencies(String response) {
+        
         JSONObject jsonObject;
         ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
 
         try {
             jsonObject = new JSONObject(response);
+            JSONObject dataObject = jsonObject.getJSONObject("data");
+            JSONObject currenciesObject = dataObject.getJSONObject("currencies");
+            Iterator<?> keys = currenciesObject.keys();
+            while( keys.hasNext() ){
+                String key = (String) keys.next();
+                ExchangeCurrency currency = new ExchangeCurrency(key);
+                currencies.add(currency);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
         }
 
-        Iterator<?> keys = jsonObject.keys();
-        while( keys.hasNext() ){
-            String key = (String) keys.next();
-            try {
-                if(!key.equals("all")) {
-                    ExchangeCurrency currency = new ExchangeCurrency(key, jsonObject.get(key).toString());
-                    currencies.add(currency);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
+        Collections.sort(currencies, new CurrencyComparator());
+        Timber.d("Currencies: " + currencies);
         return currencies;
     }
 
+    public static class CurrencyComparator implements Comparator<ExchangeCurrency>
+    {
+        @Override
+        public int compare(ExchangeCurrency o1, ExchangeCurrency o2) {
+            return o1.getCurrency().toLowerCase().compareTo(o2.getCurrency().toLowerCase());
+        }
+    }
+
+    public static List<ExchangeCurrency> parseCoinbaseCurrencies(String response) {
+        
+        ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
+        JSONObject jsonObject;
+        Timber.d("Response" + response);
+
+        try {
+            jsonObject = new JSONObject(response);
+            JSONArray dataObject = jsonObject.getJSONArray("data");
+            for (int i = 0; i < dataObject.length(); i++) {
+                JSONObject obj = dataObject.getJSONObject(i);
+                ExchangeCurrency exchange = new ExchangeCurrency(obj.getString("id"));
+                currencies.add(exchange);
+            }
+            return currencies;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    //{"data":{"amount":"2664.95","currency":"USD"}}
+    public static ExchangeRate parseExchangeRate(String response) {
+        JSONObject jsonObject;
+        Timber.d("Response" + response);
+        try {
+            jsonObject = new JSONObject(response);
+            JSONObject dataObject = jsonObject.getJSONObject("data");
+            String exchangeName = "Coinbase";
+            return new ExchangeRate(exchangeName, dataObject.getString("amount"), dataObject.getString("currency"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Deprecated
     public static Exchange parseMarket(String response)
     {
         JSONObject jsonObject;

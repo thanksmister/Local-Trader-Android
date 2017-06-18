@@ -75,6 +75,9 @@ public interface LocalBitcoins
     
     @GET(GET_MYSELF)
     Observable<Response> getMyself(@Query("access_token") String token);
+
+    @GET(GET_CURRENCIES)
+    Observable<Response> getCurrencies(@Query("access_token") String token);
     
     @GET(GET_DASHBOARD)
     Observable<Response> getDashboard(@Query("access_token") String token);

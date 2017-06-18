@@ -94,6 +94,30 @@
                         android:maxLines="2"/>
 
             </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/sendAccountButton"
+                    style="@style/BorderlessButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal"
+                    android:visibility="visible">
+
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_action_contact"/>
+
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="LocalBitcoins Support"/>
+
+            </LinearLayout>
             
             <LinearLayout
                     android:id="@+id/sendFeedbackButton"
@@ -115,7 +139,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Contact me"/>
+                        android:text="Application Feedback"/>
 
             </LinearLayout>
 

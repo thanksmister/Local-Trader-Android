@@ -28,7 +28,7 @@ import retrofit.client.Response;
 import rx.functions.Func1;
 import timber.log.Timber;
 
-public class ResponseToExchangeCurrencyList implements Func1<Response, List<ExchangeCurrency>>
+public class ResponseToExchangeCurrencies implements Func1<Response, List<ExchangeCurrency>>
 {
     @Override
     public List<ExchangeCurrency> call(Response response)
@@ -51,6 +51,6 @@ public class ResponseToExchangeCurrencyList implements Func1<Response, List<Exch
 
         String result = sb.toString();
         Timber.d("Currencies: " + result);
-        return Parser.parseExchangeCurrencies(result);
+        return Parser.parseCoinbaseCurrencies(result);
     }
 }

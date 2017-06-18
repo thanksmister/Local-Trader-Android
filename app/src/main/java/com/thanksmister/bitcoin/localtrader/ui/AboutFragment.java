@@ -61,6 +61,12 @@ public class AboutFragment extends BaseFragment
     {
        feedback();
     }
+    
+    @OnClick(R.id.sendAccountButton)
+    public void sendAccountButton()
+    {
+        support();
+    }
 
     @OnClick(R.id.tipBitcoinButton)
     public void tipButtonClicked()
@@ -192,6 +198,15 @@ public class AboutFragment extends BaseFragment
         Email.setData(Uri.parse("mailto:" + Constants.EMAIL_ADDRESS));
         Email.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.mail_to_subject_text));
         startActivity(Intent.createChooser(Email, getString(R.string.mail_subject_text)));
+    }
+
+    protected void support()
+    {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.SUPPORT_URL)));
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+        }
     }
 
     protected void join()

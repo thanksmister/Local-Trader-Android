@@ -48,11 +48,11 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletData;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
@@ -67,7 +67,7 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -418,19 +418,25 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         // this must be set each time
         CompositeSubscription dataSubscriptions = new CompositeSubscription();
         
-        dataSubscriptions.add(Observable.combineLatest(dbManager.exchangeQuery(), dbManager.walletQuery(), new Func2<ExchangeItem, WalletItem, WalletData>()
+        dataSubscriptions.add(Observable.combineLatest(dbManager.exchangeQuery(), dbManager.walletQuery(), new Func2<List<ExchangeRateItem>, WalletItem, WalletData>()
         {
             @Override
-            public WalletData call(ExchangeItem exchange, WalletItem wallet)
+            public WalletData call(List<ExchangeRateItem> exchanges, WalletItem wallet)
             {
                 WalletData walletData = null;
-                if (exchange != null && wallet != null) {
+                if (wallet != null) {
                     walletData = new WalletData();
                     walletData.setAddress(wallet.address());
                     walletData.setBalance(wallet.sendable()); // only have sendable balance available to send
-                    walletData.setRate(Calculations.calculateAverageBidAskFormatted(exchange.ask(), exchange.bid()));
+                    walletData.setRate("0");
+                    String currency = exchangeService.getExchangeCurrency();
+                    for (ExchangeRateItem rateItem : exchanges) {
+                        if(rateItem.currency().equals(currency)) {
+                            walletData.setRate(rateItem.rate());
+                            break;
+                        }
+                    }
                 }
-
                 return walletData;
             }
         })
@@ -502,34 +508,31 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     }
                 }));
 
-        updateSubscriptions.add(exchangeService.getMarket()
-                .timeout(10, TimeUnit.SECONDS)
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Exchange update subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Exchange>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Exchange>()
-                {
-                    @Override
-                    public void call(Exchange exchange)
-                    {
-                        dbManager.updateExchange(exchange);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        snackError("Unable to update currency rate...");
-                    }
-                }));
+        if(exchangeService.needToRefreshExchanges()) {
+            updateSubscriptions.add(exchangeService.getSpotPrice()
+                    .doOnUnsubscribe(new Action0() {
+                        @Override
+                        public void call() {
+                            Timber.i("Exchange update subscription safely unsubscribed");
+                        }
+                    })
+                    .compose(this.<ExchangeRate>bindUntilEvent(FragmentEvent.PAUSE))
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<ExchangeRate>() {
+                        @Override
+                        public void call(ExchangeRate exchanges) {
+                            dbManager.updateExchange(exchanges);
+                            exchangeService.setExchangeExpireTime();
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            exchangeService.setExchangeExpireTime();
+                            snackError("Unable to update currency rate...");
+                        }
+                    }));
+        }
     }
     
     private void promptForPin(String bitcoinAddress, String bitcoinAmount)

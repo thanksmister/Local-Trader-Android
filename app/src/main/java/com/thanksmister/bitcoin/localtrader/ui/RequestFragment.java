@@ -43,10 +43,10 @@ import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
@@ -59,6 +59,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -110,7 +111,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     }
     
     private WalletItem walletItem;
-    private ExchangeItem exchangeItem;
+    private ExchangeRateItem exchangeItem;
 
     CompositeSubscription subscriptions = new CompositeSubscription();
     CompositeSubscription updateSubscriptions = new CompositeSubscription();
@@ -326,13 +327,19 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     {
         subscriptions = new CompositeSubscription();
         
-        subscriptions.add(dbManager.exchangeQuery().subscribe(new Action1<ExchangeItem>()
+        subscriptions.add(dbManager.exchangeQuery().subscribe(new Action1<List<ExchangeRateItem>>()
         {
             @Override
-            public void call(ExchangeItem results)
+            public void call(List<ExchangeRateItem> results)
             {
-                exchangeItem = results;
-                setWallet(exchangeItem);
+                String currency = exchangeService.getExchangeCurrency(); 
+                for (ExchangeRateItem rateItem : results) {
+                    if(rateItem.currency().equals(currency)) {
+                        exchangeItem = rateItem;
+                        setWallet();
+                        break;
+                    }
+                }
             }
         }, new Action1<Throwable>()
         {
@@ -372,44 +379,38 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         updateSubscriptions.add(dataService.getWalletBalance()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Wallet>()
-                {
+                .subscribe(new Action1<Wallet>() {
                     @Override
-                    public void call(Wallet wallet)
-                    {
+                    public void call(Wallet wallet) {
                         onRefreshStop();
                         dbManager.updateWallet(wallet);
                     }
 
-                }, new Action1<Throwable>()
-                {
+                }, new Action1<Throwable>() {
                     @Override
-                    public void call(Throwable throwable)
-                    {
+                    public void call(Throwable throwable) {
                         onRefreshStop();
                         handleError(throwable, true);
                     }
                 }));
 
-        updateSubscriptions.add(exchangeService.getMarket()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Exchange>()
-                {
-                    @Override
-                    public void call(Exchange exchange)
-                    {
-                        dbManager.updateExchange(exchange);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(Throwable throwable)
-                    {
-                        onRefreshStop();
-                        handleError(throwable);
-                    }
-                }));
+        if(exchangeService.needToRefreshExchanges()) {
+            updateSubscriptions.add(exchangeService.getSpotPrice()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<ExchangeRate>() {
+                        @Override
+                        public void call(ExchangeRate exchange) {
+                            dbManager.updateExchange(exchange);
+                            exchangeService.setExchangeExpireTime();
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            exchangeService.setExchangeExpireTime();
+                        }
+                    }));
+        }
     }
     
     private void showGeneratedQrCodeActivity(String bitcoinAddress, String bitcoinAmount)
@@ -428,7 +429,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         }
 
         if(WalletUtils.validAmount(clipText)) {
-            setAmount(WalletUtils.parseBitcoinAmount(clipText), exchangeItem);
+            setAmount(WalletUtils.parseBitcoinAmount(clipText));
         } else {
             toast(R.string.toast_invalid_amount);
         }
@@ -454,7 +455,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         return "";
     }
     
-    public void setAmount(String bitcoinAmount, ExchangeItem exchangeItem)
+    public void setAmount(String bitcoinAmount)
     {
         if(!Strings.isBlank(bitcoinAmount)) {
             amountText.setText(bitcoinAmount);
@@ -462,7 +463,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
         }
     }
     
-    public void setWallet(ExchangeItem exchangeItem)
+    public void setWallet()
     {
         if(Strings.isBlank(amountText.getText())) {
             calculateCurrencyAmount("0.00");
@@ -505,7 +506,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             return;
         }
     
-        String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
+        String rate = exchangeItem.rate();
 
         double btc = Math.abs(Doubles.convertToDouble(requestAmount) / Doubles.convertToDouble(rate));
 
@@ -531,7 +532,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
             return;
         }
         
-        String rate = Calculations.calculateAverageBidAskFormatted(exchangeItem.ask(), exchangeItem.bid());
+        String rate = exchangeItem.rate();
         String value = Calculations.computedValueOfBitcoin(rate, bitcoin);
         if(fiatEditText != null)
             fiatEditText.setText(value);

@@ -18,23 +18,20 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
 
 import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
-import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -82,23 +79,11 @@ public class DbManager
         db.delete(TransactionItem.TABLE, null);
         db.delete(RecentMessageItem.TABLE, null);
         db.delete(NotificationItem.TABLE, null);
-    }
-
-    public void clearWallet()
-    {
-        db.delete(WalletItem.TABLE, null);
-        db.delete(TransactionItem.TABLE, null);
-    }
-    
-    public void clearDashboard()
-    {
-        db.delete(RecentMessageItem.TABLE, null);
-        db.delete(ContactItem.TABLE, null);
+        db.delete(ExchangeCurrencyItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
     }
     
-    public Observable<ContactItem> contactQuery(String contactId)
-    {
+    public Observable<ContactItem> contactQuery(String contactId) {
         return db.createQuery(ContactItem.TABLE, ContactItem.QUERY_ITEM_WITH_MESSAGES, String.valueOf(contactId))
                 .map(ContactItem.MAP)
                 .flatMap(new Func1<List<ContactItem>, Observable<ContactItem>>()
@@ -357,46 +342,11 @@ public class DbManager
             }
         }
     }
-    
-    public Observable<Integer> messageCountQuery(long contactId)
-    {
-        return db.createQuery(MessageItem.TABLE, MessageItem.COUNT_QUERY, String.valueOf(contactId))
-                .map(new Func1<SqlBrite.Query, Integer>()
-                {
-                    @Override
-                    public Integer call(SqlBrite.Query query)
-                    {
-                        Cursor cursor = query.run();
-                        try {
-                            if (!cursor.moveToNext()) {
-                                throw new AssertionError("No messages");
-                            }
-                            return cursor.getInt(0);
-                        } finally {
-                            cursor.close();
-                        }
-                    }
-                });
-    }
 
     public Observable<List<NotificationItem>> notificationsQuery()
     {
         return briteContentResolver.createQuery(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, NotificationItem.CREATED_AT + " DESC", false)
                 .map(NotificationItem.MAP);
-    }
-
-    public void markNotificationsRead()
-    {
-        Timber.d("markNotificationsRead");
-        synchronized (this) {
-            Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(NotificationItem.READ, true);
-                contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, contentValues, null, null);
-                cursor.close();
-            }
-        }
     }
 
     public void markNotificationRead(String notificationId)
@@ -522,10 +472,29 @@ public class DbManager
                 .map(MethodItem.MAP_SUBSET);
     }
 
-    public Observable<ExchangeItem> exchangeQuery()
+    public Observable<List<ExchangeRateItem>> exchangeQuery()
     {
-        return db.createQuery(ExchangeItem.TABLE, ExchangeItem.QUERY)
-                .map(ExchangeItem.MAP);
+        return db.createQuery(ExchangeRateItem.TABLE, ExchangeRateItem.QUERY)
+                .map(ExchangeRateItem.MAP);
+    }
+
+    /**
+     * Returns the LocalBitcoins service currencies
+     * @return
+     */
+    public Observable<List<CurrencyItem>> currencyQuery() {
+        return db.createQuery(CurrencyItem.TABLE, CurrencyItem.QUERY)
+                .map(CurrencyItem.MAP);
+    }
+
+    /**
+     * Returns the exchange currencies
+     * @return
+     */
+    public Observable<List<ExchangeCurrencyItem>> exchangeCurrencyQuery()
+    {
+        return db.createQuery(ExchangeCurrencyItem.TABLE, ExchangeCurrencyItem.QUERY)
+                .map(ExchangeCurrencyItem.MAP);
     }
     
     public Observable<List<AdvertisementItem>> advertisementsQuery()
@@ -554,7 +523,6 @@ public class DbManager
 
     public Observable<WalletItem> walletQuery()
     {
-        //final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
         return briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP);
     }
@@ -562,9 +530,7 @@ public class DbManager
     public void updateWallet(final Wallet wallet)
     {
         Timber.d("updateWallet: " + wallet);
-        
-        //final ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
-        
+     
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
                 .subscribe(new Action1<WalletItem>()
@@ -610,26 +576,45 @@ public class DbManager
 
         subscription.unsubscribe();
     }
-
-    public void updateExchange(final Exchange exchange)
-    {
-        ExchangeItem.Builder builder = new ExchangeItem.Builder()
-                .ask(exchange.getAsk())
-                .bid(exchange.getBid())
-                .last(exchange.getLast())
-                .exchange(exchange.getDisplay_name());
-        
-        Cursor cursor = db.query(ExchangeItem.QUERY);
+    
+    public void updateExchange(final ExchangeRate exchange) {
+        Cursor cursor = db.query(ExchangeRateItem.QUERY);
         try {
             if (cursor.getCount() > 0) {
                 cursor.moveToFirst();
-                long id = Db.getLong(cursor, ExchangeItem.ID);
-                db.update(ExchangeItem.TABLE, builder.build(), ExchangeItem.ID + " = ?", String.valueOf(id));
+                long id = Db.getLong(cursor, ExchangeRateItem.ID);
+                db.update(ExchangeRateItem.TABLE, ExchangeRateItem.createBuilder(exchange).build(), ExchangeRateItem.ID + " = ?", String.valueOf(id));
             } else {
-                db.insert(ExchangeItem.TABLE, builder.build());
+                db.insert(ExchangeRateItem.TABLE, ExchangeRateItem.createBuilder(exchange).build());
             }
         } finally {
             cursor.close();
+        }
+    }
+
+    /**
+     * Insert localbitcoins currencies
+     * @param currencies
+     */
+    public void insertCurrencies(final List<ExchangeCurrency> currencies) {
+        db.delete(CurrencyItem.TABLE, null);
+        for (ExchangeCurrency item : currencies) {
+            CurrencyItem.Builder builder = new CurrencyItem.Builder()
+                    .currency(item.getCurrency());
+            db.insert(CurrencyItem.TABLE, builder.build());
+        }
+    }
+
+    /**
+     * Insert exchange currencies
+     * @param currencies
+     */
+    public void insertExchangeCurrencies(final List<ExchangeCurrency> currencies) {
+        db.delete(ExchangeCurrencyItem.TABLE, null);
+        for (ExchangeCurrency item : currencies) {
+            ExchangeCurrencyItem.Builder builder = new ExchangeCurrencyItem.Builder()
+                    .currency(item.getCurrency());
+            db.insert(ExchangeCurrencyItem.TABLE, builder.build());
         }
     }
 
@@ -836,34 +821,6 @@ public class DbManager
     public int updateAdvertisement(final Advertisement advertisement)
     {
        return db.update(AdvertisementItem.TABLE, AdvertisementItem.createBuilder(advertisement).build(), AdvertisementItem.AD_ID + " = ?", advertisement.ad_id);
-    }
-    
-    private class QrCodeTask extends AsyncTask<Object, Void, Object[]>
-    {
-        private Context context;
-
-        @Override
-        protected void onPreExecute()
-        {
-            super.onPreExecute();
-        }
-
-        protected Object[] doInBackground(Object... params)
-        {
-            Wallet wallet = (Wallet) params[0];
-            context = (Context) params[1];
-            Bitmap qrCode = null;
-
-            wallet.qrImage = WalletUtils.encodeAsBitmap(wallet.address, context.getApplicationContext());
-
-            return new Object[]{wallet};
-        }
-
-        protected void onPostExecute(Object[] result)
-        {
-            Wallet wallet = (Wallet) result[0];
-            //updateWalletQrCode(wallet.id, wallet.qrImage, context);
-        }
     }
 
     protected void reportError(Throwable throwable)

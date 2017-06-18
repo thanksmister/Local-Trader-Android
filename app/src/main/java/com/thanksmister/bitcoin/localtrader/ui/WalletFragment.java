@@ -51,11 +51,11 @@ import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletAdapter;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
@@ -72,7 +72,6 @@ import com.trello.rxlifecycle.FragmentEvent;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -136,7 +135,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     private SectionRecycleViewAdapter sectionRecycleViewAdapter;
     
     private List<TransactionItem> transactionItems;
-    public ExchangeItem exchangeItem;
+    public ExchangeRateItem exchangeItem;
     public WalletItem walletItem;
     public Bitmap qrImage;
    
@@ -208,10 +207,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
-    {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.wallet, menu);
-
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -354,7 +351,7 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                         }
 
                         if (exchangeItem != null && walletItem != null) {
-                            setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
+                            setAppBarText(exchangeItem.rate(), walletItem.balance(), exchangeItem.exchange());
                         }
 
                         setupList(walletItem, qrImage, transactionItems);
@@ -384,7 +381,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                     public void call(List<TransactionItem> items)
                     {
                         transactionItems = items;
-
                         setupList(walletItem, qrImage, transactionItems);
                     }
                 }, new Action1<Throwable>()
@@ -405,18 +401,22 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                         Timber.i("Exchange subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<ExchangeItem>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<ExchangeItem>()
-                {
+                .compose(this.<List<ExchangeRateItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<ExchangeRateItem>>() {
                     @Override
-                    public void call(ExchangeItem item)
-                    {
-                        exchangeItem = item;
-
+                    public void call(List<ExchangeRateItem> exchanges) {
+                        if (!exchanges.isEmpty()) {
+                            String currency = exchangeService.getExchangeCurrency();
+                            for (ExchangeRateItem rateItem : exchanges) {
+                                if(rateItem.currency().equals(currency)) {
+                                    exchangeItem = rateItem;
+                                    break;
+                                }
+                            }
+                        }
                         Timber.d("subscribeData exchange: " + exchangeItem);
-
                         if (exchangeItem != null && walletItem != null) {
-                            setAppBarText(exchangeItem.bid(), exchangeItem.ask(), walletItem.balance(), exchangeItem.exchange());
+                            setAppBarText(exchangeItem.rate(), walletItem.balance(), exchangeItem.exchange());
                         }
                     }
                 }, new Action1<Throwable>()
@@ -437,69 +437,53 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
             handleError(new NetworkConnectionException(), true);
             return;
         }
-        
-        exchangeService.getMarket()
-                .timeout(20, TimeUnit.SECONDS)
-                .doOnUnsubscribe(new Action0()
-                {
-                    @Override
-                    public void call()
-                    {
-                        Timber.i("Exchange update subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Exchange>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Exchange>()
-                {
-                    @Override
-                    public void call(Exchange exchange)
-                    {
-                        Timber.d("updateData exchange: " + exchange);
-                        
-                        dbManager.updateExchange(exchange);
-                    }
-                }, new Action1<Throwable>()
-                {
-                    @Override
-                    public void call(final Throwable throwable)
-                    {
-                        snackError("Unable to update currency rate...");
-                    }
-                });
+
+        if(exchangeService.needToRefreshExchanges()) {
+            exchangeService.getSpotPrice()
+                    .doOnUnsubscribe(new Action0() {
+                        @Override
+                        public void call() {
+                            Timber.i("Exchange update subscription safely unsubscribed");
+                        }
+                    })
+                    .compose(this.<ExchangeRate>bindUntilEvent(FragmentEvent.PAUSE))
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<ExchangeRate>() {
+                        @Override
+                        public void call(ExchangeRate exchange) {
+                            dbManager.updateExchange(exchange);
+                            exchangeService.setExchangeExpireTime();
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(final Throwable throwable) {
+                            exchangeService.setExchangeExpireTime();
+                        }
+                    });
+        }
         
         dataService.getWallet(true)
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
-                    public void call()
-                    {
+                    public void call() {
                         Timber.i("Wallet update subscription safely unsubscribed");
                     }
                 })
                 .compose(this.<Wallet>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Wallet>()
-                {
+                .subscribe(new Action1<Wallet>() {
                     @Override
-                    public void call(final Wallet wallet)
-                    {
+                    public void call(final Wallet wallet) {
                         Timber.d("updateData wallet: " + wallet.balance);
-                        
-                        //updateWalletBalance(wallet);
                         dbManager.updateWallet(wallet);
                         dbManager.updateTransactions(wallet.getTransactions());
-                        
                         onRefreshStop();
                     }
-
-                }, new Action1<Throwable>()
-                {
+                }, new Action1<Throwable>() {
                     @Override
-                    public void call(final Throwable throwable)
-                    {
+                    public void call(final Throwable throwable) {
                         onRefreshStop();
                         handleError(throwable, true);
                     }
@@ -636,15 +620,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     @SuppressWarnings("deprecation")
     protected void setAddressOnClipboard()
     {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText(getString(R.string.wallet_address_clipboard_title), address);
-            clipboard.setPrimaryClip(clip);
-        } else {
-            android.text.ClipboardManager clipboardManager = (android.text.ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-            clipboardManager.setText(address);
-        }
-
+        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText(getString(R.string.wallet_address_clipboard_title), address);
+        clipboard.setPrimaryClip(clip);
         toast(getString(R.string.wallet_address_copied_toast));
     }
 
@@ -693,18 +671,17 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
          */
     }
 
-    protected void setAppBarText(String bid, String ask, String balance, String exchange)
+    protected void setAppBarText(String rate, String balance, String exchange)
     {
-        Timber.d("setAppBarText: " + bid);
-        Timber.d("setAppBarText: " + ask);
+        Timber.d("Rate: " + rate);
         Timber.d("Balance: " + balance);
 
         String currency = exchangeService.getExchangeCurrency();
         
-        String btcValue = Calculations.computedValueOfBitcoin(bid, ask, balance);
+        String btcValue = Calculations.computedValueOfBitcoin(rate, balance);
         String btcAmount = Conversions.formatBitcoinAmount(balance) + " " + getString(R.string.btc);
         bitcoinPrice.setText(btcAmount);
         bitcoinTitle.setText(R.string.wallet_account_balance);
-        bitcoinValue.setText("≈ $" + btcValue + " " + currency + " (" + exchange + ")");
+        bitcoinValue.setText("≈ " + btcValue + " " + currency + " (" + exchange + ")");
     }
 }
