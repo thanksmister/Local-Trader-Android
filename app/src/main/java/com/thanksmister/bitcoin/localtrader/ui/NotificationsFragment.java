@@ -29,7 +29,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -62,10 +61,7 @@ public class NotificationsFragment extends BaseFragment
     
     @Inject
     DbManager dbManager;
-    
-    @Inject
-    Bus bus;
-
+  
     @InjectView(R.id.recycleView)
     RecyclerView recycleView;
     

@@ -27,7 +27,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
@@ -37,7 +36,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.AdvertisementsAdapter;
@@ -69,9 +67,6 @@ public class AdvertisementsFragment extends BaseFragment
     @Inject
     DbManager dbManager;
     
-    @Inject
-    Bus bus;
-
     @InjectView(R.id.recycleView)
     RecyclerView recycleView;
 
@@ -163,35 +158,30 @@ public class AdvertisementsFragment extends BaseFragment
         });
     }
 
-    /*public void onActivityResult(int requestCode, int resultCode, Intent intent)
-    {
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         Timber.d("Request Code: " + requestCode);
         Timber.d("Result Code: " + requestCode);
-        
         super.onActivityResult(requestCode, resultCode, intent);
-        
         if (requestCode == EditActivity.REQUEST_CODE) {
             if (resultCode == EditActivity.RESULT_CREATED || resultCode == EditActivity.RESULT_UPDATED) {
-                updateData();
+                updateData(true);
             }
         } else if (requestCode == AdvertisementActivity.REQUEST_CODE) {
             if ( resultCode == AdvertisementActivity.RESULT_DELETED) {
-                updateData();
+                updateData(true);
             }
         }
-    }*/
+    }
     
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         subscribeData();
-        updateData();
+        updateData(false);
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
     }
 
@@ -221,8 +211,7 @@ public class AdvertisementsFragment extends BaseFragment
         //dbManager.clearDashboard();
 
         dbManager.advertisementsQuery()
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call()
                     {
@@ -230,8 +219,7 @@ public class AdvertisementsFragment extends BaseFragment
                     }
                 })
                 .compose(this.<List<AdvertisementItem>>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<List<AdvertisementItem>>()
-                {
+                .subscribe(new Action1<List<AdvertisementItem>>() {
                     @Override
                     public void call(final List<AdvertisementItem> items)
                     {
@@ -245,8 +233,7 @@ public class AdvertisementsFragment extends BaseFragment
                             }
                         });
                     }
-                }, new Action1<Throwable>()
-                {
+                }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable)
                     {
@@ -291,10 +278,10 @@ public class AdvertisementsFragment extends BaseFragment
                 });
     }
 
-    protected void updateData()
-    {
+    protected void updateData(final boolean force) {
+        
         Timber.d("UpdateData");
-
+        
         if (!NetworkUtils.isNetworkConnected(getActivity())) {
             handleError(new NetworkConnectionException());
             return;
@@ -312,11 +299,9 @@ public class AdvertisementsFragment extends BaseFragment
                     }
                 })
                 .compose(this.<List<Method>>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<List<Method>>()
-                {
+                .subscribe(new Action1<List<Method>>() {
                     @Override
-                    public void call(List<Method> results)
-                    {
+                    public void call(List<Method> results) {
                         if(results == null)
                             results = new ArrayList<Method>();
                         
@@ -327,8 +312,7 @@ public class AdvertisementsFragment extends BaseFragment
 
                         dbManager.updateMethods(results);
                     }
-                }, new Action1<Throwable>()
-                {
+                }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable)
                     {
@@ -336,7 +320,7 @@ public class AdvertisementsFragment extends BaseFragment
                     }
                 }));
 
-        updateSubscriptions.add(dataService.getAdvertisements()
+        updateSubscriptions.add(dataService.getAdvertisements(force)
                 .doOnUnsubscribe(new Action0()
                 {
                     @Override
@@ -356,11 +340,9 @@ public class AdvertisementsFragment extends BaseFragment
                         if (advertisements != null && !advertisements.isEmpty())
                             dbManager.updateAdvertisements(advertisements);
                     }
-                }, new Action1<Throwable>()
-                {
+                }, new Action1<Throwable>() {
                     @Override
-                    public void call(Throwable throwable)
-                    {
+                    public void call(Throwable throwable) {
                         handleError(throwable, true);
                     }
                 }));
@@ -371,22 +353,21 @@ public class AdvertisementsFragment extends BaseFragment
         return itemAdapter;
     }
     
-    protected void showAdvertisement(AdvertisementItem advertisement)
-    {
+    protected void showAdvertisement(AdvertisementItem advertisement) {
         Intent intent = AdvertisementActivity.createStartIntent(getActivity(), advertisement.ad_id());
         intent.setClass(getActivity(), AdvertisementActivity.class);
         startActivityForResult(intent, AdvertisementActivity.REQUEST_CODE);
     }
 
-    protected void createAdvertisementScreen()
-    {
+    protected void createAdvertisementScreen() {
         Intent intent = EditActivity.createStartIntent(getActivity(), true, null);
         intent.setClass(getActivity(), EditActivity.class);
         startActivityForResult(intent, EditActivity.REQUEST_CODE);
     }
 
-    protected void showSearchScreen()
-    {
-        bus.post(NavigateEvent.SEARCH);
+    protected void showSearchScreen() {
+        if(isAdded()) {
+            ((MainActivity) getActivity()).navigateSearchView();
+        }
     }
 }

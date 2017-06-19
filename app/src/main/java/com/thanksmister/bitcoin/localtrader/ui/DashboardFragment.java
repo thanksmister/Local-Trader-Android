@@ -37,7 +37,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squareup.otto.Bus;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -52,7 +51,6 @@ import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactsActivity;
@@ -95,9 +93,6 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
 
     @Inject
     BriteDatabase db;
-
-    @Inject
-    Bus bus;
 
     @InjectView(R.id.fab)
     FloatingActionButton fab;
@@ -197,14 +192,13 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         setupFab();
     }
 
-    private void setupFab()
-    {
-        fab.setOnClickListener(new View.OnClickListener()
-        {
+    private void setupFab() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
-                bus.post(NavigateEvent.QRCODE);
+            public void onClick(View v) {
+                if(isAdded()) {
+                    ((MainActivity) getActivity()).launchScanner();
+                }
             }
         });
     }
@@ -346,8 +340,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
     }
     
     @Override
-    public void onRefresh()
-    {
+    public void onRefresh() {
         String userName = AuthUtils.getUsername(sharedPreferences);
         SyncUtils.TriggerRefresh(getContext().getApplicationContext(), userName);
         
@@ -356,7 +349,7 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
             FragmentPagerAdapter a = (FragmentPagerAdapter) mViewPager.getAdapter();
             Fragment fragment = (Fragment) a.instantiateItem(mViewPager, 0);
             if(fragment instanceof  AdvertisementsFragment) {
-                ((AdvertisementsFragment)fragment).updateData();
+                ((AdvertisementsFragment)fragment).updateData(true);
             } else if (fragment instanceof ContactsFragment) {
                 ((ContactsFragment)fragment).updateData();
             }
@@ -511,14 +504,16 @@ public class DashboardFragment extends BaseFragment implements SwipeRefreshLayou
         }
     }
 
-    private void showSendScreen()
-    {
-        bus.post(NavigateEvent.SEND);
+    private void showSendScreen() {
+        if(isAdded()) {
+            ((MainActivity) getActivity()).navigateSendView();
+        }
     }
 
-    private void showSearchScreen()
-    {
-        bus.post(NavigateEvent.SEARCH);
+    private void showSearchScreen() {
+        if(isAdded()) {
+            ((MainActivity) getActivity()).navigateSearchView();
+        }
     }
 
     private void showTradesScreen()

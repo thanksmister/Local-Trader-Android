@@ -32,14 +32,10 @@ import android.widget.TextView;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
-import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
-import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.contacts.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.search.SearchFragment;
@@ -172,14 +168,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     }
 
     @Override
+    protected void handleNetworkDisconnect() {
+        boolean retry = (position == DRAWER_DASHBOARD || position == DRAWER_WALLET);
+        snack(getString(R.string.error_no_internet), retry);
+    }
+
+    @Override
     public void onPause()
     {
         super.onPause();
     }
     
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) 
-    {
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 if(drawerLayout != null)
@@ -189,16 +190,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         return super.onOptionsItemSelected(item);
     }
     
-    private void launchPromoScreen()
-    {
+    private void launchPromoScreen() {
         Intent intent = new Intent(MainActivity.this, PromoActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
   
-    private void setupNavigationView()
-    {
+    private void setupNavigationView() {
         final View headerView = navigationView.getHeaderView(0);
         userName = (TextView) headerView.findViewById(R.id.userName);
         tradeCount = (TextView) headerView.findViewById(R.id.userTradeCount);
@@ -338,10 +337,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);
         position = DRAWER_SEND;
     }
-
-    @Subscribe
-    public void onRefreshEvent(RefreshEvent event)
-    {
+    
+    @Override
+    public void handleRefresh(){
         switch (fragment.getTag()) {
             case DASHBOARD_FRAGMENT:
                 ((DashboardFragment) fragment).onRefresh();
@@ -358,49 +356,28 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
         }
     }
     
-    @Subscribe
-    public void onNetworkEvent(NetworkEvent event)
-    {
-        if (event == NetworkEvent.DISCONNECTED) {
-            boolean retry = (position == DRAWER_DASHBOARD || position == DRAWER_WALLET);
-            snack(getString(R.string.error_no_internet), retry);
-        }
+    public void navigateSendView () {
+        setContentFragment(DRAWER_SEND);
+        navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);
     }
 
-    @Subscribe
-    public void onNavigateEvent (NavigateEvent event)
-    {
-        if(event == NavigateEvent.DASHBOARD) {
-            setContentFragment(DRAWER_DASHBOARD);
-            navigationView.getMenu().findItem(R.id.navigationItemDashboard).setChecked(true);
-        } else if(event == NavigateEvent.SEND) {
-            setContentFragment(DRAWER_SEND);
-            navigationView.getMenu().findItem(R.id.navigationItemSend).setChecked(true);
-        } else if (event == NavigateEvent.SEARCH) {
-            setContentFragment(DRAWER_SEARCH);
-            navigationView.getMenu().findItem(R.id.navigationItemSearch).setChecked(true);
-        } else if (event == NavigateEvent.WALLET) {
-            setContentFragment(DRAWER_WALLET);
-            navigationView.getMenu().findItem(R.id.navigationItemWallet).setChecked(true);
-        } else if (event == NavigateEvent.LOGOUT_CONFIRM) {
-            logOutConfirmation();
-        } else if (event == NavigateEvent.LOGOUT) {
-            logOut();
-        } else if (event == NavigateEvent.QRCODE) {
-            launchScanner();
-        }
+    public void navigateDashboardView () {
+        setContentFragment(DRAWER_DASHBOARD);
+        navigationView.getMenu().findItem(R.id.navigationItemDashboard).setChecked(true);
     }
     
-    public void restoreActionBar()
-    {
+    public void navigateSearchView () {
+        setContentFragment(DRAWER_SEARCH);
+    }
+    
+    public void restoreActionBar() {
         /*ActionBar actionBar = getSupportActionBar();
         if(actionBar != null)
             actionBar.setTitle(mTitle);*/
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    public boolean onCreateOptionsMenu(Menu menu) {
         if (drawerLayout != null && !drawerLayout.isDrawerOpen(GravityCompat.START)) {
             restoreActionBar();
             return true;
@@ -455,7 +432,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener
     {
         super.onNewIntent(intent);
         
-        if(intent == null)
+        if(intent == null || intent.getExtras() == null)
             return;
         
         Bundle extras = intent.getExtras();

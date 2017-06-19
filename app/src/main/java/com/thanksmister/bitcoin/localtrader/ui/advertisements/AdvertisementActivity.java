@@ -33,7 +33,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.squareup.otto.Subscribe;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -48,7 +47,6 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.components.SelectableLinkMovementMethod;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
@@ -295,26 +293,25 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     }
 
     @Override
-    public void onPause()
-    {
-        super.onPause();
+    protected void handleNetworkDisconnect() {
+        // nothing
+    }
 
+    @Override
+    public void onPause() {
+        super.onPause();
         updateSubscription.unsubscribe();
         subscription.unsubscribe();
-
         if (progress != null)
             progress.clearAnimation();
-
+        
         if (content != null)
             content.clearAnimation();
     }
-
-    @Subscribe
-    public void onRefreshEvent(RefreshEvent event)
-    {
-        if (event == RefreshEvent.RETRY) {
-            updateData();
-        }
+    
+    @Override
+    public void handleRefresh() {
+        updateData();
     }
 
     public void setToolBarMenu(Toolbar toolbar)

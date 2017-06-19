@@ -72,19 +72,19 @@ import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.CHECK_PINCODE;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.DELETE_AD;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_AD;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_ADS;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_CONTACT;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_CONTACT_MESSAGES;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_DASHBOARD;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_RECENT_MESSAGES;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_WALLET;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_WALLET_BALANCE;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_AD_CREATE;
 import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_CANCEL;
@@ -120,15 +120,13 @@ public class DataService
     private int retryLimit = 1;
     
     @Inject
-    public DataService(BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins)
-    {
+    public DataService(BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins) {
         this.baseApplication = baseApplication;
         this.localBitcoins = localBitcoins;
         this.sharedPreferences = sharedPreferences;
     }
     
-    public void logout()
-    {
+    public void logout() {
         resetExchangeExpireTime();
         resetAdvertisementsExpireTime();
         resetMethodsExpireTime();
@@ -141,8 +139,7 @@ public class DataService
                 .map(new ResponseToAuthorize());
     }
 
-    private <T> Func1<Throwable,? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed)
-    {
+    private <T> Func1<Throwable,? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
         return new Func1<Throwable, Observable<? extends T>>() {
             @Override
             public Observable<? extends T> call(Throwable throwable) {
@@ -176,9 +173,7 @@ public class DataService
         };
     }
 
-    private Observable<String> refreshTokens()
-    {
-        Timber.d("Refresh Tokens");
+    private Observable<String> refreshTokens() {
         final String refreshToken = AuthUtils.getRefreshToken(sharedPreferences);
         return localBitcoins.refreshToken("refresh_token", refreshToken, baseApplication.getString(R.string.lbc_access_key), baseApplication.getString(R.string.lbc_access_secret))
                 .map(new ResponseToAuthorize())
@@ -194,8 +189,7 @@ public class DataService
                 });
     }
 
-    public Observable<List<ExchangeCurrency>> getCurrencies()
-    {
+    public Observable<List<ExchangeCurrency>> getCurrencies() {
         final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
         return  localBitcoins.getCurrencies(accessToken)
                 .map(new ResponseToCurrencies());
@@ -249,25 +243,7 @@ public class DataService
         return localBitcoins.createContact(accessToken, adId, amount, message);
     }
 
-    public Observable<Boolean> sendPinCodeMoney(final String pinCode, final String address, final String amount)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return sendPinCodeMoneyObservable(pinCode, address, amount, retryLimit)
-                    .map(new ResponseToJSONObject())
-                    .flatMap(new Func1<JSONObject, Observable<Boolean>>()
-                    {
-                        @Override
-                        public Observable<Boolean> call(JSONObject jsonObject)
-                        {
-                            if (Parser.containsError(jsonObject)) {
-                                RetroError retroError = Parser.parseError(jsonObject);
-                                throw new Error(retroError);
-                            }
-                            return Observable.just(true);
-                        }
-                    });
-        }
-        
+    public Observable<Boolean> sendPinCodeMoney(final String pinCode, final String address, final String amount) {
         return sendPinCodeMoneyObservable(pinCode, address, amount)
                 .onErrorResumeNext(refreshTokenAndRetry(sendPinCodeMoneyObservable(pinCode, address, amount)))
                 .map(new ResponseToJSONObject())
@@ -291,21 +267,7 @@ public class DataService
         return localBitcoins.walletSendPin(accessToken, pinCode, address, amount);
     }
 
-    public Observable<Wallet> getWalletBalance()
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return getWalletBalanceObservable(retryLimit)
-                    .map(new ResponseToWalletBalance())
-                    .flatMap(new Func1<Wallet, Observable<Wallet>>()
-                    {
-                        @Override
-                        public Observable<Wallet> call(Wallet wallet)
-                        {
-                            return getWalletBitmap(wallet);
-                        }
-                    });
-        }
-        
+    public Observable<Wallet> getWalletBalance() {
         return getWalletBalanceObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletBalanceObservable()))
                 .map(new ResponseToWalletBalance())
@@ -319,44 +281,29 @@ public class DataService
                 });
     }
 
-    private Observable<Response> getWalletBalanceObservable()
-    {
+    private Observable<Response> getWalletBalanceObservable() {
         final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
         return localBitcoins.getWalletBalance(accessToken);
     }
 
-    public Observable<JSONObject> validatePinCode(final String pinCode)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return validatePinCodeObservable(pinCode, retryLimit)
-                    .map(new ResponseToJSONObject());
-        }
-        
+    public Observable<JSONObject> validatePinCode(final String pinCode) {
         return validatePinCodeObservable(pinCode)
                 .onErrorResumeNext(refreshTokenAndRetry(validatePinCodeObservable(pinCode)))
                 .map(new ResponseToJSONObject());
     }
 
-    private Observable<Response> validatePinCodeObservable(final String pinCode)
-    {
+    private Observable<Response> validatePinCodeObservable(final String pinCode) {
         final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
         return localBitcoins.checkPinCode(accessToken, pinCode);
     }
     
-    public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return contactActionObservable(contactId, pinCode, action, retryLimit)
-                    .map(new ResponseToJSONObject());
-        }
-        
+    public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action) {
         return contactActionObservable(contactId, pinCode, action)
                 .onErrorResumeNext(refreshTokenAndRetry(contactActionObservable(contactId, pinCode, action)))
                 .map(new ResponseToJSONObject());
     }
     
-    private Observable<Response> contactActionObservable(final String contactId, final String pinCode, final ContactAction action)
-    {
+    private Observable<Response> contactActionObservable(final String contactId, final String pinCode, final ContactAction action) {
         final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
         switch (action) {
             case RELEASE:
@@ -374,20 +321,7 @@ public class DataService
         return Observable.error(new Error("Unable to perform action on contact"));
     }
     
-    public Observable<JSONObject> updateAdvertisement(final Advertisement advertisement)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return updateAdvertisementObservable(advertisement, retryLimit)
-                    .map(new ResponseToJSONObject())
-                    .flatMap(new Func1<JSONObject, Observable<JSONObject>>()
-                    {
-                        @Override
-                        public Observable<JSONObject> call(JSONObject jsonObject)
-                        {
-                            return Observable.just(jsonObject);
-                        }
-                    });
-        }
+    public Observable<JSONObject> updateAdvertisement(final Advertisement advertisement) {
         return updateAdvertisementObservable(advertisement)
                 .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement)))
                 .map(new ResponseToJSONObject())
@@ -401,8 +335,7 @@ public class DataService
                 });
     }
 
-    private Observable<Response> updateAdvertisementObservable(final Advertisement advertisement)
-    {
+    private Observable<Response> updateAdvertisementObservable(final Advertisement advertisement) {
         final String city;
         if(Strings.isBlank(advertisement.city)){
             city = advertisement.location;
@@ -418,8 +351,7 @@ public class DataService
                 advertisement.require_feedback_score, advertisement.require_trade_volume, advertisement.first_time_limit_btc);
     }
 
-    public Observable<JSONObject> createAdvertisement(final Advertisement advertisement)
-    {
+    public Observable<JSONObject> createAdvertisement(final Advertisement advertisement) {
         if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
             return createAdvertisementObservable(advertisement, retryLimit)
                     .map(new ResponseToJSONObject());
@@ -430,8 +362,7 @@ public class DataService
                 .map(new ResponseToJSONObject());
     }
     
-    private Observable<Response> createAdvertisementObservable(final Advertisement advertisement)
-    {
+    private Observable<Response> createAdvertisementObservable(final Advertisement advertisement) {
         String city;
         if(Strings.isBlank(advertisement.city)){
             city = advertisement.location;
@@ -685,28 +616,17 @@ public class DataService
         return localBitcoins.getAdvertisement(accessToken, adId);
     }
 
-    public Observable<List<Advertisement>> getAdvertisements()
+    public Observable<List<Advertisement>> getAdvertisements(boolean force)
     {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return getAdvertisementsObservable(retryLimit)
-                    .doOnNext(new Action1<Response>()
-                    {
-                        @Override
-                        public void call(Response response)
-                        {
-                            setAdvertisementsExpireTime();
-                        }
-                    })
-                    .map(new ResponseToAds());
+        if(!needToRefreshAdvertisements() && !force) {
+            return Observable.empty();
         }
-        
+
         return getAdvertisementsObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()))
-                .doOnNext(new Action1<Response>()
-                {
+                .doOnNext(new Action1<Response>() {
                     @Override
-                    public void call(Response response)
-                    {
+                    public void call(Response response) {
                         setAdvertisementsExpireTime();
                     }
                 })
@@ -791,61 +711,25 @@ public class DataService
 
     public Observable<Wallet> getWallet(boolean force)
     {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return getWalletObservable(retryLimit)
-                    .map(new ResponseToWallet())
-                    .flatMap(new Func1<Wallet, Observable<Wallet>>()
-                    {
-                        @Override
-                        public Observable<Wallet> call(final Wallet wallet)
-                        {
-                            setWalletExpireTime();
-
-                            return generateBitmap(wallet.address)
-                                    .map(new Func1<Bitmap, Wallet>()
-                                    {
-                                        @Override
-                                        public Wallet call(Bitmap bitmap)
-                                        {
-                                            wallet.qrImage = bitmap;
-                                            return wallet;
-                                        }
-                                    }).onErrorReturn(new Func1<Throwable, Wallet>()
-                                    {
-                                        @Override
-                                        public Wallet call(Throwable throwable)
-                                        {
-                                            return wallet;
-                                        }
-                                    });
-                        }
-                    });
-        }
-        
         return getWalletObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletObservable()))
                 .map(new ResponseToWallet())
-                .flatMap(new Func1<Wallet, Observable<Wallet>>()
-                {
+                .flatMap(new Func1<Wallet, Observable<Wallet>>() {
                     @Override
-                    public Observable<Wallet> call(final Wallet wallet)
-                    {
+                    public Observable<Wallet> call(final Wallet wallet) {
                         setWalletExpireTime();
-                        
                         return generateBitmap(wallet.address)
-                                .map(new Func1<Bitmap, Wallet>()
-                                {
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .map(new Func1<Bitmap, Wallet>() {
                                     @Override
-                                    public Wallet call(Bitmap bitmap)
-                                    {
+                                    public Wallet call(Bitmap bitmap) {
                                         wallet.qrImage = bitmap;
                                         return wallet;
                                     }
-                                }).onErrorReturn(new Func1<Throwable, Wallet>()
-                                {
+                                }).onErrorReturn(new Func1<Throwable, Wallet>() {
                                     @Override
-                                    public Wallet call(Throwable throwable)
-                                    {
+                                    public Wallet call(Throwable throwable) {
                                         return wallet;
                                     }
                                 });
@@ -1541,31 +1425,6 @@ public class DataService
                 });
     }
     
-    private Observable<Response> getAdvertisementsObservable(final int retry)
-    {
-        Timber.d("getAdvertisementsObservable");
-
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_ADS;
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getAds(key, nonce, signature)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        Timber.d("onErrorResumeNext retry: " + retry);
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            Timber.d("isHttp41Error retry");
-                            return getAdvertisementsObservable(retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-    
     private Observable<Response> deleteAdvertisementObservable(final String adId, final int retry)
     {
         final String key = AuthUtils.getHmacKey(sharedPreferences);
@@ -1587,31 +1446,7 @@ public class DataService
                 });
     }
     
-    private Observable<Response> getWalletObservable(final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_WALLET;
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getWallet(key, nonce, signature)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getWalletObservable(retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-    
-    /// COMMON  ///
-
-    private Observable<Wallet> getWalletBitmap(final Wallet wallet)
-    {
+    private Observable<Wallet> getWalletBitmap(final Wallet wallet) {
         return generateBitmap(wallet.address)
                 .map(new Func1<Bitmap, Wallet>()
                 {
@@ -1624,10 +1459,8 @@ public class DataService
                 });
     }
 
-    private Observable<Bitmap> generateBitmap(final String address)
-    {
-        return Observable.create(new Observable.OnSubscribe<Bitmap>()
-        {
+    private Observable<Bitmap> generateBitmap(final String address) {
+        return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
             public void call(Subscriber<? super Bitmap> subscriber)
             {
@@ -1641,42 +1474,29 @@ public class DataService
         });
     }
 
-    public Observable<List<Method>> getMethods()
-    {
+    public Observable<List<Method>> getMethods() {
         if(!needToRefreshMethods()) {
             return Observable.empty();
         }
         
         return localBitcoins.getOnlineProviders()
-                .doOnNext(new Action1<Response>()
-                {
+                .doOnNext(new Action1<Response>() {
                     @Override
-                    public void call(Response response)
-                    {
+                    public void call(Response response) {
                         setMethodsExpireTime();
                     }
                 })
                 .map(new ResponseToMethod());
     }
    
-    private boolean needToRefreshContacts()
-    {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME, -1);
-            return System.currentTimeMillis() >= preference.get();
-        }
-    }
-
-    private void resetContactsExpireTime()
-    {
+    private void resetContactsExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME);
             preference.delete();
         }
     }
 
-    private void setContactsExpireTime()
-    {
+    private void setContactsExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME, -1);
             long expire = System.currentTimeMillis() + CHECK_CONTACTS_DATA; // 1 hours
@@ -1684,40 +1504,35 @@ public class DataService
         }
     }
    
-    private boolean needToRefreshAdvertisements()
-    {
+    private boolean needToRefreshAdvertisements() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
             return System.currentTimeMillis() >= preference.get();
         }
     }
 
-    private void resetExchangeExpireTime()
-    {
+    private void resetExchangeExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_EXCHANGE_EXPIRE_TIME);
             preference.delete();
         }
     }
 
-    private boolean needToRefreshMethods()
-    {
+    private boolean needToRefreshMethods() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME, -1);
             return System.currentTimeMillis() >= preference.get();
         }
     }
 
-    private void resetMethodsExpireTime()
-    {
+    private void resetMethodsExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME);
             preference.delete();
         }
     }
 
-    private void setMethodsExpireTime()
-    {
+    private void setMethodsExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME, -1);
             long expire = System.currentTimeMillis() + CHECK_METHODS_DATA; // 1 hours
@@ -1725,16 +1540,14 @@ public class DataService
         }
     }
 
-    private void resetAdvertisementsExpireTime()
-    {
+    private void resetAdvertisementsExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME);
             preference.delete();
         }
     }
 
-    private void setAdvertisementsExpireTime()
-    {
+    private void setAdvertisementsExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
             long expire = System.currentTimeMillis() + CHECK_ADVERTISEMENT_DATA; // 1 hours
@@ -1742,8 +1555,7 @@ public class DataService
         }
     }
     
-    private void setWalletExpireTime()
-    {
+    private void setWalletExpireTime() {
         synchronized (this) {
             LongPreference preference = new LongPreference(sharedPreferences, PREFS_WALLET_EXPIRE_TIME, -1);
             long expire = System.currentTimeMillis() + CHECK_WALLET_DATA; // 1 hours

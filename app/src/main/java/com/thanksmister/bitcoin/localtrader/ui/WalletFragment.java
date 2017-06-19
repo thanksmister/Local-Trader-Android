@@ -46,7 +46,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -60,7 +59,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
-import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.components.SectionRecycleViewAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.TransactionsAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
@@ -99,9 +97,6 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
 
     @Inject
     DbManager dbManager;
-
-    @Inject
-    Bus bus;
 
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
@@ -303,10 +298,9 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
     }
 
     @Override
-    public void onClick(View view)
-    {
-        if (view.getId() == R.id.fab) {
-            bus.post(NavigateEvent.QRCODE);
+    public void onClick(View view) {
+        if (view.getId() == R.id.fab && isAdded()) {
+            ((MainActivity) getActivity()).launchScanner();
         }
     }
 
@@ -484,8 +478,8 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(final Throwable throwable) {
-                        onRefreshStop();
-                        handleError(throwable, true);
+                        //onRefreshStop();
+                        //handleError(throwable, true);
                     }
                 });
     }

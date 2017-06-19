@@ -33,7 +33,6 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.squareup.otto.Subscribe;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -41,7 +40,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.AdvertiserActivity;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -216,17 +214,13 @@ public class SearchResultsActivity extends BaseActivity implements SwipeRefreshL
     }
 
     @Override
-    public void onRefresh()
-    {
+    public void onRefresh() {
         updateData();
     }
-
-    @Subscribe
-    public void onRefreshEvent(RefreshEvent event)
-    {
-        if (event == RefreshEvent.REFRESH) {
-            updateData();
-        }
+    
+    @Override
+    public void handleRefresh(){
+        updateData();
     }
     
     public void onRefreshStop()

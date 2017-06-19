@@ -38,7 +38,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -85,10 +84,7 @@ public class RequestFragment extends BaseFragment implements SwipeRefreshLayout.
     
     @Inject
     DbManager dbManager;
-
-    @Inject
-    Bus bus;
-
+    
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 

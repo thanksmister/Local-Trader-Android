@@ -16,8 +16,14 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
+import android.content.Context;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
@@ -37,22 +43,88 @@ import javax.inject.Inject;
 
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Func1;
+import rx.subscriptions.Subscriptions;
+import timber.log.Timber;
 
 public class GeoLocationService
 {
     public final static int MAX_ADDRESSES = 5;
 
+    private static final long LOCATION_MIN_TIME_BETWEEN_UPDATES = 0L;
+    private static final float LOCATION_MIN_DISTANCE_BETWEEN_UPDATES = 0f;
+    
+    private Observable<Location> locationObservable;
+    
     private BaseApplication application;
     private LocalBitcoins localBitcoins;
+    private LocationManager locationManager;
 
     @Inject
     public GeoLocationService(BaseApplication application, LocalBitcoins localBitcoins)
     {
         this.application = application;
         this.localBitcoins = localBitcoins;
+        this.locationManager = (LocationManager) application.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        this.locationObservable = createLocationObservable();
     }
 
+    private Observable<Location> createLocationObservable() {
+        return Observable.create(new Observable.OnSubscribe<Location>() {
+            @Override
+            public void call(final Subscriber<? super Location> subscriber) {
+                Timber.d("Starting Location Services.");
+                Criteria locationCriteria = new Criteria();
+                locationCriteria.setSpeedAccuracy(Criteria.ACCURACY_HIGH);
+
+                final LocationListener locationListener = new LocationListener() {
+                    @Override
+                    public void onLocationChanged(Location location) {
+                        subscriber.onNext(location);
+                        Timber.i("New GPS Location - Accuracy=%d, Provider=%s, Speed=%d",
+                                (int) (location.getAccuracy() + 0.5f), location.getProvider(), (int) (location.getSpeed() + 0.5f));
+                    }
+
+                    @Override
+                    public void onStatusChanged(String provider, int status, Bundle extras) {
+                    }
+
+                    @Override
+                    public void onProviderEnabled(String provider) {
+                    }
+
+                    @Override
+                    public void onProviderDisabled(String provider) {
+                    }
+                };
+                
+                try {
+                    locationManager.requestLocationUpdates(LOCATION_MIN_TIME_BETWEEN_UPDATES, LOCATION_MIN_DISTANCE_BETWEEN_UPDATES,
+                            locationCriteria, locationListener, Looper.getMainLooper());
+                } catch (SecurityException e) {
+                    Timber.e("Location security exception: " + e.getMessage());
+                }
+                
+                // On Unsubscribe
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override public void call() {
+                        Timber.d("Stopping Location Services.");
+                        locationManager.removeUpdates(locationListener);
+                    }
+                }));
+            }
+        }).publish().refCount();
+    }
+
+    /**
+     * @return Observable that observes on UI Thread.
+     */
+    public Observable<Location> getLocationObservable() {
+        return locationObservable.observeOn(AndroidSchedulers.mainThread());
+    }
    
     public Observable<Address> getAddressFromLocation(Location location)
     {

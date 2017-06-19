@@ -59,8 +59,6 @@ import android.widget.TextView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationRequest;
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -72,6 +70,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.PredictAdapter;
@@ -111,10 +110,7 @@ public class SearchFragment extends BaseFragment
 
     @Inject
     DbManager dbManager;
-
-    @Inject
-    Bus bus;
-
+    
     @Inject
     DataService dataService;
 
@@ -413,20 +409,18 @@ public class SearchFragment extends BaseFragment
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_CHECK_SETTINGS:
-                //Refrence: https://developers.google.com/android/reference/com/google/android/gms/location/SettingsApi
                 getLasKnownLocation();
                 break;
             case REQUEST_GOOGLE_PLAY_SERVICES:
-                if (resultCode == Activity.RESULT_OK) {
-                    // nothing
-                } else {
+                if (resultCode != Activity.RESULT_OK) {
                     toast("Search canceled...");
-                    ((MainActivity) getActivity()).setContentFragment(MainActivity.DRAWER_DASHBOARD);
-                }
+                    if(isAdded()) {
+                        ((MainActivity) getActivity()).navigateDashboardView();
+                    }
+                } 
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
@@ -434,14 +428,12 @@ public class SearchFragment extends BaseFragment
     }
 
 
-    public void onRefresh()
-    {
+    public void onRefresh() {
         subscribeData();
         updateData();
     }
 
-    private void setupToolbar()
-    {
+    private void setupToolbar() {
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
 
         // Show menu icon
@@ -451,8 +443,7 @@ public class SearchFragment extends BaseFragment
         ab.setDisplayHomeAsUpEnabled(true);
     }
 
-    private void subscribeData()
-    {
+    private void subscribeData() {
         dbManager.methodQuery().cache()
                 .doOnUnsubscribe(new Action0()
                 {
@@ -514,8 +505,7 @@ public class SearchFragment extends BaseFragment
             paymentMethodSpinner.setSelection(position);
         }
         
-        paymentMethodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
-        {
+        paymentMethodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3)
             {
@@ -534,8 +524,7 @@ public class SearchFragment extends BaseFragment
         });
     }
 
-    public void setAddress(Address address)
-    {
+    public void setAddress(Address address) {
         if (address != null) {
             String addressString = SearchUtils.addressToString(address);
             if(addressString == null) {
@@ -551,8 +540,7 @@ public class SearchFragment extends BaseFragment
         }
     }
 
-    private void showAddressError()
-    {
+    private void showAddressError() {
         // TODO allow lat lon manually entered
         showAlertDialog(new AlertDialogEvent("Address Error", getString(R.string.error_dialog_bad_address)), new Action0()
         {
@@ -561,19 +549,16 @@ public class SearchFragment extends BaseFragment
             {
                 getLasKnownLocation();
             }
-        }, new Action0()
-        {
+        }, new Action0() {
             @Override
-            public void call()
-            {
+            public void call() {
                 showEditTextLayout();
                 editLocation.setText("");
             }
         });
     }
 
-    protected void showEditTextLayout()
-    {
+    protected void showEditTextLayout() {
         if (locationText.isShown()) {
             locationText.startAnimation(AnimationUtils.loadAnimation(getActivity(), android.R.anim.slide_out_right));
             editLocationLayout.startAnimation(AnimationUtils.loadAnimation(getActivity(), android.R.anim.slide_in_left));
@@ -758,10 +743,11 @@ public class SearchFragment extends BaseFragment
         startActivity(intent);
     }
 
-    private void closeView()
-    {
-        toast("Search canceled...");
-        ((MainActivity) getActivity()).setContentFragment(MainActivity.DRAWER_DASHBOARD);
+    private void closeView() {
+        if(isAdded()) {
+            toast("Search canceled...");
+            ((MainActivity) getActivity()).setContentFragment(MainActivity.DRAWER_DASHBOARD);
+        }
     }
 
     // ------  GOOGLE SERVICES ---------
@@ -860,9 +846,9 @@ public class SearchFragment extends BaseFragment
     // ------  LOCATION SERVICES ---------
 
     @TargetApi(Build.VERSION_CODES.M)
-    private void getLasKnownLocation()
-    {
-        Timber.d("getLasKnownLocation");
+    private void getLasKnownLocation() {
+        
+        Timber.d("getLasKnownLocation 2.0");
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -875,8 +861,80 @@ public class SearchFragment extends BaseFragment
             showNoLocationServicesWarning();
             return;
         }
+
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_progress_location)));
         
-        LocationRequest request = LocationRequest.create()
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());
+        geoLocationSubscription = geoLocationService.getLocationObservable()
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .doOnUnsubscribe(new Action0()
+                {
+                    @Override
+                    public void call()
+                    {
+                        Timber.i("getUpdatedLocation Method subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Location>bindUntilEvent(FragmentEvent.PAUSE))
+                .flatMap(new Func1<Location, Observable<List<Address>>>()
+                {
+                    @Override
+                    public Observable<List<Address>> call(Location location) {
+                        try {
+                            return locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
+                                    .observeOn(Schedulers.io())
+                                    .subscribeOn(AndroidSchedulers.mainThread());
+                        } catch (Exception exception) {
+                            return Observable.just(null);
+                        }
+                    }
+                })
+                .map(new Func1<List<Address>, Address>()
+                {
+                    @Override
+                    public Address call(List<Address> addresses)
+                    {
+                        return (addresses != null && !addresses.isEmpty()) ? addresses.get(0) : null;
+                    }
+                })
+                .subscribe(new Action1<Address>() {
+                    @Override
+                    public void call(final Address address) {
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideProgressDialog();
+                                    if (address != null) {
+                                        setAddress(address);
+                                    } else {
+                                        handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                    }
+                                }
+                            });
+                        }
+                        geoLocationSubscription.unsubscribe();
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(final Throwable throwable) {
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    hideProgressDialog();
+                                    reportError(throwable);
+                                    handleError(new Throwable(getString(R.string.error_unable_load_address)), true);
+                                }
+                            });
+                        }
+                        geoLocationSubscription.unsubscribe();
+                    }
+                });
+        
+        /*LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setNumUpdates(10)
                 .setInterval(100);
@@ -961,17 +1019,15 @@ public class SearchFragment extends BaseFragment
                             });
                         }
                     }
-                });
+                });*/
     }
     
-    private boolean hasLocationServices()
-    {
+    private boolean hasLocationServices() {
         return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
     }
 
-    public void showRequestPermissionsDialog()
-    {
+    public void showRequestPermissionsDialog() {
         showAlertDialog(new AlertDialogEvent(getString(R.string.alert_permission_required), getString(R.string.require_location_permission)),
                 new Action0()
                 {
@@ -992,8 +1048,7 @@ public class SearchFragment extends BaseFragment
                 });
     }
 
-    private void showNoLocationServicesWarning()
-    {
+    private void showNoLocationServicesWarning() {
         showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active)), new Action0()
         {
             @Override
@@ -1013,8 +1068,7 @@ public class SearchFragment extends BaseFragment
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case Constants.REQUEST_PERMISSIONS: {
                 if (grantResults.length > 0) {

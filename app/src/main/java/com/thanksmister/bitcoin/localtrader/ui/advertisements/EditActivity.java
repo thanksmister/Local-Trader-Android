@@ -454,7 +454,6 @@ public class EditActivity extends BaseActivity
         cancelChanges(create);
     }
     
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (toolbar != null)
@@ -520,7 +519,7 @@ public class EditActivity extends BaseActivity
                 if (resultCode == Activity.RESULT_OK) {
                     //
                 } else {
-                    toast("Edit canceled...");
+                    toast(getString(R.string.toast_edit_canceled));
                     finish();
                 }
                 break;
@@ -528,7 +527,7 @@ public class EditActivity extends BaseActivity
                 super.onActivityResult(requestCode, resultCode, data);
         }
     }
-
+    
     protected void showEditTextLayout()
     {
         if(locationText.isShown()) {
@@ -608,7 +607,7 @@ public class EditActivity extends BaseActivity
             }, new Action1<Throwable>() {
                 @Override
                 public void call(Throwable throwable) {
-                    snackError("No advertisement data.");
+                    snackError(getString(R.string.snack_no_advertisement_data));
                     reportError(throwable);
                     finish();
                 }
@@ -663,8 +662,7 @@ public class EditActivity extends BaseActivity
      * @param currencies
      * @param advertisement
      */
-    private void setCurrencies(List<ExchangeCurrency> currencies, AdvertisementItem advertisement)
-    {
+    private void setCurrencies(List<ExchangeCurrency> currencies, AdvertisementItem advertisement) {
         // handle error case
         String currencyPreference = exchangeService.getExchangeCurrency();
         String defaultCurrency = (create) ? currencyPreference : (advertisement != null) ? advertisement.currency() : this.getString(R.string.usd);
@@ -1461,7 +1459,7 @@ public class EditActivity extends BaseActivity
                     }
 
                     if (permissionsDenied) {
-                        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                        toast((create) ? getString(R.string.toast_new_ad_canceled):getString(R.string.toast_edit_ad_canceled));
                         finish();
                     } else {
                         getLasKnownLocation();

@@ -15,13 +15,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.events.NavigateEvent;
 import com.thanksmister.bitcoin.localtrader.ui.advertisements.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.ContactsAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
@@ -48,9 +46,6 @@ public class ContactsFragment extends BaseFragment
     @Inject
     DbManager dbManager;
     
-    @Inject
-    Bus bus;
-
     @InjectView(R.id.recycleView)
     RecyclerView recycleView;
 
@@ -235,8 +230,9 @@ public class ContactsFragment extends BaseFragment
         startActivityForResult(intent, EditActivity.REQUEST_CODE);
     }
 
-    protected void showSearchScreen()
-    {
-        bus.post(NavigateEvent.SEARCH);
+    protected void showSearchScreen() {
+        if(isAdded()) {
+            ((MainActivity) getActivity()).navigateSearchView();
+        }
     }
 }

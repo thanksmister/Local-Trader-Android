@@ -43,7 +43,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -89,9 +88,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     public static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
     public static final String EXTRA_WALLET_DATA = "com.thanksmister.extra.EXTRA_WALLET_DATA";
-
-    @Inject
-    Bus bus;
     
     @Inject
     DataService dataService;

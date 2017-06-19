@@ -71,22 +71,19 @@ public final class ActivityModule
 {
     @Provides
     @Singleton
-    DataService provideDataService(BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins)
-    {
+    DataService provideDataService(BaseApplication app, SharedPreferences preferences, LocalBitcoins localBitcoins) {
         return new DataService(app, preferences, localBitcoins);
     }
 
     @Provides
     @Singleton
-    NotificationService provideNotificationService(BaseApplication app, SharedPreferences preferences)
-    {
+    NotificationService provideNotificationService(BaseApplication app, SharedPreferences preferences) {
         return new NotificationService(app, preferences);
     }
 
     @Provides
     @Singleton
-    GeoLocationService provideGeoLocationService(BaseApplication app, LocalBitcoins localBitcoins)
-    {
+    GeoLocationService provideGeoLocationService(BaseApplication app, LocalBitcoins localBitcoins) {
         return new GeoLocationService(app, localBitcoins);
     }
 }

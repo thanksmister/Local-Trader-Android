@@ -40,7 +40,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
-import com.squareup.otto.Bus;
 import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
@@ -49,9 +48,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.NetworkEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.RefreshEvent;
 import com.thanksmister.bitcoin.localtrader.ui.PromoActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
@@ -81,10 +78,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
     public static @interface RequiresAuthentication
     {
     }
-
-    @Inject
-    protected Bus bus;
-
+    
     @Inject
     protected DbManager dbManager;
 
@@ -130,12 +124,8 @@ public abstract class BaseActivity extends RxAppCompatActivity
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
-
-        bus.unregister(BaseActivity.this);
-
         try {
             unregisterReceiver(connReceiver);
         } catch (IllegalArgumentException e) {
@@ -144,16 +134,26 @@ public abstract class BaseActivity extends RxAppCompatActivity
     }
 
     @Override
-    public void onResume()
-    {
-
+    public void onResume() {
         super.onResume();
-        bus.register(BaseActivity.this);
         registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
-    public void launchScanner()
-    {
+    /**
+     * Called when network is disconnected
+     */
+    protected void handleNetworkDisconnect(){
+        // override to in views to handle network disconnect
+    }
+
+    /**
+     * Called from <code>SnackBar</code> when refresh button is pressed
+     */
+    protected void handleRefresh(){
+        // override to in views to handle refresh
+    }
+
+    public void launchScanner() {
         IntentIntegrator scanIntegrator = new IntentIntegrator(BaseActivity.this);
         scanIntegrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
     }
@@ -163,8 +163,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
         showProgressDialog(event, false);
     }
 
-    public void showProgressDialog(ProgressDialogEvent event, boolean modal)
-    {
+    public void showProgressDialog(ProgressDialogEvent event, boolean modal) {
         if (progressDialog != null) {
             progressDialog.dismiss();
             progressDialog = null;
@@ -182,16 +181,14 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .show();
     }
 
-    public void hideProgressDialog()
-    {
+    public void hideProgressDialog() {
         if (progressDialog != null) {
             progressDialog.dismiss();
             progressDialog = null;
         }
     }
 
-    public void showAlertDialog(AlertDialogEvent event)
-    {
+    public void showAlertDialog(AlertDialogEvent event) {
         new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
@@ -200,8 +197,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .show();
     }
     
-    public void showAlertDialogLinks(AlertDialogEvent event)
-    {
+    public void showAlertDialogLinks(AlertDialogEvent event) {
         View view = View.inflate(BaseActivity.this, R.layout.dialog_about, null);
         TextView textView = (TextView) view.findViewById(R.id.message);
         textView.setText(Html.fromHtml(event.message));
@@ -214,8 +210,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .show();
     }
 
-    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake)
-    {
+    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake) {
         new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
@@ -231,8 +226,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .show();
     }
 
-    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake, final Action0 cancelActionToTake)
-    {
+    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake, final Action0 cancelActionToTake) {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
@@ -286,8 +280,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .show();
     }
 
-    public void logOut()
-    {
+    public void logOut() {
         showProgressDialog(new ProgressDialogEvent("Logging out..."));
         onLoggedOut();
     }
@@ -343,10 +336,9 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 .show();
     }
     
-    private BroadcastReceiver connReceiver = new BroadcastReceiver()
-    {
-        public void onReceive(Context context, Intent intent)
-        {
+    
+    private BroadcastReceiver connReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
             ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
             NetworkInfo currentNetworkInfo = connectivityManager.getActiveNetworkInfo();
             if (currentNetworkInfo != null && currentNetworkInfo.isConnected()) {
@@ -355,18 +347,16 @@ public abstract class BaseActivity extends RxAppCompatActivity
                     snackBar = null;
                 }
             } else {
-                bus.post(NetworkEvent.DISCONNECTED);
+                handleNetworkDisconnect();
             }
         }
     };
 
-    protected void toast(String message)
-    {
+    protected void toast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    protected void reportError(Throwable throwable)
-    {
+    protected void reportError(Throwable throwable) {
         if(throwable instanceof RetrofitError) {
             if(DataServiceUtils.isHttp400Error(throwable)) {
                 return;
@@ -381,7 +371,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
         
         if(throwable instanceof UnknownHostException) {
-            //Timber.e(throwable.getMessage());
+            Timber.e(throwable.getMessage());
             toast(getString(R.string.error_no_internet));
             return;
         }
@@ -395,13 +385,12 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
     }
 
-    protected void handleError(Throwable throwable)
-    {
+    protected void handleError(Throwable throwable) {
         handleError(throwable, false);
     }
 
-    protected void handleError(Throwable throwable, boolean retry)
-    {
+    protected void handleError(Throwable throwable, boolean retry) {
+        
         if (throwable instanceof NetworkConnectionException) {
             snack(getString(R.string.error_no_internet), retry);
             return;
@@ -415,7 +404,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
             snack(getString(R.string.error_service_timeout_error), retry);
         } else if (DataServiceUtils.isNetworkError(throwable)) {
             Timber.i("Data Error: " + "Code 503");
-            snack(getString(R.string.error_no_internet), retry);
+            snack(getString(R.string.error_service_unreachable_error), retry);
         } else if (DataServiceUtils.isHttp504Error(throwable)) {
             Timber.i("Data Error: " + "Code 504");
             snack(getString(R.string.error_service_timeout_error), retry);
@@ -456,13 +445,11 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
     }
 
-    protected void snack(int message, boolean retry)
-    {
+    protected void snack(int message, boolean retry) {
         snack(getString(message), retry);
     }
 
-    protected void snackError(String message)
-    {
+    protected void snackError(String message) {
         if(snackBar != null && snackBar.isShownOrQueued()) {
             snackBar.dismiss();
             snackBar = null;
@@ -470,6 +457,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
 
         try {
+            // TODO check for null pointer
             View view = findViewById(R.id.coordinatorLayout);
             snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
             TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
@@ -480,8 +468,7 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
     }
     
-    protected void snack(String message, boolean retry)
-    {
+    protected void snack(String message, boolean retry) {
         if(snackBar != null && snackBar.isShownOrQueued()) {
             snackBar.dismiss();
             snackBar = null;
@@ -489,14 +476,14 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
         
         try {
+            // TODO check for null pointer
             View view = findViewById(R.id.coordinatorLayout);
-            
             if (retry) {
                 snackBar = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
                         .setAction("Retry", new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                bus.post(RefreshEvent.RETRY);
+                                handleRefresh();
                             }
                         });
                 TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
@@ -508,19 +495,16 @@ public abstract class BaseActivity extends RxAppCompatActivity
                 textView.setTextColor(getResources().getColor(R.color.white));
                 snackBar.show();
             }
-            
         } catch (NullPointerException e) {
             // nothing
         }
     }
 
-    protected void toast(int messageId)
-    {
+    protected void toast(int messageId) {
         Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
     }
 
-    protected void toast(int messageId, boolean showLong)
-    {
+    protected void toast(int messageId, boolean showLong) {
         if (showLong) {
             Toast.makeText(this, messageId, Toast.LENGTH_LONG).show();
         } else {
@@ -528,8 +512,8 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
     }
 
-    protected void setLocale(String language, String country)
-    {
+    // TODO move to util to begin i18N process and unit test
+    protected void setLocale(String language, String country) {
         // create new local
         Locale locale = new Locale(language, country);
 
