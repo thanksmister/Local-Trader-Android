@@ -50,22 +50,20 @@ import rx.functions.Func1;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
-public class GeoLocationService
-{
+public class GeoLocationService {
     public final static int MAX_ADDRESSES = 5;
 
     private static final long LOCATION_MIN_TIME_BETWEEN_UPDATES = 0L;
     private static final float LOCATION_MIN_DISTANCE_BETWEEN_UPDATES = 0f;
-    
+
     private Observable<Location> locationObservable;
-    
+
     private BaseApplication application;
     private LocalBitcoins localBitcoins;
     private LocationManager locationManager;
 
     @Inject
-    public GeoLocationService(BaseApplication application, LocalBitcoins localBitcoins)
-    {
+    public GeoLocationService(BaseApplication application, LocalBitcoins localBitcoins) {
         this.application = application;
         this.localBitcoins = localBitcoins;
         this.locationManager = (LocationManager) application.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
@@ -100,17 +98,18 @@ public class GeoLocationService
                     public void onProviderDisabled(String provider) {
                     }
                 };
-                
+
                 try {
                     locationManager.requestLocationUpdates(LOCATION_MIN_TIME_BETWEEN_UPDATES, LOCATION_MIN_DISTANCE_BETWEEN_UPDATES,
                             locationCriteria, locationListener, Looper.getMainLooper());
                 } catch (SecurityException e) {
                     Timber.e("Location security exception: " + e.getMessage());
                 }
-                
+
                 // On Unsubscribe
                 subscriber.add(Subscriptions.create(new Action0() {
-                    @Override public void call() {
+                    @Override
+                    public void call() {
                         Timber.d("Stopping Location Services.");
                         locationManager.removeUpdates(locationListener);
                     }
@@ -125,39 +124,133 @@ public class GeoLocationService
     public Observable<Location> getLocationObservable() {
         return locationObservable.observeOn(AndroidSchedulers.mainThread());
     }
-   
-    public Observable<Address> getAddressFromLocation(Location location)
-    {
+
+    public Observable<Address> getAddressFromLocation(Location location) {
         final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(application.getApplicationContext());
 
         return locationProvider
                 .getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 5)
-                .map(new Func1<List<Address>, Address>()
-                {
+                .map(new Func1<List<Address>, Address>() {
                     @Override
-                    public Address call(List<Address> addresses)
-                    {
+                    public Address call(List<Address> addresses) {
                         return addresses != null && !addresses.isEmpty() ? addresses.get(0) : null;
                     }
                 });
     }
-    
-    public Observable<List<Advertisement>> getLocalAdvertisements(final double latitude, final double longitude, final TradeType tradeType)
-    {
+
+    public Observable<List<Advertisement>> getLocalAdvertisements(final double latitude, final double longitude, final TradeType tradeType) {
         return localBitcoins.getPlaces(latitude, longitude)
                 .map(new ResponseToPlace())
-                .flatMap(new Func1<Place, Observable<List<Advertisement>>>()
-                {
+                .flatMap(new Func1<Place, Observable<List<Advertisement>>>() {
                     @Override
-                    public Observable<List<Advertisement>> call(Place place)
-                    {
+                    public Observable<List<Advertisement>> call(Place place) {
                         return getAdvertisementsInPlace(place, tradeType);
                     }
                 });
     }
 
-    public Observable<List<Advertisement>> getOnlineAdvertisements(final String countryCode, final String countryName, final TradeType type, @NonNull final String paymentMethod)
-    {
+   
+    /**
+     *  Get a list of online advertisements using currency, payment method, country code and country name.
+     * @param type
+     * @param countryName
+     * @param countryCode
+     * @param currency
+     * @param paymentMethod
+     * @return
+     */
+    public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final TradeType type, 
+                                                                   @NonNull final String countryName,
+                                                                   @NonNull final String countryCode,
+                                                                   @NonNull final String currency,
+                                                                   @NonNull final String paymentMethod) {
+        String url;
+        if (type == TradeType.ONLINE_BUY) {
+            url = "buy-bitcoins-online";
+        } else {
+            url = "sell-bitcoins-online";
+        }
+        
+        if(!countryName.toLowerCase().equals("any") && paymentMethod.toLowerCase().equals("all")) {
+            String countryNameFix = countryName.replace(" ", "-");
+            return localBitcoins.searchOnlineAds(url, countryCode, countryNameFix)
+                    .map(new ResponseToAds())
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
+                            if (advertisements == null)
+                                advertisements = Collections.emptyList();
+
+                            return Observable.just(advertisements);
+                        }
+                    });
+        } else if (!countryName.toLowerCase().equals("any") && !paymentMethod.toLowerCase().equals("all")) {
+            String countryNameFix = countryName.replace(" ", "-");
+            return localBitcoins.searchOnlineAds(url, countryCode, countryNameFix, paymentMethod)
+                    .map(new ResponseToAds())
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
+                            if (advertisements == null)
+                                advertisements = Collections.emptyList();
+
+                            return Observable.just(advertisements);
+                        }
+                    });
+        } else if (paymentMethod.toLowerCase().equals("all") && !currency.toLowerCase().equals("any")) {
+            return localBitcoins.searchOnlineAdsCurrency(url, currency)
+                    .map(new ResponseToAds())
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
+                            if (advertisements == null)
+                                advertisements = Collections.emptyList();
+
+                            return Observable.just(advertisements);
+                        }
+                    });
+        } else if (!paymentMethod.toLowerCase().equals("all") && currency.toLowerCase().equals("any")) {
+            return localBitcoins.searchOnlineAdsPayment(url, paymentMethod)
+                    .map(new ResponseToAds())
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
+                            if (advertisements == null)
+                                advertisements = Collections.emptyList();
+
+                            return Observable.just(advertisements);
+                        }
+                    });
+        } else if (!paymentMethod.toLowerCase().equals("all") && !currency.toLowerCase().equals("any")) {
+            return localBitcoins.searchOnlineAdsCurrencyPayment(url, currency, paymentMethod)
+                    .map(new ResponseToAds())
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
+                            if (advertisements == null)
+                                advertisements = Collections.emptyList();
+
+                            return Observable.just(advertisements);
+                        }
+                    });
+        } else {
+            return localBitcoins.searchOnlineAdsAll(url)
+                    .map(new ResponseToAds())
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
+                        @Override
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
+                            if (advertisements == null)
+                                advertisements = Collections.emptyList();
+
+                            return Observable.just(advertisements);
+                        }
+                    });
+        }
+    }
+
+    @Deprecated
+    public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final String countryCode, @NonNull final String countryName,
+                                                                   @NonNull final TradeType type, @NonNull final String paymentMethod) {
         String url;
         if (type == TradeType.ONLINE_BUY) {
             url = "buy-bitcoins-online";
@@ -169,11 +262,9 @@ public class GeoLocationService
         if (paymentMethod.equals("all")) {
             return localBitcoins.searchOnlineAds(url, countryCode, countryNameFix)
                     .map(new ResponseToAds())
-                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
-                    {
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
                         @Override
-                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
-                        {
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
                             if (advertisements == null)
                                 advertisements = Collections.emptyList();
 
@@ -183,11 +274,9 @@ public class GeoLocationService
         } else {
             return localBitcoins.searchOnlineAds(url, countryCode, countryNameFix, paymentMethod)
                     .map(new ResponseToAds())
-                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
-                    {
+                    .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
                         @Override
-                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
-                        {
+                        public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
                             if (advertisements == null)
                                 advertisements = Collections.emptyList();
 
@@ -197,8 +286,7 @@ public class GeoLocationService
         }
     }
 
-    public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type)
-    {
+    public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type) {
         String url;
         if (type == TradeType.LOCAL_BUY) {
             url = place.buy_local_url.replace("https://localbitcoins.com/", "");
@@ -209,11 +297,9 @@ public class GeoLocationService
         String[] split = url.split("/");
         return localBitcoins.searchAdsByPlace(split[0], split[1], split[2])
                 .map(new ResponseToAds())
-                .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>()
-                {
+                .flatMap(new Func1<List<Advertisement>, Observable<List<Advertisement>>>() {
                     @Override
-                    public Observable<List<Advertisement>> call(List<Advertisement> advertisements)
-                    {
+                    public Observable<List<Advertisement>> call(List<Advertisement> advertisements) {
                         Collections.sort(advertisements, new AdvertisementNameComparator());
                         return Observable.just(advertisements);
                     }
@@ -223,13 +309,11 @@ public class GeoLocationService
     /**
      * Compares distance as a double value to list advertisements by shortest to longest distance from user
      */
-    private class AdvertisementNameComparator implements Comparator<Advertisement>
-    {
+    private class AdvertisementNameComparator implements Comparator<Advertisement> {
         @Override
-        public int compare(Advertisement a1, Advertisement a2)
-        {
+        public int compare(Advertisement a1, Advertisement a2) {
             try {
-                return Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance)); 
+                return Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance));
             } catch (Exception e) {
                 return 0;
             }

@@ -141,6 +141,22 @@ public interface LocalBitcoins
                                          @Path("country_code") String country_code, 
                                          @Path("country_name") String country_name);
 
+    @GET("/{type}/{currency}/{payment_method}/.json")
+    Observable<Response> searchOnlineAdsCurrencyPayment(@Path("type") String type,
+                                         @Path("currency") String currency,
+                                         @Path("payment_method") String payment_method);
+
+    @GET("/{type}/{currency}/.json")
+    Observable<Response> searchOnlineAdsCurrency(@Path("type") String type, @Path("currency") String currency);
+
+    @GET("/{type}/{payment_method}/.json")
+    Observable<Response> searchOnlineAdsPayment(@Path("type") String type, @Path("payment_method") String payment_method);
+
+    @GET("/{type}/.json")
+    Observable<Response> searchOnlineAdsAll(@Path("type") String type);
+
+
+
     @GET("/{type}/{country_code}/{country_name}/{payment_method}/.json")
     Observable<Response> searchOnlineAds(@Path("type") String type, 
                                          @Path("country_code") String country_code, 

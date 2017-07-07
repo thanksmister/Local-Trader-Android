@@ -43,6 +43,7 @@ import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
+import java.io.InterruptedIOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,6 +79,7 @@ public class AdvertisementsFragment extends BaseFragment
     private List<AdvertisementItem> advertisements = Collections.emptyList();
     //private List<RecentMessageItem> messages = Collections.emptyList();
     private List<MethodItem> methods = Collections.emptyList();
+    //private CompositeSubscription updateSubscriptions = new CompositeSubscription();
 
     /**
      * Returns a new instance of this fragment for the given section
@@ -287,14 +289,11 @@ public class AdvertisementsFragment extends BaseFragment
             return;
         }
 
-        CompositeSubscription updateSubscriptions = new CompositeSubscription();
-
+        final CompositeSubscription updateSubscriptions = new CompositeSubscription();
         updateSubscriptions.add(dataService.getMethods()
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
-                    public void call()
-                    {
+                    public void call() {
                         Timber.i("Update Methods subscription safely unsubscribed");
                     }
                 })
@@ -304,48 +303,55 @@ public class AdvertisementsFragment extends BaseFragment
                     public void call(List<Method> results) {
                         if(results == null)
                             results = new ArrayList<Method>();
-                        
                         Method method = new Method();
                         method.code = "all";
                         method.name = "All";
                         results.add(0, method);
-
                         dbManager.updateMethods(results);
                     }
                 }, new Action1<Throwable>() {
                     @Override
-                    public void call(Throwable throwable)
-                    {
-                        handleError(throwable, true);
+                    public void call(Throwable throwable) {
+                        if(throwable instanceof InterruptedIOException) {
+                            Timber.d("Methods Error: " + throwable.getMessage());
+                        } else {
+                            Timber.e("Methods Error: " + throwable.getMessage());
+                            handleError(throwable);
+                        }
                     }
                 }));
 
         updateSubscriptions.add(dataService.getAdvertisements(force)
-                .doOnUnsubscribe(new Action0()
-                {
+                .doOnUnsubscribe(new Action0() {
                     @Override
-                    public void call()
-                    {
+                    public void call() {
                         Timber.i("Update Advertisements subscription safely unsubscribed");
                     }
                 })
                 .compose(this.<List<Advertisement>>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<Advertisement>>()
-                {
+                .subscribe(new Action1<List<Advertisement>>() {
                     @Override
-                    public void call(List<Advertisement> advertisements)
-                    {
-                        if (advertisements != null && !advertisements.isEmpty())
+                    public void call(List<Advertisement> advertisements) {
+                        if (advertisements != null && !advertisements.isEmpty()) {
                             dbManager.updateAdvertisements(advertisements);
+                        }
+                        updateSubscriptions.unsubscribe();
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        handleError(throwable, true);
+                        updateSubscriptions.unsubscribe();
+                        if(throwable instanceof InterruptedIOException) {
+                            Timber.d("Advertisements Error: " + throwable.getMessage());
+                        } else {
+                            Timber.e("Advertisements Error: " + throwable.getMessage());
+                            handleError(throwable);
+                        }
                     }
                 }));
+        //}
     }
 
     protected AdvertisementsAdapter getAdapter()

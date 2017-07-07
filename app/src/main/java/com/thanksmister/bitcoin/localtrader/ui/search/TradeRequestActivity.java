@@ -204,7 +204,16 @@ public class TradeRequestActivity extends BaseActivity
         tradeDescription.setMovementMethod(LinkMovementMethod.getInstance());
         
         tradeAmountTitle.setText(getString(R.string.trade_request_title, currency));
-        tradeLimit.setText(getString(R.string.trade_request_limit, adMin, adMax, currency));
+        //tradeLimit.setText(getString(R.string.trade_request_limit, adMin, adMax, currency));
+
+        if (adMin == null) {
+            tradeLimit.setText("");
+        } else if (adMax == null) {
+            tradeLimit.setText(getString(R.string.trade_limit_min, adMin, currency));
+        } else { // no maximum set
+            tradeLimit.setText(getString(R.string.trade_limit, adMin, adMax, currency));
+        }
+        
         tradeCurrency.setText(currency);
 
         editAmountText.setFilters(new InputFilter[]{new Calculations.DecimalPlacesInputFilter(2)});

@@ -20,8 +20,13 @@
       tools:context=".MainActivity">
     
     <item android:id="@+id/action_location"
-          android:title="My Location"
+          android:title="@string/menu_get_device_location"
           android:icon="@drawable/ic_action_location_2"
           thanksmister:showAsAction="ifRoom"/>
+
+    <!--<item android:id="@+id/action_coordinates"
+          android:title="@string/menu_latitude_and_longitude"
+          android:icon="@drawable/ic_action_map"
+          thanksmister:showAsAction="ifRoom"/>-->
     
 </menu>

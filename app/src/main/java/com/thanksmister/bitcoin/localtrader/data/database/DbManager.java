@@ -36,7 +36,9 @@ import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javax.inject.Inject;
@@ -617,30 +619,48 @@ public class DbManager
             db.insert(ExchangeCurrencyItem.TABLE, builder.build());
         }
     }
+    
+    /*
+    private int bulkInsertFlows(List<Flow> items) {
+        // remove duplicates
+        Set<Flow> hs = new HashSet<>();
+        hs.addAll(items);
+        items.clear();
+        items.addAll(hs);
+        
+        ContentValues[] contentValuesList = new ContentValues[items.size()];
+        for (int i = 0; i < items.size(); i++) {
+            Flow item = items.get(i);
+            ContentValues contentValues = FlowModel.createBuilder(item).build();
+            FlowModel model = getFlow(item.getFlowId());
+            if(model != null) {
+                contentValues = FlowModel.getContentValues(item, model.id());
+            }
+            contentValuesList[i] = contentValues;
+        }
+        if(contentValuesList.length > 0) {
+            return mContentResolver.bulkInsert(SyncProvider.FLOW_TABLE_URI, contentValuesList);
+        }
+        return 0;
+    }
+     */
 
     // Experimental code for updating database without causing back pressure exception
     // rx.exceptions.MissingBackpressureException
     public void updateMethods(final List<Method> methods)
     {
         HashMap<String, Method> entryMap = new HashMap<String, Method>();
-
         for (Method item : methods) {
             entryMap.put(item.key, item);
         }
-
-        //db.beginTransaction();
-
+        
         // Get list of all items
         Cursor cursor = db.query(MethodItem.QUERY);
-
         try {
             while (cursor.moveToNext()) {
-
                 long id = Db.getLong(cursor, MethodItem.ID);
                 String key = Db.getString(cursor, MethodItem.KEY);
-
                 Method match = entryMap.get(key);
-
                 if (match != null) {
                     // Entry exists. Remove from entry map to prevent insert later. Do not update
                     entryMap.remove(key);
@@ -651,7 +671,7 @@ public class DbManager
             }
 
             // Add new items
-            for (Method item : entryMap.values()) {
+            /*for (Method item : entryMap.values()) {
                 MethodItem.Builder builder = new MethodItem.Builder()
                         .key(item.key)
                         .name(item.name)
@@ -659,13 +679,52 @@ public class DbManager
                         .countryCode(item.countryCode)
                         .countryName(item.countryName);
 
-
+                // TODO handle large updates
                 db.insert(MethodItem.TABLE, builder.build());
-            }
-            
+            }*/
+            bulkInsertMethods(new ArrayList<Method>(entryMap.values()));
         } finally {
             cursor.close();
         }
+    }
+
+    private int bulkInsertMethods(List<Method> items) {
+        // remove duplicates
+        Set<Method> hs = new HashSet<>();
+        hs.addAll(items);
+        items.clear();
+        items.addAll(hs);
+        ContentValues[] contentValuesList = new ContentValues[items.size()];
+        for (int i = 0; i < items.size(); i++) {
+            Method item = items.get(i);
+            ContentValues contentValues = MethodItem.createBuilder(item).build();
+            MethodItem model = (getMethod(item.key));
+            if(model != null) {
+                contentValues = MethodItem.getContentValues(item, model.id());
+            }
+            contentValuesList[i] = contentValues;
+        }
+        if(contentValuesList.length > 0) {
+            return contentResolver.bulkInsert(SyncProvider.METHOD_TABLE_URI, contentValuesList);
+        }
+        return 0;
+    }
+
+    /**
+     * Get a single <code>NotificationModel</code>
+     * @param key
+     * @return
+     */
+    private MethodItem getMethod(String key) {
+        MethodItem model = null;
+        Cursor cursor = contentResolver.query(SyncProvider.METHOD_TABLE_URI, null, MethodItem.KEY + " = ?", new String[]{key}, null);
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                model = MethodItem.getModel(cursor);
+                cursor.close();
+            }
+        }
+        return model;
     }
 
     public void updateAdvertisements(final List<Advertisement> advertisements)

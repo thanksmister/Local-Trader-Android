@@ -114,10 +114,33 @@
                                         android:layout_weight="0"
                                         android:layout_marginBottom="2dp"/>
 
-                                <View
-                                        android:layout_width="@dimen/view_padding_small"
-                                        android:layout_height="match_parent"/>
+                            </LinearLayout>
 
+                        </LinearLayout>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingTop="8dp"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:orientation="vertical">
+
+                            <TextView
+                                    style="@style/TextSmall"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/form_fiat_amount"/>
+
+                            <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/view_padding_small"/>
+
+                            <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+                                
                                 <EditText
                                         android:id="@+id/fiatEditText"
                                         android:theme="@style/EditTextTheme"
@@ -172,7 +195,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:textAllCaps="true"
-                android:text="Create Request"
+                android:text="@string/button_create_request"
                 android:nextFocusUp="@id/amountText"/>
         
     </LinearLayout>

@@ -33,23 +33,20 @@ import retrofit.client.OkClient;
         complete = false,
         library = true
 )
-public final class ApiModule 
-{
+public final class ApiModule {
     private static final String BITSTAMP_API_ENDPOINT = "https://www.bitstamp.net";
     private static final String BITCOIN_AVERAGE_ENDPOINT = "https://api.bitcoinaverage.com";
     private static final String COINBASE_ENDPOINT = "https://api.coinbase.com";
     
-
-    @Provides 
-    @Singleton Client provideClient(OkHttpClient client) 
-    {
+    @Provides
+    @Singleton
+    Client provideClient(OkHttpClient client) {
         return new OkClient(client);
     }
 
     @Provides
     @Singleton
-    LocalBitcoins provideLocalBitcoins(Client client, SharedPreferences sharedPreferences)
-    {
+    LocalBitcoins provideLocalBitcoins(Client client, SharedPreferences sharedPreferences) {
         String baseUrl = AuthUtils.getServiceEndpoint(sharedPreferences);
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
@@ -61,35 +58,32 @@ public final class ApiModule
 
     @Provides
     @Singleton
-    BitstampExchange provideBitstampExchange(Client client)
-    {
+    BitstampExchange provideBitstampExchange(Client client) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(RestAdapter.LogLevel.HEADERS)
                 .setEndpoint(BITSTAMP_API_ENDPOINT)
                 .build();
         return restAdapter.create(BitstampExchange.class);
     }
-    
+
     @Provides
     @Singleton
-    BitcoinAverage provideBitcoinAverage(Client client)
-    {
+    BitcoinAverage provideBitcoinAverage(Client client) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(RestAdapter.LogLevel.HEADERS)
                 .setEndpoint(BITCOIN_AVERAGE_ENDPOINT)
                 .build();
         return restAdapter.create(BitcoinAverage.class);
     }
-    
+
     @Provides
     @Singleton
-    Coinbase provideCoinbase(Client client)
-    {
+    Coinbase provideCoinbase(Client client) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(RestAdapter.LogLevel.HEADERS)
                 .setEndpoint(COINBASE_ENDPOINT)
                 .build();
         return restAdapter.create(Coinbase.class);

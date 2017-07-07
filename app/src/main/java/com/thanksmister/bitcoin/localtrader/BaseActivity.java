@@ -88,10 +88,10 @@ public abstract class BaseActivity extends RxAppCompatActivity
     @Inject
     protected SharedPreferences sharedPreferences;
 
-    AlertDialog progressDialog;
-    AlertDialog alertDialog;
-    Snackbar snackBar;
-
+    private AlertDialog progressDialog;
+    private AlertDialog alertDialog;
+    private Snackbar snackBar;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -435,8 +435,18 @@ public abstract class BaseActivity extends RxAppCompatActivity
         } else if (DataServiceUtils.isHttp400Error(throwable)) {
             Timber.e("Data Error: " + "Code 400");
             RetroError error = DataServiceUtils.createRetroError(throwable);
-            Timber.e("Data Error Message: " + error.getMessage());
-            snack(error.getMessage(), retry);
+            if(error.getCode() == 403) {
+                toast(getString(R.string.error_bad_token));
+                showAlertDialog(new AlertDialogEvent("Token Expeired", getString(R.string.error_bad_token)), new Action0() {
+                    @Override
+                    public void call() {
+                        logOut();
+                    }
+                });
+            } else {
+                Timber.e("Data Error Message: " + error.getMessage());
+                snack(error.getMessage(), retry);
+            }
         } else if (throwable != null && throwable.getMessage() != null) {
             Timber.i("Data Error: " + throwable.getMessage());
             snack(throwable.getMessage(), retry);
@@ -459,12 +469,14 @@ public abstract class BaseActivity extends RxAppCompatActivity
         try {
             // TODO check for null pointer
             View view = findViewById(R.id.coordinatorLayout);
-            snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
-            TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
-            textView.setTextColor(getResources().getColor(R.color.white));
-            snackBar.show();
+            if(view != null) {
+                snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
+                TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
+                textView.setTextColor(getResources().getColor(R.color.white));
+                snackBar.show();
+            }
         } catch (NullPointerException e) {
-            // nothing
+            Timber.e(e.getMessage());
         }
     }
     
@@ -476,27 +488,28 @@ public abstract class BaseActivity extends RxAppCompatActivity
         }
         
         try {
-            // TODO check for null pointer
             View view = findViewById(R.id.coordinatorLayout);
-            if (retry) {
-                snackBar = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
-                        .setAction("Retry", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                handleRefresh();
-                            }
-                        });
-                TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
-                textView.setTextColor(getResources().getColor(R.color.white));
-                snackBar.show();
-            } else {
-                snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
-                TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
-                textView.setTextColor(getResources().getColor(R.color.white));
-                snackBar.show();
+            if(view != null) {
+                if (retry) {
+                    snackBar = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Retry", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    handleRefresh();
+                                }
+                            });
+                    TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
+                    textView.setTextColor(getResources().getColor(R.color.white));
+                    snackBar.show();
+                } else {
+                    snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
+                    TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
+                    textView.setTextColor(getResources().getColor(R.color.white));
+                    snackBar.show();
+                }
             }
         } catch (NullPointerException e) {
-            // nothing
+            Timber.e(e.getMessage());
         }
     }
 

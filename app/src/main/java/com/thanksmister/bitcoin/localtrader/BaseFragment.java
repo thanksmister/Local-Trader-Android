@@ -119,6 +119,12 @@ public abstract class BaseFragment extends RxFragment
             ((BaseActivity) getActivity()).snack(message, retry);
     }
 
+    public void showAlertDialog(AlertDialogEvent event)
+    {
+        if(isAdded())
+            ((BaseActivity) getActivity()).showAlertDialog(event);
+    }
+
     public void showAlertDialog(AlertDialogEvent event, Action0 action)
     {
         if(isAdded())

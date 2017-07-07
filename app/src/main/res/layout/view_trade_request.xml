@@ -62,18 +62,23 @@
                         style="@style/TextLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Trade Amount"/>
+                        android:text="@string/form_trade_amount"/>
                 
                 <TextView
                         android:id="@+id/tradeLimit"
                         style="@style/SmallText.ExtraSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Min 1000 - Max 20000 ARS"/>
+                        tools:text="Min 1000 - Max 20000 ARS"/>
 
                 <View
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/activity_padding"/>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
                 <LinearLayout
                         android:layout_width="match_parent"
@@ -84,6 +89,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:theme="@style/EditTextTheme"
+                            android:hint="@string/form_bitcoin_amount"
                             android:layout_weight="1"
                             android:visibility="visible">
 
@@ -91,9 +97,8 @@
                                 android:id="@+id/editBitcoinText"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                style="@style/TextLarge.SmallAction"
                                 android:inputType="numberDecimal"
-                                android:gravity="center"
+                                android:gravity="left"
                                 android:theme="@style/EditTextTheme"
                                 android:nextFocusForward="@+id/editAmountText"/>
 
@@ -114,15 +119,18 @@
                             android:layout_weight="0"
                             android:layout_marginBottom="2dp"/>
 
-                    <View
-                            android:layout_width="@dimen/view_padding_small"
-                            android:layout_weight="0"
-                            android:layout_height="match_parent"/>
+                </LinearLayout>
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
 
                     <android.support.design.widget.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:theme="@style/EditTextTheme"
+                            android:hint="@string/form_fiat_amount"
                             android:layout_weight="1"
                             android:visibility="visible">
 
@@ -131,10 +139,9 @@
                                 android:theme="@style/EditTextTheme"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                style="@style/TextLarge.SmallAction"
                                 android:inputType="numberDecimal"
                                 android:digits="0123456789."
-                                android:gravity="center"
+                                android:gravity="left"
                                 android:nextFocusForward="@+id/buttonLayout"/>
 
                     </android.support.design.widget.TextInputLayout>
@@ -154,6 +161,8 @@
                             android:layout_weight="0"
                             android:layout_marginBottom="2dp"/>
 
+                </LinearLayout>
+                
                 </LinearLayout>
 
                 <LinearLayout

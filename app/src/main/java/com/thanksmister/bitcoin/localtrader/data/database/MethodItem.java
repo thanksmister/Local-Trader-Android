@@ -28,10 +28,6 @@ import rx.functions.Func1;
 
 import static com.squareup.sqlbrite.SqlBrite.Query;
 
-/**
- * https://github.com/square/sqlbrite/
- */
-
 @AutoParcel
 public abstract class MethodItem
 {
@@ -49,32 +45,23 @@ public abstract class MethodItem
             + " ORDER BY "
             + MethodItem.KEY
             + " ASC";
-
-    public static final String SQL_INSERT_OR_REPLACE = "__sql_insert_or_replace__";
     
-    public static String createInsertOrReplaceQuery(Method method) {
-
-        String QUERY = "INSERT OR REPLACE INTO "
-                + MethodItem.TABLE
-                + "(" + method.key + "," + method.code + "," + method.name + "," + method.countryCode + "," + method.countryName + 
-                ") VALUES (SELECT * FROM "
-                + MethodItem.TABLE
-                + " WHERE "
-                + KEY + " = ? " + method.key
-                + ")";
-                
-        
-        return QUERY;
-    }
-    
-    //Employee ("id", "name", "role") VALUES (1, "John Foo", "CEO")
-
     public abstract long id();
     public abstract String key();
     public abstract String code();
     public abstract String name();
     public abstract String countryCode();
     public abstract String countryName();
+
+    public static MethodItem getModel (Cursor cursor) {
+        long id = Db.getLong(cursor, ID);
+        String key = Db.getString(cursor, KEY);
+        String code = Db.getString(cursor, CODE);
+        String name = Db.getString(cursor, NAME);
+        String countryCode = Db.getString(cursor, COUNTRY_CODE);
+        String countryName = Db.getString(cursor, COUNTRY_NAME);
+        return new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName);
+    };
 
     public static final Func1<Query, List<MethodItem>> MAP = new Func1<Query, List<MethodItem>>() {
         @Override public List<MethodItem> call(Query query) {
@@ -125,6 +112,21 @@ public abstract class MethodItem
         return new AutoParcel_MethodItem(0, method.key, method.code, method.name, method.countryCode, method.countryName);
     };
 
+    public static ContentValues getContentValues(Method item, long id) {
+        ContentValues values = createBuilder(item).build();
+        values.put(ID, id);
+        return values;
+    }
+
+    public static Builder createBuilder(Method item) {
+        return new Builder()
+                .key(item.key)
+                .name(item.name)
+                .code(item.code)
+                .countryCode(item.countryCode)
+                .countryName(item.countryName);
+    }
+    
     public static final class Builder {
         private final ContentValues values = new ContentValues();
 
@@ -157,12 +159,7 @@ public abstract class MethodItem
             values.put(COUNTRY_CODE, value);
             return this;
         }
-
-        /*public Builder insertReplace(boolean value) {
-            values.put(SQL_INSERT_OR_REPLACE, value);
-            return this;
-        }*/
-
+        
         public ContentValues build() {
             return values; 
         }
