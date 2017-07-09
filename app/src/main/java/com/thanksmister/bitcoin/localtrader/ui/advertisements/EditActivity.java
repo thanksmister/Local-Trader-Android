@@ -275,6 +275,12 @@ public class EditActivity extends BaseActivity {
     private Address address;
     private String adId;
     private AdvertisementItem advertisementItem;
+    
+    private double latitude;
+    private double longitude;
+    private String location;
+    private String city;
+    private String countryCode;
 
     private CompositeSubscription subscriptions = new CompositeSubscription();
     private Subscription geoLocationFromNameSubscription = Subscriptions.empty();
@@ -702,8 +708,17 @@ public class EditActivity extends BaseActivity {
      * @param advertisement
      */
     private void setAdvertisement(AdvertisementItem advertisement) {
+        
         locationText.setText(advertisement.location_string());
+        
         showLocationLayout();
+
+        // store these to pass back
+        this.latitude = advertisement.lat();
+        this.longitude = advertisement.lon();
+        this.location = advertisement.location_string();
+        this.city = advertisement.city();
+        this.countryCode = advertisement.country_code();
 
         liquidityCheckBox.setChecked(advertisement.track_max_amount());
         smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required());
@@ -836,10 +851,17 @@ public class EditActivity extends BaseActivity {
         TradeType tradeType = TradeType.values()[typeSpinner.getSelectedItemPosition()];
 
         if (create) {
-
+            
+            // Valid address required for creating a new advertisement
             if (address == null) {
-                showAlertDialog(new AlertDialogEvent("Error", "Unable to save changes, no address set."));
+                showAlertDialog(new AlertDialogEvent("Error", "Unable to save changes without a valid address which is required for creating new advertisements."));
                 return;
+            } else {
+                editedAdvertisement.location = SearchUtils.getDisplayAddress(address);
+                editedAdvertisement.city = address.getLocality();
+                editedAdvertisement.country_code = address.getCountryCode();
+                editedAdvertisement.lon = address.getLongitude();
+                editedAdvertisement.lat = address.getLatitude();
             }
 
             editedAdvertisement.visible = true;
@@ -864,11 +886,16 @@ public class EditActivity extends BaseActivity {
             editedAdvertisement = editedAdvertisement.convertAdvertisementItemToAdvertisement(advertisementItem);
             editedAdvertisement.ad_id = adId;
             editedAdvertisement.visible = activeCheckBox.isChecked();
+            
+            // reset these for editing advertisements as they are not updated on edit but required to be sent back to service
+            editedAdvertisement.location = location;
+            editedAdvertisement.city = city;
+            editedAdvertisement.country_code = countryCode;
+            editedAdvertisement.lon = longitude;
+            editedAdvertisement.lat = latitude;
         }
-
-        String msg = messageText.getText().toString();
-        editedAdvertisement.message = msg;
-
+        
+        editedAdvertisement.message = messageText.getText().toString();
         editedAdvertisement.price_equation = equation;
         editedAdvertisement.min_amount = String.valueOf(TradeUtils.convertCurrencyAmount(min));
         editedAdvertisement.max_amount = String.valueOf(TradeUtils.convertCurrencyAmount(max));
@@ -897,15 +924,6 @@ public class EditActivity extends BaseActivity {
         editedAdvertisement.require_identification = identifiedCheckBox.isChecked();
         editedAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
         editedAdvertisement.trusted_required = trustedCheckBox.isChecked();
-
-        Address address = SearchUtils.getSearchLocationAddress(sharedPreferences);
-        if (address != null) {
-            editedAdvertisement.location = SearchUtils.getDisplayAddress(address);
-            editedAdvertisement.city = address.getLocality();
-            editedAdvertisement.country_code = address.getCountryCode();
-            editedAdvertisement.lon = address.getLongitude();
-            editedAdvertisement.lat = address.getLatitude();
-        }
 
         try {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);

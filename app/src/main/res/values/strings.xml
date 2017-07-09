@@ -847,6 +847,6 @@
         <item>Zimbabwe</item>
     </string-array>
 
-    <string name="whats_new_message"><![CDATA[* Updated search to include different online and local options.<br><br>* Fixed a crash with displaying alert under certain conditions.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
+    <string name="whats_new_message"><![CDATA[* Updated search to include different online and local options.<br><br>* Fixed a crash when displaying alert under certain conditions.<br><br>* Fixed a crash when editing an advertisement without previously have an address set.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
 
 </resources>
