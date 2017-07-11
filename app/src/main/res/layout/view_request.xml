@@ -92,7 +92,7 @@
                                         android:inputType="numberDecimal"
                                         android:digits="0123456789."
                                         android:layout_weight="1"
-                                        android:gravity="center"
+                                        android:gravity="left"
                                         android:theme="@style/EditTextTheme"
                                         android:hint="@string/hint_bitcoin"/>
 
@@ -150,7 +150,7 @@
                                         android:inputType="numberDecimal"
                                         android:digits="0123456789."
                                         android:layout_weight="1"
-                                        android:gravity="center"
+                                        android:gravity="left"
                                         android:hint="@string/hint_amount"/>
 
                                 <View

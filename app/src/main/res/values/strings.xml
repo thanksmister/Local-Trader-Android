@@ -196,12 +196,12 @@
     <!-- SEND/RECEIVE -->
     <string name="hint_bitcoin_address">Bitcoin address</string>
     <string name="form_balance_label">Balance:</string>
-    <string name="form_sendable_label">Sendable:</string>
+    <string name="form_sendable_label">This is the maximum amount you can send minus fees.</string>
     <string name="hint_amount">0.00</string>
     <string name="hint_bitcoin">0.00000000</string>
 
     <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
-    <string name="form_balance_positive"><![CDATA[<font color="#ff67932c">%1$s BTC / %2$s %3$s</font>]]></string>
+    <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s BTC / %2$s %3$s</font>]]></string>
     
     <string name="pin_code_send"><![CDATA[A PIN code is required to release, fund send bitcoin. More info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
 

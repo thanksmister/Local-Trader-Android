@@ -31,11 +31,11 @@
             android:fitsSystemWindows="true">
 
         <android.support.v7.widget.RecyclerView
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 android:id="@+id/recycleView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/white"
-                android:fitsSystemWindows="true"/>
+                android:background="@color/white"/>
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
@@ -62,7 +62,7 @@
                     android:layout_marginBottom="12dp"
                     android:paddingLeft="72dp"
                     app:layout_collapseMode="parallax">
-
+                
                 <TextView
                         android:id="@+id/bitcoinTitle"
                         style="@style/TextMedium.SmallAction.White"

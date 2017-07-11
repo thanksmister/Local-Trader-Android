@@ -269,7 +269,7 @@ public class TradeRequestActivity extends BaseActivity
     public boolean onOptionsItemSelected(MenuItem item)
     {
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+            finish();
             return true;
         }
 

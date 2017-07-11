@@ -196,9 +196,11 @@ public class WalletFragment extends BaseFragment implements SwipeRefreshLayout.O
         sectionRecycleViewAdapter = createAdapter();
         recycleView.setAdapter(sectionRecycleViewAdapter);
 
+        toast("Refreshing data...");
+        
         setupToolbar();
         setupFab();
-        toast("Refreshing data...");
+        
     }
 
     @Override

@@ -55,6 +55,11 @@ public class AboutFragment extends BaseFragment
     @Inject
     SharedPreferences sharedPreferences;
 
+    @OnClick(R.id.guidesButton)
+    public void guidesButtonClicked()
+    {
+        guides();
+    }
 
     @OnClick(R.id.sendFeedbackButton)
     public void sendButtonClicked()
@@ -198,6 +203,15 @@ public class AboutFragment extends BaseFragment
         Email.setData(Uri.parse("mailto:" + Constants.EMAIL_ADDRESS));
         Email.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.mail_to_subject_text));
         startActivity(Intent.createChooser(Email, getString(R.string.mail_subject_text)));
+    }
+
+    protected void guides()
+    {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GUIDES_URL)));
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+        }
     }
 
     protected void support()

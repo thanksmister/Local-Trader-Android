@@ -69,7 +69,7 @@ public class SettingsActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == android.R.id.home) {
-            onBackPressed();
+            finish();
             return true;
         }
 

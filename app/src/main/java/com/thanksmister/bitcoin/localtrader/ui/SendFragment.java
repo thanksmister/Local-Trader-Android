@@ -113,9 +113,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
     @InjectView(R.id.balanceText)
     TextView balance;
     
-    @InjectView(R.id.balanceTitle)
-    TextView balanceTitle;
-
     @InjectView(R.id.address)
     TextView addressText;
     
@@ -759,8 +756,6 @@ public class SendFragment extends BaseFragment implements SwipeRefreshLayout.OnR
         } else {
             balance.setText(Html.fromHtml(getString(R.string.form_balance_positive, btcBalance, value, currency)));
         }
-
-        balanceTitle.setText(getString(R.string.form_sendable_label));
     }
 
     private void calculateBitcoinAmount(String fiat)
