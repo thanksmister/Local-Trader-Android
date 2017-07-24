@@ -192,7 +192,7 @@ public class ContactsFragment extends BaseFragment {
                         // filter for only active trades
                         List<ContactItem> activeContacts = new ArrayList<ContactItem>();
                         for (ContactItem contactItem : contactItems) {
-                            if(TradeUtils.isActiveTrade(contactItem.closed_at(), contactItem.canceled_at())) {
+                            if(TradeUtils.tradeIsActive(contactItem.closed_at(), contactItem.canceled_at())) {
                                 activeContacts.add(contactItem);
                             }
                         }

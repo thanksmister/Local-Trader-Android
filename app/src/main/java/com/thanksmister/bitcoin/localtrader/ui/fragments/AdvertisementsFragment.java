@@ -91,8 +91,10 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     }
 
     private void setupList(List<AdvertisementItem> advertisementItems, List<MethodItem> methodItems) {
-        itemAdapter.replaceWith(advertisementItems, methodItems);
-        recycleView.setAdapter(itemAdapter);
+        if (isAdded()) {
+            itemAdapter.replaceWith(advertisementItems, methodItems);
+            recycleView.setAdapter(itemAdapter);
+        }
     }
 
     @Override

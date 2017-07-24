@@ -40,7 +40,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     private static final int TYPE_EMPTY = R.layout.view_empty_dashboard;
     private static final int TYPE_PROGRESS = R.layout.view_progress_dashboard;
-    private static final int TYPE_ITEM = R.layout.adapter_dashboard_advertisement_list;
+    private static final int TYPE_ITEM = R.layout.adapter_dashboard_notification_list;
 
     protected List<NotificationItem> items;
     private Context context;

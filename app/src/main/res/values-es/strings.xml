@@ -1,6 +1,7 @@
 <resources>
 
-    <string name="error_title">Error</string>
+    <!-- What's New -->
+    <string name="whats_new_message"><![CDATA[* Redesigned the application to include bottom button navigation instead of tabs.<br><br>* Added support for many more online trade types, including Ether.<br><br>* Increase efficiency of loading background data for better performance.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
     
     <!-- ERRORS & WARNINGS -->
     <string name="warning_no_location_active">Los servicios de ubicación son necesarios para usar la función de búsqueda, por favor, habilite los servicios de ubicación para continuar.</string>
@@ -107,20 +108,20 @@
     <string name="list_trade_filter4">Operaciones cerradas</string>
 
     <!-- ADVERTISEMENTS -->
-    <string name="advertising_invisible_warning">Este anuncio no está en ejecución, actualiza la visibilidad desde el menú.</string>
+    <string name="advertisement_invisible_warning">Este anuncio no está en ejecución, actualiza la visibilidad desde el menú.</string>
     <string name="price_equation_edit_description">La ecuación de precios se obtiene combinando el precio de mercado bitcoin, la moneda y el valor del margen. Para una ecuación de precios más compleja edite directamente. Consulte localbitcoins.com/guides/equation-howto /</string>
     <string name="ad_status_edit_description">Marque para activar el anuncio, desactive la opción para que se haga inactivo.</string>
-    <string name="advertising_track_liquidity">Seguimiento de la liquidez</string>
-    <string name="advertising_sms_verified">Sólo los contactos con un número de teléfono móvil verificado pueden ponerse en contacto con usted.</string>
-    <string name="advertising_trusted_only">Restringe que tu anuncio se muestre sólo a los usuarios que has marcado como Confianza. Aprende a marcar usuarios como de confianza aquí localbitcoins.com/faq#trusted_users</string>
-    <string name="advertising_payment_details">Opcional. Si es necesario, proporcione detalles sobre cómo transferir dinero. Se trata de un número de cuenta bancaria para transferencias electrónicas o de una cuenta de usuario para sitios web de transferencia de dinero.</string>
-    <string name="advertising_bank">Nombre / código del proveedor bancario / de pago. Para transferencias internacionales, especifique el código SWIFT / BIC del banco</string>
-    <string name="advertising_payment_method">Cada método de pago tiene un nivel de riesgo asociado. Vea las evaluaciones de riesgo en línea en localbitcoins.com/guides/how-to-sell-bitcoins-online#risk-level.</string>
+    <string name="advertisement_track_liquidity">Seguimiento de la liquidez</string>
+    <string name="advertisement_sms_verified">Sólo los contactos con un número de teléfono móvil verificado pueden ponerse en contacto con usted.</string>
+    <string name="advertisement_trusted_only">Restringe que tu anuncio se muestre sólo a los usuarios que has marcado como Confianza. Aprende a marcar usuarios como de confianza aquí localbitcoins.com/faq#trusted_users</string>
+    <string name="advertisement_payment_details">Opcional. Si es necesario, proporcione detalles sobre cómo transferir dinero. Se trata de un número de cuenta bancaria para transferencias electrónicas o de una cuenta de usuario para sitios web de transferencia de dinero.</string>
+    <string name="advertisement_bank">Nombre / código del proveedor bancario / de pago. Para transferencias internacionales, especifique el código SWIFT / BIC del banco</string>
+    <string name="advertisement_payment_method">Cada método de pago tiene un nivel de riesgo asociado. Vea las evaluaciones de riesgo en línea en localbitcoins.com/guides/how-to-sell-bitcoins-online#risk-level.</string>
     <string name="advertisement_notes_text_online"><![CDATA[%1$s para <b>%2$s</b> utilizando <b>%3$s</b> en <b>%4$s</b>]]></string>
     <string name="advertisement_notes_text_locally"><![CDATA[%1$s para <b>%2$s</b> cerca <b>%3$s</b>]]></string>
     <string name="advertisement_notes_text_online_location"><![CDATA[%1$s para <b>%2$s</b> en <b>%3$s</b>]]></string>
-    <string name="advertising_edit_margin_description">Se utiliza un margen en la ecuación de precios para sumar o restar valor adicional del precio de mercado. Utilice un margen negativo para establecer debajo del mercado.</string>
-    <string name="advertising_delete_confirm">¿Desea eliminar de forma permanente este anuncio?</string>
+    <string name="advertisement_edit_margin_description">Se utiliza un margen en la ecuación de precios para sumar o restar valor adicional del precio de mercado. Utilice un margen negativo para establecer debajo del mercado.</string>
+    <string name="advertisement_delete_confirm">¿Desea eliminar de forma permanente este anuncio?</string>
     
     <string name="ad_sell_locally">Venda bitcoins localmente</string>
     <string name="ad_buy_locally">Comprar bitcoins localmente</string>
@@ -523,10 +524,7 @@
         <item>Zambia</item>
         <item>Zimbabwe</item>
     </string-array>
-
-    <!-- What's New -->
-    <string name="whats_new_message"><![CDATA[* Se actualizó la búsqueda para incluir diferentes opciones en línea y locales. <br> <br> * Se corrigió un error al mostrar la alerta en determinadas condiciones. <br> <br> * Se corrigió un error al editar un anuncio sin tener previamente un conjunto de direcciones. Br> <br> Únete a la comunidad <a href=\"https://www.reddit.com/r/LocalTrader/\"> r / localtrader </a> en Reddit para obtener soporte técnico. <br> <br> Si, al igual que la aplicación, ¿por qué no <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\"> enviar una revisión </a>.]]></string>
-
+    
     <string name="hint_enter_county_city_or_address">Ingrese el condado, la ciudad o la dirección</string>
     <string name="text_payment_method">Método de pago</string>
     <string name="text_new_post_canceled">Nuevo anuncio cancelado</string>
@@ -610,7 +608,8 @@
     <string name="toast_no_valid_address_bitcoin">No valid address to receive bitcoin…</string>
     <string name="text_title_request_specific_amount">Request Specific Amount</string>
     <string name="text_title_getting_started">Getting Started</string>
-    <string name="text_description_getting_started">You can buy or sell Bitcoin by searching for traders in your local area or creating your own trade.</string>
+    <string name="button_post_trade">Post Trade</string>
+    <string name="text_description_getting_started">You can buy or sell Bitcoin by searching for traders or creating your own trade.</string>
     <string name="toast_invalid_clipboard_contents">There is no valid address or amount ont the clipboard.</string>
     <string name="text_search_locally_or_online">Locally or online?</string>
     <string name="text_longitude">Longitude</string>
@@ -627,6 +626,7 @@
     <string name="text_locally">locally</string>
     <string name="text_online">online</string>
     <string name="text_chooser_share_to">Share to:</string>
+    <string name="text_share_advertisement">%1$s bitcoins in %2$s</string>
     <string name="text_advertisement_message">%1$s bitcoins %2$s in %3$s via %4$s: %5$s</string>
     <string name="text_advertisement_message_short">%1$s bitcoins %2$s in %3$s: %4$s</string>
     <string name="text_advertisement_local_buy">Local buy</string>
@@ -642,6 +642,7 @@
     <string name="toast_playment_method_blank">Payment method can\'t be blank.</string>
     <string name="toast_swift_blank">SWIFT or Bic can\'t be blank.</string>
     <string name="toast_gift_card_blank">Gift card issuer can\'t be blank.</string>
+    <string name="text_no_notifications">No notifications</string>
     <string name="text_advertisement_item_local_buy">Local Buy -</string>
     <string name="text_advertisement_item_local_sale">Local Sale -</string>
     <string name="text_advertisement_item_online_buy">Online Buy -</string>

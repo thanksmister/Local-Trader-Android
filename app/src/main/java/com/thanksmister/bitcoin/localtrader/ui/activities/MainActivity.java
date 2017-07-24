@@ -166,6 +166,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
         swipeLayout.setProgressViewOffset(false, 48, 186);
+        swipeLayout.setDistanceToTriggerSync(150);
     }
 
     @Override

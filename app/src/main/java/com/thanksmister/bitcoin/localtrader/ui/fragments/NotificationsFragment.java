@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +41,10 @@ import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.NotificationAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
+import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.trello.rxlifecycle.FragmentEvent;
+
+import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.net.URLEncoder;
@@ -94,12 +98,20 @@ public class NotificationsFragment extends BaseFragment {
     }
 
     @Override
+    public void handleUpdate(){
+        if(!isAdded()) {
+            return;
+        }
+        toast(getString(R.string.toast_refreshing_data));
+    }
+
+    @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
     }
 
     private void setupList(List<NotificationItem> items) {
-        if (!isAdded()) {
+        if (isAdded()) {
             itemAdapter.replaceWith(items);
             recycleView.setAdapter(itemAdapter);
         }
@@ -130,9 +142,7 @@ public class NotificationsFragment extends BaseFragment {
                     showAdvertisement(notificationItem);
                 } else {
                     try {
-                        final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
-                        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint + "/" + URLEncoder.encode(notificationItem.url())));
-                        startActivity(intent);
+                        onNotificationLinkClicked(notificationItem);
                     } catch (ActivityNotFoundException e) {
                         toast("Can't open external link.");
                     }
@@ -227,6 +237,46 @@ public class NotificationsFragment extends BaseFragment {
         if (isAdded()) {
             ((MainActivity) getActivity()).navigateSearchView();
         }
+    }
+    
+    private void onNotificationLinkClicked(final NotificationItem notification) {
+        dataService.markNotificationRead(notification.notification_id())
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("Mark notification read safely unsubscribed");
+                    }
+                })
+                .compose(this.<JSONObject>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<JSONObject>() {
+                    @Override
+                    public void call(JSONObject result) {
+                        if (!Parser.containsError(result)) {
+                            dbManager.markNotificationRead(notification.notification_id());
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(!TextUtils.isEmpty(notification.url())) {
+                                        launchNotificationLink(notification.url());
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Timber.e(throwable.getMessage());
+                    }
+                });
+    }
+    
+    private void launchNotificationLink(String url) {
+        final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
+        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint + "/" + URLEncoder.encode(url)));
+        startActivity(intent);
     }
     
     private void showAdvertisement(NotificationItem item) {

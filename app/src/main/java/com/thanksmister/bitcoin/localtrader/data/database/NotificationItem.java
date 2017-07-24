@@ -86,7 +86,7 @@ public abstract class NotificationItem
                 .contact_id(item.contact_id)
                 .advertisement_id(item.advertisement_id)
                 .message(item.msg)
-                .url(item.msg)
+                .url(item.url)
                 .read(item.read)
                 .created_at(item.created_at);
     }

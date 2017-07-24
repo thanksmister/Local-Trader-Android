@@ -449,10 +449,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 long id = Db.getLong(cursor, NotificationItem.ID);
                 String notificationId = Db.getString(cursor, NotificationItem.NOTIFICATION_ID);
                 boolean notificationRead = Db.getBoolean(cursor, NotificationItem.READ);
+                String url = Db.getString(cursor, NotificationItem.URL);
                 Notification match = entryMap.get(notificationId);
                 if (match != null) {
                     entryMap.remove(notificationId);
-                    if (match.read != notificationRead) {
+                    if (match.read != notificationRead || !match.url.equals(url)) {
                         NotificationItem.Builder builder = NotificationItem.createBuilder(match);
                         contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, builder.build(), NotificationItem.ID + " = ?", new String[]{String.valueOf(id)});
                     }

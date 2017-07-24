@@ -165,14 +165,10 @@ public class TradeUtils {
         }
     }
     
-    public static boolean isActiveTrade(String closedAt, String canceledAt){
-        return (!TextUtils.isEmpty(closedAt) && !TextUtils.isEmpty(canceledAt));
+    public static boolean tradeIsActive(String closedAt, String canceledAt){
+        return (TextUtils.isEmpty(closedAt) && TextUtils.isEmpty(canceledAt));
     }
-
-    public static boolean isActiveTrade(Contact contact) {
-        return !(isCanceledTrade(contact) || isClosedTrade(contact));
-    }
-
+    
     public static boolean isCanceledTrade(ContactItem contact) {
         return contact.canceled_at() != null;
     }

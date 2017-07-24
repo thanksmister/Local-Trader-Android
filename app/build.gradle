@@ -24,7 +24,7 @@ apply plugin: 'com.neenbedankt.android-apt'
 def versionMajor = 2
 def versionMinor = 3
 def versionPatch = 0
-def versionBuild = 0 // bump for dog food builds, public betas, etc.
+def versionBuild = 2 // bump for dog food builds, public betas, etc.
 
 android {
     signingConfigs {
@@ -83,6 +83,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:support-annotations:25.3.1'
+    compile 'com.android.support:support-compat:25.3.1'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
     compile 'com.android.support:recyclerview-v7:25.3.1'
@@ -120,7 +121,7 @@ dependencies {
     // Google Play Support Libraries
     compile 'com.google.android.gms:play-services-location:11.0.1'
     
-    compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
     
