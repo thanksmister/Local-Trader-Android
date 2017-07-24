@@ -63,7 +63,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/form_trade_amount"/>
-                
+
                 <TextView
                         android:id="@+id/tradeLimit"
                         style="@style/SmallText.ExtraSmall"
@@ -80,89 +80,132 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                    <android.support.design.widget.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/form_bitcoin_amount"
-                            android:layout_weight="1"
-                            android:visibility="visible">
-
-                        <EditText
-                                android:id="@+id/editBitcoinText"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="numberDecimal"
-                                android:gravity="left"
-                                android:theme="@style/EditTextTheme"
-                                android:nextFocusForward="@+id/editAmountText"/>
-
-                    </android.support.design.widget.TextInputLayout>
-                    
-
-                    <TextView
-                            android:id="@android:id/button1"
-                            style="@style/TextLarge.SmallAction.White"
-                            android:minWidth="50dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:background="@drawable/button_blue_selector"
-                            android:clickable="true"
-                            android:text="@string/btc"
-                            android:layout_gravity="center"
-                            android:gravity="center"
-                            android:layout_weight="0"
-                            android:layout_marginBottom="2dp"/>
-
-                </LinearLayout>
-
                     <LinearLayout
+                            android:id="@+id/bitcoinLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
-                    <android.support.design.widget.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/form_fiat_amount"
-                            android:layout_weight="1"
-                            android:visibility="visible">
-
-                        <EditText
-                                android:id="@+id/editAmountText"
-                                android:theme="@style/EditTextTheme"
+                        <android.support.design.widget.TextInputLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:inputType="numberDecimal"
-                                android:digits="0123456789."
-                                android:gravity="left"
-                                android:nextFocusForward="@+id/buttonLayout"/>
+                                android:theme="@style/EditTextTheme"
+                                android:hint="@string/form_bitcoin_amount"
+                                android:layout_weight="1"
+                                android:visibility="visible">
 
-                    </android.support.design.widget.TextInputLayout>
-                    
+                            <EditText
+                                    android:id="@+id/editBitcoinText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="numberDecimal"
+                                    android:gravity="left"
+                                    android:theme="@style/EditTextTheme"
+                                    android:nextFocusForward="@+id/editAmountText"/>
 
-                    <TextView
-                            android:id="@+id/tradeCurrency"
-                            style="@style/TextMedium.SmallAction.White"
-                            android:minWidth="50dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:background="@drawable/button_blue_selector"
-                            android:clickable="true"
-                            android:text="@string/usd"
-                            android:layout_gravity="center"
-                            android:gravity="center"
-                            android:layout_weight="0"
-                            android:layout_marginBottom="2dp"/>
+                        </android.support.design.widget.TextInputLayout>
 
-                </LinearLayout>
-                
+
+                        <TextView
+                                android:id="@android:id/button1"
+                                style="@style/TextLarge.SmallAction.White"
+                                android:minWidth="50dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:background="@drawable/button_blue_selector"
+                                android:clickable="true"
+                                android:text="@string/btc"
+                                android:layout_gravity="center"
+                                android:gravity="center"
+                                android:layout_weight="0"
+                                android:layout_marginBottom="2dp"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/fiatLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                        <android.support.design.widget.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="@string/form_fiat_amount"
+                                android:layout_weight="1">
+
+                            <EditText
+                                    android:id="@+id/editAmountText"
+                                    android:theme="@style/EditTextTheme"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="numberDecimal"
+                                    android:digits="0123456789."
+                                    android:gravity="left"
+                                    android:nextFocusForward="@+id/buttonLayout"/>
+
+                        </android.support.design.widget.TextInputLayout>
+
+                        <TextView
+                                android:id="@+id/tradeCurrency"
+                                style="@style/TextMedium.SmallAction.White"
+                                android:minWidth="50dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:background="@drawable/button_blue_selector"
+                                android:clickable="true"
+                                android:text="@string/usd"
+                                android:layout_gravity="center"
+                                android:gravity="center"
+                                android:layout_weight="0"
+                                android:layout_marginBottom="2dp"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/ethereumLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                        <android.support.design.widget.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="@string/form_eth_amount"
+                                android:layout_weight="1"
+                                android:visibility="visible">
+
+                            <EditText
+                                    android:id="@+id/ethereumAmountText"
+                                    android:theme="@style/EditTextTheme"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="numberDecimal"
+                                    android:digits="0123456789."
+                                    android:gravity="left"
+                                    android:nextFocusForward="@+id/buttonLayout"/>
+
+                        </android.support.design.widget.TextInputLayout>
+
+                        <TextView
+                                style="@style/TextMedium.SmallAction.White"
+                                android:minWidth="50dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:background="@drawable/button_blue_selector"
+                                android:clickable="true"
+                                android:text="@string/eth"
+                                android:layout_gravity="center"
+                                android:gravity="center"
+                                android:layout_weight="0"
+                                android:layout_marginBottom="2dp"/>
+
+                    </LinearLayout>
+
                 </LinearLayout>
 
                 <LinearLayout
@@ -170,6 +213,24 @@
                         android:layout_height="wrap_content"
                         android:divider="@drawable/empty_list_divider"
                         android:orientation="vertical">
+
+                    <android.support.design.widget.TextInputLayout
+                            android:id="@+id/detailsEthereumAddressLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            tools:visibility="visible"
+                            android:visibility="gone">
+
+                        <android.support.v7.widget.AppCompatEditText
+                                android:id="@+id/detailsEthereumAddress"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:inputType="phone"
+                                android:hint="Ethereum address"/>
+
+                    </android.support.design.widget.TextInputLayout>
 
                     <android.support.design.widget.TextInputLayout
                             android:id="@+id/detailsPhoneNumberLayout"
@@ -185,10 +246,10 @@
                                 android:layout_height="wrap_content"
                                 android:theme="@style/EditTextTheme"
                                 android:inputType="phone"
-                                android:hint="Phone Number"/>
+                                android:hint="Phone number"/>
 
                     </android.support.design.widget.TextInputLayout>
-                    
+
                     <android.support.design.widget.TextInputLayout
                             android:id="@+id/detailsReceiverEmailLayout"
                             android:layout_width="match_parent"
@@ -221,6 +282,74 @@
                                 android:layout_height="wrap_content"
                                 android:theme="@style/EditTextTheme"
                                 android:hint="Account owner"/>
+
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                            android:id="@+id/detailsSortCodeLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            tools:visibility="visible"
+                            android:visibility="gone">
+
+                        <android.support.v7.widget.AppCompatEditText
+                                android:id="@+id/detailsSortCode"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="Sort code"/>
+
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                            android:id="@+id/detailsAccountNumberLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            tools:visibility="visible"
+                            android:visibility="gone">
+
+                        <android.support.v7.widget.AppCompatEditText
+                                android:id="@+id/detailsAccountNumber"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="Account number"/>
+
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                            android:id="@+id/detailsBSBLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            tools:visibility="visible"
+                            android:visibility="gone">
+
+                        <android.support.v7.widget.AppCompatEditText
+                                android:id="@+id/detailsBSB"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="BSB"/>
+
+                    </android.support.design.widget.TextInputLayout>
+
+                    <android.support.design.widget.TextInputLayout
+                            android:id="@+id/detailsBillerCodeLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:theme="@style/EditTextTheme"
+                            tools:visibility="visible"
+                            android:visibility="gone">
+
+                        <android.support.v7.widget.AppCompatEditText
+                                android:id="@+id/detailsBillerCode"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:theme="@style/EditTextTheme"
+                                android:hint="Biller code"/>
 
                     </android.support.design.widget.TextInputLayout>
 
@@ -278,15 +407,12 @@
                 </LinearLayout>
 
                 <android.support.design.widget.TextInputLayout
-                        android:id="@+id/detailsMessageLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme"
-                        tools:visibility="visible"
-                        android:visibility="gone">
+                        android:theme="@style/EditTextTheme">
 
                     <android.support.v7.widget.AppCompatEditText
-                            android:id="@+id/detailsMessage"
+                            android:id="@+id/tradeMessage"
                             android:layout_marginTop="@dimen/activity_padding"
                             android:textColorHint="@android:color/transparent"
                             android:layout_width="match_parent"
@@ -310,22 +436,24 @@
                         android:layout_width="match_parent"
                         android:text="@string/trade_request_description"/>
 
+                <android.support.v4.widget.Space
+                        android:layout_width="match_parent"
+                        android:layout_height="16dp"/>
+                
+                <Button
+                        style="@style/ButtonGreen.Small"
+                        android:id="@+id/sendButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginLeft="@dimen/activity_padding"
+                        android:layout_marginRight="@dimen/activity_padding"
+                        android:layout_height="48dp"
+                        android:text="@string/button_send"/>
+                
 
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>
-
-        <View
-                android:background="?android:attr/dividerHorizontal"
-                android:layout_height="1dp"
-                android:layout_width="match_parent"/>
         
-        <Button
-                style="@style/ButtonGreen.Small"
-                android:id="@+id/sendButton"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="@string/button_send"/>
 
     </LinearLayout>
 

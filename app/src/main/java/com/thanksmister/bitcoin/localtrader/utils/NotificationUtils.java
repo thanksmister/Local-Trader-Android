@@ -24,7 +24,7 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
+import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 
 import timber.log.Timber;
 

@@ -18,6 +18,8 @@ package com.thanksmister.bitcoin.localtrader;
 import android.content.Context;
 import android.location.LocationManager;
 
+import com.thanksmister.bitcoin.localtrader.ui.ActivityModule;
+
 import javax.inject.Singleton;
 
 import dagger.Module;

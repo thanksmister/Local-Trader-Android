@@ -16,15 +16,17 @@
 
 package com.thanksmister.bitcoin.localtrader.data.database;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import android.content.Context;
-
-public class DbOpenHelper extends SQLiteOpenHelper
-{
+public class DbOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "localtrader.db";
-    private static final int DATABASE_VERSION = 37;
+    // TODO back to 38
+    private static final int DATABASE_VERSION = 40;
+    private static final int ADDED_CONTACT_PARAMS = 38;
+    private static final int UPDATED_EXCHANGES = 37;
     private static final int ADDED_DATABASE_NOTIFICATIONS = 34;
     private static final int DATABASE_NOTIFICATIONS = 33;
     private static final int DATABASE_VERSION_FIRST_TIME_BTC_LIMIT = 32;
@@ -36,7 +38,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
     private static final String TYPE_INTEGER = " INTEGER";
     private static final String TYPE_REAL = " REAL";
     private static final String COMMA_SEP = ", ";
-    
+
     private static final String CREATE_WALLET =
             "CREATE TABLE IF NOT EXISTS " + WalletItem.TABLE + " (" +
                     WalletItem.ID + " INTEGER PRIMARY KEY," +
@@ -59,7 +61,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
 
     private static final String CREATE_CONTACTS =
             "CREATE TABLE IF NOT EXISTS " + ContactItem.TABLE + " ("
-                    + ContactItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
+                    + ContactItem._ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
                     + ContactItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP
                     + ContactItem.ADVERTISEMENT_TRADE_TYPE + TYPE_TEXT + COMMA_SEP
                     + ContactItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
@@ -90,10 +92,22 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     + ContactItem.ADVERTISER_FEEDBACK + TYPE_TEXT + COMMA_SEP
                     + ContactItem.ADVERTISER_NAME + TYPE_TEXT + COMMA_SEP
                     + ContactItem.ADVERTISER_LAST_SEEN + TYPE_TEXT + COMMA_SEP
-                    + ContactItem.RECEIVER + TYPE_TEXT + COMMA_SEP
+
+                    + ContactItem.RECEIVER_EMAIL + TYPE_TEXT + COMMA_SEP
                     + ContactItem.IBAN + TYPE_TEXT + COMMA_SEP
                     + ContactItem.SWIFT_BIC + TYPE_TEXT + COMMA_SEP
                     + ContactItem.REFERENCE + TYPE_TEXT + COMMA_SEP
+
+                    // TODO add these
+                    + ContactItem.RECEIVER_NAME + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.MESSAGE + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.BILLER_CODE + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.SORT_CODE + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ETHEREUM_ADDRESS + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.BSB + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.PHONE_NUMBER + TYPE_TEXT + COMMA_SEP
+                    + ContactItem.ACCOUNT_NUMBER + TYPE_TEXT + COMMA_SEP
+
                     + ContactItem.ADVERTISEMENT_URL + TYPE_TEXT + COMMA_SEP
                     + ContactItem.RELEASE_URL + TYPE_TEXT + COMMA_SEP
                     + ContactItem.MESSAGE_URL + TYPE_TEXT + COMMA_SEP
@@ -107,7 +121,6 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     + ContactItem.IS_BUYING + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
                     + ContactItem.ADVERTISEMENT_PAYMENT_METHOD + TYPE_TEXT + COMMA_SEP
                     + ContactItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP
-                    + ContactItem.RECEIVER_EMAIL + TYPE_TEXT + COMMA_SEP
                     + ContactItem.MESSAGE_COUNT + " INTEGER NOT NULL DEFAULT 0" + COMMA_SEP
                     + ContactItem.UNSEEN_MESSAGES + " INTEGER NOT NULL DEFAULT 0"
                     + ")";
@@ -115,7 +128,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
     private static final String CREATE_MESSAGES =
             "CREATE TABLE IF NOT EXISTS " + MessageItem.TABLE + " ("
                     + MessageItem.ID + " INTEGER NOT NULL PRIMARY KEY" + COMMA_SEP
-                    + MessageItem.CONTACT_LIST_ID + " INTEGER NOT NULL REFERENCES " + ContactItem.TABLE + "(" + ContactItem.ID + "),"
+                    + MessageItem.CONTACT_ID + TYPE_INTEGER + COMMA_SEP
                     + MessageItem.MESSAGE + TYPE_TEXT + COMMA_SEP
                     + MessageItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
                     + MessageItem.SENDER_ID + TYPE_TEXT + COMMA_SEP
@@ -153,7 +166,7 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     CurrencyItem.ID + " INTEGER PRIMARY KEY," +
                     CurrencyItem.CURRENCY + TYPE_TEXT +
                     ")";
-    
+
     private static final String CREATE_EXCHANGE_CURRENCIES =
             "CREATE TABLE IF NOT EXISTS " + ExchangeCurrencyItem.TABLE + " (" +
                     ExchangeCurrencyItem.ID + " INTEGER PRIMARY KEY," +
@@ -167,15 +180,15 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     ExchangeRateItem.CURRENCY + TYPE_TEXT + COMMA_SEP +
                     ExchangeRateItem.RATE + TYPE_TEXT +
                     ")";
-    
+
     private static final String CREATE_NOTIFICATIONS =
-            "CREATE TABLE IF NOT EXISTS " + NotificationItem.TABLE + " (" 
-                    + NotificationItem.ID + " INTEGER PRIMARY KEY," 
-                    + NotificationItem.NOTIFICATION_ID + TYPE_TEXT + COMMA_SEP 
-                    + NotificationItem.URL + TYPE_TEXT + COMMA_SEP 
-                    + NotificationItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP 
-                    + NotificationItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP 
-                    + NotificationItem.MESSAGE + TYPE_TEXT + COMMA_SEP 
+            "CREATE TABLE IF NOT EXISTS " + NotificationItem.TABLE + " ("
+                    + NotificationItem.ID + " INTEGER PRIMARY KEY,"
+                    + NotificationItem.NOTIFICATION_ID + TYPE_TEXT + COMMA_SEP
+                    + NotificationItem.URL + TYPE_TEXT + COMMA_SEP
+                    + NotificationItem.CONTACT_ID + TYPE_TEXT + COMMA_SEP
+                    + NotificationItem.ADVERTISEMENT_ID + TYPE_TEXT + COMMA_SEP
+                    + NotificationItem.MESSAGE + TYPE_TEXT + COMMA_SEP
                     + NotificationItem.CREATED_AT + TYPE_TEXT + COMMA_SEP
                     + NotificationItem.READ + " INTEGER NOT NULL DEFAULT 0"
                     + ")";
@@ -217,6 +230,8 @@ public class DbOpenHelper extends SQLiteOpenHelper
                     AdvertisementItem.TRUSTED_REQUIRED + TYPE_INTEGER + COMMA_SEP +
                     AdvertisementItem.REQUIRE_IDENTIFICATION + TYPE_INTEGER + COMMA_SEP +
                     AdvertisementItem.MESSAGE + TYPE_TEXT + COMMA_SEP +
+                    AdvertisementItem.PHONE_NUMBER + TYPE_TEXT + COMMA_SEP +
+                    AdvertisementItem.OPENING_HOURS + TYPE_TEXT + COMMA_SEP +
                     AdvertisementItem.TRACK_MAX_AMOUNT + TYPE_INTEGER + COMMA_SEP +
                     AdvertisementItem.BANK_NAME + TYPE_TEXT + ")";
 
@@ -230,16 +245,14 @@ public class DbOpenHelper extends SQLiteOpenHelper
             + TransactionItem.CREATED_AT + TYPE_TEXT_NOT_NULL + ")";
 
     private static final String CREATE_CONTACT_LIST_ID_INDEX =
-            "CREATE INDEX contact_list_id ON " + MessageItem.TABLE + " (" + MessageItem.CONTACT_LIST_ID + ")";
+            "CREATE INDEX contact_list_id ON " + MessageItem.TABLE + " (" + MessageItem.CONTACT_ID + ")";
 
-    public DbOpenHelper(Context context)
-    {
+    public DbOpenHelper(Context context) {
         super(context, DATABASE_NAME, null /* factory */, DATABASE_VERSION);
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db)
-    {
+    public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_METHOD);
         db.execSQL(CREATE_CONTACTS);
         db.execSQL(CREATE_MESSAGES);
@@ -277,33 +290,109 @@ public class DbOpenHelper extends SQLiteOpenHelper
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
-    {
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        
         if (oldVersion < newVersion) {
+            
+            if(!isColumnExists(db, AdvertisementItem.TABLE, AdvertisementItem.PHONE_NUMBER)) {
+                final String ALTER_TBL1 =
+                        "ALTER TABLE " + AdvertisementItem.TABLE +
+                                " ADD COLUMN " + AdvertisementItem.PHONE_NUMBER + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL1);
+            }
+
+            if(!isColumnExists(db, AdvertisementItem.TABLE, AdvertisementItem.OPENING_HOURS)) {
+                final String ALTER_TBL2 =
+                        "ALTER TABLE " + AdvertisementItem.TABLE +
+                                " ADD COLUMN " + AdvertisementItem.OPENING_HOURS + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL2);
+            }
+        }
+            
+            
+        if (oldVersion < ADDED_CONTACT_PARAMS) {
+
+                if(!isColumnExists(db, ContactItem.TABLE, ContactItem.RECEIVER_NAME)) {
+                    final String ALTER_TBL0 =
+                            "ALTER TABLE " + ContactItem.TABLE +
+                                    " ADD COLUMN " + ContactItem.RECEIVER_NAME + TYPE_TEXT;
+
+                    db.execSQL(ALTER_TBL0);
+                }
+
+                if(!isColumnExists(db, ContactItem.TABLE, ContactItem.MESSAGE)) {
+                    final String ALTER_TBL1 =
+                            "ALTER TABLE " + ContactItem.TABLE +
+                                    " ADD COLUMN " + ContactItem.MESSAGE + TYPE_TEXT;
+
+                    db.execSQL(ALTER_TBL1);
+                }
+
+                final String ALTER_TBL2 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.BILLER_CODE + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL2);
+
+                final String ALTER_TBL3 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.SORT_CODE + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL3);
+
+                final String ALTER_TBL4 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.ETHEREUM_ADDRESS + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL4);
+
+                final String ALTER_TBL5 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.BSB + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL5);
+
+                final String ALTER_TBL6 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.PHONE_NUMBER + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL6);
+
+                final String ALTER_TBL7 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.ACCOUNT_NUMBER + TYPE_TEXT;
+
+                db.execSQL(ALTER_TBL7);
+            
+        }
+        
+        if (oldVersion < UPDATED_EXCHANGES) {
             db.execSQL("DROP TABLE IF EXISTS exchange_item");
             db.execSQL(CREATE_EXCHANGE_RATES);
             db.execSQL(CREATE_EXCHANGE_CURRENCIES);
             db.execSQL(CREATE_CURRENCIES);
         }
-        
+
         if (oldVersion < ADDED_DATABASE_NOTIFICATIONS) {
             db.execSQL(CREATE_NOTIFICATIONS);
         }
-        
+
         if (oldVersion < DATABASE_NOTIFICATIONS) {
             final String ALTER_TBL =
                     "ALTER TABLE " + AdvertisementItem.TABLE +
                             " ADD COLUMN " + AdvertisementItem.FIRST_TIME_LIMIT_BTC + TYPE_TEXT;
 
             db.execSQL(ALTER_TBL);
-            
+
             final String ALTER_TBL1 =
                     "ALTER TABLE " + AdvertisementItem.TABLE +
                             " ADD COLUMN " + AdvertisementItem.REQUIRE_IDENTIFICATION + TYPE_INTEGER;
 
             db.execSQL(ALTER_TBL1);
         }
-        
+
         if (oldVersion < DATABASE_VERSION_FIRST_TIME_BTC_LIMIT) {
             db.execSQL("DROP TABLE IF EXISTS session_table");
             db.execSQL(CREATE_RECENT_MESSAGES);
@@ -354,5 +443,20 @@ public class DbOpenHelper extends SQLiteOpenHelper
 
             db.execSQL(ALTER_TBL1);
         }
+    }
+
+    //https://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
+    public boolean isColumnExists (SQLiteDatabase db, String table, String column) {
+        Cursor cursor = db.rawQuery("PRAGMA table_info("+ table +")", null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String name = cursor.getString(cursor.getColumnIndex("name"));
+                if (column.equalsIgnoreCase(name)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

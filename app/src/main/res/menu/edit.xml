@@ -18,9 +18,9 @@
       xmlns:tools="http://schemas.android.com/tools"
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
       tools:context=".EditActivity">
-
+    
     <item android:id="@+id/action_location"
-          android:title="My Location"
+          android:title="@string/menu_get_location"
           android:icon="@drawable/ic_action_location_2"
           thanksmister:showAsAction="ifRoom"/>
 

@@ -1,0 +1,140 @@
+<!--
+  ~ Copyright (c) 2017 ThanksMister LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License. 
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software distributed 
+  ~ under the License is distributed on an "AS IS" BASIS, 
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+  ~ See the License for the specific language governing permissions and 
+  ~ limitations under the License.
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:paddingTop="16dp"
+              android:paddingBottom="16dp">
+
+    <!-- Currency -->
+
+   <include layout="@layout/view_currency"/>
+
+    <!-- Identified People Before Trade -->
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:orientation="vertical">
+
+        <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"/>
+
+        <CheckBox
+                style="@style/TextMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/activity_padding"
+                android:layout_marginRight="@dimen/activity_padding"
+                android:gravity="center_vertical"
+                android:layout_gravity="center_vertical"
+                android:theme="@style/EditTextTheme"
+                android:text="@string/text_floating_price"/>
+
+        <TextView
+                style="@style/TextSmall"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:paddingLeft="@dimen/activity_padding"
+                android:paddingRight="@dimen/activity_padding"
+                android:text="@string/text_floating_price_description"/>
+
+        <View
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_marginTop="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+
+    </LinearLayout>
+    
+    <!-- Bank Name -->
+    
+    <include layout="@layout/view_bank_info"/>
+
+    <!-- Margin -->
+
+    <TextView
+            style="@style/TextSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:paddingLeft="@dimen/activity_padding"
+            android:paddingRight="@dimen/activity_padding"
+            android:text="@string/text_margin_value"/>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/view_padding_small"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_padding"
+            android:paddingRight="@dimen/activity_padding"
+            android:orientation="horizontal">
+
+        <EditText
+                android:id="@+id/marginText"
+                style="@style/TextLarge.SmallAction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:maxLength="8"
+                android:layout_weight="1"
+                android:theme="@style/EditTextTheme"/>
+
+        <TextView
+                style="@style/TextLarge.SmallAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="%"
+                android:layout_weight="0"/>
+
+    </LinearLayout>
+
+    <TextView
+            style="@style/TextSmall"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:paddingLeft="@dimen/activity_padding"
+            android:paddingRight="@dimen/activity_padding"
+            android:text="@string/advertisement_edit_margin_description"/>
+
+    <View
+            android:background="?android:attr/dividerHorizontal"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
+
+    <!-- Price Equation -->
+
+    <include layout="@layout/view_price_equation"/>
+
+    <!-- Minimum Maximum Amount -->
+
+    <include layout="@layout/view_min_max"/>
+    
+    <!-- Terms -->
+
+    <include layout="@layout/view_terms"/>
+
+</LinearLayout>

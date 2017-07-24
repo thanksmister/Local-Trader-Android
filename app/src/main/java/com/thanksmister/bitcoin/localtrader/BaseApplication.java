@@ -16,10 +16,15 @@
 
 package com.thanksmister.bitcoin.localtrader;
 
+import android.content.ContentResolver;
+import android.os.Bundle;
 import android.support.multidex.MultiDexApplication;
 
 import com.crashlytics.android.Crashlytics;
+import com.facebook.stetho.Stetho;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 
 import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;
@@ -38,9 +43,9 @@ public class BaseApplication extends MultiDexApplication
             //LeakCanary.install(this);
             //refWatcher = LeakCanary.install(this);
 
-           /* Stetho.initialize(Stetho.newInitializerBuilder(this)
+           Stetho.initialize(Stetho.newInitializerBuilder(this)
                     .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
-                    .build());*/
+                    .build());
 
         } else {
             
@@ -59,5 +64,10 @@ public class BaseApplication extends MultiDexApplication
         }
         
         Injector.init(this);
+
+        // set up sync
+        ContentResolver.setIsSyncable(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, 1);
+        ContentResolver.setSyncAutomatically(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, true);
+        ContentResolver.addPeriodicSync(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, Bundle.EMPTY, SyncUtils.SYNC_FREQUENCY);
     }
 }

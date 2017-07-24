@@ -14,63 +14,73 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:padding="@dimen/activity_horizontal_margin"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:paddingBottom="50dp"
-              android:gravity="center"
-              android:layout_gravity="center">
-
-    <TextView
-            style="?android:textAppearanceLarge"
-            android:textColor="@color/body_text_1"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="32dp"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:padding="@dimen/activity_horizontal_margin"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:textStyle="bold"
-            android:text="Getting Started"/>
-
-    <TextView
-            style="?android:textAppearanceMedium"
-            android:layout_margin="16dp"
-            android:paddingBottom="8dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="You can buy or sell Bitcoin by searching for traders in your local area or creating your own trade."/>
-
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+    
     <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:visibility="visible">
+            android:layout_gravity="center">
 
-        <Button
-                android:id="@+id/searchButton"
-                style="@style/ButtonGreen.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:text="Search"/>
+        <ImageView
+                android:layout_width="126dp"
+                android:layout_height="126dp"
+                android:src="@drawable/logo_screen"/>
 
-        <View
-                android:layout_width="8dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0"/>
+        <TextView
+                style="?android:textAppearanceLarge"
+                android:textColor="@color/body_text_1"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:textStyle="bold"
+                android:text="@string/text_title_getting_started"/>
 
-        <Button
-                android:id="@+id/advertiseButton"
-                style="@style/ButtonGreen.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:text="Post Trade"/>
+        <TextView
+                style="?android:textAppearanceMedium"
+                android:layout_margin="16dp"
+                android:paddingBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/text_description_getting_started"/>
 
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:orientation="vertical">
+
+            <Button
+                    android:id="@+id/searchButton"
+                    style="@style/ButtonGreen"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:textAllCaps="true"
+                    android:text="@string/button_search_trades"/>
+
+            <android.support.v4.widget.Space
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"/>
+
+            <Button
+                    android:id="@+id/advertiseButton"
+                    style="@style/ButtonGreen"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:textAllCaps="true"
+                    android:text="@string/button_post_trade"/>
+
+        </LinearLayout>
+        
     </LinearLayout>
-
-
-</LinearLayout>
+    
+</ScrollView>

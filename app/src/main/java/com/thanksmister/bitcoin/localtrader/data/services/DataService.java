@@ -18,7 +18,6 @@ package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.net.Uri;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -51,9 +50,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToNotifi
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToUser;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWallet;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.data.prefs.LongPreference;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -68,6 +65,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import dpreference.DPreference;
 import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 import rx.Observable;
@@ -78,54 +76,35 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.CHECK_PINCODE;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.DELETE_AD;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_AD;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_CONTACT;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_CONTACT_MESSAGES;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_DASHBOARD;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_RECENT_MESSAGES;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.GET_WALLET_BALANCE;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_AD_CREATE;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_CANCEL;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_CREATE;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_DISPUTE;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_FUND;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_MESSAGE;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_PAID;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_CONTACT_RELEASE;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.POST_WALLET_SEND_PIN;
-import static com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins.UPDATE_AD;
-
 
 @Singleton
-public class DataService
-{
+public class DataService {
     private static final String PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire";
+    private static final String PREFS_CURRENCY_EXPIRE_TIME = "pref_currency_expire";
     public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
     public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
     public static final String PREFS_WALLET_EXPIRE_TIME = "pref_wallet_expire";
-    public static final String PREFS_CONTACTS_EXPIRE_TIME = "pref_ads_expire";
-    public static final String PREFS_USER = "pref_user";
-
-    public static final int CHECK_EXCHANGE_DATA = 3 * 60 * 1000;// 3 minutes
+    public static final String PREFS_CONTACTS_EXPIRE_TIME = "pref_contacts_expire";
+   
+    private static final int CHECK_CURRENCY_DATA = 604800000;// // 1 week 604800000
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
-    public static final int CHECK_ADVERTISEMENT_DATA = 15 * 60 * 1000;// 15 minutes
+    public static final int CHECK_ADVERTISEMENT_DATA = 3600000;// 1 hour
     public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
     public static final int CHECK_WALLET_DATA = 5 * 60 * 1000;// 15 minutes
-    
+
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
+    private final DPreference preference;
     private final BaseApplication baseApplication;
-    private int retryLimit = 1;
-    
+
     @Inject
-    public DataService(BaseApplication baseApplication, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins) {
+    public DataService(BaseApplication baseApplication, DPreference preference, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins) {
         this.baseApplication = baseApplication;
         this.localBitcoins = localBitcoins;
         this.sharedPreferences = sharedPreferences;
+        this.preference = preference;
     }
-    
+
     public void logout() {
         resetExchangeExpireTime();
         resetAdvertisementsExpireTime();
@@ -133,33 +112,30 @@ public class DataService
         resetContactsExpireTime();
     }
 
-    public Observable<Authorization> getAuthorization(String code)
-    {
+    public Observable<Authorization> getAuthorization(String code) {
         return localBitcoins.getAuthorization("authorization_code", code, baseApplication.getString(R.string.lbc_access_key), baseApplication.getString(R.string.lbc_access_secret))
                 .map(new ResponseToAuthorize());
     }
 
-    private <T> Func1<Throwable,? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
+    private <T> Func1<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
         return new Func1<Throwable, Observable<? extends T>>() {
             @Override
             public Observable<? extends T> call(Throwable throwable) {
-                if(DataServiceUtils.isHttp403Error(throwable)) {
+                if (DataServiceUtils.isHttp403Error(throwable)) {
                     return refreshTokens()
                             .flatMap(new Func1<String, Observable<? extends T>>() {
                                 @Override
-                                public Observable<? extends T> call(String token)
-                                {
+                                public Observable<? extends T> call(String token) {
                                     return toBeResumed;
                                 }
                             });
                 } else if (DataServiceUtils.isHttp400Error(throwable)) {
                     RetroError error = DataServiceUtils.createRetroError(throwable);
-                    if(error.getCode() == DataServiceUtils.CODE_THREE) {
+                    if (error.getCode() == DataServiceUtils.CODE_THREE) {
                         return refreshTokens()
                                 .flatMap(new Func1<String, Observable<? extends T>>() {
                                     @Override
-                                    public Observable<? extends T> call(String token)
-                                    {
+                                    public Observable<? extends T> call(String token) {
                                         return toBeResumed;
                                     }
                                 });
@@ -174,42 +150,46 @@ public class DataService
     }
 
     private Observable<String> refreshTokens() {
-        final String refreshToken = AuthUtils.getRefreshToken(sharedPreferences);
+        final String refreshToken = AuthUtils.getRefreshToken(preference, sharedPreferences);
         return localBitcoins.refreshToken("refresh_token", refreshToken, baseApplication.getString(R.string.lbc_access_key), baseApplication.getString(R.string.lbc_access_secret))
                 .map(new ResponseToAuthorize())
-                .flatMap(new Func1<Authorization, Observable<? extends String>>()
-                {
+                .flatMap(new Func1<Authorization, Observable<? extends String>>() {
                     @Override
-                    public Observable<? extends String> call(Authorization authorization)
-                    {
-                        AuthUtils.setAccessToken(sharedPreferences, authorization.access_token);
-                        AuthUtils.setRefreshToken(sharedPreferences, authorization.refresh_token);
+                    public Observable<? extends String> call(Authorization authorization) {
+                        AuthUtils.setAccessToken(preference, authorization.access_token);
+                        AuthUtils.setRefreshToken(preference, authorization.refresh_token);
                         return Observable.just(authorization.access_token);
                     }
                 });
     }
 
     public Observable<List<ExchangeCurrency>> getCurrencies() {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
-        return  localBitcoins.getCurrencies(accessToken)
-                .map(new ResponseToCurrencies());
-    }
-    
-    public Observable<ContactRequest> createContact(final String adId, final TradeType tradeType, final String countryCode, 
-                                                    final String onlineProvider, final String amount, final String name, 
-                                                    final String phone, final String email, final String iban, final String bic, 
-                                                    final String reference, final String message)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount, 
-                    name, phone, email, iban, bic, reference, message, retryLimit)
-                    .map(new ResponseToContactRequest());
+        
+        if(!needToRefreshCurrency()) {
+            return Observable.just(null);
         }
         
+        return localBitcoins.getCurrencies()
+                .doOnNext(new Action1<Response>() {
+                    @Override
+                    public void call(Response response) {
+                        setCurrencyExpireTime();
+                    }
+                })
+                .map(new ResponseToCurrencies());
+    }
+
+    public Observable<ContactRequest> createContact(final String adId, final TradeType tradeType, final String countryCode,
+                                                    final String onlineProvider, final String amount, final String name,
+                                                    final String phone, final String email, final String iban, final String bic,
+                                                    final String reference, final String message, final String sortCode,
+                                                    final String billerCode, final String accountNumber, final String bsb,
+                                                    final String ethereumAddress) {
+        
         return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
-                name, phone, email, iban, bic, reference, message)
+                name, phone, email, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
                 .onErrorResumeNext(refreshTokenAndRetry(createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
-                        name, phone, email, iban, bic, reference, message)))
+                        name, phone, email, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)))
                 .map(new ResponseToContactRequest());
     }
 
@@ -217,29 +197,59 @@ public class DataService
     private Observable<Response> createContactObservable(final String adId, final TradeType tradeType, final String countryCode,
                                                          final String onlineProvider, final String amount, final String name,
                                                          final String phone, final String email, final String iban, final String bic,
-                                                         final String reference, final String message)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+                                                         final String reference, final String message, final String sortCode,
+                                                         final String billerCode, final String accountNumber, final String bsb, 
+                                                         final String ethereumAddress) {
+        
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
+        
         if (tradeType == TradeType.ONLINE_BUY) {
             switch (onlineProvider) {
                 case TradeUtils.NATIONAL_BANK:
-                    return localBitcoins.createContactNational(accessToken, adId, amount, name, iban, bic, reference, message);
+                    switch (countryCode) {
+                        case "UK":
+                            return localBitcoins.createContactNational_UK(accessToken, adId, amount, name, sortCode, reference, accountNumber, message);
+                        case "AU":
+                            return localBitcoins.createContactNational_AU(accessToken, adId, amount, name, bsb, reference, accountNumber, message);
+                        case "FI":
+                            return localBitcoins.createContactNational_FI(accessToken, adId, amount, name, iban, bic, reference, message);
+                        default:
+                            return localBitcoins.createContactNational(accessToken, adId, amount, message);
+                    }
                 case TradeUtils.VIPPS:
                 case TradeUtils.EASYPAISA:
                 case TradeUtils.HAL_CASH:
                 case TradeUtils.QIWI:
+                case TradeUtils.LYDIA:
                 case TradeUtils.SWISH:
-                    return localBitcoins.createContactQiwi(accessToken, adId, amount, phone);
+                    return localBitcoins.createContactPhone(accessToken, adId, amount, phone, message);
                 case TradeUtils.PAYPAL:
                 case TradeUtils.NETELLER:
                 case TradeUtils.INTERAC:
                 case TradeUtils.ALIPAY:
-                    return localBitcoins.createContactPayPal(accessToken, adId, amount, email);
+                case TradeUtils.MOBILEPAY_DANSKE_BANK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
+                    return localBitcoins.createContactEmail(accessToken, adId, amount, email, message);
                 case TradeUtils.SEPA:
-                    return localBitcoins.createContactSepa(accessToken, adId, amount, name, iban, bic, reference);
+                    return localBitcoins.createContactSepa(accessToken, adId, amount, name, iban, bic, reference, message);
+                case TradeUtils.ALTCOIN_ETH:
+                    return localBitcoins.createContactEthereumAddress(accessToken, adId, amount, ethereumAddress, message);
+                case TradeUtils.BPAY:
+                    return localBitcoins.createContactBPay(accessToken, adId, amount, billerCode, reference, message);
+            }
+        } else if (tradeType == TradeType.ONLINE_SELL) {
+            switch (onlineProvider) {
+                case TradeUtils.QIWI:
+                case TradeUtils.SWISH:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
+                    return localBitcoins.createContactPhone(accessToken, adId, amount, phone, message);
+                
             }
         }
-        
+
         return localBitcoins.createContact(accessToken, adId, amount, message);
     }
 
@@ -247,11 +257,9 @@ public class DataService
         return sendPinCodeMoneyObservable(pinCode, address, amount)
                 .onErrorResumeNext(refreshTokenAndRetry(sendPinCodeMoneyObservable(pinCode, address, amount)))
                 .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
-                {
+                .flatMap(new Func1<JSONObject, Observable<Boolean>>() {
                     @Override
-                    public Observable<Boolean> call(JSONObject jsonObject)
-                    {
+                    public Observable<Boolean> call(JSONObject jsonObject) {
                         if (Parser.containsError(jsonObject)) {
                             RetroError retroError = Parser.parseError(jsonObject);
                             throw new Error(retroError);
@@ -260,29 +268,32 @@ public class DataService
                     }
                 });
     }
-    
-    private Observable<Response> sendPinCodeMoneyObservable(final String pinCode, final String address, final String amount)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+
+    private Observable<Response> sendPinCodeMoneyObservable(final String pinCode, final String address, final String amount) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.walletSendPin(accessToken, pinCode, address, amount);
     }
 
     public Observable<Wallet> getWalletBalance() {
+        
+        if(!needToRefreshWallet()) {
+            return Observable.just(null);
+        }
+        
         return getWalletBalanceObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletBalanceObservable()))
                 .map(new ResponseToWalletBalance())
-                .flatMap(new Func1<Wallet, Observable<Wallet>>()
-                {
+                .flatMap(new Func1<Wallet, Observable<Wallet>>() {
                     @Override
-                    public Observable<Wallet> call(Wallet wallet)
-                    {
+                    public Observable<Wallet> call(Wallet wallet) {
+                        setWalletExpireTime();
                         return getWalletBitmap(wallet);
                     }
                 });
     }
 
     private Observable<Response> getWalletBalanceObservable() {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getWalletBalance(accessToken);
     }
 
@@ -293,18 +304,18 @@ public class DataService
     }
 
     private Observable<Response> validatePinCodeObservable(final String pinCode) {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.checkPinCode(accessToken, pinCode);
     }
-    
+
     public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action) {
         return contactActionObservable(contactId, pinCode, action)
                 .onErrorResumeNext(refreshTokenAndRetry(contactActionObservable(contactId, pinCode, action)))
                 .map(new ResponseToJSONObject());
     }
-    
+
     private Observable<Response> contactActionObservable(final String contactId, final String pinCode, final ContactAction action) {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         switch (action) {
             case RELEASE:
                 return localBitcoins.releaseContactPinCode(accessToken, contactId, pinCode);
@@ -320,16 +331,14 @@ public class DataService
 
         return Observable.error(new Error("Unable to perform action on contact"));
     }
-    
+
     public Observable<JSONObject> updateAdvertisement(final Advertisement advertisement) {
         return updateAdvertisementObservable(advertisement)
                 .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement)))
                 .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<JSONObject>>()
-                {
+                .flatMap(new Func1<JSONObject, Observable<JSONObject>>() {
                     @Override
-                    public Observable<JSONObject> call(JSONObject jsonObject)
-                    {
+                    public Observable<JSONObject> call(JSONObject jsonObject) {
                         return Observable.just(jsonObject);
                     }
                 });
@@ -337,239 +346,162 @@ public class DataService
 
     private Observable<Response> updateAdvertisementObservable(final Advertisement advertisement) {
         final String city;
-        if(Strings.isBlank(advertisement.city)){
+        if (Strings.isBlank(advertisement.city)) {
             city = advertisement.location;
         } else {
             city = advertisement.city;
         }
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.updateAdvertisement(
                 accessToken, advertisement.ad_id, advertisement.account_info, advertisement.bank_name, city, advertisement.country_code, advertisement.currency,
                 String.valueOf(advertisement.lat), advertisement.location, String.valueOf(advertisement.lon), advertisement.max_amount, advertisement.min_amount,
                 advertisement.message, advertisement.price_equation, String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.sms_verification_required),
                 String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.visible), String.valueOf(advertisement.require_identification),
-                advertisement.require_feedback_score, advertisement.require_trade_volume, advertisement.first_time_limit_btc);
+                advertisement.require_feedback_score, advertisement.require_trade_volume, advertisement.first_time_limit_btc, 
+                advertisement.phone_number, advertisement.opening_hours);
     }
 
     public Observable<JSONObject> createAdvertisement(final Advertisement advertisement) {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return createAdvertisementObservable(advertisement, retryLimit)
-                    .map(new ResponseToJSONObject());
-        }
-        
         return createAdvertisementObservable(advertisement)
                 .onErrorResumeNext(refreshTokenAndRetry(createAdvertisementObservable(advertisement)))
                 .map(new ResponseToJSONObject());
     }
-    
+
     private Observable<Response> createAdvertisementObservable(final Advertisement advertisement) {
         String city;
-        if(Strings.isBlank(advertisement.city)){
+        if (Strings.isBlank(advertisement.city)) {
             city = advertisement.location;
         } else {
             city = advertisement.city;
         }
 
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.createAdvertisement(accessToken, advertisement.min_amount,
                 advertisement.max_amount, advertisement.price_equation, advertisement.trade_type.name(), advertisement.online_provider,
                 String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
                 city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
                 String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
-                String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.require_identification), 
-                advertisement.require_feedback_score, advertisement.require_trade_volume, 
-                advertisement.first_time_limit_btc, advertisement.message, advertisement.currency);
+                String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.require_identification),
+                advertisement.require_feedback_score, advertisement.require_trade_volume,
+                advertisement.first_time_limit_btc, advertisement.message, advertisement.currency,
+                advertisement.phone_number, advertisement.opening_hours);
+
+        
+        
     }
 
-    public Observable<JSONObject> postMessage(final String contact_id, final String message)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return postMessageObservable(contact_id, message, retryLimit)
-                    .map(new ResponseToJSONObject());
-        }
-        
+    public Observable<JSONObject> postMessage(final String contact_id, final String message) {
         return postMessageObservable(contact_id, message)
                 .onErrorResumeNext(refreshTokenAndRetry(postMessageObservable(contact_id, message)))
                 .map(new ResponseToJSONObject());
     }
-    
-    public Observable<JSONObject> postMessageWithAttachment(final String contact_id, final String message, final File file)
-    {
+
+    public Observable<JSONObject> postMessageWithAttachment(final String contact_id, final String message, final File file) {
         return postMessageWithAttachmentObservable(contact_id, message, file)
                 .onErrorResumeNext(refreshTokenAndRetry(postMessageWithAttachmentObservable(contact_id, message, file)))
                 .map(new ResponseToJSONObject());
     }
 
-    private Observable<Response> postMessageObservable(final String contact_id, final String message)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> postMessageObservable(final String contact_id, final String message) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.contactMessagePost(accessToken, contact_id, message);
     }
 
-    private Observable<Response> postMessageWithAttachmentObservable(final String contact_id, final String message, final File file)
-    {
+    private Observable<Response> postMessageWithAttachmentObservable(final String contact_id, final String message, final File file) {
         TypedFile typedFile = new TypedFile("multipart/form-data", file);
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
         params.put("msg", message);
         return localBitcoins.contactMessagePostWithAttachment(accessToken, contact_id, params, typedFile);
     }
 
-    public Observable<User> getMyself(String accessToken)
-    {
+    public Observable<User> getMyself(String accessToken) {
         return localBitcoins.getMyself(accessToken)
                 .map(new ResponseToUser());
     }
-    
-    public Observable<Contact> getContact(final String contact_id)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return getContactObservable(contact_id, retryLimit)
-                    .map(new ResponseToContact())
-                    .flatMap(new Func1<Contact, Observable<? extends Contact>>() {
-                        @Override
-                        public Observable<? extends Contact> call(final Contact contact)
-                        {
-                            return getContactMessagesObservable(contact.contact_id, retryLimit)
-                                    .map(new ResponseToMessages())
-                                    .map(new Func1<List<Message>, Contact>()
-                                    {
-                                        @Override
-                                        public Contact call(List<Message> messages)
-                                        {
-                                            contact.messages = messages;
-                                            return contact;
-                                        }
-                                    });
-                        }
-                    });
-        }
-        
-        return getContactObservable(contact_id)
-                .onErrorResumeNext(refreshTokenAndRetry(getContactObservable(contact_id)))
+
+    public Observable<Contact> getContactInfo(final String contact_id) {
+        return getContactInfoObservable(contact_id)
+                .onErrorResumeNext(refreshTokenAndRetry(getContactInfoObservable(contact_id)))
                 .map(new ResponseToContact())
                 .flatMap(new Func1<Contact, Observable<? extends Contact>>() {
                     @Override
-                    public Observable<? extends Contact> call(final Contact contact)
-                    {
+                    public Observable<? extends Contact> call(final Contact contact) {
                         return getContactMessagesObservable(contact.contact_id)
                                 .onErrorResumeNext(refreshTokenAndRetry(getContactMessagesObservable(contact_id)))
                                 .map(new ResponseToMessages())
-                                .map(new Func1<List<Message>, Contact>()
-                                {
+                                .map(new Func1<List<Message>, Contact>() {
                                     @Override
-                                    public Contact call(List<Message> messages)
-                                    {
-                                        contact.messages = messages;
+                                    public Contact call(List<Message> messages) {
+                                        if(messages != null) {
+                                            contact.messages = messages; 
+                                        }
                                         return contact;
                                     }
                                 });
                     }
                 });
     }
-    
-    private Observable<Response> getContactObservable(final String contact_id)
-    {
-        
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
-        return localBitcoins.getContact(accessToken, contact_id);
+
+    private Observable<Response> getContactInfoObservable(final String contact_id) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
+        return localBitcoins.getContactInfo(accessToken, contact_id);
     }
 
-    public Observable<List<Message>> getRecentMessages()
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return getRecentMessagesObservable(retryLimit)
-                    .map(new ResponseToMessages());
-        }
-        
+    public Observable<List<Message>> getRecentMessages() {
         return getRecentMessagesObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getRecentMessagesObservable()))
                 .map(new ResponseToMessages());
     }
 
-    private Observable<Response> getRecentMessagesObservable()
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getRecentMessagesObservable() {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.recentMessages(accessToken);
     }
 
-    private Observable<Response> getContactMessagesObservable(final String contact_id)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getContactMessagesObservable(final String contact_id) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.contactMessages(accessToken, contact_id);
     }
 
-    public Observable<List<Notification>> getNotifications()
-    {
+    public Observable<List<Notification>> getNotifications() {
         return getNotificationsObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getNotificationsObservable()))
                 .map(new ResponseToNotifications());
     }
 
-    private Observable<Response> getNotificationsObservable()
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getNotificationsObservable() {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getNotifications(accessToken);
     }
 
-    public Observable<JSONObject> markNotificationRead(final String notificationId)
-    {
+    public Observable<JSONObject> markNotificationRead(final String notificationId) {
         return markNotificationReadObservable(notificationId)
                 .onErrorResumeNext(refreshTokenAndRetry(markNotificationReadObservable(notificationId)))
                 .map(new ResponseToJSONObject());
     }
-    
-    private Observable<Response> markNotificationReadObservable(final String notificationId)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+
+    private Observable<Response> markNotificationReadObservable(final String notificationId) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.markNotificationRead(accessToken, notificationId);
     }
-    
-    public Observable<List<Contact>> getContacts(final DashboardType dashboardType)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            switch (dashboardType){
-                case RELEASED:
-                case CLOSED:
-                case CANCELED:
-                    return getContactsObservable(dashboardType, retryLimit)
-                            .map(new ResponseToContacts())
-                            .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                            {
-                                @Override
-                                public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                                {
-                                    setContactsExpireTime();
-                                    return Observable.just(contacts);
-                                }
-                            });
-                default:
-                    return getContactsObservable(retryLimit)
-                            .map(new ResponseToContacts())
-                            .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                            {
-                                @Override
-                                public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                                {
-                                    setContactsExpireTime();
-                                    return Observable.just(contacts);
-                                }
-                            });
-            }
-        }
+
+    public Observable<List<Contact>> getContacts(final DashboardType dashboardType) {
+
+        /*if (!needToRefreshContacts()) {
+            return Observable.just(null);
+        }*/
         
-        switch (dashboardType){
+        switch (dashboardType) {
             case RELEASED:
             case CLOSED:
             case CANCELED:
                 return getContactsObservable(dashboardType)
                         .onErrorResumeNext(refreshTokenAndRetry(getContactsObservable(dashboardType)))
                         .map(new ResponseToContacts())
-                        .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                        {
+                        .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
-                            public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                            {
+                            public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
                                 setContactsExpireTime();
                                 return Observable.just(contacts);
                             }
@@ -578,11 +510,9 @@ public class DataService
                 return getContactsObservable()
                         .onErrorResumeNext(refreshTokenAndRetry(getContactsObservable()))
                         .map(new ResponseToContacts())
-                        .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>()
-                        {
+                        .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
-                            public Observable<? extends List<Contact>> call(final List<Contact> contacts)
-                            {
+                            public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
                                 setContactsExpireTime();
                                 return Observable.just(contacts);
                             }
@@ -590,36 +520,35 @@ public class DataService
         }
     }
 
-    private Observable<Response> getContactsObservable()
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getContactsObservable() {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getDashboard(accessToken);
     }
 
-    private Observable<Response> getContactsObservable(final DashboardType dashboardType)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getContactsObservable(final DashboardType dashboardType) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getDashboard(accessToken, dashboardType.name().toLowerCase());
     }
 
-    public Observable<Advertisement> getAdvertisement(final String adId)
-    {
+    public Observable<Advertisement> getAdvertisement(final String adId) {
         Timber.d("getAdvertisement");
         return getAdvertisementObservable(adId)
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementObservable(adId)))
                 .map(new ResponseToAd());
     }
 
-    private Observable<Response> getAdvertisementObservable(final String adId)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getAdvertisementObservable(final String adId) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getAdvertisement(accessToken, adId);
     }
 
-    public Observable<List<Advertisement>> getAdvertisements(boolean force)
-    {
-        if(!needToRefreshAdvertisements() && !force) {
-            return Observable.empty();
+    public Observable<List<Advertisement>> getAdvertisements(boolean force) {
+
+        Timber.d("getAdvertisements needToRefreshAdvertisements: " + needToRefreshAdvertisements());
+        Timber.d("getAdvertisements force: " + force);
+        
+        if (!needToRefreshAdvertisements() && !force) {
+            return Observable.just(null);
         }
 
         return getAdvertisementsObservable()
@@ -627,74 +556,37 @@ public class DataService
                 .doOnNext(new Action1<Response>() {
                     @Override
                     public void call(Response response) {
+                        Timber.d("getAdvertisementsm setAdvertisementsExpireTime");
                         setAdvertisementsExpireTime();
                     }
                 })
                 .map(new ResponseToAds());
     }
 
-    private Observable<Response> getAdvertisementsObservable()
-    {
-        Timber.d("getAdvertisementsObservable");
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getAdvertisementsObservable() {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getAds(accessToken);
     }
-    
-    public Observable<JSONObject>updateAdvertisementVisibility(final Advertisement advertisement, final boolean visible)
-    {
+
+    public Observable<JSONObject> updateAdvertisementVisibility(final Advertisement advertisement, final boolean visible) {
         advertisement.visible = visible;
-        
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return updateAdvertisementObservable(advertisement, retryLimit)
-                    .map(new ResponseToJSONObject())
-                    .flatMap(new Func1<JSONObject, Observable<JSONObject>>()
-                    {
-                        @Override
-                        public Observable<JSONObject> call(JSONObject jsonObject)
-                        {
-                            return Observable.just(jsonObject);
-                        }
-                    });
-        }
-        
         return updateAdvertisementObservable(advertisement)
                 .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<JSONObject>>()
-                {
+                .flatMap(new Func1<JSONObject, Observable<JSONObject>>() {
                     @Override
-                    public Observable<JSONObject> call(JSONObject jsonObject)
-                    {
+                    public Observable<JSONObject> call(JSONObject jsonObject) {
                         return Observable.just(jsonObject);
                     }
                 });
     }
-    
-    public Observable<Boolean> deleteAdvertisement(final String adId)
-    {
-        if(AuthUtils.hasCredentialsHmac(sharedPreferences)) {
-            return deleteAdvertisementObservable(adId, retryLimit)
-                    .map(new ResponseToJSONObject())
-                    .flatMap(new Func1<JSONObject, Observable<Boolean>>()
-                    {
-                        @Override
-                        public Observable<Boolean> call(JSONObject jsonObject)
-                        {
-                            if (Parser.containsError(jsonObject)) {
-                                throw new Error("Error deleting advertisement");
-                            }
-                            return Observable.just(true);
-                        }
-                    });
-        }
-        
+
+    public Observable<Boolean> deleteAdvertisement(final String adId) {
         return deleteAdvertisementObservable(adId)
                 .onErrorResumeNext(refreshTokenAndRetry(deleteAdvertisementObservable(adId)))
                 .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<Boolean>>()
-                {
+                .flatMap(new Func1<JSONObject, Observable<Boolean>>() {
                     @Override
-                    public Observable<Boolean> call(JSONObject jsonObject)
-                    {
+                    public Observable<Boolean> call(JSONObject jsonObject) {
                         if (Parser.containsError(jsonObject)) {
                             throw new Error("Error deleting advertisement");
                         }
@@ -703,14 +595,12 @@ public class DataService
                 });
     }
 
-    private Observable<Response> deleteAdvertisementObservable(final String adId)
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> deleteAdvertisementObservable(final String adId) {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.deleteAdvertisement(accessToken, adId);
     }
 
-    public Observable<Wallet> getWallet(boolean force)
-    {
+    public Observable<Wallet> getWallet(boolean force) {
         return getWalletObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletObservable()))
                 .map(new ResponseToWallet())
@@ -737,722 +627,20 @@ public class DataService
                 });
     }
 
-    private Observable<Response> getWalletObservable()
-    {
-        final String accessToken = AuthUtils.getAccessToken(sharedPreferences);
+    private Observable<Response> getWalletObservable() {
+        final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getWallet(accessToken);
     }
-    
+
     ////  HMAC ////
     
-    private Observable<Response> createContactObservable(final String adId, final TradeType tradeType, final String countryCode,
-                                                         final String onlineProvider, final String amount, final String name,
-                                                         final String phone, final String email, final String iban, final String bic,
-                                                         final String reference, final String message, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = POST_CONTACT_CREATE + adId + "/";
-        StringBuilder params = new StringBuilder();
-        String signature;
-        
-        if (tradeType == TradeType.ONLINE_BUY) {
-            switch (onlineProvider) {
-                case TradeUtils.NATIONAL_BANK:
-                    
-                    params.append("amount=");
-                    params.append(Uri.encode(amount, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-receiver_name=");
-                    params.append(Uri.encode(name, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-iban=");
-                    params.append(Uri.encode(iban, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-swift_bic=");
-                    params.append(Uri.encode(bic, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-reference=");
-                    params.append(Uri.encode(reference, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-message=");
-                    params.append(Uri.encode(message, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-                    
-                    return localBitcoins.createContactNational(key, nonce, signature, adId, amount, name, iban, bic, reference, message)
-                            .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>()
-                            {
-                                @Override
-                                public Observable<? extends Response> call(final Throwable throwable)
-                                {
-                                    if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0) {
-                                        return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
-                                                name, phone, email, iban, bic, reference, message, retry - 1);
-                                    }
-                                    return Observable.error(throwable); // bubble up the exception
-                                }
-                            });
-                case TradeUtils.VIPPS:
-                case TradeUtils.EASYPAISA:
-                case TradeUtils.HAL_CASH:
-                case TradeUtils.QIWI:
-                case TradeUtils.SWISH:
-                    
-                    params.append("amount=");
-                    params.append(Uri.encode(amount, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-phone_number=");
-                    params.append(Uri.encode(phone, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-                    
-                    return localBitcoins.createContactQiwi(key, nonce, signature, adId, amount, phone)
-                            .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>()
-                            {
-                                @Override
-                                public Observable<? extends Response> call(final Throwable throwable)
-                                {
-                                    if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0) {
-                                        return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
-                                                name, phone, email, iban, bic, reference, message, retry - 1);
-                                    }
-                                    return Observable.error(throwable); // bubble up the exception
-                                }
-                            });
-                case TradeUtils.PAYPAL:
-                case TradeUtils.NETELLER:
-                case TradeUtils.INTERAC:
-                case TradeUtils.ALIPAY:
-                    
-                    params.append("amount=");
-                    params.append(Uri.encode(amount, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-receiver_email=");
-                    params.append(Uri.encode(email, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-                    
-                    return localBitcoins.createContactPayPal(key, nonce, signature, adId, amount, email)
-                            .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>()
-                            {
-                                @Override
-                                public Observable<? extends Response> call(final Throwable throwable)
-                                {
-                                    if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0) {
-                                        return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
-                                                name, phone, email, iban, bic, reference, message, retry - 1);
-                                    }
-                                    return Observable.error(throwable); // bubble up the exception
-                                }
-                            });
-                case TradeUtils.SEPA:
 
-                    params.append("amount=");
-                    params.append(Uri.encode(amount, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-receiver_name=");
-                    params.append(Uri.encode(name, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-iban=");
-                    params.append(Uri.encode(iban, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-swift_bic=");
-                    params.append(Uri.encode(bic, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    params.append("&details-reference=");
-                    params.append(Uri.encode(reference, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-                    signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-                    
-                    return localBitcoins.createContactSepa(key, nonce, signature, adId, amount, name, iban, bic, reference)
-                            .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>()
-                            {
-                                @Override
-                                public Observable<? extends Response> call(final Throwable throwable)
-                                {
-                                    if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0) {
-                                        return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
-                                                name, phone, email, iban, bic, reference, message, retry - 1);
-                                    }
-                                    return Observable.error(throwable); // bubble up the exception
-                                }
-                            });
-            }
-        }
-        
-        params.append("amount=");
-        params.append(Uri.encode(amount, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        params.append("&message=");
-        params.append(Uri.encode(message, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-        
-        return localBitcoins.createContact(key, nonce, signature, adId, amount, message)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
-                                    name, phone, email, iban, bic, reference, message, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
 
-    private Observable<Response> sendPinCodeMoneyObservable(final String pinCode, final String address, final String amount, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = POST_WALLET_SEND_PIN;
-
-        StringBuilder params = new StringBuilder();
-        params.append("pincode=");
-        params.append(Uri.encode(pinCode, NetworkUtils.DEFAULT_ENCODING));
-        params.append("address=");
-        params.append(Uri.encode(address, NetworkUtils.DEFAULT_ENCODING));
-        params.append("amount=");
-        params.append(Uri.encode(amount, NetworkUtils.DEFAULT_ENCODING));
-        String signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-
-        return localBitcoins.walletSendPin(key, nonce, signature, pinCode, address, amount)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return sendPinCodeMoneyObservable(pinCode, address, amount, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-
-    private Observable<Response> getWalletBalanceObservable(final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_WALLET_BALANCE;
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getWalletBalance(key, nonce, signature)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getWalletBalanceObservable(retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-
-    private Observable<Response> validatePinCodeObservable(final String pinCode, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = CHECK_PINCODE;
-
-        StringBuilder params = new StringBuilder();
-        params.append("pincode=");
-        params.append(Uri.encode(pinCode, NetworkUtils.DEFAULT_ENCODING));
-        String signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-
-        return localBitcoins.checkPinCode(key, nonce, signature, pinCode)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return validatePinCodeObservable(pinCode, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-
-    private Observable<Response> contactActionObservable(final String contactId, final String pinCode, final ContactAction action, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        switch (action) {
-            case RELEASE:
-                String releaseUrl = POST_CONTACT_RELEASE + contactId + "/";
-                StringBuilder params = new StringBuilder();
-                params.append("pincode=");
-                params.append(Uri.encode(pinCode, NetworkUtils.DEFAULT_ENCODING));
-                String releaseSignature = NetworkUtils.createSignature(releaseUrl, params.toString(), nonce, key, secret);
-                return localBitcoins.releaseContactPinCode(key, nonce, releaseSignature, contactId, pinCode)
-                        .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                            @Override
-                            public Observable<? extends Response> call(final Throwable throwable)
-                            {
-                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                                    return contactActionObservable(contactId, pinCode, action, retry - 1);
-                                }
-                                return Observable.error(throwable); // bubble up the exception
-                            }
-                        });
-
-            case CANCEL:
-                final String cancelUrl = POST_CONTACT_CANCEL + contactId + "/";
-                final String cancelSignature = NetworkUtils.createSignature(cancelUrl, nonce, key, secret);
-                return localBitcoins.contactCancel(key, nonce, cancelSignature, contactId)
-                        .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                            @Override
-                            public Observable<? extends Response> call(final Throwable throwable)
-                            {
-                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                                    return contactActionObservable(contactId, pinCode, action, retry - 1);
-                                }
-                                return Observable.error(throwable); // bubble up the exception
-                            }
-                        });
-            case DISPUTE:
-                final String disputeUrl = POST_CONTACT_DISPUTE + contactId + "/";
-                final String disputeSignature = NetworkUtils.createSignature(disputeUrl, nonce, key, secret);
-                return localBitcoins.contactDispute(key, nonce, disputeSignature, contactId)
-                        .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                            @Override
-                            public Observable<? extends Response> call(final Throwable throwable)
-                            {
-                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                                    return contactActionObservable(contactId, pinCode, action, retry - 1);
-                                }
-                                return Observable.error(throwable); // bubble up the exception
-                            }
-                        });
-            case PAID:
-                final String paidUrl = POST_CONTACT_PAID + contactId + "/";
-                final String paidSignature = NetworkUtils.createSignature(paidUrl, nonce, key, secret);
-                return localBitcoins.markAsPaid(key, nonce, paidSignature, contactId)
-                        .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                            @Override
-                            public Observable<? extends Response> call(final Throwable throwable)
-                            {
-                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                                    return contactActionObservable(contactId, pinCode, action, retry - 1);
-                                }
-                                return Observable.error(throwable); // bubble up the exception
-                            }
-                        });
-            case FUND:
-                final String fundUrl = POST_CONTACT_FUND + contactId + "/";
-                final String fundSignature = NetworkUtils.createSignature(fundUrl, nonce, key, secret);
-                return localBitcoins.contactFund(key, nonce, fundSignature, contactId)
-                        .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                            @Override
-                            public Observable<? extends Response> call(final Throwable throwable)
-                            {
-                                if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                                    return contactActionObservable(contactId, pinCode, action, retry - 1);
-                                }
-                                return Observable.error(throwable); // bubble up the exception
-                            }
-                        });
-        }
-
-        return Observable.error(new Error("Unable to perform action on contact"));
-    }
-
-    private Observable<Response> updateAdvertisementObservable(final Advertisement advertisement, final int retry)
-    {
-        final String city;
-        if(Strings.isBlank(advertisement.city)){
-            city = advertisement.location;
-        } else {
-            city = advertisement.city;
-        }
-
-        StringBuilder params = new StringBuilder();
-        params.append("min_amount=");
-        params.append(Uri.encode(advertisement.min_amount, NetworkUtils.DEFAULT_ENCODING));
-
-        params.append("&max_amount=");
-        params.append(Uri.encode(advertisement.max_amount, NetworkUtils.DEFAULT_ENCODING));
-        
-        if(!Strings.isBlank(advertisement.account_info)) {
-            params.append("account_info=");
-            params.append(Uri.encode(advertisement.account_info, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.account_info = null;
-        }
-        
-        if(!Strings.isBlank(advertisement.bank_name)) {
-            params.append("&bank_name=");
-            params.append(Uri.encode(advertisement.bank_name, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.bank_name = null;
-        }
-        
-        if(!Strings.isBlank(advertisement.city)) {
-            params.append("&city=");
-            params.append(Uri.encode(city, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        }else {
-            advertisement.city = null;
-        }
-
-        if(!Strings.isBlank(advertisement.location)) {
-            params.append("&location_string=");
-            params.append(Uri.encode(advertisement.location, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.location = null;
-        }
-        
-        params.append("&countrycode=");
-        params.append(Uri.encode(advertisement.country_code, NetworkUtils.DEFAULT_ENCODING));
-        params.append("&currency=");
-        params.append(Uri.encode(advertisement.currency, NetworkUtils.DEFAULT_ENCODING));
-        params.append("&lat=");
-        params.append(Uri.encode(String.valueOf(advertisement.lat), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&lon=");
-        params.append(Uri.encode(String.valueOf(advertisement.lon), NetworkUtils.DEFAULT_ENCODING));
-        
-        if(!Strings.isBlank(advertisement.message)) {
-            params.append("&msg=");
-            params.append(Uri.encode(advertisement.message, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.message = null;
-        }
-        
-        params.append("&price_equation=");
-        params.append(Uri.encode(advertisement.price_equation, NetworkUtils.DEFAULT_ENCODING));
-        params.append("&require_trusted_by_advertiser=");
-        params.append(Uri.encode(String.valueOf(advertisement.trusted_required), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&sms_verification_required=");
-        params.append(Uri.encode(String.valueOf(advertisement.sms_verification_required), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&track_max_amount=");
-        params.append(Uri.encode(String.valueOf(advertisement.track_max_amount), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&visible=");
-        params.append(Uri.encode(String.valueOf(advertisement.visible), NetworkUtils.DEFAULT_ENCODING));
-        
-        Timber.d("Params: " + params.toString());
-        
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = UPDATE_AD + advertisement.ad_id + "/";
-        String signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-        return localBitcoins.updateAdvertisement(
-                key, nonce, signature, 
-                advertisement.ad_id,
-                advertisement.min_amount,
-                advertisement.max_amount,
-                advertisement.account_info, 
-                advertisement.bank_name, 
-                city,
-                advertisement.location,
-                advertisement.country_code, 
-                advertisement.currency,
-                String.valueOf(advertisement.lat),
-                String.valueOf(advertisement.lon),
-                advertisement.message, advertisement.price_equation, 
-                String.valueOf(advertisement.trusted_required), 
-                String.valueOf(advertisement.sms_verification_required),
-                String.valueOf(advertisement.track_max_amount), 
-                String.valueOf(advertisement.visible))
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return updateAdvertisementObservable(advertisement, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-
-    private Observable<Response> createAdvertisementObservable(final Advertisement advertisement, final int retry)
-    {
-        final String city;
-        if(Strings.isBlank(advertisement.city)){
-            city = advertisement.location;
-        } else {
-            city = advertisement.city;
-        }
-
-        StringBuilder params = new StringBuilder();
-        params.append("min_amount=");
-        params.append(Uri.encode(advertisement.min_amount, NetworkUtils.DEFAULT_ENCODING));
-        params.append("&max_amount=");
-        params.append(Uri.encode(advertisement.max_amount, NetworkUtils.DEFAULT_ENCODING));
-        params.append("&price_equation=");
-        params.append(Uri.encode(advertisement.price_equation, NetworkUtils.DEFAULT_ENCODING));
-        params.append("&trade_type=");
-        params.append(Uri.encode(advertisement.trade_type.name(), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&online_provider=");
-        params.append(Uri.encode(advertisement.online_provider, NetworkUtils.DEFAULT_ENCODING));
-        params.append("&lat=");
-        params.append(Uri.encode(String.valueOf(advertisement.lat), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&lon=");
-        params.append(Uri.encode(String.valueOf(advertisement.lon), NetworkUtils.DEFAULT_ENCODING));
-        
-        if(!Strings.isBlank(city)) {
-            params.append("&city=");
-            params.append(Uri.encode(city, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.city = null;
-        }
-        
-        if(!Strings.isBlank(advertisement.location)) {
-            params.append("&location_string=");
-            params.append(Uri.encode(advertisement.location, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.location = null;
-        }
-        
-        params.append("&countrycode=");
-        params.append(Uri.encode(advertisement.country_code, NetworkUtils.DEFAULT_ENCODING));
-        
-        if(!Strings.isBlank(advertisement.account_info)) {
-            params.append("&account_info=");
-            params.append(Uri.encode(advertisement.account_info, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        }  else {
-            advertisement.account_info = null;
-        }
-        
-        if(!Strings.isBlank(advertisement.bank_name)) {
-            params.append("&bank_name=");
-            params.append(Uri.encode(advertisement.bank_name, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.bank_name = null;
-        }
-        
-        params.append("&require_trusted_by_advertiser=");
-        params.append(Uri.encode(String.valueOf(advertisement.trusted_required), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&sms_verification_required=");
-        params.append(Uri.encode(String.valueOf(advertisement.sms_verification_required), NetworkUtils.DEFAULT_ENCODING));
-        params.append("&track_max_amount=");
-        params.append(Uri.encode(String.valueOf(advertisement.track_max_amount), NetworkUtils.DEFAULT_ENCODING));
-        
-        if(!Strings.isBlank(advertisement.message)) {
-            params.append("&msg=");
-            params.append(Uri.encode(advertisement.message, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        } else {
-            advertisement.message = null;
-        }
-        
-        params.append("&currency=");
-        params.append(Uri.encode(advertisement.currency, NetworkUtils.DEFAULT_ENCODING));
-        
-        Timber.d("Params: " + params.toString());
-        
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = POST_AD_CREATE;
-        String signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-        
-        return localBitcoins.createAdvertisement(key, nonce, signature, 
-                advertisement.min_amount,
-                advertisement.max_amount, 
-                advertisement.price_equation, 
-                advertisement.trade_type.name(), 
-                advertisement.online_provider,
-                String.valueOf(advertisement.lat), 
-                String.valueOf(advertisement.lon),
-                city,
-                advertisement.location, 
-                advertisement.country_code,
-                advertisement.account_info, 
-                advertisement.bank_name,
-                String.valueOf(advertisement.trusted_required),
-                String.valueOf(advertisement.sms_verification_required), 
-                String.valueOf(advertisement.track_max_amount),
-                advertisement.message, 
-                advertisement.currency)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return createAdvertisementObservable(advertisement, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-    
-    private Observable<Response> postMessageObservable(final String contact_id, final String message, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = POST_CONTACT_MESSAGE + contact_id + "/";
-
-        StringBuilder params = new StringBuilder();
-        params.append("msg=");
-        params.append(Uri.encode(message, NetworkUtils.DEFAULT_ENCODING).replace("'", "%27").replace("%20", "+"));
-        String signature = NetworkUtils.createSignature(url, params.toString(), nonce, key, secret);
-
-        return localBitcoins.contactMessagePost(key, nonce, signature, contact_id, message)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return postMessageObservable(contact_id, message, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-
-    public Observable<User> getMyself(String key, String nonce, String signature)
-    {
-        return localBitcoins.getMyself(key, nonce, signature)
-                .map(new ResponseToUser());
-    }
-
-    private Observable<Response> getContactObservable(final String contact_id, final int retry)
-    {
-        Timber.d("getContactObservable: " + contact_id);
-
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_CONTACT + contact_id + "/";
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getContact(key, nonce, signature, contact_id)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getContactObservable(contact_id, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-    
-    private Observable<Response> getRecentMessagesObservable(final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_RECENT_MESSAGES;
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.recentMessages(key, nonce, signature)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getRecentMessagesObservable(retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-
-    private Observable<Response> getContactMessagesObservable(final String contact_id, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_CONTACT_MESSAGES + contact_id + "/";
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.contactMessages(key, nonce, signature, contact_id)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getContactMessagesObservable(contact_id, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-    
-    private Observable<Response> getContactsObservable(final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_DASHBOARD;
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-        return localBitcoins.getDashboard(key, nonce, signature)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getContactsObservable(retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-
-    }
-
-    private Observable<Response> getContactsObservable(final DashboardType dashboardType, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_DASHBOARD + dashboardType.name().toLowerCase() + "/";
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getDashboard(key, nonce, signature, dashboardType.name().toLowerCase())
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getContactsObservable(dashboardType, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-
-    private Observable<Response> getAdvertisementObservable(final String adId, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = GET_AD + adId + "/";
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.getAdvertisement(key, nonce, signature, adId)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return getAdvertisementObservable(adId, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-    
-    private Observable<Response> deleteAdvertisementObservable(final String adId, final int retry)
-    {
-        final String key = AuthUtils.getHmacKey(sharedPreferences);
-        final String secret = AuthUtils.getHmacSecret(sharedPreferences);
-        final String nonce = NetworkUtils.generateNonce();
-        final String url = DELETE_AD + adId + "/";
-        final String signature = NetworkUtils.createSignature(url, nonce, key, secret);
-
-        return localBitcoins.deleteAdvertisement(key, nonce, signature, adId)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(final Throwable throwable)
-                    {
-                        if ((DataServiceUtils.isHttp41Error(throwable) || DataServiceUtils.isHttp42Error(throwable)) && retry > 0)  {
-                            return deleteAdvertisementObservable(adId, retry - 1);
-                        }
-                        return Observable.error(throwable); // bubble up the exception
-                    }
-                });
-    }
-    
     private Observable<Wallet> getWalletBitmap(final Wallet wallet) {
         return generateBitmap(wallet.address)
-                .map(new Func1<Bitmap, Wallet>()
-                {
+                .map(new Func1<Bitmap, Wallet>() {
                     @Override
-                    public Wallet call(Bitmap bitmap)
-                    {
+                    public Wallet call(Bitmap bitmap) {
                         wallet.qrImage = bitmap;
                         return wallet;
                     }
@@ -1462,8 +650,7 @@ public class DataService
     private Observable<Bitmap> generateBitmap(final String address) {
         return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
-            public void call(Subscriber<? super Bitmap> subscriber)
-            {
+            public void call(Subscriber<? super Bitmap> subscriber) {
                 try {
                     subscriber.onNext(WalletUtils.encodeAsBitmap(address, baseApplication.getApplicationContext()));
                     subscriber.onCompleted();
@@ -1475,10 +662,9 @@ public class DataService
     }
 
     public Observable<List<Method>> getMethods() {
-        if(!needToRefreshMethods()) {
-            return Observable.empty();
+        if (!needToRefreshMethods()) {
+            return Observable.just(null);
         }
-        
         return localBitcoins.getOnlineProviders()
                 .doOnNext(new Action1<Response>() {
                     @Override
@@ -1488,78 +674,65 @@ public class DataService
                 })
                 .map(new ResponseToMethod());
     }
-   
+
     private void resetContactsExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME);
-            preference.delete();
-        }
+        preference.removePreference(PREFS_CONTACTS_EXPIRE_TIME);
     }
 
     private void setContactsExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_CONTACTS_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + CHECK_CONTACTS_DATA; // 1 hours
-            preference.set(expire);
-        }
-    }
-   
-    private boolean needToRefreshAdvertisements() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
-            return System.currentTimeMillis() >= preference.get();
-        }
+        long expire = System.currentTimeMillis() + CHECK_CONTACTS_DATA; // 1 hours
+        preference.putLong(PREFS_CONTACTS_EXPIRE_TIME, expire);
     }
 
     private void resetExchangeExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_EXCHANGE_EXPIRE_TIME);
-            preference.delete();
-        }
+        preference.removePreference(PREFS_EXCHANGE_EXPIRE_TIME);
     }
 
-    private boolean needToRefreshMethods() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME, -1);
-            return System.currentTimeMillis() >= preference.get();
-        }
+    public boolean needToRefreshMethods() {
+        return System.currentTimeMillis() > preference.getLong(PREFS_METHODS_EXPIRE_TIME, -1);
     }
 
-    private void resetMethodsExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME);
-            preference.delete();
-        }
+    public void resetMethodsExpireTime() {
+        preference.removePreference(PREFS_METHODS_EXPIRE_TIME);
     }
 
     private void setMethodsExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_METHODS_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + CHECK_METHODS_DATA; // 1 hours
-            preference.set(expire);
-        }
+        long expire = System.currentTimeMillis() + CHECK_METHODS_DATA; // 1 hours
+        preference.putLong(PREFS_METHODS_EXPIRE_TIME, expire);
+    }
+
+    private boolean needToRefreshCurrency() {
+        return System.currentTimeMillis() > preference.getLong(PREFS_CURRENCY_EXPIRE_TIME, -1);
+    }
+
+    private void setCurrencyExpireTime() {
+        long expire = System.currentTimeMillis() + CHECK_CURRENCY_DATA; // 1 hours
+        preference.putLong(PREFS_CURRENCY_EXPIRE_TIME, expire);
     }
 
     private void resetAdvertisementsExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME);
-            preference.delete();
-        }
+        preference.removePreference(PREFS_ADVERTISEMENT_EXPIRE_TIME);
+    }
+
+    private boolean needToRefreshContacts() {
+        return System.currentTimeMillis() > preference.getLong(PREFS_CONTACTS_EXPIRE_TIME, -1);
+    }
+
+    private boolean needToRefreshAdvertisements() {
+        return System.currentTimeMillis() > preference.getLong(PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
     }
 
     private void setAdvertisementsExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + CHECK_ADVERTISEMENT_DATA; // 1 hours
-            preference.set(expire);
-        }
+        long expire = System.currentTimeMillis() + CHECK_ADVERTISEMENT_DATA; // 1 hour
+        preference.putLong(PREFS_ADVERTISEMENT_EXPIRE_TIME, expire);
     }
-    
+
+    private boolean needToRefreshWallet() {
+        return System.currentTimeMillis() > preference.getLong(PREFS_WALLET_EXPIRE_TIME, -1);
+    }
+
     private void setWalletExpireTime() {
-        synchronized (this) {
-            LongPreference preference = new LongPreference(sharedPreferences, PREFS_WALLET_EXPIRE_TIME, -1);
-            long expire = System.currentTimeMillis() + CHECK_WALLET_DATA; // 1 hours
-            preference.set(expire);
-        }
+        long expire = System.currentTimeMillis() + CHECK_WALLET_DATA; // 1 hours
+        preference.putLong(PREFS_WALLET_EXPIRE_TIME, expire);
     }
 }

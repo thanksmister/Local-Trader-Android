@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.utils;
 
 import android.content.Context;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -150,5 +151,10 @@ public class NetworkUtils
         isConnected = (networkInfo != null && networkInfo.isConnectedOrConnecting());
 
         return isConnected;
+    }
+    
+    public static boolean hasLocationServices(LocationManager locationManager) {
+        return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
     }
 }

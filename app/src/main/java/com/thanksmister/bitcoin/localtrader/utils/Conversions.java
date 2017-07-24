@@ -166,7 +166,7 @@ public class Conversions
             e.printStackTrace();
         }
         
-        return null;
+        return "";
     }
     
     public static Double convertToDouble(String value)

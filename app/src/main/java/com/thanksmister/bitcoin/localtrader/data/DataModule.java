@@ -32,6 +32,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import dpreference.DPreference;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -41,30 +42,33 @@ import static android.content.Context.MODE_PRIVATE;
         complete = false,
         library = true
 )
-public final class DataModule
-{
+public final class DataModule {
     static final int DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
+
 
     @Provides
     @Singleton
-    SharedPreferences provideSharedPreferences(BaseApplication app)
-    {
+    SharedPreferences provideSharedPreferences(BaseApplication app) {
         return app.getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
     }
 
     @Provides
     @Singleton
-    ExchangeService provideExchangeService(SharedPreferences preferences, Coinbase coinbase)
-    {
-        return new ExchangeService(preferences, coinbase);
+    DPreference providePreferences(BaseApplication app) {
+        return new DPreference(app.getApplicationContext(), "LocalTraderPref");
     }
-    
+
     @Provides
     @Singleton
-    OkHttpClient provideOkHttpClient(BaseApplication app)
-    {
+    ExchangeService provideExchangeService(SharedPreferences preferences, Coinbase coinbase) {
+        return new ExchangeService(preferences, coinbase);
+    }
+
+    @Provides
+    @Singleton
+    OkHttpClient provideOkHttpClient(BaseApplication app) {
         OkHttpClient client = new OkHttpClient();
-        if(BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             //client.networkInterceptors().add(new StethoInterceptor()); 
         }
         // Install an HTTP cache in the application cache directory.

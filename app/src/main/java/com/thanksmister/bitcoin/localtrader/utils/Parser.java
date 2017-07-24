@@ -351,31 +351,79 @@ public class Parser
                 item.is_funded = true;
             }
 
-            if (data.has("payment_completed_at") && !data.isNull("payment_completed_at"))
+            if (data.has("payment_completed_at") && !data.isNull("payment_completed_at")) {
                 item.payment_completed_at = (data.getString("payment_completed_at"));
-
-            if (data.has("currency")) item.currency = (data.getString("currency"));
-            if (data.has("exchange_rate_updated_at"))
+            }
+            
+            if (data.has("currency")){
+                item.currency = data.getString("currency");
+            }
+            
+            if (data.has("exchange_rate_updated_at")) {
                 item.exchange_rate_updated_at = (data.getString("exchange_rate_updated_at"));
-            if (data.has("reference_code")) item.reference_code = (data.getString("reference_code"));
+            }
+            if (data.has("reference_code")) {
+                item.reference_code = (data.getString("reference_code"));
+            }
 
             if (!data.isNull("account_details") && data.has("account_details")) {
+                
                 JSONObject account_details = data.getJSONObject("account_details");
-                if (account_details.has("receiver_name"))
-                    item.account_details.receiver_name = (account_details.getString("receiver_name"));
-                if (account_details.has("email"))
-                    item.account_details.email = (account_details.getString("email"));
-                if (account_details.has("iban")) item.account_details.iban = (account_details.getString("iban"));
-                if (account_details.has("swift_bic"))
-                    item.account_details.swift_bic = (account_details.getString("swift_bic"));
-                if (account_details.has("reference"))
-                    item.account_details.reference = (account_details.getString("reference"));
+                
+                if (account_details.has("receiver_name")) {
+                    item.account_details.receiver_name = account_details.getString("receiver_name");
+                }
+                
+                if (account_details.has("receiver_email")) {
+                    item.account_details.receiver_email = account_details.getString("receiver_email");
+                }
+                
+                if (account_details.has("iban")) {
+                    item.account_details.iban = account_details.getString("iban");
+                }
+                
+                if (account_details.has("swift_bic")) {
+                    item.account_details.swift_bic = account_details.getString("swift_bic");
+                }
+                
+                if (account_details.has("reference")) {
+                    item.account_details.reference = account_details.getString("reference");
+                }
+
+                if (account_details.has("ethereum_address")) {
+                    item.account_details.ethereum_address = account_details.getString("ethereum_address");
+                }
+
+                if (account_details.has("phone_number")) {
+                    item.account_details.phone_number = account_details.getString("phone_number");
+                }
+                
+                if (account_details.has("bsb")) {
+                    item.account_details.bsb = account_details.getString("bsb");
+                }
+                
+                if (account_details.has("biller_code")) {
+                    item.account_details.biller_code = account_details.getString("biller_code");
+                }
+                
+                if (account_details.has("account_number")) {
+                    item.account_details.account_number = account_details.getString("account_number");
+                }
+                
+                if (account_details.has("sort_code")) {
+                    item.account_details.sort_code = account_details.getString("sort_code");
+                }
             }
 
             JSONObject advertisement = data.getJSONObject("advertisement");
-            if (advertisement.has("id")) item.advertisement.id = (advertisement.getString("id"));
-            if (advertisement.has("payment_method"))
+            if (advertisement.has("id")) {
+                item.advertisement.id = (advertisement.getString("id"));
+            }
+            
+            if (advertisement.has("payment_method")) {
                 item.advertisement.payment_method = (advertisement.getString("payment_method"));
+            }
+            
             if (advertisement.has("trade_type")) {
                 String trade_type = advertisement.getString("trade_type");
                 item.advertisement.trade_type = (TradeType.valueOf(trade_type));

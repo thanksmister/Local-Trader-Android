@@ -23,5 +23,15 @@
           android:title="@string/menu_action_paste"
           android:icon="@drawable/ic_action_content_paste"
           thanksmister:showAsAction="ifRoom"/>
+    
+    <item android:id="@+id/action_share"
+          android:title="@string/menu_action_share"
+          android:icon="@drawable/ic_action_social_share"
+          thanksmister:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/action_blockchain"
+          android:title="@string/menu_action_blockchain"
+          android:icon="@drawable/ic_action_block_chain"
+          thanksmister:showAsAction="never"/>
 
 </menu>

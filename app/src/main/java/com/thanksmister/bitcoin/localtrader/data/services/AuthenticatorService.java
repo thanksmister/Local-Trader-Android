@@ -29,7 +29,7 @@ import android.os.IBinder;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.thanksmister.bitcoin.localtrader.ui.MainActivity;
+import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 

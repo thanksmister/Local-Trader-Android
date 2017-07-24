@@ -17,12 +17,14 @@
 
 <resources>
 
-    <string name="app_name">Local Trader</string>
+    <string name="app_name" translatable="false">Local Trader</string>
 
-    <string name="desc">""</string>
-    <string name="btc">BTC</string>
-    <string name="btc_symbol">฿</string>
-    <string name="usd">USD</string>
+    <string name="desc" translatable="false">""</string>
+    <string name="btc" translatable="false">BTC</string>
+    <string name="btc_symbol" translatable="false">฿</string>
+    <string name="usd" translatable="false">USD</string>
+    <string name="eth" translatable="false">ETH</string>
+    <string name="error_title">Error</string>
 
     <!-- ERRORS & WARNINGS -->
     <string name="warning_no_location_active">Location services are required to use the search function, please enable location services to continue.</string>
@@ -42,14 +44,14 @@
     <!-- DRAWER -->
 
     <string name="view_title_advertisements">Advertisements</string>
-    <string name="view_title_search">Search Advertisers</string>
+    <string name="view_title_search">Search</string>
     <string name="view_title_trades">Trades</string>
     <string name="view_title_notifications">Notifications</string>
     <string name="view_title_dashboard">Dashboard</string>
-    <string name="view_title_wallet">My Wallet</string>
-    <string name="view_title_buy_sell">Search Advertisers</string>
-    <string name="view_title_request">Request Payment</string>
-    <string name="view_title_send">Send Payment</string>
+    <string name="view_title_wallet">Wallet</string>
+    <string name="view_title_buy_sell">Search</string>
+    <string name="view_title_request">Receive</string>
+    <string name="view_title_send">Send</string>
     <string name="view_title_about">About</string>
     <string name="view_title_settings">Settings</string>
 
@@ -94,26 +96,14 @@
     </array>
 
     <!-- LOGIN/REGISTER -->
-    <string-array name="login_registration_titles">
-        <item>@string/login_register_title0</item>
-        <item>@string/login_register_title0</item>
-        <item>@string/login_register_title0</item>
-    </string-array>
-    <string-array name="login_registration_screens_summary">
-        <item>Register account</item>
-        <item>Setup authentication</item>
-        <item>Create PIN code</item>
-    </string-array>
 
     <string-array name="login_registration_screens_description">
-        <item><![CDATA[Local Trader works with your <b>LocalBitcoins account</b> to create and update advertisements, manage trades, release or fund trades, send and receive messages, or to handle payments.<br><br>If you need an account, please register for one at <a href=\'https://localbitcoins.com/?ch=2hbo\'>LocalBitcoins.com</a> or use the mirror site <a href=\"https://localbitcoins.net/?ch=2hbo\">localbitcoins.net</a> for blocked regions.]]></item>
-        <item><![CDATA[Local Trader uses <b>Oauth2 authentication</b> for LocalBitcoins services. For authentication you will be taken to the LocalBitcoins website where you will need to authenticate as you would when logging into LocalBitcoins. Upon successful authentication you will be returned to the Local Trader application.<br><br>Local Trader request permissions for read, write and money_pin during authentication, money_pin only allows you to send money using your LocalBitcions PIN code.]]></item>
-        <item><![CDATA[A <b>PIN code</b> is required to send Bitcoin from your wallet, fund trades, or release trades. You created a <b>PIN code</b> as part of the LocalBitcoins registration.<br><br>The <b>PIN code</b> is not the same as your 2-Factor Authentication (2FA).  View or manage your PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo\">localbitcoins.net</a> for blocked regions.]]></item>
+        <item><![CDATA[Local Trader works with your <b>LocalBitcoins account</b> to manage trades, advertisements, send messages, or to handle payments.]]></item>
+        <item><![CDATA[Local Trader uses <b>Oauth2 authentication</b> through the LocalBitcoins website, your credentials are never stored in the application.]]></item>
+        <item><![CDATA[A <b>PIN code</b> (not 2FA) is required to send Bitcoin, fund or release trades. Manage PIN code from your <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>LocalBitcoins Profile</a> page]]></item>
     </string-array>
 
-    <string name="login_register_title0">@string/app_name</string>
     <string name="login_authorizing">Authenticating…</string>
-    <string name="setup_form_error">Please enter a valid key and secret.</string>
 
     <!-- TRADES -->
     <string name="contact_fund_confirm">Are you sure you want to fund this trade?</string>
@@ -125,7 +115,6 @@
     <string name="contact_list_buying_online"><![CDATA[Buying online for <b>%1$s</b> using <b>%2$s</b> initiated on %3$s]]></string>
     <string name="contact_list_buying_locally"><![CDATA[Buying locally for <b>%1$s</b> initiated on %2$s]]></string>
     <string name="trade_request_title">Enter %1$s or BTC amount</string>
-    <string name="trade_request_limit">MIN %1$s - MAX %2$s %3$s</string>
     <string name="order_description_not_funded_local">This trade has not yet been funded. The seller should fund the trade.</string>
     <string name="order_description_funded_local">This trade has been funded. Now you can meet to make the exchange.</string>
     <string name="order_description_paid">This trade has been marked as paid and is awaiting the release of funds.</string>
@@ -135,10 +124,10 @@
     <string name="order_description_disputed">This trade has been disputed but can still be released.</string>
     <string name="order_description_released">This trade has been released and is complete.</string>
     <string name="order_description_cancel">This trade has either timed out or been canceled.</string>
+    <string name="order_description_closed">This trade has been closed and is no longer active.</string>
     <string name="order_description_cancel_local">This trade has been canceled.</string>
     <string name="trade_released_toast_text">Trade released!</string>
     <string name="trade_canceled_toast_text">Trade canceled!</string>
-    <string name="toast_message_sent">Message sent!</string>
     <string name="message_clipboard_title">Message</string>
     <string name="message_copied_toast">Message copied to clipboard!</string>
     <string name="message_copied_attachment_toast">Message copied to clipboard and downloading attachment!</string>
@@ -151,10 +140,10 @@
     <string name="advertisement_invisible_warning">This advertisement is not currently running, update the visibility from the menu.</string>
     <string name="price_equation_edit_description">Price equation is derived by combining the bitcoin market price, currency, and margin value. For more complex pricing edit price equation directly. See localbitcoins.com/guides/equation-howto/</string>
     <string name="ad_status_edit_description">Check to make advertisement active, uncheck to make inactive.</string>
-    <string name="advertisement_track_liquidity">Decreases max request amount as trades are filled to match remaining balance.</string>
+    <string name="advertisement_track_liquidity">Track liquidity</string>
     <string name="advertisement_sms_verified">Only contacts with a verified mobile phone number can contact you.</string>
-    <string name="advertisement_trusted_only">Advertisement becomes trusted only. See more localbitcoins.com/faq#trusted_users</string>
-    <string name="advertisement_payment_details">If necessary, please provide details how to transfer money. This is either bank account number for wire transfers or user account for money transfer websites.</string>
+    <string name="advertisement_trusted_only">Restrict your advertisement to be shown only to users that you have marked as Trusted. Learn how to mark users as trusted here localbitcoins.com/faq#trusted_users</string>
+    <string name="advertisement_payment_details">Optional. If necessary, please provide details how to transfer money. This is either bank account number for wire transfers or user account for money transfer websites.</string>
     <string name="advertisement_bank">Bank/payment provider name/code. For international wire transfers, please specify bank SWIFT / BIC code</string>
     <string name="advertisement_payment_method">Each payment method has an associated risk level. See risk assessments online at localbitcoins.com/guides/how-to-sell-bitcoins-online#risk-level.</string>
     <string name="advertisement_notes_text_online"><![CDATA[%1$s for <b>%2$s</b> using <b>%3$s</b> in <b>%4$s</b>]]></string>
@@ -195,16 +184,12 @@
 
     <!-- SEND/RECEIVE -->
     <string name="hint_bitcoin_address">Bitcoin address</string>
-    <string name="form_balance_label">Balance:</string>
-    <string name="form_sendable_label">This is the maximum amount you can send minus fees.</string>
+    <string name="form_sendable_label">The sendable amount is the maximum amount you can send minus fees.</string>
     <string name="hint_amount">0.00</string>
     <string name="hint_bitcoin">0.00000000</string>
-
     <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
     <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s BTC / %2$s %3$s</font>]]></string>
-    
     <string name="pin_code_send"><![CDATA[A PIN code is required to release, fund send bitcoin. More info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
-
     <string name="toast_transaction_success">Bitcoins sent!</string>
     <string name="progress_sending_transaction">Sending bitcoins…</string>
     <string name="toast_pin_code_canceled">PIN code canceled</string>
@@ -216,6 +201,20 @@
     <string name="toast_invalid_amount">Not a valid bitcoin amount.</string>
     <string name="toast_clipboard_empty">The contents of the clipboard are empty.</string>
     <string name="toast_error_message">Error sending message.</string>
+    <string name="toast_refreshing_data">Refreshing data…</string>
+    <string name="toast_valid_address_required">A valid address is required.</string>
+    <string name="toast_missing_phone_number">Phone number must not be blank.</string>
+    <string name="toast_price_equation_blank">Price equation can\'t be blank.</string>
+    <string name="toast_minimum_amount">Enter a valid minimum amount.</string>
+    <string name="toast_maximum_amount">Enter a valid maximum amount.</string>
+    <string name="toast_error_visibility_update">Error updating visibility!</string>
+    <string name="toast_update_visibility">Visibility updated!</string>
+    <string name="toast_error_updat_advertisement">Error updating advertisement…</string>
+    <string name="toast_error_contact_data">Error retrieving contact data…</string>
+    <string name="toast_message_canceled">Message canceled…</string>
+    <string name="toast_error_advertisement_data">Unable to retrieve advertisement data.</string>
+    <string name="toast_no_activity_for_maps">There is no activity to handle this action (no maps).</string>
+    <string name="toast_advertisement_deleted">Advertisement deleted!</string>
 
     <!-- Search -->
     <string name="trade_limit"><![CDATA[%1$s - %2$s %3$s]]></string>
@@ -258,7 +257,7 @@
 
     <string name="mail_to_subject_text">Local Trader Feedback</string>
     <string name="mail_subject_text">Send Feedback:</string>
-        <string name="license"><![CDATA[
+    <string name="license" translatable="false"><![CDATA[
         <br><b>Copyright 2015 ThanksMister LLC</b><br>
         <br>
         This application contains open source libraries under the Apache License, Version 2.0 (the "License");
@@ -273,8 +272,7 @@
         See the License for the specific language governing permissions and
         limitations under the License.
     ]]></string>
-    <string name="error_no_play_services">No Google Play Services</string>
-    <string name="error_unable_load_address">Unable to use the address lookup service, user current location or enter coordinates manually using the menu options.</string>
+    
     <string name="error_unable_load_address_edit">Unable to use the address lookup service, user current location.</string>
     <string name="error_no_trade_data">There are no trades.</string>
     <string name="dialog_logout_title">Logout</string>
@@ -284,6 +282,7 @@
     <string name="share_using">Share using:</string>
     <string name="error_invalid_credentials">The authentication failed, please check that you have the correct credentials.</string>
     <string name="message_advertisement_changed">Advertisement changed successfully!</string>
+    <string name="message_advertisement_created">Advertisement created successfully!</string>
     <string name="button_search_trades">Search</string>
     <string name="dialog_send_message">Sending message…</string>
 
@@ -316,6 +315,7 @@
     <string name="error_device_softare_description">This device has an outdated version of the Android OS (4.2.2), a software update is required for this application to work properly.</string>
     <string name="error_device_title">Device Error</string>
     <string name="wallet_account_balance">ACCOUNT BALANCE</string>
+    <string name="text_account_balance">Sendable amount:</string>
     <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
     <string name="alert_permission_required">Permission Required</string>
     <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
@@ -326,7 +326,6 @@
     <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
     <string name="button_authenticate">Authenticate</string>
     <string name="trade_request_description"><![CDATA[All fields are required unless otherwise marked as optional. Please see <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">the online buying guide</a> for requirements by payment type.]]></string>
-    <string name="error_dialog_bad_address">That address is invalid, enter a different address (like just country or city), use your current location or manually enter the coordinates using the menu options</string>
     <string name="error_dialog_no_address_edit">That address is invalid, enter a different address (like just country or city) or use current location.</string>
     <string name="toast_error_no_installed_ativity">There is no installed application to handle the request.</string>
     <string name="pin_code_trade"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page.]]></string>
@@ -339,17 +338,13 @@
     <string name="toast_edit_ad_canceled">Advertisement update canceled…</string>
     <string name="dialog_progress_location">Getting location…</string>
     <string name="form_fiat_amount">Fiat Amount</string>
+    <string name="form_eth_amount">Ethereum Amount</string>
     <string name="button_create_request">Create Request</string>
     <string name="form_trade_amount">Trade Amount</string>
     <string name="menu_get_device_location">Get Device Location</string>
-    <string name="menu_latitude_and_longitude">Latitude and Longitude</string>
-    <string name="text_lat_lon_instructions">Open Google Maps in your mobile web browser, search for city or address. Notice in the web address the lat/lon which looks like \'@52.3745291,4.758532\'. The first part after the @ is the latitude (52.3745291), the second part after the comma ( , ) is the longitude (4.758532).</string>
     <string name="text_local_search_instructions">Local searches require a latitude/longitude. Either use device location, enter a country, city or address, or enter a latitude/longitude. Search for \"latitude and longitude from google maps\" to find out more.</string>
-    <string name="dialog_search_error">Search Error</string>
+    <string name="text_location_edit_instructions">New advertisements require a latitude/longitude. Either use device location, enter a country, city or address</string>
     <string name="toast_search_canceled">Search canceled…</string>
-    <string name="dialog_address_error">Address Error</string>
-    <string name="error_valid_address">Please enter a valid address.</string>
-    <string name="error_unable_load_currencies">Unable to load currencies, using default…</string>
     <string name="error_unable_load_payment_methods">Unable to load online payment methods.</string>
     <string name="toast_loading_methods">Error getting methods…</string>
 
@@ -847,6 +842,134 @@
         <item>Zimbabwe</item>
     </string-array>
 
+    <!-- What's New -->
     <string name="whats_new_message"><![CDATA[* Updated search to include different online and local options.<br><br>* Fixed a crash when displaying alert under certain conditions.<br><br>* Fixed a crash when editing an advertisement without previously have an address set.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
+    
+    <string name="hint_enter_county_city_or_address">Enter County, City or Address</string>
+    <string name="text_payment_method">Payment method</string>
+    <string name="text_new_post_canceled">New advertisement canceled</string>
+    <string name="text_post_update_canceled">Advertisement update canceled</string>
+    <string name="error_address_title">Address Error</string>
+    <string name="error_location_title">Location Error</string>
+    <string name="error_location_message">Location manager could not use the available provider, your location could not be determined</string>
+    <string name="menu_get_location">Get Device Location</string>
+    <string name="text_advertisement_status">Status</string>
+    <string name="dialog_loading">Loading…</string>
+    <string name="button_previous">Previous</string>
+    <string name="button_next">Next</string>
+    <string name="text_i_want_to">I want to…</string>
+    <string name="text_method_name_all">All</string>
+    <string name="text_currency">Currency</string>
+    <string name="text_currency_description">Changes displayed advertisement price to selected currency and updates price equation.</string>
+    <string name="text_price_equation">Price Equation</string>
+    <string name="text_minimum_amount_to_trade">Minimum amount to trade</string>
+    <string name="text_maximum_amount_to_trade">Maximum amount to trade</string>
+    <string name="text_terms_of_trade">Terms of trade</string>
+    <string name="text_liquidity_description">Decreases max request amount as trades are filled to match remaining balance. This option limits the liquidity of this advertisement to the maximum amount.</string>
+    <string name="text_track_liquidity">Track liquidity</string>
+    <string name="text_identified_people_only">Identified people only</string>
+    <string name="text_identified_people_only_description">To contact your advertisement, users need to verify their identity by sending IDs, driver\'s licence or passport.</string>
+    <string name="text_sms_verification_required">SMS verification required</string>
+    <string name="text_trusted_people_only">Trusted people only</string>
+    <string name="text_identify_user_before_continuing_trade">Identify user before continuing trade</string>
+    <string name="text_identify_user_before_continuing_trade_description">Other users can make a contact to your ad, but they need to identify to you before the trade can continue. Payment details are hidden and the buyer cannot send the payment until identification is approved by you.</string>
+    <string name="text_real_name_required">Real name required</string>
+    <string name="text_real_name_required_description">The buyer must have a real name set. You confirm the real name when the buyer replies to the advertisement. For more information see localbitcoins.com/guides/real-name</string>
+    <string name="text_minimum_volume">Minimum volume</string>
+    <string name="text_minimum_volume_description">How much previous trade volume the buyer is required to have in BTC. Set this value larger than zero to filter out the first time buyers who have no volume.</string>
+    <string name="text_hint_payment_details">Enter payment details</string>
+    <string name="text_payment_details">Payment details</string>
+    <string name="text_minimum_feedback_score">Minimum feedback score</string>
+    <string name="text_minimum_feedback_score_description">The percentage of positive feedback score the buyer is required to have (0–100). This does not apply to first time buyers who do not yet have feedback score.</string>
+    <string name="text_new_buyer_limit">New buyer limit</string>
+    <string name="text_new_buyer_limit_description">Optional. If the contact has no trading history, this is the bitcoin limit for the first transaction.</string>
+    <string name="text_bank_name">Bank name</string>
+    <string name="text_bank_name_hint">Enter Bank name</string>
+    <string name="text_margin_value">Margin Value</string>
+    <string name="text_location">Location</string>
+    <string name="text_location_online_description">For online trade you need to specify the country. For local trade, please specify a city, postal code or street name.</string>
+    <string name="text_phone_number">Phone number</string>
+    <string name="text_phone_number_hint">Enter Phone number</string>
+    <string name="text_phone_number_description">Used for receiving payments.</string>
+    <string name="error_unable_to_load_currencies">Unable to load currencies, without them we can\'t create an new advertisement.</string>
+    <string name="text_trade_terms_hint">Enter terms</string>
+    <string name="text_floating_price">Floating price</string>
+    <string name="text_floating_price_description">Make the exchange rate float with the market while the trade is open. The trading price is determined at the time of bitcoin release. Note that an extra 15%% reserve is added to the reserved bitcoin amount. The excess amount will be returned after the trade is finished.</string>
+    <string name="button_save_changes">Save Changes</string>
+    <string name="text_title_advertisement_info">Advertisement Info</string>
+    <string name="text_title_online_options">Online options</string>
+    <string name="text_title_security_options">Other options</string>
+    <string name="dialog_saving_changes">Saving changes…</string>
+    <string name="error_advertisement">Error Advertisement</string>
+    <string name="dialog_updating_visibility">Updating visibility…</string>
+    <string name="error_contact_action">Unable to perform contact action.</string>
+    <string name="alert_dispute_trade_title">Dispute Trade</string>
+    <string name="alert_fund_trade_title">Fund Trade</string>
+    <string name="alert_mark_paid_title">Mark Paid</string>
+    <string name="progress_marking_paid">Marking paid…</string>
+    <string name="progress_funding">Funding…</string>
+    <string name="progress_disputing">Disputing…</string>
+    <string name="progress_releasing">Releasing…</string>
+    <string name="alert_release_trade_title">Release Trade</string>
+    <string name="alert_cancel_trade_title">Cancel Trade</string>
+    <string name="progress_canceling_trade">Canceling…</string>
+    <string name="alert_error_deleting_advertisement">Error deleting advertisement.</string>
+    <string name="progress_deleting">Deleting…</string>
+    
+    <string name="text_title_online_provider">Online provider</string>
+    <string name="text_title_requirements">Requirements</string>
+    <string name="text_title_advertisement_id">Advertisement Id</string>
+    <string name="text_title_deal_amount">Deal amount</string>
+    <string name="text_title_current_price">Current price</string>
+    <string name="text_title_market_price">MARKET PRICE</string>
+    <string name="text_title_source">Source: </string>
+    <string name="toast_unable_update_currency_rate">Unable to update currency rate…</string>
+    <string name="text_whats_new">What\'s new in </string>
+    <string name="toast_no_valid_address_bitcoin">No valid address to receive bitcoin…</string>
+    <string name="text_title_request_specific_amount">Request Specific Amount</string>
+    <string name="text_title_getting_started">Getting Started</string>
+    <string name="text_description_getting_started">You can buy or sell Bitcoin by searching for traders in your local area or creating your own trade.</string>
+    <string name="button_post_trade">Post Trade</string>
+    <string name="toast_invalid_clipboard_contents">There is no valid address or amount ont the clipboard.</string>
+    <string name="text_search_locally_or_online">Locally or online?</string>
+    <string name="text_longitude">Longitude</string>
+    <string name="text_search_currency">Currency?</string>
+    <string name="text_search_online_payment_method">Online payment method?</string>
+    <string name="text_search_country">Country?</string>
+    <string name="text_latitude">Latitude</string>
+    <string name="text_search_buying_or_selling">Buying or selling?</string>
+    <string name="text_title_trade_type">Trade Type</string>
+    <string name="text_buy">Buy</string>
+    <string name="text_sell">Sell</string>
+    <string name="text_from">from</string>
+    <string name="text_to">to</string>
+    <string name="text_locally">locally</string>
+    <string name="text_online">online</string>
+    <string name="text_chooser_share_to">Share to:</string>
+    <string name="text_share_advertisement">%1$s bitcoins in %2$s</string>
+    <string name="text_advertisement_message">%1$s bitcoins %2$s in %3$s via %4$s: %5$s</string>
+    <string name="text_advertisement_message_short">%1$s bitcoins %2$s in %3$s: %4$s</string>
+    <string name="text_advertisement_local_buy">Local buy</string>
+    <string name="text_advertisement_local_sale">Local sale</string>
+    <string name="text_advertisement_online_buy">Online buy</string>
+    <string name="text_advertisement_online_sale">Online sale</string>
+    <string name="text_title_more_info">More Info</string>
+    <string name="toast_error_retrieving_trades">Error retrieving trades.</string>
+    <string name="toast_contact_not_exist">That contact doesn\'t seem valid...</string>
+    <string name="toast_bank_name_required">Please provide a bank name.</string>
+    <string name="toast_complete_all_fields">Please complete all fields.</string>
+    <string name="toast_provide_payment_details">Please provide payment details.</string>
+    <string name="toast_playment_method_blank">Payment method can\'t be blank.</string>
+    <string name="toast_swift_blank">SWIFT or Bic can\'t be blank.</string>
+    <string name="toast_gift_card_blank">Gift card issuer can\'t be blank.</string>
+    <string name="text_no_notifications">No notifications</string>
+    <string name="text_advertisement_item_local_buy">Local Buy -</string>
+    <string name="text_advertisement_item_local_sale">Local Sale -</string>
+    <string name="text_advertisement_item_online_buy">Online Buy -</string>
+    <string name="text_advertisement_item_online_sale">Online Sale -</string>
+    <string name="toast_error_opening_advertisement">Error opening advertisement...</string>
+    <string name="toast_error_opening_contact">Error opening contact...</string>
+    <string name="text_not_trades">No trades</string>
+    <string name="toast_loading_trades">Loading trades...</string>
 
 </resources>

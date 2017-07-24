@@ -27,8 +27,8 @@
     
     <ImageView
             android:id="@+id/codeImage"
-            android:layout_width="@dimen/barcode_width"
-            android:layout_height="@dimen/barcode_width"
+            android:layout_width="@dimen/large_barcode_width"
+            android:layout_height="@dimen/large_barcode_width"
             android:layout_gravity="center_horizontal"
             android:background="@color/gray_color"
             android:clickable="true"/>
@@ -40,5 +40,38 @@
             android:layout_height="36dp"
             android:gravity="center"
             android:layout_gravity="center_vertical"/>
+
+    <LinearLayout
+            android:id="@+id/bitcoinLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+        <TextView
+                android:id="@+id/bitcoinTitle"
+                style="@style/TextMedium.SmallAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="ACCOUNT BALANCE"/>
+
+        <TextView
+                android:id="@+id/bitcoinPrice"
+                style="@style/TextLarge"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="true"
+                tools:text="1.838949844 BTC"/>
+
+        <TextView
+                android:id="@+id/bitcoinValue"
+                style="@style/TextSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="~ 2783.89 USD (Coinbase)"/>
+
+    </LinearLayout>
 
 </LinearLayout>

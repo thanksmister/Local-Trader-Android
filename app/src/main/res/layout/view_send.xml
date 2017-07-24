@@ -24,81 +24,92 @@
 
     <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
-    <android.support.design.widget.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
+        <android.support.design.widget.AppBarLayout
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
+                android:layout_height="wrap_content">
 
-    </android.support.design.widget.AppBarLayout>
-    
-        <android.support.v4.widget.SwipeRefreshLayout
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                android:id="@+id/swipeLayout"
-                android:layout_weight="1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp">
-
-            <android.support.v4.widget.NestedScrollView
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:fillViewport="true">
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary"
+                    app:popupTheme="@style/Theme.AppCompat.Light"/>
 
+        </android.support.design.widget.AppBarLayout>
+
+
+        <android.support.v4.widget.NestedScrollView
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fillViewport="true">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                <LinearLayout
+                        android:id="@+id/noteLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/view_padding_small"
+                        android:paddingBottom="@dimen/view_padding_small"
+                        android:orientation="vertical"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="16dp"
+                        android:background="@color/yellow">
+
+                    <TextView
+                            style="@style/TextMedium"
+                            android:layout_marginLeft="4dp"
+                            android:layout_width="wrap_content"
+                            android:drawableLeft="@drawable/ic_info_outline"
+                            android:layout_height="wrap_content"
+                            android:text="@string/form_sendable_label"/>
+
+                </LinearLayout>
+                
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        android:paddingLeft="@dimen/activity_padding"
+                        android:paddingRight="@dimen/activity_padding"
                         android:orientation="vertical">
 
-                    <LinearLayout
-                            android:id="@+id/noteLayout"
-                            android:layout_width="match_parent"
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding_small"
-                            android:paddingBottom="@dimen/view_padding_small"
-                            android:orientation="vertical"
-                            android:paddingLeft="12dp"
-                            android:paddingRight="16dp"
-                            android:background="@color/yellow">
-                        
-                            <TextView
-                                    style="@style/TextMedium"
-                                    android:layout_marginLeft="4dp"
-                                    android:layout_width="wrap_content"
-                                    android:drawableLeft="@drawable/ic_info_outline"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/form_sendable_label"/>
-                        
-                            <android.support.v4.widget.Space
-                                    android:layout_width="match_parent"
-                                    android:layout_height="4dp"/>
+                            android:text="@string/text_account_balance"/>
 
-                            <TextView
-                                    android:id="@+id/balanceText"
-                                    android:textIsSelectable="true"
-                                    android:textStyle="bold"
-                                    android:textSize="15sp"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="4dp"
-                                    android:layout_marginRight="4dp"
-                                    android:layout_gravity="center"
-                                    android:textColor="@color/text_green"
-                                    tools:text=".011626091 BTC / 275.89 USD"
-                                    style="@style/TextMedium"/>
-
-                    </LinearLayout>
-
-                    <View
+                    <android.support.v4.widget.Space
                             android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_small"/>
+                            android:layout_height="8dp"/>
+
+                    <TextView
+                            android:id="@+id/balanceText"
+                            android:textIsSelectable="true"
+                            android:textStyle="bold"
+                            android:textSize="15sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:layout_marginRight="4dp"
+                            android:layout_gravity="center"
+                            android:textColor="@color/text_green"
+                            tools:text=".011626091 BTC / 275.89 USD"
+                            style="@style/TextMedium"/>
+
+                </LinearLayout>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/view_padding_small"/>
 
                 <LinearLayout
                         android:layout_width="match_parent"
@@ -190,8 +201,8 @@
                                     android:gravity="center"
                                     android:layout_weight="0"
                                     android:layout_marginBottom="2dp"/>
-                            
-                            </LinearLayout>
+
+                        </LinearLayout>
 
                         <TextView
                                 style="@style/TextSmall"
@@ -204,9 +215,9 @@
                                 android:layout_height="8dp"/>
 
                         <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
 
 
                             <EditText
@@ -240,8 +251,8 @@
                                     android:layout_weight="0"
                                     android:layout_marginBottom="2dp"/>
 
-                            </LinearLayout>
-                        
+                        </LinearLayout>
+
                     </LinearLayout>
 
                 </LinearLayout>
@@ -259,33 +270,25 @@
                         android:paddingRight="@dimen/activity_padding"
                         android:linksClickable="true"
                         android:text="@string/pin_code_send"/>
-                
-                </LinearLayout>
 
-            </android.support.v4.widget.NestedScrollView>
-            
-        </android.support.v4.widget.SwipeRefreshLayout>
+                <android.support.v4.widget.Space
+                        android:layout_width="match_parent"
+                        android:layout_height="16dp"/>
 
-        <View
-                android:background="?android:attr/dividerHorizontal"
-                android:layout_height="1dp"
-                android:layout_width="match_parent"/>
+                <Button
+                        style="@style/ButtonGreen.Small"
+                        android:id="@+id/sendButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginLeft="@dimen/activity_padding"
+                        android:layout_marginRight="@dimen/activity_padding"
+                        android:layout_height="48dp"
+                        android:text="@string/button_send"/>
 
+            </LinearLayout>
 
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-            <Button
-                    style="@style/ButtonGreen.Small"
-                    android:id="@+id/sendButton"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:text="@string/button_send"/>
-
-        </LinearLayout>
+        </android.support.v4.widget.NestedScrollView>
+        
+        
 
     </LinearLayout>
 

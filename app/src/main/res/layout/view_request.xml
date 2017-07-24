@@ -23,7 +23,7 @@
 
     <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
         <android.support.design.widget.AppBarLayout
@@ -39,165 +39,163 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <android.support.v4.widget.SwipeRefreshLayout
+        <android.support.v4.widget.NestedScrollView
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                android:id="@+id/swipeLayout"
-                android:layout_weight="1"
                 android:layout_width="match_parent"
-                android:layout_height="0dp">
+                android:layout_height="wrap_content"
+                android:fillViewport="true">
 
-            <android.support.v4.widget.NestedScrollView
+            <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:fillViewport="true">
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
 
+                <ImageView
+                        android:id="@+id/codeImage"
+                        android:layout_width="@dimen/large_barcode_width"
+                        android:layout_height="@dimen/large_barcode_width"
+                        android:layout_gravity="center_horizontal"
+                        android:background="@color/gray_color"
+                        android:clickable="true"/>
+
+                <com.thanksmister.bitcoin.localtrader.ui.components.AutoResizeTextView
+                        style="@style/TextLarge.SmallAction"
+                        android:id="@+id/walletAddressButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:gravity="center"
+                        android:layout_gravity="center_vertical"/>
+                
+                <android.support.v4.widget.Space
+                        android:layout_width="match_parent"
+                        android:layout_height="16dp"/>
+
+                <TextView
+                        style="@style/TextLarge.SmallAction"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/text_title_request_specific_amount"/>
+                
+                <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/form_bitcoin_amount"/>
+                
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        android:orientation="horizontal">
+
+                    <EditText
+                            android:id="@+id/amountText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            style="@style/TextLarge.SmallAction"
+                            android:inputType="numberDecimal"
+                            android:digits="0123456789."
+                            android:layout_weight="1"
+                            android:gravity="left"
+                            android:theme="@style/EditTextTheme"
+                            android:hint="@string/hint_bitcoin"/>
+
+                    <View
+                            android:layout_width="8dp"
+                            android:layout_height="match_parent"/>
+
+                    <TextView
+                            android:id="@android:id/button1"
+                            style="@style/TextLarge.SmallAction.White"
+                            android:minWidth="50dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:background="@drawable/button_blue_selector"
+                            android:clickable="true"
+                            android:text="@string/btc"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:layout_weight="0"
+                            android:layout_marginBottom="2dp"/>
+
+                </LinearLayout>
+                
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
                         android:orientation="vertical">
+
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/form_fiat_amount"/>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/view_padding_small"/>
 
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:orientation="horizontal">
 
-                        <LinearLayout
+                        <EditText
+                                android:id="@+id/fiatEditText"
+                                android:theme="@style/EditTextTheme"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:paddingTop="8dp"
-                                android:paddingLeft="@dimen/activity_padding"
-                                android:paddingRight="@dimen/activity_padding"
-                                android:orientation="vertical">
+                                style="@style/TextLarge.SmallAction"
+                                android:inputType="numberDecimal"
+                                android:digits="0123456789."
+                                android:layout_weight="1"
+                                android:gravity="left"
+                                android:hint="@string/hint_amount"/>
 
-                            <TextView
-                                    style="@style/TextSmall"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/form_bitcoin_amount"/>
+                        <View
+                                android:layout_width="8dp"
+                                android:layout_height="match_parent"/>
 
-                            <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="@dimen/view_padding_small"/>
-
-                            <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
-
-                                <EditText
-                                        android:id="@+id/amountText"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        style="@style/TextLarge.SmallAction"
-                                        android:inputType="numberDecimal"
-                                        android:digits="0123456789."
-                                        android:layout_weight="1"
-                                        android:gravity="left"
-                                        android:theme="@style/EditTextTheme"
-                                        android:hint="@string/hint_bitcoin"/>
-
-                                <View
-                                        android:layout_width="8dp"
-                                        android:layout_height="match_parent"/>
-
-                                <TextView
-                                        android:id="@android:id/button1"
-                                        style="@style/TextLarge.SmallAction.White"
-                                        android:minWidth="50dp"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="36dp"
-                                        android:background="@drawable/button_blue_selector"
-                                        android:clickable="true"
-                                        android:text="@string/btc"
-                                        android:layout_gravity="center"
-                                        android:gravity="center"
-                                        android:layout_weight="0"
-                                        android:layout_marginBottom="2dp"/>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:paddingTop="8dp"
-                                android:paddingLeft="@dimen/activity_padding"
-                                android:paddingRight="@dimen/activity_padding"
-                                android:orientation="vertical">
-
-                            <TextView
-                                    style="@style/TextSmall"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/form_fiat_amount"/>
-
-                            <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="@dimen/view_padding_small"/>
-
-                            <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
-                                
-                                <EditText
-                                        android:id="@+id/fiatEditText"
-                                        android:theme="@style/EditTextTheme"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        style="@style/TextLarge.SmallAction"
-                                        android:inputType="numberDecimal"
-                                        android:digits="0123456789."
-                                        android:layout_weight="1"
-                                        android:gravity="left"
-                                        android:hint="@string/hint_amount"/>
-
-                                <View
-                                        android:layout_width="8dp"
-                                        android:layout_height="match_parent"/>
-
-                                <TextView
-                                        android:id="@+id/currencyText"
-                                        style="@style/TextLarge.SmallAction.White"
-                                        android:minWidth="50dp"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="36dp"
-                                        android:background="@drawable/button_blue_selector"
-                                        android:clickable="true"
-                                        android:text="@string/usd"
-                                        android:layout_gravity="center"
-                                        android:gravity="center"
-                                        android:layout_weight="0"
-                                        android:layout_marginBottom="2dp"/>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
+                        <TextView
+                                android:id="@+id/currencyText"
+                                style="@style/TextLarge.SmallAction.White"
+                                android:minWidth="50dp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:background="@drawable/button_blue_selector"
+                                android:clickable="true"
+                                android:text="@string/usd"
+                                android:layout_gravity="center"
+                                android:gravity="center"
+                                android:layout_weight="0"
+                                android:layout_marginBottom="2dp"/>
 
                     </LinearLayout>
 
-
                 </LinearLayout>
 
-            </android.support.v4.widget.NestedScrollView>
+                <android.support.v4.widget.Space
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"/>
 
-        </android.support.v4.widget.SwipeRefreshLayout>
+                <Button
+                        style="@style/ButtonGreen.Small"
+                        android:id="@+id/qrButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:textAllCaps="true"
+                        android:text="@string/button_create_request"
+                        android:nextFocusUp="@id/amountText"/>
 
-        <View
-                android:background="?android:attr/dividerHorizontal"
-                android:layout_height="1dp"
-                android:layout_width="match_parent"/>
+            </LinearLayout>
 
-        <Button
-                style="@style/ButtonGreen.Small"
-                android:id="@+id/qrButton"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:textAllCaps="true"
-                android:text="@string/button_create_request"
-                android:nextFocusUp="@id/amountText"/>
+        </android.support.v4.widget.NestedScrollView>
         
+
     </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

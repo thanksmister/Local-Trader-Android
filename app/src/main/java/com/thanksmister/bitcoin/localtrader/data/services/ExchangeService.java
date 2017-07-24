@@ -30,7 +30,9 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import retrofit.client.Response;
 import rx.Observable;
+import rx.functions.Action1;
 import timber.log.Timber;
 
 @Singleton
@@ -84,9 +86,20 @@ public class ExchangeService {
     }
     
     public Observable<ExchangeRate> getSpotPrice() {
-        String currency = getExchangeCurrency();
-        return coinbase.spotPrice(currency)
-                .map(new ResponseToExchange());
+        if(needToRefreshExchanges()) {
+            Timber.d("getSpotPrice");
+            String currency = getExchangeCurrency();
+            return coinbase.spotPrice(currency)
+                    .doOnNext(new Action1<Response>() {
+                        @Override
+                        public void call(Response response) {
+                            setExchangeExpireTime();
+                        }
+                    })
+                    .map(new ResponseToExchange());
+        } else {
+            return Observable.just(null);
+        }
     }
 
     public void clearExchangeExpireTime() {

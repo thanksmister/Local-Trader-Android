@@ -19,8 +19,10 @@ package com.thanksmister.bitcoin.localtrader.utils;
 import android.content.Context;
 import android.location.Address;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
@@ -33,17 +35,34 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import timber.log.Timber;
+
 public class TradeUtils {
+    
     public static final String PAYPAL = "PAYPAL";
     public static final String NETELLER = "NETELLER";
     public static final String QIWI = "QIWI";
     public static final String SEPA = "SEPA";
+    public static final String ALTCOIN_ETH = "ALTCOIN_ETH";
+    public static final String INTERNATIONAL_WIRE_SWIFT = "INTERNATIONAL_WIRE_SWIFT";
+    public static final String GIFT_CARD_CODE = "GIFT_CARD_CODE";
     public static final String NATIONAL_BANK = "NATIONAL_BANK";
+    public static final String CASH_DEPOSIT = "CASH_DEPOSIT";
+    public static final String SPECIFIC_BANK = "SPECIFIC_BANK";
+    public static final String OTHER = "OTHER";
+    public static final String OTHER_REMITTANCE = "OTHER_REMITTANCE";
+    public static final String OTHER_ONLINE_WALLET = "OTHER_ONLINE_WALLET";
+    public static final String OTHER_PRE_PAID_DEBIT = "OTHER_PRE_PAID_DEBIT";
+    public static final String OTHER_ONLINE_WALLET_GLOBAL = "OTHER_ONLINE_WALLET_GLOBAL";
     public static final String BPAY = "BPAY";
+    public static final String PAYTM = "PAYTM";
     public static final String INTERAC = "INTERAC";
+    public static final String LYDIA = "LYDIA";
     public static final String ALIPAY = "ALIPAY";
     public static final String EASYPAISA = "EASYPAISA";
     public static final String HAL_CASH = "HAL_CASH";
@@ -54,11 +73,12 @@ public class TradeUtils {
     public static final String VIPPS = "VIPPS";
 
     public static String getContactDescription(ContactItem contact, Context context) {
-        if (isCanceledTrade(contact)) {
 
-            return isLocalTrade(contact) ? context.getString(R.string.order_description_cancel_local) : context.getString(R.string.order_description_cancel);
+         if (isCanceledTrade(contact)) {
 
-        } else if (isReleased(contact)) {
+             return isLocalTrade(contact) ? context.getString(R.string.order_description_cancel_local) : context.getString(R.string.order_description_cancel);
+
+         } else if (isReleased(contact)) {
 
             return context.getString(R.string.order_description_released);
 
@@ -66,14 +86,11 @@ public class TradeUtils {
 
             return context.getString(R.string.order_description_disputed);
 
+         } else if (isClosedTrade(contact)) {
+
+             return context.getString(R.string.order_description_closed);
+             
         } else if (isLocalTrade(contact)) {
-
-           /* if(contact.youAreSelling()) { 
-                if(Utils.convertToDouble(wallet.getBalance()) < Utils.convertToDouble(contact.getAmount_btc())) {
-                    return context.getString(R.string.order_description_no_funds);
-                }
-            }*/
-
 
             if (youAreAdvertiser(contact) && contact.is_selling()) {
 
@@ -107,6 +124,7 @@ public class TradeUtils {
     }
 
     public static int getTradeActionButtonLabel(ContactItem contact) {
+        
         if (isClosedTrade(contact) || isReleased(contact)) {
             return 0;
         }
@@ -145,6 +163,10 @@ public class TradeUtils {
         } else {  // you are buying
             return contact.advertiser_username().equals(contact.buyer_username());
         }
+    }
+    
+    public static boolean isActiveTrade(String closedAt, String canceledAt){
+        return (!TextUtils.isEmpty(closedAt) && !TextUtils.isEmpty(canceledAt));
     }
 
     public static boolean isActiveTrade(Contact contact) {
@@ -248,6 +270,11 @@ public class TradeUtils {
         TradeType tradeType = TradeType.valueOf(contact.advertisement_trade_type());
         return (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL);
     }
+
+    public static boolean isOnlineTrade(TradeType tradeType) {
+        return (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL);
+    }
+
 
     public static boolean isOnlineTrade(Advertisement advertisement) {
         return (advertisement.trade_type == TradeType.ONLINE_BUY || advertisement.trade_type == TradeType.ONLINE_SELL);
@@ -615,6 +642,157 @@ public class TradeUtils {
             return decimalFormat.format(result);
         } catch (Exception e) {
             return value;
+        }
+    }
+    
+    public static String getBankNameTitle(TradeType tradeType, String onlineProvider) {
+            String bankTitle = null;
+            if (tradeType == TradeType.ONLINE_SELL) {
+                switch (onlineProvider) {
+                    case TradeUtils.INTERNATIONAL_WIRE_SWIFT:
+                        bankTitle = "Bank SWIFT";
+                        break;
+                    case TradeUtils.CASH_DEPOSIT:
+                    case TradeUtils.SPECIFIC_BANK:
+                    case TradeUtils.NATIONAL_BANK:
+                        bankTitle = "Bank name (required)";
+                        break;
+                    case TradeUtils.OTHER:
+                    case TradeUtils.OTHER_REMITTANCE:
+                    case TradeUtils.OTHER_PRE_PAID_DEBIT:
+                    case TradeUtils.OTHER_ONLINE_WALLET_GLOBAL:
+                    case TradeUtils.OTHER_ONLINE_WALLET:
+                        bankTitle = "Payment method name";
+                        break;
+                    case TradeUtils.GIFT_CARD_CODE:
+                        bankTitle = "Gift Card Issuer: [AMC Theatres, Airbnb, American Express, Best Buy, Dell, GA2, GameStop, Google Play, Groupon, Home Depot, Lowe, Lyft, Microsoft Windows Store, Netflix, Other, Papa John's Pizza, PlayStation Store, Regal Cinemas, Skype Credit, Target, Uber, Whole Foods Market, Wolt, Xbox]";
+                        break;
+                    default:
+                        break;
+                }
+            } else if (tradeType == TradeType.ONLINE_BUY) {
+                switch (onlineProvider) {
+                    case TradeUtils.NATIONAL_BANK:
+                    case TradeUtils.CASH_DEPOSIT:
+                    case TradeUtils.SPECIFIC_BANK:
+                        bankTitle = "Bank name (required)";
+                        break;
+                    case TradeUtils.OTHER:
+                    case TradeUtils.OTHER_REMITTANCE:
+                    case TradeUtils.OTHER_PRE_PAID_DEBIT:
+                    case TradeUtils.OTHER_ONLINE_WALLET_GLOBAL:
+                    case TradeUtils.OTHER_ONLINE_WALLET:
+                        bankTitle = "Payment method name";
+                        break;
+                    case TradeUtils.INTERNATIONAL_WIRE_SWIFT:
+                        bankTitle = "Bank SWIFT";
+                        break;
+                    case TradeUtils.GIFT_CARD_CODE:
+                        bankTitle = "Gift Card Issuer: [AMC Theatres, Airbnb, American Express, Best Buy, Dell, GA2, GameStop, Google Play, Groupon, Home Depot, Lowe, Lyft, Microsoft Windows Store, Netflix, Other, Papa John's Pizza, PlayStation Store, Regal Cinemas, Skype Credit, Target, Uber, Whole Foods Market, Wolt, Xbox]";
+                        break;
+                    default:
+                        break;
+                }
+            }
+            
+            return bankTitle;
+    }
+
+    // TODO unit test
+    public static String getEthereumPriceEquation(TradeType tradeType, String margin) {
+
+        String equation = "btc_in_eth";
+        
+        if (!Strings.isBlank(margin)) {
+            double marginValue = 1.0;
+            try {
+                marginValue = Doubles.convertToDouble(margin);
+            } catch (Exception e) {
+                Timber.e(e.getMessage());
+            }
+
+            double marginPercent = 1.0;
+            if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
+                marginPercent = 1 - marginValue / 100;
+            } else {
+                marginPercent = 1 + marginValue / 100;
+            }
+            equation = equation + "*" + marginPercent;
+        } else {
+            equation = equation + "*" + Constants.DEFAULT_MARGIN;
+        }
+
+        return equation;
+    }
+
+    // TODO unit test
+    public static String getPriceEquation(@NonNull TradeType tradeType, @NonNull String margin, @NonNull String currency) {
+
+        String equation = Constants.DEFAULT_PRICE_EQUATION;
+        if (!currency.equals(Constants.DEFAULT_CURRENCY)) {
+            equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency;
+        }
+        
+        if (!Strings.isBlank(margin)) {
+
+            double marginValue = 1.0;
+            try {
+                marginValue = Doubles.convertToDouble(margin);
+            } catch (Exception e) {
+                Timber.e(e.getMessage());
+            }
+
+            double marginPercent = 1.0;
+            if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
+                marginPercent = 1 - marginValue / 100;
+            } else {
+                marginPercent = 1 + marginValue / 100;
+            }
+            equation = equation + "*" + marginPercent;
+        } else {
+            equation = equation + "*" + Constants.DEFAULT_MARGIN;
+        }
+
+        return equation;
+    }
+
+    public static String toTitleCase(String str) {
+
+        if (str == null) {
+            return null;
+        }
+
+        boolean space = true;
+        StringBuilder builder = new StringBuilder(str);
+        final int len = builder.length();
+
+        for (int i = 0; i < len; ++i) {
+            char c = builder.charAt(i);
+            if (space) {
+                if (!Character.isWhitespace(c)) {
+                    // Convert to title case and switch out of whitespace mode.
+                    builder.setCharAt(i, Character.toTitleCase(c));
+                    space = false;
+                }
+            } else if (Character.isWhitespace(c)) {
+                space = true;
+            } else {
+                builder.setCharAt(i, Character.toLowerCase(c));
+            }
+        }
+
+        return builder.toString();
+    }
+    
+    public static List<MethodItem> sortMethods(List<MethodItem> methods) {
+        Collections.sort(methods, new MethodNameComparator());
+        return methods;
+    }
+
+    private static class MethodNameComparator implements Comparator<MethodItem> {
+        @Override
+        public int compare(MethodItem o1, MethodItem o2) {
+            return o1.name().toLowerCase().compareTo(o2.name().toLowerCase());
         }
     }
 }

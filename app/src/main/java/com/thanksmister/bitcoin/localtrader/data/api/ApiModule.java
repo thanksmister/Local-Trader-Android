@@ -25,6 +25,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import dpreference.DPreference;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
@@ -46,8 +47,8 @@ public final class ApiModule {
 
     @Provides
     @Singleton
-    LocalBitcoins provideLocalBitcoins(Client client, SharedPreferences sharedPreferences) {
-        String baseUrl = AuthUtils.getServiceEndpoint(sharedPreferences);
+    LocalBitcoins provideLocalBitcoins(Client client, DPreference preference, SharedPreferences sharedPreferences) {
+        String baseUrl = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
                 .setLogLevel(RestAdapter.LogLevel.FULL)

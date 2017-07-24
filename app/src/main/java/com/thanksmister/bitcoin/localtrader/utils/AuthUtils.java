@@ -11,41 +11,37 @@ import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.thanksmister.bitcoin.localtrader.data.prefs.IntPreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 
+import dpreference.DPreference;
 import timber.log.Timber;
 
-public class AuthUtils
-{
-    
+public class AuthUtils {
+
     private final static String PREFS_UPGRADE_VERSION = "upgradeVersion";
-    private final static String UPGRADE_VERSION = "2.1.2";
-    private final static String HMAC_KEY = "hmacKey";
     private final static String ACCESS_TOKEN = "accessToken";
-    private final static String HMAC_SECRET = "hmacSecret";
     private final static String REFRESH_TOKEN = "refreshToken";
     private static final String PREFS_USER = "userName";
     private static final String PREFS_USER_FEEDBACK = "userFeedback";
     private static final String PREFS_USER_TRADES = "userTrades";
+    private static final String PREFS_DISTANCE_UNITS = "distanceUnits";
+    private static final String PREFS_FORCE_UPDATES = "forceUpdates";
     private static final String PREFS_API_ENDPOINT = "apiEndpoint";
     private static final String BASE_URL = "https://localbitcoins.com";
 
     /**
      * Returns the api service endpoint
+     *
      * @param sharedPreferences
      * @return
      */
-    public static boolean showUpgradedMessage(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
-    {
-        int currentVersion = getCurrentVersion(context, sharedPreferences);
-        IntPreference preference = new IntPreference(sharedPreferences, PREFS_UPGRADE_VERSION, 0);
-        int storedVersion = preference.get();
+    public static boolean showUpgradedMessage(@NonNull Context context, @NonNull DPreference sharedPreferences) {
+        int currentVersion = getCurrentVersion(context);
+        int storedVersion = sharedPreferences.getInt(PREFS_UPGRADE_VERSION, 0);
         return currentVersion > storedVersion;
     }
 
-    public static int getCurrentVersion(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
-    {
+    public static int getCurrentVersion(@NonNull Context context) {
         try {
             PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             return packageInfo.versionCode;
@@ -55,8 +51,7 @@ public class AuthUtils
         return 0;
     }
 
-    public static String getCurrentVersionName(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
-    {
+    public static String getCurrentVersionName(@NonNull Context context) {
         try {
             PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             return "v" + packageInfo.versionName;
@@ -65,216 +60,207 @@ public class AuthUtils
         }
         return "!";
     }
-    
+
     /**
      * Returns the api service endpoint
-     * @param sharedPreferences
+     *
+     * @param preference
      * @return
      */
-    public static String getServiceEndpoint(@NonNull SharedPreferences sharedPreferences)
-    {
+    public static String getServiceEndpoint(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_API_ENDPOINT, BASE_URL);
-        return stringPreference.get();
-    }
-    
-    /**
-     * Returns true if we have stored credentials
-     * @param sharedPreferences
-     */
-    public static boolean hasCredentials(@NonNull SharedPreferences sharedPreferences)
-    {
-        String accessToken = sharedPreferences.getString(ACCESS_TOKEN, null);
-        String refreshToken = sharedPreferences.getString(REFRESH_TOKEN, null);
-        return !TextUtils.isEmpty(accessToken) && !TextUtils.isEmpty(refreshToken);
-    }
-    /**
-     * Returns true if we have stored HMAC credentials 
-     * @param sharedPreferences
-     */
-    public static boolean hasCredentialsHmac(@NonNull SharedPreferences sharedPreferences)
-    {
-        String key = sharedPreferences.getString(HMAC_KEY, null);
-        String secret = sharedPreferences.getString(HMAC_SECRET, null);
-        //return !TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret);
-        return false;
-    }
-    
-    /**
-     * Get the stored hmac key
-     * @param sharedPreferences
-     * @return
-     */
-    public static String getHmacKey(@NonNull SharedPreferences sharedPreferences)
-    {
-        return sharedPreferences.getString(HMAC_KEY, null);
+        String currentValue = stringPreference.get();
+        if(!TextUtils.isEmpty(currentValue)) {
+            setServiceEndPoint(preference, currentValue);
+            stringPreference.delete();
+        }
+        return preference.getString(PREFS_API_ENDPOINT, BASE_URL);
     }
 
     /**
-     * Get the stored hmac secret
+     * Returns true if we have stored credentials
+     *
      * @param sharedPreferences
-     * @return
      */
-    public static String getHmacSecret(@NonNull SharedPreferences sharedPreferences)
-    {
-        return sharedPreferences.getString(HMAC_SECRET, null);
+    public static boolean hasCredentials(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, ACCESS_TOKEN);
+        String currentAccessToken = stringPreference.get();
+        if(!TextUtils.isEmpty(currentAccessToken)) {
+            setAccessToken(preference, currentAccessToken);
+            stringPreference.delete();
+        }
+
+        stringPreference = new StringPreference(sharedPreferences, REFRESH_TOKEN);
+        String currentRefreshToken = getRefreshToken(preference, sharedPreferences);
+        if(!TextUtils.isEmpty(currentRefreshToken)) {
+            setRefreshToken(preference, currentRefreshToken);
+            stringPreference.delete();
+        }
+        
+        String accessToken = preference.getString(ACCESS_TOKEN, null);
+        String refreshToken = preference.getString(REFRESH_TOKEN, null);
+        return !TextUtils.isEmpty(accessToken) && !TextUtils.isEmpty(refreshToken);
     }
 
     /**
      * Get the stored access token
-     * @param sharedPreferences
      * @return
      */
-    public static String getAccessToken(@NonNull SharedPreferences sharedPreferences)
-    {
-        return sharedPreferences.getString(ACCESS_TOKEN, null);
+    public static String getAccessToken(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, ACCESS_TOKEN);
+        String currentAccessToken = stringPreference.get();
+
+        if(!TextUtils.isEmpty(currentAccessToken)) {
+            setAccessToken(preference, currentAccessToken);
+            stringPreference.delete();
+        }
+        
+        return preference.getString(ACCESS_TOKEN, null);
     }
 
     /**
      * Get the stored refresh token
-     * @param sharedPreferences
-     * @return
      */
-    public static String getRefreshToken(@NonNull SharedPreferences sharedPreferences)
-    {
-        return sharedPreferences.getString(REFRESH_TOKEN, null);
+    public static String getRefreshToken(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, REFRESH_TOKEN);
+        String currentRefreshToken = stringPreference.get();
+        
+        if(!TextUtils.isEmpty(currentRefreshToken)) {
+            setRefreshToken(preference, currentRefreshToken);
+            stringPreference.delete();
+        }
+        
+        return preference.getString(REFRESH_TOKEN, null);
     }
 
     /**
      * Get the username
+     *
      * @param sharedPreferences
      * @return
      */
-    public static String getUsername(@NonNull SharedPreferences sharedPreferences)
-    {
+    public static String getUsername(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER);
-        return stringPreference.get();
+        String currentUserName =  stringPreference.get();
+        if(!TextUtils.isEmpty(currentUserName)) {
+            setUsername(preference, currentUserName);
+            stringPreference.delete();
+        }
+        
+        return preference.getString(PREFS_USER, currentUserName);
     }
-
-    public static String getFeedback(@NonNull SharedPreferences sharedPreferences)
-    {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_FEEDBACK);
-        return stringPreference.get();
-    }
-
-    public static String getTrades(@NonNull SharedPreferences sharedPreferences)
-    {
+    
+    public static String getTrades(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_TRADES);
-        return stringPreference.get();
+        String currentTrades = stringPreference.get();
+        if(!TextUtils.isEmpty(currentTrades)) {
+            setTrades(preference, currentTrades);
+            stringPreference.delete();
+        }
+        return preference.getString(PREFS_USER_TRADES, currentTrades);
+    }
+
+    public static String getFeedbackScore(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_FEEDBACK);
+        String feedback = stringPreference.get();
+        if(!TextUtils.isEmpty(feedback)) {
+            setFeedbackScore(preference, feedback);
+            stringPreference.delete();
+        }
+        return preference.getString(PREFS_USER_FEEDBACK, feedback);
     }
 
     /**
      * Set current version number
-     * @param sharedPreferences
      */
-    public static void setUpgradeVersion(@NonNull Context context, @NonNull SharedPreferences sharedPreferences)
-    {
-        int version = getCurrentVersion(context, sharedPreferences);
-        IntPreference preference = new IntPreference(sharedPreferences, PREFS_UPGRADE_VERSION, 0);
-        preference.set(version);
+    public static void setUpgradeVersion(@NonNull Context context, @NonNull DPreference preference) {
+        int version = getCurrentVersion(context);
+        preference.putInt(PREFS_UPGRADE_VERSION, version);
     }
 
     /**
      * Set the api end point
-     * @param sharedPreferences
-     * @param trades
      */
-    public static void setServiceEndPoint(@NonNull SharedPreferences sharedPreferences, @NonNull String trades)
-    {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_API_ENDPOINT);
-        stringPreference.set(trades);
-    }
-
-    /**
-     * Set the hmac key
-     * @param sharedPreferences
-     * @param key
-     */
-    public static void setHmacKey(@NonNull SharedPreferences sharedPreferences, @NonNull String key)
-    {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(HMAC_KEY, key);
-        editor.apply();
-    }
-
-    /**
-     * Set the hmac secret
-     * @param sharedPreferences
-     * @param secret
-     */
-    public static void setHmacSecret(@NonNull SharedPreferences sharedPreferences, @NonNull String secret)
-    {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(HMAC_SECRET, secret);
-        editor.apply();
+    public static void setServiceEndPoint(@NonNull DPreference preference, @NonNull String value) {
+        preference.putString(PREFS_API_ENDPOINT, value);
     }
 
     /**
      * Set the access token
-     * @param sharedPreferences
+     *
+     * @param preference
      * @param key
      */
-    public static void setAccessToken(@NonNull SharedPreferences sharedPreferences, @NonNull String key)
-    {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(ACCESS_TOKEN, key);
-        editor.apply();
+    public static void setAccessToken(@NonNull DPreference preference, @NonNull String key) {
+        preference.putString(ACCESS_TOKEN, key);
     }
 
     /**
      * Set the refresh token
-     * @param sharedPreferences
+     *
+     * @param preference
      * @param secret
      */
-    public static void setRefreshToken(@NonNull SharedPreferences sharedPreferences, @NonNull String secret)
-    {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(REFRESH_TOKEN, secret);
-        editor.apply();
-    }
-    
-    /**
-     * Set the username
-     * @param sharedPreferences
-     * @param username
-     */
-    public static void setUsername(@NonNull SharedPreferences sharedPreferences, @NonNull String username)
-    {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER);
-        stringPreference.set(username);
+    public static void setRefreshToken(@NonNull DPreference preference, @NonNull String secret) {
+        preference.putString(REFRESH_TOKEN, secret);
     }
 
     /**
-     * Set the user feedbacks
-     * @param sharedPreferences
-     * @param feedback
+     * Set the username
+     *
+     * @param preference
+     * @param username
      */
-    public static void setFeedbackScore(@NonNull SharedPreferences sharedPreferences, @NonNull String feedback)
-    {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_FEEDBACK);
-        stringPreference.set(feedback);
+    public static void setUsername(@NonNull DPreference preference, @NonNull String username) {
+        preference.putString(username, PREFS_USER);
+    }
+
+    /**
+     * Set the user feedback
+     */
+    public static void setFeedbackScore(@NonNull DPreference preference, @NonNull String feedback) {
+        preference.putString(PREFS_USER_FEEDBACK, feedback);
     }
 
     /**
      * Set the user trades
-     * @param sharedPreferences
-     * @param trades
      */
-    public static void setTrades(@NonNull SharedPreferences sharedPreferences, @NonNull String trades)
-    {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_TRADES);
-        stringPreference.set(trades);
+    public static void setTrades(@NonNull DPreference preference, @NonNull String trades) {
+        preference.putString(PREFS_USER_TRADES, trades);
+    }
+
+    /**
+     * Set the user trades
+     */
+
+    public static boolean getForceUpdate(@NonNull DPreference preference) {
+        return preference.getBoolean(PREFS_FORCE_UPDATES, false);
+    }
+    
+    public static void setForceUpdate(@NonNull DPreference preference, @NonNull boolean force) {
+        preference.putBoolean(PREFS_FORCE_UPDATES, force);
     }
 
     /**
      * Reset the stored credentials
+     *
      * @param sharedPreferences
      */
-    public static void resetCredentials(@NonNull SharedPreferences sharedPreferences)
-    {
+    public static void resetCredentials(@NonNull SharedPreferences sharedPreferences) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(ACCESS_TOKEN, null);
         editor.putString(REFRESH_TOKEN, null);
         editor.clear();
         editor.apply();
+
+    }
+    
+    public static void reset(DPreference preference) {
+        preference.removePreference(ACCESS_TOKEN);
+        preference.removePreference(REFRESH_TOKEN);
+        preference.removePreference(PREFS_USER_TRADES);
+        preference.removePreference(PREFS_USER_FEEDBACK);
+        preference.removePreference(PREFS_USER);
+        preference.removePreference(PREFS_API_ENDPOINT);
     }
 }

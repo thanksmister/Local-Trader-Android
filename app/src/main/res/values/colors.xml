@@ -43,6 +43,8 @@
     <color name="blue">#0099cc</color>
     <color name="blue_pressed">#ff0083b2</color>
 
+    <color name="promo_background_red">#f6a598</color>
+
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="light_gray">#efefef</color>
@@ -57,4 +59,6 @@
     
     <color name="dark_gray_color">#ff707070</color>
     <color name="text_link">#0099cc</color>
+    
+    
 </resources>

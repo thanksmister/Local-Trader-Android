@@ -23,7 +23,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -33,22 +33,23 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import dpreference.DPreference;
 import timber.log.Timber;
 
 
 @Singleton
 public class NotificationService
 {
+    private final DPreference preference;
     private final SharedPreferences sharedPreferences;
     private final Context context;
-    private StringPreference stringPreference;
     
     @Inject
-    public NotificationService(Context context, SharedPreferences sharedPreferences)
+    public NotificationService(Context context, DPreference preference, SharedPreferences sharedPreferences)
     {
         this.context = context;
+        this.preference = preference;
         this.sharedPreferences = sharedPreferences;
-        stringPreference = new StringPreference(sharedPreferences, DataService.PREFS_USER);
     }
 
     public void createNotifications(List<Notification> notifications)
@@ -87,7 +88,7 @@ public class NotificationService
         
         List<Message> newMessages = new ArrayList<Message>();
         for (Message message : messages) {
-            boolean isAccountUser = message.sender.username.toLowerCase().equals(stringPreference.get());
+            boolean isAccountUser = message.sender.username.toLowerCase().equals(AuthUtils.getUsername(preference, sharedPreferences));
             if (!isAccountUser) {
                 newMessages.add(message);
             }

@@ -21,77 +21,60 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:fillViewport="true"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
     <LinearLayout
             android:id="@+id/screenBackground"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@color/promo_background_red"
             android:orientation="vertical">
 
-        <android.support.v4.widget.Space
+        <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="36dp"/>
-
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="top"
                 android:padding="@dimen/activity_padding"
                 android:orientation="vertical">
 
+            <android.support.v4.widget.Space
+                    android:id="@+id/spacerTop"
+                    android:layout_alignParentTop="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"/>
+
+            <ImageView
+                    android:id="@+id/screenImage"
+                    android:layout_width="360dp"
+                    android:layout_height="360dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_below="@+id/spacerTop"
+                    android:src="@drawable/logo_screen"/>
+            
             <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:orientation="horizontal">
-
-                <ImageView
-                        android:id="@+id/screenImage"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginRight="4dp"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/logo_small"/>
-
+                    android:layout_below="@+id/screenImage"
+                    android:layout_centerHorizontal="true"
+                    android:layout_alignParentBottom="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                
                 <TextView
-                        android:id="@+id/headerText"
-                        style="@style/TextLarge.SmallAction.Red"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/descriptionText"
+                        style="@style/TextLarge.SmallAction"
+                        android:textColor="@color/body_text_1"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="@string/app_name"/>
+                        android:gravity="center"
+                        android:layout_marginLeft="36dp"
+                        android:layout_marginRight="36dp"
+                        android:linksClickable="true"
+                        tools:text="Local Trader works with your LocalBitcoins account, manage trades, advertisements, send messages, or to handle payments"/>
 
             </LinearLayout>
 
-            <android.support.v4.widget.Space
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp"/>
-
-            <TextView
-                    android:id="@+id/summaryText"
-                    style="@style/TextExtraLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    tools:text="Register for an account"/>
-
-            <android.support.v4.widget.Space
-                    android:layout_width="match_parent"
-                    android:layout_height="26dp"/>
-
-            <TextView
-                    android:id="@+id/descriptionText"
-                    style="@style/TextLarge.SmallAction"
-                    android:layout_weight="1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:layout_marginRight="@dimen/activity_horizontal_margin"
-                    android:linksClickable="true"
-                    tools:text="A PIN code is required to send Bitcoin from your wallet, fund trades, or release trades. You created this PIN code as part of your LocalBitcoins registration. The PIN code is not the same as your 2-factor authentication (2FA). You can view or manage your PIN code from your LocalBitcoins Profile page."/>
-
-        </LinearLayout>
+        </RelativeLayout>
 
     </LinearLayout>
 

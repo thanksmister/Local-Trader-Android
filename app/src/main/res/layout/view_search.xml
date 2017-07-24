@@ -50,18 +50,13 @@
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:paddingTop="16dp"
                     android:orientation="vertical">
-
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"/>
                 
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingTop="@dimen/view_padding_small"
-                        android:paddingBottom="@dimen/view_padding_small"
+                        android:paddingBottom="12dp"
                         android:paddingLeft="@dimen/view_padding"
                         android:paddingRight="@dimen/view_padding"
                         android:orientation="vertical">
@@ -70,7 +65,7 @@
                             style="@style/TextSmall"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Buying or selling?"
+                            android:text="@string/text_search_buying_or_selling"
                             android:gravity="left"/>
 
                     <Spinner
@@ -90,7 +85,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingTop="@dimen/view_padding_small"
-                        android:paddingBottom="@dimen/view_padding_small"
+                        android:paddingBottom="12dp"
                         android:paddingLeft="@dimen/view_padding"
                         android:paddingRight="@dimen/view_padding"
                         android:orientation="vertical">
@@ -99,7 +94,7 @@
                             style="@style/TextSmall"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Locally or online?"
+                            android:text="@string/text_search_locally_or_online"
                             android:gravity="left"/>
 
                     <Spinner
@@ -149,7 +144,6 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:paddingTop="16dp"
-                                    android:theme="@style/EditTextTheme"
                                     android:visibility="visible">
 
                                 <AutoCompleteTextView
@@ -159,7 +153,7 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:layout_gravity="center"
-                                        android:hint="Enter County, City or Address"
+                                        android:hint="@string/hint_enter_county_city_or_address"
                                         android:maxLines="3"/>
 
                             </FrameLayout>
@@ -210,7 +204,7 @@
                                 style="@style/TextSmall"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Latitude"
+                                android:text="@string/text_latitude"
                                 android:gravity="left"/>
 
                         <EditText
@@ -242,7 +236,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:digits=".0123456789-"
-                                android:text="Longitude"
+                                android:text="@string/text_longitude"
                                 android:gravity="left"/>
 
                         <EditText
@@ -280,7 +274,7 @@
                                 style="@style/TextSmall"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Country?"
+                                android:text="@string/text_search_country"
                                 android:gravity="left"
                                 android:layout_marginLeft="@dimen/view_padding"/>
 
@@ -318,7 +312,7 @@
                                 style="@style/TextSmall"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Currency?"
+                                android:text="@string/text_search_currency"
                                 android:gravity="left"
                                 android:layout_marginLeft="@dimen/view_padding"/>
 
@@ -355,7 +349,7 @@
                                 style="@style/TextSmall"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Online payment method?"
+                                android:text="@string/text_search_online_payment_method"
                                 android:gravity="left"
                                 android:layout_marginLeft="@dimen/view_padding"/>
 
@@ -384,30 +378,24 @@
 
                 </LinearLayout>
 
+                <android.support.v4.widget.Space
+                        android:layout_width="match_parent"
+                        android:layout_height="16dp"/>
+
+                <Button
+                        style="@style/ButtonGreen.Small"
+                        android:id="@+id/searchButton"
+                        android:layout_width="match_parent"
+                        android:layout_marginLeft="@dimen/activity_padding"
+                        android:layout_marginRight="@dimen/activity_padding"
+                        android:layout_height="48dp"
+                        android:textAllCaps="true"
+                        android:text="@string/button_search_trades"/>
+
+
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>
-
-        <View
-                android:background="?android:attr/dividerHorizontal"
-                android:layout_height="1dp"
-                android:layout_width="match_parent"/>
-
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-            <Button
-                    style="@style/ButtonGreen.Small"
-                    android:id="@+id/searchButton"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:textAllCaps="true"
-                    android:text="@string/button_search_trades"/>
-
-        </LinearLayout>
 
     </LinearLayout>
 

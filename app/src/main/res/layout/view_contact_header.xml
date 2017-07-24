@@ -45,7 +45,6 @@
 
     </FrameLayout>
 
-
     <TextView
             android:id="@+id/tradeType"
             style="@style/TextLarge"
@@ -178,6 +177,7 @@
                     android:orientation="vertical">
 
                 <TextView
+                        android:id="@+id/tradeAmountTitle"
                         style="@style/TextSmall"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -342,10 +342,339 @@
 
     </LinearLayout>
 
-    <View
+    <LinearLayout
+            android:id="@+id/onlineOptionsLayout"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/view_padding_small"/>
+            android:layout_height="wrap_content"
+            android:divider="@drawable/empty_list_divider"
+            android:orientation="vertical"
+            tools:visibility="visible"
+            android:visibility="gone">
 
+        <View style="@style/DividerHorizontal"/>
+
+        <LinearLayout
+                android:id="@+id/detailsEthereumAddressLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Ethereum Address"/>
+
+            <TextView
+                    android:id="@+id/detailsEthereumAddress"
+                    style="@style/TextLarge.SmallAction"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsPhoneNumberLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Phone Number"/>
+
+            <TextView
+                    android:id="@+id/detailsPhoneNumber"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsReceiverEmailLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Receiver Email"/>
+
+            <TextView
+                    android:id="@+id/detailsReceiverEmail"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsReceiverNameLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Receiver Name"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+            <TextView
+                    android:id="@+id/detailsReceiverName"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"/>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+                android:id="@+id/detailsSortCodeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Sort Code"/>
+
+            <TextView
+                    android:id="@+id/detailsSortCode"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsAccountNumberLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Account Number"/>
+
+            <TextView
+                    android:id="@+id/detailsAccountNumber"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsBSBLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="BSB"/>
+
+            <TextView
+                    android:id="@+id/detailsBSB"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsBillerCodeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Biller Code"/>
+
+            <TextView
+                    android:id="@+id/detailsBillerCode"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsIbanLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Iban Name"/>
+
+            <TextView
+                    android:id="@+id/detailsIbanName"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsSwiftBicLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="Swift Code"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+            <TextView
+                    android:id="@+id/detailsSwiftBic"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/detailsReferenceLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical"
+                tools:visibility="visible"
+                android:visibility="gone">
+
+            <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/view_padding_small"
+                    android:gravity="left"
+                    android:text="References"/>
+
+            <TextView
+                    android:id="@+id/detailsReference"
+                    style="@style/TextLarge.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="This is text"
+                    android:selectAllOnFocus="true"
+                    android:textIsSelectable="true"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+    
     <View style="@style/DividerHorizontal"/>
 
     <LinearLayout

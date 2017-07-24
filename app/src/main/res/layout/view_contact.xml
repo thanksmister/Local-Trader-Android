@@ -48,11 +48,7 @@
                 android:id="@+id/swipeLayout"
                 android:layout_weight="1"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                android:layout_height="0dp">
 
                 <ListView
                         android:id="@+id/contactList"
@@ -65,9 +61,7 @@
                         android:drawSelectorOnTop="true"
                         tools:visibility="visible"
                         android:visibility="gone"/>
-
-            </FrameLayout>
-
+            
         </android.support.v4.widget.SwipeRefreshLayout>
 
         <LinearLayout
