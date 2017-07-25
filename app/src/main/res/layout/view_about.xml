@@ -52,12 +52,7 @@
                     android:paddingTop="20dp"
                     android:paddingBottom="10dp"
                     android:gravity="center_horizontal">
-
-                <ImageView
-                        android:layout_height="200dp"
-                        android:layout_width="wrap_content"
-                        android:src="@drawable/logo_screen"
-                        android:contentDescription="@string/desc"/>
+                
 
                 <TextView
                         android:text="@string/designer_developer_text"
@@ -173,8 +168,6 @@
 
             </LinearLayout>
 
-            <View style="@style/DividerHorizontal"/>
-
             <LinearLayout
                     android:id="@+id/tipBitcoinButton"
                     style="@style/BorderlessButtonStyle"
@@ -230,10 +223,7 @@
                     android:id="@+id/joinCommunityButton"
                     style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingRight="@dimen/view_padding"
-                    android:paddingBottom="@dimen/view_padding"
-                    android:paddingTop="@dimen/view_padding"
+                    android:layout_height="56dp"
                     android:orientation="horizontal">
 
                 <ImageView

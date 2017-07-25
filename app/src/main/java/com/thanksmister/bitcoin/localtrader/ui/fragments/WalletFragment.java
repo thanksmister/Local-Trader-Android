@@ -139,6 +139,9 @@ public class WalletFragment extends BaseFragment {
         recycleView.setAdapter(sectionRecycleViewAdapter);
 
         setupToolbar();
+        
+        String currency = exchangeService.getExchangeCurrency();
+        setAppBarText("0", "0", currency);
     }
     
     @Override

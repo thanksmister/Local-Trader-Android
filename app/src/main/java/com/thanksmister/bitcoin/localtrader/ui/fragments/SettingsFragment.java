@@ -38,6 +38,7 @@ import android.widget.ListView;
 import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
@@ -209,12 +210,12 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     }
 
     private void subscribeData() {
-        db.exchangeCurrencyQuery()
-                .subscribeOn(Schedulers.newThread())
+        db.currencyQuery()
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<ExchangeCurrencyItem>>() {
+                .subscribe(new Action1<List<CurrencyItem>>() {
                     @Override
-                    public void call(List<ExchangeCurrencyItem> currencyItems) {
+                    public void call(List<CurrencyItem> currencyItems) {
                         List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
                         exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
                         updateCurrencies(exchangeCurrencies);
@@ -231,7 +232,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         String exchangeCurrency = exchangeService.getExchangeCurrency();
 
         if (currencies.isEmpty()) {
-            ExchangeCurrency exchangeRate = new ExchangeCurrency("USD");
+            ExchangeCurrency exchangeRate = new ExchangeCurrency(getString(R.string.usd));
             currencies.add(exchangeRate);
         }
 

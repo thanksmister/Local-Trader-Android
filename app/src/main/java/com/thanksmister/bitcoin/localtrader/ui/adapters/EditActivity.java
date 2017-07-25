@@ -52,7 +52,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -66,6 +65,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
@@ -656,69 +656,52 @@ public class EditActivity extends BaseActivity {
     }
 
     public void subScribeData() {
-        subscriptions = new CompositeSubscription(); // must initiate each time
-        subscriptions.add(dbManager.methodSubSetQuery().subscribe(new Action1<List<MethodItem>>() {
-            @Override
-            public void call(List<MethodItem> methodItems) {
-                setMethods(methodItems);
-            }
-        }));
+        dbManager.methodSubSetQuery()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<List<MethodItem>>bindUntilEvent(ActivityEvent.PAUSE))
+                .subscribe(new Action1<List<MethodItem>>() {
+                    @Override
+                    public void call(List<MethodItem> methodItems) {
+                        setMethods(methodItems);
+                    }
+                });
 
         if (create) {
-            subscriptions.add(dbManager.exchangeCurrencyQuery()
-                    .subscribe(new Action1<List<ExchangeCurrencyItem>>() {
+            dbManager.currencyQuery()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(this.<List<CurrencyItem>>bindUntilEvent(ActivityEvent.PAUSE))
+                    .subscribe(new Action1<List<CurrencyItem>>() {
                         @Override
-                        public void call(final List<ExchangeCurrencyItem> currencyItems) {
-                            if (currencyItems == null || currencyItems.isEmpty()) {
-                                currencySubscription = exchangeService.getCurrencies()
-                                        .subscribeOn(Schedulers.newThread())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe(new Action1<List<ExchangeCurrency>>() {
-                                            @Override
-                                            public void call(List<ExchangeCurrency> currencies) {
-                                                dbManager.insertExchangeCurrencies(currencies);
-                                                updateCurrencies(currencies, null);
-                                                showContent(true);
-                                                createAdvertisement();
-                                                List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
-                                                exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
-                                                updateCurrencies(exchangeCurrencies, null);
-                                            }
-                                        }, new Action1<Throwable>() {
-                                            @Override
-                                            public void call(Throwable throwable) {
-                                                Timber.e(throwable.getMessage());
-                                                Toast.makeText(EditActivity.this, "Unable to load currencies...", Toast.LENGTH_LONG).show();
-                                                showContent(true);
-                                                createAdvertisement();
-                                                updateCurrencies(new ArrayList<ExchangeCurrency>(), null);
-                                            }
-                                        });
-                            } else {
-                                showContent(true);
-                                createAdvertisement();
-                                List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
-                                exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
-                                updateCurrencies(exchangeCurrencies, null);
-                            }
+                        public void call(final List<CurrencyItem> currencyItems) {
+                            showContent(true);
+                            createAdvertisement();
+                            List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
+                            exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
+                            updateCurrencies(exchangeCurrencies, null);
                         }
-                    }));
+                    });
         } else {
-            subscriptions.add(dbManager.advertisementItemQuery(adId).subscribe(new Action1<AdvertisementItem>() {
-                @Override
-                public void call(AdvertisementItem advertisement) {
-                    showContent(true);
-                    advertisementItem = advertisement; // save reference
-                    setAdvertisement(advertisementItem);
-                }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    snackError(getString(R.string.snack_no_advertisement_data));
-                    reportError(throwable);
-                    finish();
-                }
-            }));
+            dbManager.advertisementItemQuery(adId)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(this.<AdvertisementItem>bindUntilEvent(ActivityEvent.PAUSE))
+                    .subscribe(new Action1<AdvertisementItem>() {
+                        @Override
+                        public void call(AdvertisementItem advertisement) {
+                            showContent(true);
+                            advertisementItem = advertisement; // save reference
+                            setAdvertisement(advertisementItem);
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            snackError(getString(R.string.snack_no_advertisement_data));
+                            reportError(throwable);
+                            finish();
+                        }
+                    });
         }
     }
 

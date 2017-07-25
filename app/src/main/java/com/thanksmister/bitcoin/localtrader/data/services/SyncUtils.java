@@ -60,7 +60,7 @@ public class SyncUtils
      * @return
      */
     public static Account getSyncAccount(Context context) {
-        String acctType = "com.thanksmister.bitcoin.localtrader.sync";
+        /*String acctType = "com.thanksmister.bitcoin.localtrader.sync";
         Account[] accounts = AccountManager.get(context).getAccountsByType(acctType);
         AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
         int j = accounts.length;
@@ -74,7 +74,9 @@ public class SyncUtils
                 deleteSyncAccounts(context, "Contacts");
             }
             i += 1;
-        }
+        }*/
+        String acctType = "com.thanksmister.bitcoin.localtrader.sync";
+        AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
         Account account = new Account(context.getString(R.string.app_name), acctType);
         accountManager.addAccountExplicitly(account, null, null);
         return account;
@@ -85,7 +87,7 @@ public class SyncUtils
      * @param context
      * @param paramString
      */
-    public static void deleteSyncAccounts(Context context, String paramString) {
+    /*public static void deleteSyncAccounts(Context context, String paramString) {
         AccountManager accountManager = AccountManager.get(context);
         Account[] accounts = accountManager.getAccountsByType(paramString);
         int j = accounts.length;
@@ -94,5 +96,5 @@ public class SyncUtils
             accountManager.removeAccount(accounts[i], null, null);
             i += 1;
         }
-    }
+    }*/
 }

@@ -223,7 +223,7 @@ public class SendFragment extends BaseFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         
-        sendDescription.setText(Html.fromHtml(getString(R.string.send_form_description)));
+        sendDescription.setText(Html.fromHtml(getString(R.string.pin_code_send)));
         sendDescription.setMovementMethod(LinkMovementMethod.getInstance());
 
         addressText.setOnTouchListener(new View.OnTouchListener() {

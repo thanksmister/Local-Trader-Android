@@ -76,10 +76,7 @@
 
                 </LinearLayout>
 
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"/>
+                <View style="@style/DividerHorizontal"/>
 
                 <LinearLayout
                         android:layout_width="match_parent"
@@ -104,17 +101,18 @@
                             android:layout_height="match_parent"/>
                     
                 </LinearLayout>
-
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"/>
+                
                 
                 <LinearLayout
                         android:id="@+id/localOptionsLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
+
+                    <View
+                            style="@style/DividerHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"/>
 
                     <TextView
                             style="@style/SmallText.ExtraSmall"

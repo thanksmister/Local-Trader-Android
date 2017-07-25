@@ -47,23 +47,28 @@ public abstract class ExchangeCurrencyItem implements Parcelable
         @Override
         public List<ExchangeCurrencyItem> call(Query query) {
             Cursor cursor = query.run();
-            try {
-                List<ExchangeCurrencyItem> values = new ArrayList<>(cursor.getCount());
-                while (cursor.moveToNext()) {
-                    long id = Db.getLong(cursor, ID);
-                    String currency = Db.getString(cursor, CURRENCY);
-                    values.add(new AutoParcel_ExchangeCurrencyItem(id, currency));
-                }
-                return values;
-            } finally {
-                cursor.close();
+            List<ExchangeCurrencyItem> values = new ArrayList<>(cursor.getCount());
+            while (cursor.moveToNext()) {
+                long id = Db.getLong(cursor, ID);
+                String currency = Db.getString(cursor, CURRENCY);
+                values.add(new AutoParcel_ExchangeCurrencyItem(id, currency));
             }
+            return values;
         }
     };
 
-    public static List<ExchangeCurrency> getCurrencies(List<ExchangeCurrencyItem> currencyItems) {
+    /*public static List<ExchangeCurrency> getCurrencies(List<ExchangeCurrencyItem> currencyItems) {
         List<ExchangeCurrency> exchangeCurrencies = new ArrayList<>();
         for(ExchangeCurrencyItem exchangeCurrencyItem : currencyItems) {
+            ExchangeCurrency exchangeCurrency = new ExchangeCurrency(exchangeCurrencyItem.currency());
+            exchangeCurrencies.add(exchangeCurrency);
+        }
+        return exchangeCurrencies;
+    }
+*/
+    public static List<ExchangeCurrency> getCurrencies(List<CurrencyItem> currencyItems) {
+        List<ExchangeCurrency> exchangeCurrencies = new ArrayList<>();
+        for(CurrencyItem exchangeCurrencyItem : currencyItems) {
             ExchangeCurrency exchangeCurrency = new ExchangeCurrency(exchangeCurrencyItem.currency());
             exchangeCurrencies.add(exchangeCurrency);
         }

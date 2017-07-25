@@ -449,6 +449,7 @@ public class DbManager {
      */
     public Observable<List<CurrencyItem>> currencyQuery() {
         return db.createQuery(CurrencyItem.TABLE, CurrencyItem.QUERY)
+                .distinct()
                 .map(CurrencyItem.MAP);
     }
 

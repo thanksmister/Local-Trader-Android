@@ -40,6 +40,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
@@ -348,8 +349,8 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
      * Load the currencies
      */
     public void loadCurrencies() {
-        dbManager.exchangeCurrencyQuery()
-                .subscribeOn(Schedulers.newThread())
+        dbManager.currencyQuery()
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -357,10 +358,10 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
                         Timber.i("Currency subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<List<ExchangeCurrencyItem>>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<List<ExchangeCurrencyItem>>() {
+                .compose(this.<List<CurrencyItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<CurrencyItem>>() {
                     @Override
-                    public void call(final List<ExchangeCurrencyItem> currencies) {
+                    public void call(final List<CurrencyItem> currencies) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {

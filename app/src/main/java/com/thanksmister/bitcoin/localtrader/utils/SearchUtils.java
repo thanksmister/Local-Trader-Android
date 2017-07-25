@@ -189,9 +189,9 @@ public class SearchUtils {
     }
 
     public static String getSearchCurrency(SharedPreferences sharedPreferences) {
-        StringPreference userCurrencyPref = new StringPreference(sharedPreferences, PREFS_EXCHANGE_CURRENCY, "Any");
+        StringPreference userCurrencyPref = new StringPreference(sharedPreferences, PREFS_EXCHANGE_CURRENCY, "USD");
         StringPreference preference = new StringPreference(sharedPreferences, PREFS_SEARCH_CURRENCY, userCurrencyPref.get());
-        if(preference.get().equals("")) return "Any";
+        if(preference.get().equals("")) return "USD";
         return preference.get();
     }
 

@@ -56,12 +56,12 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
@@ -70,12 +70,13 @@ import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
+import com.thanksmister.bitcoin.localtrader.ui.activities.SearchResultsActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.CurrencyAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MethodAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.PredictAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.SpinnerAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.activities.SearchResultsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.CurrencyUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
@@ -528,20 +529,20 @@ public class SearchFragment extends BaseFragment {
     }
 
     private void subscribeData() {
-        dbManager.exchangeCurrencyQuery()
-                .subscribeOn(Schedulers.newThread())
+        dbManager.currencyQuery()
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<List<ExchangeCurrencyItem>>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<List<ExchangeCurrencyItem>>() {
+                .compose(this.<List<CurrencyItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<CurrencyItem>>() {
                     @Override
-                    public void call(List<ExchangeCurrencyItem> currencyItems) {
+                    public void call(List<CurrencyItem> currencyItems) {
                         List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
                         exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
                         updateCurrencies(exchangeCurrencies);
                     }
                 });
         dbManager.methodQuery()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -617,14 +618,26 @@ public class SearchFragment extends BaseFragment {
         currencies = CurrencyUtils.sortCurrencies(currencies);
         
         String searchCurrency = SearchUtils.getSearchCurrency(sharedPreferences);
+        
         if(currencies.isEmpty()) {
             ExchangeCurrency exchangeCurrency = new ExchangeCurrency(searchCurrency);
             currencies.add(exchangeCurrency); // just revert back to default
+        } 
+        
+        // TODO this is temporary fix for issues with Any as default currency
+        boolean containsAny = false;
+        for (ExchangeCurrency currency : currencies) {
+            if(currency.getCurrency().equals(getString(R.string.text_currency_any))) {
+                containsAny = true;
+                break;
+            }
         }
 
-        // add "any" for search option
-        ExchangeCurrency exchangeCurrency = new ExchangeCurrency("Any");
-        currencies.add(0, exchangeCurrency);
+        if(!containsAny) {
+            // add "any" for search option
+            ExchangeCurrency exchangeCurrency = new ExchangeCurrency(getString(R.string.text_currency_any));
+            currencies.add(0, exchangeCurrency);
+        }
         
         CurrencyAdapter typeAdapter = new CurrencyAdapter(getActivity(), R.layout.spinner_layout, currencies);
         currencySpinner.setAdapter(typeAdapter);

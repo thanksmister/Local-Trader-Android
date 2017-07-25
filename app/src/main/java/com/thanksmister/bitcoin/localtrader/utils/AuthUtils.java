@@ -212,7 +212,7 @@ public class AuthUtils {
      * @param username
      */
     public static void setUsername(@NonNull DPreference preference, @NonNull String username) {
-        preference.putString(username, PREFS_USER);
+        preference.putString(PREFS_USER, username);
     }
 
     /**
@@ -237,7 +237,7 @@ public class AuthUtils {
         return preference.getBoolean(PREFS_FORCE_UPDATES, false);
     }
     
-    public static void setForceUpdate(@NonNull DPreference preference, @NonNull boolean force) {
+    public static void setForceUpdate(@NonNull DPreference preference, boolean force) {
         preference.putBoolean(PREFS_FORCE_UPDATES, force);
     }
 

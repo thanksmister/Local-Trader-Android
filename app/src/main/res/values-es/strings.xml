@@ -651,5 +651,6 @@
     <string name="toast_error_opening_contact">Error opening contact...</string>
     <string name="text_not_trades">No trades</string>
     <string name="toast_loading_trades">Loading trades...</string>
+    <string name="text_currency_any">Any</string>
 
 </resources>

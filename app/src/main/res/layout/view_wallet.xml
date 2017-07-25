@@ -48,15 +48,14 @@
                     android:gravity="bottom"
                     android:layout_marginTop="64dp"
                     android:layout_marginBottom="16dp"
-                    android:paddingLeft="72dp"
-                    app:layout_collapseMode="none">
+                    android:paddingLeft="72dp">
 
                 <TextView
                         android:id="@+id/bitcoinTitle"
                         style="@style/TextLarge.SmallAction.White"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="ACCOUNT BALANCE"/>
+                        android:text="@string/wallet_account_balance"/>
 
                 <TextView
                         android:id="@+id/bitcoinPrice"
@@ -65,11 +64,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textIsSelectable="true"
-                        tools:text="1.838949844 BTC"/>
+                        tools:text="0.0 BTC"/>
 
                 <TextView
                         android:id="@+id/bitcoinValue"
-                        style="@style/TextMedium.White"
+                        style="@style/TextSmall.White"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="~ 2783.89 USD (Coinbase)"/>

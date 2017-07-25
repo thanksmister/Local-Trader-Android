@@ -1,3 +1,4 @@
+
 <!--
   ~ Copyright (c) 2016 ThanksMister LLC
   ~
@@ -52,15 +53,27 @@
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
+                android:background="@color/gray_color"
+                android:paddingBottom="16dp"
                 android:orientation="vertical"
                 android:layout_gravity="bottom">
+
+            <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    style="@style/DividerHorizontal"/>
+            
+            <android.support.v4.widget.Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"/>
 
             <TextView
                     android:id="@+id/bitcoinTitle"
                     style="@style/TextMedium.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
                     android:gravity="start"
                     tools:text="MARKET PRICE"/>
 
@@ -70,6 +83,8 @@
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
                     tools:text="$2679.50"/>
 
             <TextView
@@ -77,6 +92,8 @@
                     style="@style/TextSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
                     tools:text="Source: Coinbase"/>
 
         </LinearLayout>

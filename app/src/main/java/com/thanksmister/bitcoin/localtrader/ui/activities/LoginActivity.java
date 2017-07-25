@@ -199,21 +199,7 @@ public class LoginActivity extends BaseActivity {
 
             return;
         }
-
-        // check if we are using HMAC security
-        /*if(useHmacAuthentication) {
-            String key = hmacKey.getText().toString();
-            String secret = hmacSecret.getText().toString();
-            if (!TextUtils.isEmpty(key) && !TextUtils.isEmpty(secret)) {
-                showProgressDialog(new ProgressDialogEvent(getString(R.string.login_authorizing)));
-                getMyselfHmac(key, secret, endpoint);
-            } else {
-                showAlertDialog(new AlertDialogEvent(null, getString(R.string.setup_form_error)));
-            }
-        } else {
-            setUpWebViewDefaults();
-        }*/
-
+        
         setUpWebViewDefaults();
     }
 
@@ -244,11 +230,7 @@ public class LoginActivity extends BaseActivity {
 
             // Enable pinch to zoom without the zoom buttons
             settings.setBuiltInZoomControls(true);
-
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-                // Hide the zoom controls for HONEYCOMB+
-                settings.setDisplayZoomControls(false);
-            }
+            settings.setDisplayZoomControls(false);
 
             // Enable remote debugging via chrome://inspect
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -310,7 +292,6 @@ public class LoginActivity extends BaseActivity {
 
         Timber.d("Username: " + user.username);
         
-
         Intent intent = new Intent(this, SplashActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

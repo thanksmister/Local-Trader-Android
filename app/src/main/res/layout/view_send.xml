@@ -50,35 +50,12 @@
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:padding="16dp"
                     android:orientation="vertical">
-
-                <LinearLayout
-                        android:id="@+id/noteLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="@dimen/view_padding_small"
-                        android:paddingBottom="@dimen/view_padding_small"
-                        android:orientation="vertical"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="16dp"
-                        android:background="@color/yellow">
-
-                    <TextView
-                            style="@style/TextMedium"
-                            android:layout_marginLeft="4dp"
-                            android:layout_width="wrap_content"
-                            android:drawableLeft="@drawable/ic_info_outline"
-                            android:layout_height="wrap_content"
-                            android:text="@string/form_sendable_label"/>
-
-                </LinearLayout>
                 
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingTop="8dp"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingRight="@dimen/activity_padding"
                         android:orientation="vertical">
 
                     <TextView
@@ -100,23 +77,30 @@
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="4dp"
                             android:layout_marginRight="4dp"
-                            android:layout_gravity="center"
+                            android:layout_gravity="left"
                             android:textColor="@color/text_green"
                             tools:text=".011626091 BTC / 275.89 USD"
                             style="@style/TextMedium"/>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"/>
+
+                    <TextView
+                            style="@style/SmallText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/form_sendable_label"/>
 
                 </LinearLayout>
 
                 <View
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/view_padding_small"/>
+                        android:layout_height="16dp"/>
 
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingTop="8dp"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingRight="@dimen/activity_padding"
                         android:orientation="vertical">
 
                     <TextView
@@ -133,7 +117,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:id="@+id/address"
-                            style="@style/TextLarge.SmallAction"
+                            style="@style/TextMedium"
                             android:theme="@style/EditTextTheme"
                             android:hint="@string/hint_bitcoin_address"
                             android:nextFocusDown="@+id/amountText"/>
@@ -145,15 +129,9 @@
                         android:layout_height="8dp"/>
 
                 <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:paddingLeft="@dimen/activity_padding"
-                            android:paddingRight="@dimen/activity_padding"
+                            android:paddingTop="8dp"
                             android:orientation="vertical">
 
                         <TextView
@@ -175,7 +153,7 @@
                                     android:id="@+id/amountText"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    style="@style/TextLarge.SmallAction"
+                                    style="@style/TextMedium"
                                     android:inputType="numberDecimal"
                                     android:digits="0123456789."
                                     android:layout_weight="1"
@@ -204,6 +182,10 @@
 
                         </LinearLayout>
 
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="8dp"/>
+
                         <TextView
                                 style="@style/TextSmall"
                                 android:layout_width="wrap_content"
@@ -225,7 +207,7 @@
                                     android:theme="@style/EditTextTheme"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    style="@style/TextLarge.SmallAction"
+                                    style="@style/TextMedium"
                                     android:inputType="numberDecimal"
                                     android:digits="0123456789."
                                     android:layout_weight="1"
@@ -254,8 +236,7 @@
                         </LinearLayout>
 
                     </LinearLayout>
-
-                </LinearLayout>
+                
 
                 <View
                         android:layout_width="match_parent"
@@ -266,8 +247,6 @@
                         style="@style/SmallText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingRight="@dimen/activity_padding"
                         android:linksClickable="true"
                         android:text="@string/pin_code_send"/>
 
@@ -279,8 +258,6 @@
                         style="@style/ButtonGreen.Small"
                         android:id="@+id/sendButton"
                         android:layout_width="match_parent"
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:layout_marginRight="@dimen/activity_padding"
                         android:layout_height="48dp"
                         android:text="@string/button_send"/>
 
@@ -289,7 +266,6 @@
         </android.support.v4.widget.NestedScrollView>
         
         
-
     </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

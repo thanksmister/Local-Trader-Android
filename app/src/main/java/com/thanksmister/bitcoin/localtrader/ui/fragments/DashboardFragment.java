@@ -204,9 +204,6 @@ public class DashboardFragment extends BaseFragment {
             case R.id.action_search:
                 showSearchScreen();
                 return false;
-            case R.id.action_send:
-                showSendScreen();
-                return true;
             case R.id.action_trades:
                 showTradesScreen();
                 return true;

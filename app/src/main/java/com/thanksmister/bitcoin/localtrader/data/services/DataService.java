@@ -164,16 +164,15 @@ public class DataService {
     }
 
     public Observable<List<ExchangeCurrency>> getCurrencies() {
-        
-        if(!needToRefreshCurrency()) {
+       /* if(!needToRefreshCurrency()) {
             return Observable.just(null);
         }
-        
+        */
         return localBitcoins.getCurrencies()
                 .doOnNext(new Action1<Response>() {
                     @Override
                     public void call(Response response) {
-                        setCurrencyExpireTime();
+                        //setCurrencyExpireTime();
                     }
                 })
                 .map(new ResponseToCurrencies());
@@ -705,7 +704,7 @@ public class DataService {
         return System.currentTimeMillis() > preference.getLong(PREFS_CURRENCY_EXPIRE_TIME, -1);
     }
 
-    private void setCurrencyExpireTime() {
+    public void setCurrencyExpireTime() {
         long expire = System.currentTimeMillis() + CHECK_CURRENCY_DATA; // 1 hours
         preference.putLong(PREFS_CURRENCY_EXPIRE_TIME, expire);
     }

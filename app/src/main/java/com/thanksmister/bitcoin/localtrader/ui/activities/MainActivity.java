@@ -166,7 +166,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
         swipeLayout.setProgressViewOffset(false, 48, 186);
-        swipeLayout.setDistanceToTriggerSync(150);
+        swipeLayout.setDistanceToTriggerSync(250);
     }
 
     @Override
@@ -402,30 +402,36 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         
         if (!isFinishing()) {
             if (position == DRAWER_WALLET) {
+                swipeLayout.setEnabled(true);
                 fragment = WalletFragment.newInstance();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, fragment, WALLET_FRAGMENT)
                         .commitAllowingStateLoss();
             } else if (position == DRAWER_SEARCH) {
+                swipeLayout.setEnabled(false);
                 fragment = SearchFragment.newInstance();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, fragment, SEARCH_FRAGMENT)
                         .commitAllowingStateLoss();
             } else if (position == DRAWER_SEND) {
+                swipeLayout.setEnabled(false);
                 fragment = SendFragment.newInstance();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, fragment, SEND_FRAGMENT)
                         .commitAllowingStateLoss();
             } else if (position == DRAWER_RECEIVE) {
+                swipeLayout.setEnabled(false);
                 fragment = RequestFragment.newInstance();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, fragment, RECEIVE_FRAGMENT)
                         .commitAllowingStateLoss();
             } else if (position == DRAWER_DASHBOARD) {
+                swipeLayout.setEnabled(true);
                 fragment = DashboardFragment.newInstance();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, fragment, DASHBOARD_FRAGMENT).commit();
             } else if (position == DRAWER_ABOUT) {
+                swipeLayout.setEnabled(false);
                 fragment = AboutFragment.newInstance();
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_frame, fragment, ABOUT_FRAGMENT)
