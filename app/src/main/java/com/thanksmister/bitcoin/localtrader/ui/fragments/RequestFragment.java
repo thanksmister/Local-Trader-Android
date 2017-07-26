@@ -48,7 +48,6 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
@@ -84,9 +83,6 @@ public class RequestFragment extends BaseFragment {
 
     public static final String EXTRA_WALLET = "com.thanksmister.extra.EXTRA_WALLET";
     public static final String EXTRA_EXCHANGE = "com.thanksmister.extra.EXTRA_EXCHANGE";
-
-    @Inject
-    DataService dataService;
 
     @Inject
     ExchangeService exchangeService;

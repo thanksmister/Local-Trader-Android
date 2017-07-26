@@ -191,7 +191,7 @@
     <string name="hint_bitcoin">0.00000000</string>
     <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
     <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s BTC / %2$s %3$s</font>]]></string>
-    <string name="pin_code_send"><![CDATA[A PIN code is required to release, fund send bitcoin. More info at https://localbitcoins.com/accounts/profile/#toc6.]]></string>
+    <string name="pin_code_send"><![CDATA[A PIN code is required to release, fund send bitcoin. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page.]]></string>
     <string name="toast_transaction_success">Bitcoins sent!</string>
     <string name="progress_sending_transaction">Sending bitcoins…</string>
     <string name="toast_pin_code_canceled">PIN code canceled</string>
@@ -719,5 +719,23 @@
     <string name="text_not_trades">No trades</string>
     <string name="toast_loading_trades">Loading trades...</string>
     <string name="text_currency_any">Any</string>
+    <string name="toast_error_advertisers">Unable to load online advertisers.</string>
+    <string name="toast_searching">Searching...</string>
+    <string name="text_no_advertisers">No advertisers located.</string>
+    <string name="text_results_for">Results for %1$s</string>
+    <string name="button_request_trade">Request Trade</string>
+    <string name="text_terms">Terms</string>
+    <string name="text_requirements">Requirements</string>
+    <string name="text_amount_min_max">Amount (Min - Max)</string>
+    <string name="text_deal_price">Deal Price</string>
+    <string name="text_advertiser">Advertiser</string>
+    <string name="text_last_seen">Last Seen - %1$s</string>
+    <string name="text_escrow_amount">Escrow Amount</string>
+    <string name="toast_valid_trade_amount">Enter a valid amount for the trade.</string>
+    <string name="toast_enter_lower_amount">Enter an amount lower than %1$s %2$s</string>
+    <string name="toast_enter_higher_amount">Enter an amount greater than %1$s %2$s</string>
+    <string name="progress_sending_trade_request">Sending trade request...</string>
+    <string name="toast_trade_request_sent">Trade request sent to</string>
+    <string name="text_trade_with">Trade with %1$s</string>
 
 </resources>

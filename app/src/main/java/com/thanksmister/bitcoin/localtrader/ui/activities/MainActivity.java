@@ -192,6 +192,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             }
         }
 
+        updateData();
         subscribeData();
         navigationView.getMenu().findItem(lastMenuItemId).setChecked(true);
         registerReceiver(syncBroadcastReceiver, syncIntentFilter);

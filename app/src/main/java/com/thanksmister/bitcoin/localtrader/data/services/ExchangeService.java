@@ -87,7 +87,6 @@ public class ExchangeService {
     
     public Observable<ExchangeRate> getSpotPrice() {
         if(needToRefreshExchanges()) {
-            Timber.d("getSpotPrice");
             String currency = getExchangeCurrency();
             return coinbase.spotPrice(currency)
                     .doOnNext(new Action1<Response>() {

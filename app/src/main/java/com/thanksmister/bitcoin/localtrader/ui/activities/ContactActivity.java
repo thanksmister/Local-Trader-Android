@@ -158,7 +158,6 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     private DownloadManager downloadManager;
     private MenuItem cancelItem;
     private MenuItem disputeItem;
-    private boolean messageScroll = false;
     private Handler handler;
     
     public static Intent createStartIntent(Context context, String contactId) {
@@ -582,7 +581,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         contactHeaderLayout.setVisibility((description == null) ? View.GONE : View.VISIBLE);
         
         if(TradeUtils.isOnlineTrade(contact)) {
-            tradeAmountTitle.setText("Escrow Amount");
+            tradeAmountTitle.setText(R.string.text_escrow_amount);
             showOnlineOptions(contact);
         }
 

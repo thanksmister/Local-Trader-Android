@@ -191,6 +191,12 @@ public class EditMoreInfoFragment extends BaseEditFragment {
             currency = advertisement.currency;
         }
         currencies = CurrencyUtils.sortCurrencies(currencies);
+        
+        // we shouldn't have a blank currency, if so use the default 
+        if(currencies.isEmpty()) {
+            currencies.add(new ExchangeCurrency(currency));
+        }
+        
         CurrencyAdapter typeAdapter = new CurrencyAdapter(getActivity(), R.layout.spinner_layout, currencies);
         currencySpinner.setAdapter(typeAdapter);
         int i = 0;

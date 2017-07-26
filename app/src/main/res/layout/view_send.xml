@@ -80,7 +80,7 @@
                             android:layout_gravity="left"
                             android:textColor="@color/text_green"
                             tools:text=".011626091 BTC / 275.89 USD"
-                            style="@style/TextMedium"/>
+                            style="@style/TextLarge.SmallAction"/>
 
                     <View
                             android:layout_width="match_parent"

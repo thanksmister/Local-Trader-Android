@@ -68,6 +68,9 @@ public class ContactsActivity extends BaseActivity {
     @InjectView(R.id.emptyLayout)
     View emptyLayout;
 
+    @InjectView(R.id.resultsProgress)
+    View progress;
+
     @InjectView(R.id.emptyText)
     TextView emptyText;
 
@@ -162,9 +165,23 @@ public class ContactsActivity extends BaseActivity {
         super.onDestroy();
     }
 
-    public void showContent(final boolean show) {
-        recycleView.setVisibility(show ? View.VISIBLE : View.GONE);
-        emptyLayout.setVisibility(show ? View.VISIBLE : View.GONE);
+    public void showContent() {
+        recycleView.setVisibility(View.VISIBLE);
+        emptyLayout.setVisibility(View.GONE);
+        progress.setVisibility(View.GONE);
+        emptyText.setText(getString(R.string.text_not_trades));
+    }
+    
+    public void showEmpty() {
+        recycleView.setVisibility(View.GONE);
+        emptyLayout.setVisibility(View.VISIBLE);
+        progress.setVisibility(View.GONE);
+    }
+
+    public void showProgress() {
+        recycleView.setVisibility(View.GONE);
+        emptyLayout.setVisibility(View.GONE);
+        progress.setVisibility(View.VISIBLE);
     }
 
     public void setToolBarMenu(Toolbar toolbar) {
@@ -173,17 +190,14 @@ public class ContactsActivity extends BaseActivity {
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.action_canceled:
-                        showContent(false);
                         setContacts(new ArrayList<ContactItem>());
                         updateData(DashboardType.CANCELED);
                         return true;
                     case R.id.action_closed:
-                        showContent(false);
                         setContacts(new ArrayList<ContactItem>());
                         updateData(DashboardType.CLOSED);
                         return true;
                     case R.id.action_released:
-                        showContent(false);
                         setContacts(new ArrayList<ContactItem>());
                         updateData(DashboardType.RELEASED);
                         return true;
@@ -201,6 +215,7 @@ public class ContactsActivity extends BaseActivity {
         }
 
         toast(getString(R.string.toast_loading_trades));
+        showProgress();
 
         subscription.unsubscribe(); // stop subscribed database data
         dashboardType = type;
@@ -212,7 +227,6 @@ public class ContactsActivity extends BaseActivity {
                     @Override
                     public void call(List<Contact> contacts) {
                         Timber.d("Update Data Contacts: " + contacts.size());
-                        showContent(true);
                         ArrayList<ContactItem> contactItems = new ArrayList<ContactItem>();
                         for (Contact contact : contacts) {
                             contactItems.add(ContactItem.convertContact(contact));
@@ -222,6 +236,7 @@ public class ContactsActivity extends BaseActivity {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        showEmpty();
                         toast(getString(R.string.toast_error_retrieving_trades));
                     }
                 });
@@ -238,12 +253,11 @@ public class ContactsActivity extends BaseActivity {
 
     private void setContacts(List<ContactItem> contacts) {
         if(contacts.isEmpty()) {
-            emptyLayout.setVisibility(View.VISIBLE);
-            emptyText.setText(getString(R.string.text_not_trades));
+            showEmpty();
             return;
         }
 
-        emptyLayout.setVisibility(View.GONE);
+        showContent();
         getAdapter().replaceWith(contacts);
         recycleView.setAdapter(itemAdapter);
     }

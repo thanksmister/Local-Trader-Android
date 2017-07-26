@@ -157,6 +157,9 @@ public class TradeRequestActivity extends BaseActivity {
     
     @InjectView(R.id.tradeMessage)
     EditText tradeMessage;
+    
+    @InjectView(R.id.tradeMessageLayout)
+    TextInputLayout tradeMessageLayout;
 
     @InjectView(R.id.ethereumAmountText)
     EditText editEtherAmountText;
@@ -237,8 +240,10 @@ public class TradeRequestActivity extends BaseActivity {
 
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Request trade with " + profileName);
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle(getString(R.string.text_trade_with, profileName));
+            }
         }
 
         TextView tradeDescription = (TextView) findViewById(R.id.tradeDescription);
@@ -441,11 +446,10 @@ public class TradeRequestActivity extends BaseActivity {
                 case TradeUtils.ALTCOIN_ETH:
                     fiatLayout.setVisibility(View.GONE);
                     ethereumLayout.setVisibility(View.VISIBLE);
+                    detailsEthereumAddressLayout.setVisibility(View.VISIBLE);
                     break;
             }
         }
-        
-        tradeMessage.setHint("Message (Optional)");
     }
 
     private void validateChangesAndSend() {
@@ -457,13 +461,13 @@ public class TradeRequestActivity extends BaseActivity {
         boolean cancel = false;
         try {
             if (Strings.isBlank(amount)) {
-                toast("Enter a valid amount for the trade.");
+                toast(getString(R.string.toast_valid_trade_amount));
                 cancel = true;
             } else if (Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
-                toast("Enter an amount lower than " + adMax + " " + currency);
+                toast(getString(R.string.toast_enter_lower_amount, adMax, currency));
                 cancel = true;
             } else if (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) {
-                toast("Enter an amount greater than " + adMin + " " + currency);
+                toast(getString(R.string.toast_enter_higher_amount, adMin, currency));
                 cancel = true;
             }
         } catch (Exception e) {
@@ -576,8 +580,10 @@ public class TradeRequestActivity extends BaseActivity {
                     break;
             }
         }
-
-        String message = tradeMessage.getText().toString();
+        String message = "";
+        if(!TextUtils.isEmpty(tradeMessage.getText().toString())) {
+            message = tradeMessage.getText().toString();
+        }
         
         if (!cancel) {
             sendTradeRequest(adId, amount, receiverName, phone, receiverEmail, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress);
@@ -588,7 +594,7 @@ public class TradeRequestActivity extends BaseActivity {
                                  String email, String iban, String bic, String reference, String message,
                                  String sortCode, String billerCode, String accountNumber, String bsb, String ethereumAddress) {
         
-        showProgressDialog(new ProgressDialogEvent("Sending trade request...."));
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_sending_trade_request)));
 
         dataService.createContact(
                 adId, tradeType, countryCode, onlineProvider,
@@ -606,7 +612,7 @@ public class TradeRequestActivity extends BaseActivity {
                             @Override
                             public void run() {
                                 hideProgressDialog();
-                                toast("Trade request sent to " + profileName + "!");
+                                toast(getString(R.string.toast_trade_request_sent) + profileName + "!");
                                 finish();
                             }
                         });

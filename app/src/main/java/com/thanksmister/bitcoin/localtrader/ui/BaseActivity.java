@@ -198,7 +198,14 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     }
 
     public void showAlertDialog(AlertDialogEvent event) {
-        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+        
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+            return;
+        }
+        
+        alertDialog =  new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setPositiveButton(android.R.string.ok, null)
@@ -207,11 +214,18 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     }
 
     public void showAlertDialogLinks(AlertDialogEvent event) {
+
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+            return;
+        }
+        
         View view = View.inflate(BaseActivity.this, R.layout.dialog_about, null);
         TextView textView = (TextView) view.findViewById(R.id.message);
         textView.setText(Html.fromHtml(event.message));
         textView.setMovementMethod(LinkMovementMethod.getInstance());
-        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setView(view)
                 .setPositiveButton(android.R.string.ok, null)
@@ -220,7 +234,14 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     }
 
     public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake) {
-        new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+            return;
+        }
+
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setCancelable(event.cancelable)

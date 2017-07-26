@@ -68,7 +68,7 @@
 
                 <TextView
                         android:id="@+id/bitcoinValue"
-                        style="@style/TextSmall.White"
+                        style="@style/TextMedium.SmallAction.White"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="~ 2783.89 USD (Coinbase)"/>

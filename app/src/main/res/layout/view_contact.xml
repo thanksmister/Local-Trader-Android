@@ -63,25 +63,28 @@
                         android:visibility="gone"/>
             
         </android.support.v4.widget.SwipeRefreshLayout>
+        
+        <View
+                style="@style/DividerHorizontal"
+                android:layout_width="match_parent"
+                android:layout_weight="0"
+                android:layout_height="1dp"/>
 
         <LinearLayout
                 android:id="@+id/buttonLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
+                android:orientation="horizontal"
+                android:padding="@dimen/activity_padding"
+                android:layout_weight="0"
+                android:layout_gravity="bottom">
 
-            <View
-                    android:background="?android:attr/dividerHorizontal"
-                    android:layout_height="1dp"
-                    android:layout_width="match_parent"/>
             
             <Button
                     style="@style/ButtonGreen.Small"
                     android:id="@+id/contactButton"
                     android:layout_width="match_parent"
+                    tools:text="Release Trade"
                     android:layout_height="48dp"/>
             
         </LinearLayout>
