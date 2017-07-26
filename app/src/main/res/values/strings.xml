@@ -737,5 +737,6 @@
     <string name="progress_sending_trade_request">Sending trade request...</string>
     <string name="toast_trade_request_sent">Trade request sent to</string>
     <string name="text_trade_with">Trade with %1$s</string>
+    <string name="text_no_transactions">No transactions.</string>
 
 </resources>

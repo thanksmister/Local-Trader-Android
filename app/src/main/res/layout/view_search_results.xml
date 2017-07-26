@@ -51,10 +51,6 @@
 
         <include layout="@layout/view_empty"
                  android:id="@+id/emptyLayout"
-                 android:layout_gravity="center"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:textAlignment="center"
                  tools:visibility="visible"
                  android:visibility="gone"/>
 

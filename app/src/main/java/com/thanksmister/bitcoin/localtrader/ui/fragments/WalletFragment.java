@@ -88,6 +88,15 @@ public class WalletFragment extends BaseFragment {
 
     @InjectView(R.id.bitcoinLayout)
     View bitcoinLayout;
+    
+    @InjectView(R.id.emptyText)
+    TextView emptyText;
+
+    @InjectView(R.id.emptyLayout)
+    View emptyLayout;
+
+    @InjectView(R.id.resultsProgress)
+    View progress;
 
     private TransactionsAdapter transactionsAdapter;
     private SectionRecycleViewAdapter sectionRecycleViewAdapter;
@@ -147,7 +156,6 @@ public class WalletFragment extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        toast(getString(R.string.toast_refreshing_data));
         subscribeData();
         updateData();
     }
@@ -172,6 +180,29 @@ public class WalletFragment extends BaseFragment {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
+        }
+    }
+    
+    public void showContent() {
+        recycleView.setVisibility(View.VISIBLE);
+        emptyLayout.setVisibility(View.GONE);
+        progress.setVisibility(View.GONE);
+    }
+
+    public void showEmpty() {
+        if(transactionItems == null || transactionItems.isEmpty()) {
+            recycleView.setVisibility(View.GONE);
+            emptyLayout.setVisibility(View.VISIBLE);
+            progress.setVisibility(View.GONE);
+            emptyText.setText(R.string.text_no_transactions);
+        }
+    }
+
+    public void showProgress() {
+        if(transactionItems == null || transactionItems.isEmpty()) {
+            recycleView.setVisibility(View.GONE);
+            emptyLayout.setVisibility(View.GONE);
+            progress.setVisibility(View.VISIBLE);
         }
     }
     
@@ -274,6 +305,11 @@ public class WalletFragment extends BaseFragment {
     }
 
     private void updateData() {
+
+        toast(getString(R.string.toast_refreshing_data));
+        
+        showProgress();
+                
         dataService.getWallet(true)
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -303,11 +339,14 @@ public class WalletFragment extends BaseFragment {
         TransactionsAdapter itemAdapter = getAdapter();
         itemAdapter.replaceWith(transactionItems);
         if (!transactionItems.isEmpty()) {
+            showContent();
             List<SectionRecycleViewAdapter.Section> sections = new ArrayList<>();
             sections.add(new SectionRecycleViewAdapter.Section(1, getString(R.string.wallet_recent_activity_header)));
             if (!sectionRecycleViewAdapter.hasSections()) {
                 addAdapterSection(sections);
             }
+        } else {
+            showEmpty();
         }
         sectionRecycleViewAdapter.updateBaseAdapter(itemAdapter);
     }

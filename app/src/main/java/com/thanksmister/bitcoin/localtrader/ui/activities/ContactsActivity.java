@@ -169,13 +169,13 @@ public class ContactsActivity extends BaseActivity {
         recycleView.setVisibility(View.VISIBLE);
         emptyLayout.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
-        emptyText.setText(getString(R.string.text_not_trades));
     }
     
     public void showEmpty() {
         recycleView.setVisibility(View.GONE);
         emptyLayout.setVisibility(View.VISIBLE);
         progress.setVisibility(View.GONE);
+        emptyText.setText(getString(R.string.text_not_trades));
     }
 
     public void showProgress() {

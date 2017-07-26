@@ -14,19 +14,13 @@
   ~ limitations under the License.
   -->
 
-<android.support.design.widget.CoordinatorLayout
+<LinearLayout
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/coordinatorLayout"
+        android:orientation="vertical"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
-
-    <android.support.v7.widget.RecyclerView
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:id="@+id/recycleView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
 
     <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
@@ -74,7 +68,7 @@
                         tools:text="~ 2783.89 USD (Coinbase)"/>
 
             </LinearLayout>
-            
+
             <android.support.v7.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
@@ -87,5 +81,27 @@
         </android.support.design.widget.CollapsingToolbarLayout>
 
     </android.support.design.widget.AppBarLayout>
+    
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-</android.support.design.widget.CoordinatorLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycleView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <include
+                android:id="@+id/resultsProgress"
+                layout="@layout/view_progress"
+                android:visibility="visible"
+                tools:visibility="visible"/>
+
+        <include layout="@layout/view_empty"
+                 android:id="@+id/emptyLayout"
+                 tools:visibility="visible"
+                 android:visibility="gone"/>
+
+    </FrameLayout>
+
+</LinearLayout>
