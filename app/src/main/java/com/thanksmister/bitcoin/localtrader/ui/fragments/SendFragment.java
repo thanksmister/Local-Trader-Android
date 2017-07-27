@@ -43,8 +43,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.api.model.WalletData;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
@@ -391,60 +389,6 @@ public class SendFragment extends BaseFragment {
                 }));
     }
 
-    private void updateData() {
-       
-        CompositeSubscription updateSubscriptions = new CompositeSubscription();
-
-        updateSubscriptions.add(dataService.getWalletBalance()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Wallet update subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Wallet>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribe(new Action1<Wallet>() {
-                    @Override
-                    public void call(Wallet wallet) {
-                        dbManager.updateWallet(wallet);
-                    }
-
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        handleError(throwable, true);
-                    }
-                }));
-
-        if (exchangeService.needToRefreshExchanges()) {
-            updateSubscriptions.add(exchangeService.getSpotPrice()
-                    .doOnUnsubscribe(new Action0() {
-                        @Override
-                        public void call() {
-                            Timber.i("Exchange update subscription safely unsubscribed");
-                        }
-                    })
-                    .compose(this.<ExchangeRate>bindUntilEvent(FragmentEvent.PAUSE))
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<ExchangeRate>() {
-                        @Override
-                        public void call(ExchangeRate exchanges) {
-                            dbManager.updateExchange(exchanges);
-                            exchangeService.setExchangeExpireTime();
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            exchangeService.setExchangeExpireTime();
-                            snackError("Unable to update currency rate...");
-                        }
-                    }));
-        }
-    }
-
     private void promptForPin(String bitcoinAddress, String bitcoinAmount) {
         Intent intent = PinCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
         startActivityForResult(intent, PinCodeActivity.REQUEST_CODE); // be sure to do this from fragment context
@@ -528,6 +472,7 @@ public class SendFragment extends BaseFragment {
     }
 
     public void confirmedPinCodeSend(String pinCode, String address, String amount) {
+        
         if (sendSubscription != null)
             return;
 
@@ -540,7 +485,6 @@ public class SendFragment extends BaseFragment {
                     @Override
                     public void call(Boolean aBoolean) {
                         hideProgressDialog();
-                        toast(R.string.toast_transaction_success);
                         resetWallet();
                     }
                 }, new Action1<Throwable>() {
@@ -553,15 +497,13 @@ public class SendFragment extends BaseFragment {
     }
 
     private void handleSendError(Throwable throwable) {
-        if (sendSubscription != null)
+        if (sendSubscription != null) {
             sendSubscription.unsubscribe();
-
-        sendSubscription = null;
-
+            sendSubscription = null;
+        }
         amountText.setText("");
         addressText.setText("");
         calculateCurrencyAmount("0.00");
-
         handleError(throwable);
     }
 
@@ -579,27 +521,18 @@ public class SendFragment extends BaseFragment {
     }
 
     public void resetWallet() {
-        if (sendSubscription != null)
-            sendSubscription.unsubscribe();
-
-        sendSubscription = null;
-
-        updateData(); // refresh wallet data
-        amountText.setText("");
-        addressText.setText("");
-        calculateCurrencyAmount("0.00");
-        //bus.post(NavigateEvent.WALLET);
-
-        Intent i = new Intent(getActivity(), MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(i);
+        if(isAdded()) {
+            amountText.setText("");
+            addressText.setText("");
+            calculateCurrencyAmount("0.00");
+            toast(R.string.toast_transaction_success);
+            ((MainActivity) getActivity()).navigateDashboardViewAndRefresh();
+        }
     }
 
     public void setWallet() {
         computeBalance(0);
         setCurrency(); // update currency if there were any changes
-
         if (Strings.isBlank(amountText.getText())) {
             calculateCurrencyAmount("0.00");
         } else {
@@ -609,7 +542,6 @@ public class SendFragment extends BaseFragment {
 
     protected void validateForm() {
         boolean cancel = false;
-
         if (Strings.isBlank(amountText.getText())) {
             toast(getString(R.string.error_missing_address_amount));
             return;
@@ -678,7 +610,6 @@ public class SendFragment extends BaseFragment {
             amountText.setText(amount); // set bitcoin amount
             computeBalance(btc);
         } catch (Exception e) {
-
             reportError(e);
         }
     }

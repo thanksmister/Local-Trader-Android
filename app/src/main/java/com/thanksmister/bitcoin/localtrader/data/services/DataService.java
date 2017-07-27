@@ -84,13 +84,15 @@ public class DataService {
     public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
     public static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
     public static final String PREFS_WALLET_EXPIRE_TIME = "pref_wallet_expire";
+    public static final String PREFS_WALLET_BALANCE_EXPIRE_TIME = "pref_wallet_balance_expire";
     public static final String PREFS_CONTACTS_EXPIRE_TIME = "pref_contacts_expire";
    
     private static final int CHECK_CURRENCY_DATA = 604800000;// // 1 week 604800000
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
     public static final int CHECK_ADVERTISEMENT_DATA = 3600000;// 1 hour
     public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
-    public static final int CHECK_WALLET_DATA = 5 * 60 * 1000;// 15 minutes
+    public static final int CHECK_WALLET_DATA = 15 * 60 * 1000;// 15 minutes
+    public static final int CHECK_WALLET_BALANCE_DATA = 15 * 60 * 1000;// 15 minutes
 
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
@@ -164,15 +166,15 @@ public class DataService {
     }
 
     public Observable<List<ExchangeCurrency>> getCurrencies() {
-       /* if(!needToRefreshCurrency()) {
+        if(!needToRefreshCurrency()) {
             return Observable.just(null);
         }
-        */
+        
         return localBitcoins.getCurrencies()
                 .doOnNext(new Action1<Response>() {
                     @Override
                     public void call(Response response) {
-                        //setCurrencyExpireTime();
+                        setCurrencyExpireTime();
                     }
                 })
                 .map(new ResponseToCurrencies());
@@ -275,7 +277,7 @@ public class DataService {
 
     public Observable<Wallet> getWalletBalance() {
         
-        if(!needToRefreshWallet()) {
+        if(!needToRefreshWalletBalance()) {
             return Observable.just(null);
         }
         
@@ -285,7 +287,7 @@ public class DataService {
                 .flatMap(new Func1<Wallet, Observable<Wallet>>() {
                     @Override
                     public Observable<Wallet> call(Wallet wallet) {
-                        setWalletExpireTime();
+                        setWalletBalanceExpireTime();
                         return getWalletBitmap(wallet);
                     }
                 });
@@ -501,7 +503,7 @@ public class DataService {
                         .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
                             public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                                setContactsExpireTime();
+                                //setContactsExpireTime();
                                 return Observable.just(contacts);
                             }
                         });
@@ -512,7 +514,7 @@ public class DataService {
                         .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
                             public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                                setContactsExpireTime();
+                                //setContactsExpireTime();
                                 return Observable.just(contacts);
                             }
                         });
@@ -599,7 +601,7 @@ public class DataService {
         return localBitcoins.deleteAdvertisement(accessToken, adId);
     }
 
-    public Observable<Wallet> getWallet(boolean force) {
+    public Observable<Wallet> getWallet() {
         return getWalletObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletObservable()))
                 .map(new ResponseToWallet())
@@ -726,7 +728,16 @@ public class DataService {
         preference.putLong(PREFS_ADVERTISEMENT_EXPIRE_TIME, expire);
     }
 
-    private boolean needToRefreshWallet() {
+    private boolean needToRefreshWalletBalance() {
+        return System.currentTimeMillis() > preference.getLong(PREFS_WALLET_BALANCE_EXPIRE_TIME, -1);
+    }
+
+    private void setWalletBalanceExpireTime() {
+        long expire = System.currentTimeMillis() + CHECK_WALLET_BALANCE_DATA; // 1 hours
+        preference.putLong(PREFS_WALLET_BALANCE_EXPIRE_TIME, expire);
+    }
+
+    public boolean needToRefreshWallet() {
         return System.currentTimeMillis() > preference.getLong(PREFS_WALLET_EXPIRE_TIME, -1);
     }
 

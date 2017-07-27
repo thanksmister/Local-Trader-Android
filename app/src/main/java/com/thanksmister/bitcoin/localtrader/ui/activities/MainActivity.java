@@ -463,6 +463,12 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 break;
         }
     }
+    
+    public void navigateDashboardViewAndRefresh() {
+        setContentFragment(DRAWER_DASHBOARD);
+        navigationView.getMenu().findItem(R.id.navigationItemDashboard).setChecked(true);
+        onRefresh();
+    }
 
     public void navigateSendView() {
         setContentFragment(DRAWER_SEND);

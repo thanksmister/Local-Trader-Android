@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeMap;
 
 import javax.inject.Inject;
 
@@ -100,91 +99,62 @@ public class DbManager {
                 });
     }*/
 
-    // TODO batch update
-    public TreeMap<String, ArrayList<Contact>> updateContacts(List<Contact> contacts) {
-        
-        TreeMap<String, ArrayList<Contact>> updateMap = new TreeMap<String, ArrayList<Contact>>();
-        ArrayList<Contact> newContacts = new ArrayList<Contact>();
-        ArrayList<Contact> deletedContacts = new ArrayList<Contact>();
-        ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
+    public void insertContacts(List<Contact> items) {
 
+        Timber.d("insertContacts");
+
+        HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
+        for (Contact item : items) {
+            entryMap.put(item.contact_id, item);
+        }
+
+        // Get list of all items
+        Cursor cursor = contentResolver.query(SyncProvider.CONTACT_TABLE_URI, null, null, null, null);
+        if(cursor != null && cursor.getCount() > 0)
+            while (cursor.moveToNext()) {
+                String contactId = Db.getString(cursor, ContactItem.CONTACT_ID);
+                Timber.d("current contact: " + contactId);
+                Contact match = entryMap.get(contactId);
+                if (match == null) {
+                    // delete advertisements that no longer exist in the list
+                    deleteContact(contactId);
+                }
+            }
+        items = new ArrayList<Contact>(entryMap.values());
+        // update or insert new contact
+        for (Contact item : items) {
+            updateContact(item, item.messageCount, item.hasUnseenMessages);
+        }
+    }
+    
+    /*public void updateContacts(List<Contact> contacts) {
         HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
         for (Contact item : contacts) {
             entryMap.put(item.contact_id, item);
         }
-
         //db.beginTransaction();
-
         Cursor cursor = db.query(ContactItem.QUERY);
-
-        try {
+        if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
-
                 long id = Db.getLong(cursor, ContactItem._ID);
                 String contact_id = Db.getString(cursor, ContactItem.CONTACT_ID);
-                String payment_complete_at = Db.getString(cursor, ContactItem.PAYMENT_COMPLETED_AT);
-                String closed_at = Db.getString(cursor, ContactItem.CLOSED_AT);
-                String disputed_at = Db.getString(cursor, ContactItem.DISPUTED_AT);
-                String escrowed_at = Db.getString(cursor, ContactItem.ESCROWED_AT);
-                String funded_at = Db.getString(cursor, ContactItem.FUNDED_AT);
-                String released_at = Db.getString(cursor, ContactItem.RELEASED_AT);
-                String canceled_at = Db.getString(cursor, ContactItem.CANCELED_AT);
-                String buyerLastSeen = Db.getString(cursor, ContactItem.BUYER_LAST_SEEN);
-                String fundUrl = Db.getString(cursor, ContactItem.FUND_URL);
-                boolean isFunded = Db.getBoolean(cursor, ContactItem.IS_FUNDED);
-                String sellerLastSeen = Db.getString(cursor, ContactItem.SELLER_LAST_SEEN);
-                int messageCount = Db.getInt(cursor, ContactItem.MESSAGE_COUNT);
-                
                 Contact match = entryMap.get(contact_id);
-
                 if (match != null) {
-
                     entryMap.remove(contact_id);
-
-                    if ((match.payment_completed_at != null && !match.payment_completed_at.equals(payment_complete_at))
-                            || (match.closed_at != null && !match.closed_at.equals(closed_at))
-                            || (match.disputed_at != null && !match.disputed_at.equals(disputed_at))
-                            || (match.escrowed_at != null && !match.escrowed_at.equals(escrowed_at))
-                            || (match.funded_at != null && !match.funded_at.equals(funded_at))
-                            || (match.released_at != null && !match.released_at.equals(released_at))
-                            || (match.canceled_at != null && !match.canceled_at.equals(canceled_at))
-                            || (match.actions.fund_url != null && !match.actions.fund_url.equals(fundUrl))
-                            || (match.is_funded != isFunded)) {
-                        
-                        int updateInt = db.update(ContactItem.TABLE, ContactItem.createBuilder(match, match.messageCount, match.hasUnseenMessages).build(), ContactItem._ID + " = ?", String.valueOf(id));
-                        if (updateInt > 0) {
-                            updatedContacts.add(match);
-                        }
-                    } else if ((match.seller.last_online != null && !match.seller.last_online.equals(sellerLastSeen)) // update without notification
-                            || (match.buyer.last_online != null && !match.buyer.last_online.equals(buyerLastSeen))
-                            || (match.messageCount != messageCount)) {
-                         boolean hasUnseenMessages = (match.messageCount != messageCount);
-                         db.update(ContactItem.TABLE, ContactItem.createBuilder(match, match.messageCount, hasUnseenMessages).build(), ContactItem._ID + " = ?", String.valueOf(id));
-                    }
+                    db.update(ContactItem.TABLE, ContactItem.createBuilder(match, match.messageCount, match.hasUnseenMessages).build(), ContactItem._ID + " = ?", String.valueOf(id));
                 } else {
                     // Entry doesn't exist. Remove it from the database and its messages
                     db.delete(ContactItem.TABLE, ContactItem._ID + " = ?", String.valueOf(id));
                     db.delete(MessageItem.TABLE, MessageItem.CONTACT_ID + " = ?", String.valueOf(id));
-                    deletedContacts.add(match);
                 }
             }
-
-            // Add new items
-            for (Contact item : entryMap.values()) {
-                newContacts.add(item);
-                Timber.d("Insert contact from database: " + item.contact_id);
-            }
-
-        } finally {
-            cursor.close();
         }
 
-        updateMap.put(UPDATES, updatedContacts);
-        updateMap.put(ADDITIONS, newContacts);
-        updateMap.put(DELETIONS, deletedContacts);
-
-        return updateMap;
-    }
+        for (Contact item : entryMap) {
+            int messageCount = item.messages.size();
+            contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(item, messageCount, true).build());
+        }
+    }*/
 
     /**
      * Updates or inserts new contact with message count and unseen messages flag.
@@ -212,6 +182,14 @@ public class DbManager {
         ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver, listener);
         contentResolverAsyncHandler.startDelete(1, null, SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
         contentResolverAsyncHandler.startDelete(2, null, SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID + " = ?", new String[]{contactId});
+    }
+
+    public void deleteContact(String contactId) {
+        synchronized( this ) {
+            Timber.d("deleteContact: " + contactId);
+            contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)});
+            contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID  + " = ?", new String[]{String.valueOf(contactId)});
+        }
     }
 
     public Observable<List<ContactItem>> contactsQuery() {
@@ -691,15 +669,13 @@ public class DbManager {
                 String adId = Db.getString(cursor, AdvertisementItem.AD_ID);
                 Timber.d("current advertisement: " + adId);
                 Advertisement match = entryMap.get(adId);
-                if (match != null) {
-                    // Entry exists. Remove from entry map to prevent insert later. Do not update
-                    entryMap.remove(adId);
-                } else {
-                    // Entry doesn't exist. Remove it from the database.
+                if (match == null) {
+                    // delete advertisements that no longer exist in the list
                     deleteAdvertisement(adId);
                 }
             }
         items = new ArrayList<Advertisement>(entryMap.values());
+        // update or insert new advertisements
         for (Advertisement item : items) {
             updateAdvertisement(item);
         }
@@ -765,7 +741,8 @@ public class DbManager {
     }
 
     protected void reportError(Throwable throwable) {
-        if (throwable != null && throwable.getLocalizedMessage() != null)
+        if (throwable != null && throwable.getLocalizedMessage() != null) {
             Timber.e("Database Manager Error: " + throwable.getLocalizedMessage());
+        }
     }
 }

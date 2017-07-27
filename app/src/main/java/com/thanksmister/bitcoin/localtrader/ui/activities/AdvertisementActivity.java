@@ -244,6 +244,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
 
     @Override
     public void onRefresh() {
+        Timber.d("onRefresh");
         updateAdvertisement();
     }
 
@@ -325,11 +326,6 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                 return false;
             }
         });
-    }
-
-    @Deprecated
-    protected void subscribeData() {
-        //toast(getString(R.string.toast_error_advertisement_data));
     }
 
     private void updateAdvertisement() {
@@ -671,17 +667,14 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         switch (loader.getId()) {
             case ADVERTISEMENT_LOADER_ID:
-                // https://stackoverflow.com/questions/7915050/cursorloader-not-updating-after-data-change
-                cursor.setNotificationUri(getContentResolver(), SyncProvider.ADVERTISEMENT_TABLE_URI);
                 advertisement = AdvertisementItem.getModel(cursor);
                 if(advertisement != null && methodItems != null) {
                     setAdvertisement(advertisement, methodItems);
-                } else {
-                    updateAdvertisement(); // TODO update advertisement if null? 
+                } else if (advertisement == null) {
+                    updateAdvertisement(); // TODO make sure this doesn't just randomly run
                 }
                 break;
             case METHOD_LOADER_ID:
-                cursor.setNotificationUri(getContentResolver(), SyncProvider.METHOD_TABLE_URI);
                 methodItems = MethodItem.getModelList(cursor);
                 if(advertisement != null && !methodItems.isEmpty()) {
                     setAdvertisement(advertisement, methodItems);

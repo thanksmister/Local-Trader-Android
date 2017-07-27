@@ -20,6 +20,7 @@ import android.content.SharedPreferences;
 
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Protocol;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
@@ -27,6 +28,7 @@ import com.thanksmister.bitcoin.localtrader.data.api.Coinbase;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 
 import java.io.File;
+import java.util.Arrays;
 
 import javax.inject.Singleton;
 
@@ -76,6 +78,7 @@ public final class DataModule {
             File cacheDir = new File(app.getCacheDir(), "http");
             Cache cache = new Cache(cacheDir, DISK_CACHE_SIZE);
             client.setCache(cache);
+            client.setProtocols(Arrays.asList(Protocol.HTTP_1_1));
         } catch (Exception e) {
             Timber.e(e, "Unable to install disk cache.");
         }

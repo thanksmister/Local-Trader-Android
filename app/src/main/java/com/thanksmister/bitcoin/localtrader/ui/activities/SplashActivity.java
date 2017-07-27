@@ -56,7 +56,7 @@ public class SplashActivity extends BaseActivity {
             startActivity(intent);
             finish();
         } else {
-            AuthUtils.setForceUpdate(preference, true);
+            AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(this);
         }
     }

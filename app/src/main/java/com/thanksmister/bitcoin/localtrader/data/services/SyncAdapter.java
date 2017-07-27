@@ -330,8 +330,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     @Override
                     public void call(List<Contact> contacts) {
                         if(contacts != null) {
-                            dbManager.updateContacts(contacts);
-                            updateContacts(contacts); 
+                            dbManager.insertContacts(contacts);
                         }
                         updateSyncMap(SYNC_CONTACTS, false);
                     }
@@ -547,6 +546,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         return restAdapter.create(LocalBitcoins.class);
     }
 
+    @Deprecated
     private void updateContacts(List<Contact> contacts) {
         Timber.d("Update Contacts Data Size: " + contacts.size());
 

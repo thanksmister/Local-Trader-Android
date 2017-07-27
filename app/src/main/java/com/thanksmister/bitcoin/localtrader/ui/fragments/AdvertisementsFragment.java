@@ -240,7 +240,9 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         }
         @Override
         public void onChange(boolean selfChange) {
-            getActivity().getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, AdvertisementsFragment.this);
+            if(selfChange) {
+                getActivity().getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, AdvertisementsFragment.this);
+            }
         }
     }
 }
