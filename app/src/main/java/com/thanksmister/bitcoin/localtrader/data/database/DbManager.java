@@ -20,6 +20,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.Uri;
 
 import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
@@ -99,7 +100,7 @@ public class DbManager {
                 });
     }*/
 
-    public void insertContacts(List<Contact> items) {
+    public List<String> insertContacts(List<Contact> items) {
 
         Timber.d("insertContacts");
 
@@ -121,10 +122,17 @@ public class DbManager {
                 }
             }
         items = new ArrayList<Contact>(entryMap.values());
+        
         // update or insert new contact
+        List<String> updatedContactIds = new ArrayList<>();
         for (Contact item : items) {
-            updateContact(item, item.messageCount, item.hasUnseenMessages);
+            long updatedId = updateContact(item, item.messageCount, item.hasUnseenMessages);
+            if (updatedId >= 0) {
+                updatedContactIds.add(item.contact_id);
+            }
         }
+        
+        return updatedContactIds;
     }
     
     /*public void updateContacts(List<Contact> contacts) {
@@ -162,7 +170,7 @@ public class DbManager {
      * @param messageCount
      * @param hasUnseenMessages
      */
-    public void updateContact(Contact contact, int messageCount, boolean hasUnseenMessages) {
+    public long updateContact(Contact contact, int messageCount, boolean hasUnseenMessages) {
         synchronized (this) {
             Cursor cursor = contentResolver.query(SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id}, null);
             if (cursor != null && cursor.getCount() > 0) {
@@ -172,10 +180,14 @@ public class DbManager {
                 }
                 cursor.close();
             } else {
-                contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build());
-                contentResolver.notifyChange(SyncProvider.CONTACT_TABLE_URI, null);
+                Uri uri = contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build());
+                if(uri != null) {
+                    return Long.valueOf(uri.getLastPathSegment()); 
+                }
+                
             }
         }
+        return -1;
     }
     
     public void deleteContact(String contactId, ContentResolverAsyncHandler.AsyncQueryListener listener) {
@@ -308,7 +320,6 @@ public class DbManager {
                 }
             } else {
                 contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(message).build());
-                contentResolver.notifyChange(SyncProvider.MESSAGE_TABLE_URI, null);
             }
         }
     }
@@ -717,7 +728,6 @@ public class DbManager {
         }
         if (contentValuesList.length > 0) {
             int result = contentResolver.bulkInsert(SyncProvider.ADVERTISEMENT_TABLE_URI, contentValuesList);
-            //contentResolver.notifyChange(SyncProvider.ADVERTISEMENT_TABLE_URI, null);
             return result;
         }
         return 0;
@@ -736,7 +746,6 @@ public class DbManager {
     public void updateAdvertisementVisibility(final String adId, final boolean visible) {
         synchronized( this ) {
             contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", new String[]{String.valueOf(adId)});
-            contentResolver.notifyChange(SyncProvider.ADVERTISEMENT_TABLE_URI, null);
         }
     }
 

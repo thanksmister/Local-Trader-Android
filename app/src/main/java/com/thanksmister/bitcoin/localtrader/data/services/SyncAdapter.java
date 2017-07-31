@@ -93,6 +93,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String SYNC_ADVERTISEMENTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_ADVERTISEMENTS";
     private static final String SYNC_METHODS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_METHODS";
     private static final String SYNC_CONTACTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_CONTACTS";
+    private static final String SYNC_MESSAGES = "com.thanksmister.bitcoin.localtrader.sync.SYNC_MESSAGES";
     private static final String SYNC_NOTIFICATIONS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_NOTIFICATIONS";
     
     public static final int SYNC_ERROR_CODE = 9;
@@ -256,7 +257,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     @Override
                     public void call(Throwable throwable) {
                         handleError(throwable);
-                        cancelSync();
                         onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
                         updateSyncMap(SYNC_CURRENCIES, false);
                     }
@@ -279,7 +279,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     @Override
                     public void call(Throwable throwable) {
                         handleError(throwable);
-                        cancelSync();
                         onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
                         updateSyncMap(SYNC_METHODS, false);
                     }
@@ -338,7 +337,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     @Override
                     public void call(Throwable throwable) {
                         handleError(throwable);
-                        cancelSync();
                         onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
                         updateSyncMap(SYNC_CONTACTS, false);
                     }

@@ -79,7 +79,7 @@ public class SplashActivity extends BaseActivity {
     }
     
     protected void handleStartSync(String syncActionType, String extraErrorMessage, int extraErrorCode) {
-        Timber.d("handleStartSync: " + syncActionType);
+        Timber.d("handleSyncEvent: " + syncActionType);
         switch (syncActionType) {
             case SyncAdapter.ACTION_TYPE_START:
                 break;

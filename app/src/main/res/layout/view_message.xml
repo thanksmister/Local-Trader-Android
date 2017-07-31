@@ -35,13 +35,13 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:paddingRight="16dp"
-            android:paddingLeft="16dp"
             android:orientation="vertical">
 
         <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingRight="16dp"
+                android:paddingLeft="16dp"
                 android:theme="@style/EditTextTheme">
 
             <EditText
@@ -61,39 +61,37 @@
             </EditText>
 
         </android.support.design.widget.TextInputLayout>
-        
+
         <android.support.v4.widget.Space
                 android:layout_width="match_parent"
                 android:layout_height="16dp"/>
         
-        <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-        
-            <FrameLayout
+        <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
                 android:background="@color/gray_color">
-        
+
             <LinearLayout
                     android:id="@+id/attachButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:foreground="?android:attr/selectableItemBackground">
-                
+
                 <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@drawable/ic_attached_file"/>
-    
+
                 <TextView
                         style="@style/TextMedium.Blue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:text="Attach file"/>
-                
+
             </LinearLayout>
 
             <LinearLayout
@@ -124,30 +122,30 @@
             </LinearLayout>
 
         </FrameLayout>
-
-        </ScrollView>
         
-    </LinearLayout>
-    
-    <LinearLayout
-            android:id="@+id/buttonLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
-
-        <View
-                android:background="?android:attr/dividerHorizontal"
-                android:layout_height="1dp"
-                android:layout_width="match_parent"/>
-
-        <Button
-                style="@style/ButtonGreen.Small"
-                android:id="@+id/messageButton"
+        <LinearLayout
+                android:id="@+id/buttonLayout"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:textAllCaps="true"
-                android:text="SEND MESSAGE"/>
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+            <View
+                    style="@style/DividerHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
+            
+            <Button
+                    style="@style/ButtonGreen.Small"
+                    android:id="@+id/messageButton"
+                    android:layout_width="match_parent"
+                    android:layout_margin="@dimen/activity_padding"
+                    android:layout_height="48dp"
+                    android:textAllCaps="true"
+                    android:text="@string/button_send_message"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 

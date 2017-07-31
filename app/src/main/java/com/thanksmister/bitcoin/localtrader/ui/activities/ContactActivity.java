@@ -111,7 +111,17 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
     @InjectView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
-    
+
+    @InjectView(R.id.view_progress)
+    View progress;
+
+    @InjectView(R.id.emptyLayout)
+    View emptyLayout;
+
+    @InjectView(R.id.emptyText)
+    TextView emptyText;
+
+
     private TextView detailsEthereumAddress;
     private TextView detailsSortCode;
     private TextView detailsBSB;
@@ -183,8 +193,6 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             contactId = savedInstanceState.getString(EXTRA_ID);
         }
         
-        Timber.d("contactId " + contactId);
-
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -287,10 +295,12 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     @Override
     public void onResume() {
         super.onResume();
+        onRefreshStart();
         registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-        updateData();
         getSupportLoaderManager().restartLoader(CONTACT_LOADER_ID, null, this);
         getSupportLoaderManager().restartLoader(MESSAGES_LOADER_ID, null, this);
+        updateData();
+        updateContact();
     }
 
     @Override
@@ -418,12 +428,24 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             }
         });
     }
+    
+    public void showContent() {
+        content.setVisibility(View.VISIBLE);
+        emptyLayout.setVisibility(View.GONE);
+        progress.setVisibility(View.GONE);
+    }
 
-    public void showContent(final boolean show) {
-        if (content == null) {
-            return;
-        }
-        content.setVisibility(show ? View.VISIBLE : View.GONE);
+    public void showEmpty() {
+        content.setVisibility(View.GONE);
+        emptyLayout.setVisibility(View.VISIBLE);
+        progress.setVisibility(View.GONE);
+        emptyText.setText(R.string.text_no_advertisers);
+    }
+
+    public void showProgress() {
+        content.setVisibility(View.GONE);
+        emptyLayout.setVisibility(View.GONE);
+        progress.setVisibility(View.VISIBLE);
     }
     
     private void updateContact() {
@@ -465,8 +487,6 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     private void updateData() {
         
         Timber.d("updateData");
-
-        //dbManager.markRecentMessagesSeen(contactId);
         
         dbManager.notificationsQuery()
                 .doOnUnsubscribe(new Action0() {
@@ -562,19 +582,17 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         }
 
         int buttonTag = TradeUtils.getTradeActionButtonLabel(contact);
-        if (buttonTag > 0)
-            contactButton.setText(getString(buttonTag));
-
         contactButton.setTag(buttonTag);
-
+        if (buttonTag > 0) {
+            contactButton.setText(getString(buttonTag));
+        }
+        
         if (buttonTag == R.string.button_cancel || buttonTag == 0) {
             buttonLayout.setVisibility(View.GONE);
-            contactButton.setBackgroundResource(R.drawable.button_red_small_selector);
         } else {
             buttonLayout.setVisibility(View.VISIBLE);
-            contactButton.setBackgroundResource(R.drawable.button_green_small_selector);
         }
-
+        
         String description = TradeUtils.getContactDescription(contact, this);
         noteText.setText(Html.fromHtml(description));
         noteText.setMovementMethod(LinkMovementMethod.getInstance());
@@ -899,7 +917,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 cursor.setNotificationUri(getContentResolver(), SyncProvider.CONTACT_TABLE_URI);
                 ContactItem contactItem = ContactItem.getModel(cursor);
                 if(contactItem != null) {
-                    showContent(true);
+                    showContent();
                     setContact(contactItem);
                 } else {
                     updateContact();

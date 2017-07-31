@@ -111,6 +111,7 @@ public class SearchResultsActivity extends BaseActivity {
         
         adapter = new AdvertiseAdapter(this);
         setAdapter(adapter);
+        updateData();
     }
 
     @Override
@@ -144,7 +145,6 @@ public class SearchResultsActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        updateData();
     }
 
     @Override

@@ -671,5 +671,6 @@
     <string name="toast_trade_request_sent">Trade request sent to</string>
     <string name="text_trade_with">Trade with %1$s</string>
     <string name="text_no_transactions">No transactions.</string>
+    <string name="button_send_message">SEND MESSAGE</string>
 
 </resources>

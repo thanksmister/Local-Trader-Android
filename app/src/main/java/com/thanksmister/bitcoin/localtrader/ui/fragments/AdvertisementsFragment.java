@@ -172,14 +172,6 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         }
     }
     
-    @Override
-    public void handleUpdate(){
-        if(!isAdded()) {
-            return;
-        }
-        toast(getString(R.string.toast_refreshing_data));
-    }
-    
     private AdvertisementsAdapter getAdapter() {
         return itemAdapter;
     }

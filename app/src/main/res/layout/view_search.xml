@@ -367,33 +367,31 @@
 
                         </FrameLayout>
 
-                        <View
-                                style="@style/DividerHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="1dp"/>
+                    
 
                     </LinearLayout>
 
                 </LinearLayout>
 
-                <android.support.v4.widget.Space
+                <View
+                        style="@style/DividerHorizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="16dp"/>
+                        android:layout_height="1dp"/>
 
                 <Button
                         style="@style/ButtonGreen.Small"
                         android:id="@+id/searchButton"
                         android:layout_width="match_parent"
-                        android:layout_marginLeft="@dimen/activity_padding"
-                        android:layout_marginRight="@dimen/activity_padding"
+                        android:layout_margin="@dimen/activity_padding"
                         android:layout_height="48dp"
                         android:textAllCaps="true"
                         android:text="@string/button_search_trades"/>
 
-
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>
+        
+      
 
     </LinearLayout>
 

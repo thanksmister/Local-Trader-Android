@@ -165,14 +165,6 @@ public class ContactsFragment extends BaseFragment {
         }
     }
 
-    @Override
-    public void handleUpdate(){
-        if(!isAdded()) {
-            return;
-        }
-        toast(getString(R.string.toast_refreshing_data));
-    }
-
     private void subscribeData() {
         Timber.d("subscribeData");
 

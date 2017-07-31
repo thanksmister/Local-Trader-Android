@@ -21,7 +21,7 @@
         android:id="@+id/coordinatorLayout"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
-    
+
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -46,9 +46,13 @@
         <android.support.v4.widget.SwipeRefreshLayout
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 android:id="@+id/swipeLayout"
-                android:layout_weight="1"
                 android:layout_width="match_parent"
-                android:layout_height="0dp">
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+            <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
                 <ListView
                         android:id="@+id/contactList"
@@ -59,35 +63,49 @@
                         android:dividerHeight="1px"
                         android:scrollbars="none"
                         android:drawSelectorOnTop="true"
+                        android:visibility="gone"
+                        tools:visibility="visible"/>
+
+                <include
+                        layout="@layout/view_empty"
+                        android:id="@+id/emptyLayout"
                         tools:visibility="visible"
                         android:visibility="gone"/>
-            
+
+                <include
+                        android:id="@+id/view_progress"
+                        layout="@layout/view_progress"
+                        android:visibility="gone"
+                        tools:visibility="visible"/>
+
+            </FrameLayout>
+
         </android.support.v4.widget.SwipeRefreshLayout>
-        
-        <View
-                style="@style/DividerHorizontal"
-                android:layout_width="match_parent"
-                android:layout_weight="0"
-                android:layout_height="1dp"/>
 
         <LinearLayout
                 android:id="@+id/buttonLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/activity_padding"
+                android:background="@color/gray_color"
                 android:layout_weight="0"
-                android:layout_gravity="bottom">
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:orientation="vertical">
 
-            
+            <View style="@style/DividerHorizontal"/>
+
             <Button
                     style="@style/ButtonGreen.Small"
                     android:id="@+id/contactButton"
                     android:layout_width="match_parent"
-                    tools:text="Release Trade"
-                    android:layout_height="48dp"/>
-            
+                    android:layout_margin="@dimen/activity_padding"
+                    android:layout_height="48dp"
+                    android:textAllCaps="true"
+                    tools:text="@string/button_search_trades"
+                    android:text="@string/button_search_trades"/>
+
         </LinearLayout>
+
 
     </LinearLayout>
 

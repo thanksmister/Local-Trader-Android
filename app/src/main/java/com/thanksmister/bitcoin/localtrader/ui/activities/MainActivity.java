@@ -455,9 +455,6 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     @Override
     public void handleRefresh() {
         switch (fragment.getTag()) {
-            case DASHBOARD_FRAGMENT:
-                ((DashboardFragment) fragment).onRefresh();
-                break;
             case WALLET_FRAGMENT:
                 ((WalletFragment) fragment).onRefresh();
                 break;
@@ -585,8 +582,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         bitcoinValue.setText(exchange.exchange() + " (" + currency + ")");
     }
 
-    protected void handleStartSync(String syncActionType, String extraErrorMessage, int extraErrorCode) {
-        Timber.d("handleStartSync: " + syncActionType);
+    protected void handleSyncEvent(String syncActionType, String extraErrorMessage, int extraErrorCode) {
+        Timber.d("handleSyncEvent: " + syncActionType);
         switch (syncActionType) {
             case SyncAdapter.ACTION_TYPE_START:
                 break;
@@ -621,7 +618,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 extraErrorCode = intent.getIntExtra(SyncAdapter.EXTRA_ERROR_CODE, SyncAdapter.SYNC_ERROR_CODE);
             }
 
-            handleStartSync(syncActionType, extraErrorMessage, extraErrorCode);
+            handleSyncEvent(syncActionType, extraErrorMessage, extraErrorCode);
         }
     };
 }

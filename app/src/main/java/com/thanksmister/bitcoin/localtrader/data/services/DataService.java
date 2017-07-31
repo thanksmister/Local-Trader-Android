@@ -488,11 +488,6 @@ public class DataService {
     }
 
     public Observable<List<Contact>> getContacts(final DashboardType dashboardType) {
-
-        /*if (!needToRefreshContacts()) {
-            return Observable.just(null);
-        }*/
-        
         switch (dashboardType) {
             case RELEASED:
             case CLOSED:
