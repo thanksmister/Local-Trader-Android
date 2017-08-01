@@ -393,6 +393,8 @@ public class EditInfoFragment extends BaseEditFragment {
     protected void setAdvertisement(Advertisement advertisement) {
         
         TradeType tradeType = advertisement.trade_type;
+
+        activeCheckBox.setChecked(advertisement.visible);
         
         if (tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
             bankNameLayout.setVisibility(GONE);
