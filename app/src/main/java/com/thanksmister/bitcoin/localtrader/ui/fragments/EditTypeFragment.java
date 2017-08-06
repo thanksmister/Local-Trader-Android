@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 import android.content.Context;
 import android.location.Address;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -84,11 +85,8 @@ public class EditTypeFragment extends BaseEditFragment {
     public EditTypeFragment() {
     }
     
-    public static EditTypeFragment newInstance(Advertisement advertisement) {
+    public static EditTypeFragment newInstance() {
         EditTypeFragment fragment = new EditTypeFragment();
-        Bundle args = new Bundle();
-        args.putParcelable(ARG_PARAM_ADVERTISEMENT, advertisement);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -161,16 +159,17 @@ public class EditTypeFragment extends BaseEditFragment {
         typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                advertisement.trade_type = TradeType.values()[i];
-                setPaymentMethodLayout(advertisement.trade_type);
+                editAdvertisement.trade_type = TradeType.values()[i];
+                setPaymentMethodLayout(editAdvertisement.trade_type);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
-
-        setAdvertisement(advertisement);
+        
+        editAdvertisement = getEditAdvertisement();
+        setAdvertisementOnView(editAdvertisement);
     }
 
     @Override
@@ -228,11 +227,11 @@ public class EditTypeFragment extends BaseEditFragment {
         String shortAddress = SearchUtils.getDisplayAddress(address);
         if (!TextUtils.isEmpty(shortAddress)) {
             locationText.setText(shortAddress);
-            advertisement.location = shortAddress;
-            advertisement.city = address.getLocality();
-            advertisement.country_code = address.getCountryCode();
-            advertisement.lon = address.getLongitude();
-            advertisement.lat = address.getLatitude();
+            editAdvertisement.location = shortAddress;
+            editAdvertisement.city = address.getLocality();
+            editAdvertisement.country_code = address.getCountryCode();
+            editAdvertisement.lon = address.getLongitude();
+            editAdvertisement.lat = address.getLatitude();
             showLocationLayout();
         } else {
             showEditTextLayout();
@@ -267,10 +266,10 @@ public class EditTypeFragment extends BaseEditFragment {
     protected void onCurrencies(List<ExchangeCurrency> currencies) {}
     
     @Override
-    protected void setAdvertisement(Advertisement advertisement) {
-        setPaymentMethodLayout(advertisement.trade_type);
-        if(!TextUtils.isEmpty(advertisement.location)) {
-            locationText.setText(advertisement.location);
+    protected void setAdvertisementOnView(@NonNull Advertisement editAdvertisement) {
+        setPaymentMethodLayout(editAdvertisement.trade_type);
+        if(!TextUtils.isEmpty(editAdvertisement.location)) {
+            locationText.setText(editAdvertisement.location);
             showLocationLayout();
         } else {
             showEditTextLayout();
@@ -282,19 +281,15 @@ public class EditTypeFragment extends BaseEditFragment {
      */
     @Override
     public boolean validateChangesAndSave() {
-        String countryCode = advertisement.country_code;
-        String location = advertisement.location;
+        String countryCode = editAdvertisement.country_code;
+        String location = editAdvertisement.location;
         if(TextUtils.isEmpty(location) || TextUtils.isEmpty(countryCode)) {
             toast(getString(R.string.toast_valid_address_required));
             return false;
         }
         
-        advertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code();
+        editAdvertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code();
+        setEditAdvertisement(editAdvertisement);
         return true;
-    }
-
-    @Override
-    public Advertisement getAdvertisement() {
-        return advertisement;
     }
 }

@@ -34,8 +34,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.text.TextUtils;
 import android.view.inputmethod.InputMethodManager;
 
+import com.google.gson.Gson;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
@@ -60,6 +62,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
+import dpreference.DPreference;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -79,6 +82,9 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
 
     @Inject
     public DbManager dbManager;
+
+    @Inject
+    protected DPreference preference;
     
     @Inject
     public LocationManager locationManager;
@@ -86,12 +92,12 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
     @Inject
     public ExchangeService exchangeService;
 
-    public Advertisement advertisement;
+    public Advertisement editAdvertisement;
     public OnFragmentInteractionListener mListener;
     public PredictAdapter predictAdapter;
 
     public interface OnFragmentInteractionListener {
-        //void onAdvertisementValidated(Advertisement advertisement);
+        //void onAdvertisementValidated(Advertisement editAdvertisement);
     }
     
     protected abstract void setMethods(List<MethodItem> methods);
@@ -99,10 +105,24 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
     protected abstract void displayAddress(Address address);
     protected abstract void onAddresses(List<Address> addresses);
     protected abstract void onCurrencies(List<ExchangeCurrency> currencies);
-    protected abstract void setAdvertisement(Advertisement advertisement);
+    protected abstract void setAdvertisementOnView(@NonNull Advertisement editAdvertisement);
 
     public abstract boolean validateChangesAndSave();
-    public abstract Advertisement getAdvertisement();
+    
+    public Advertisement getEditAdvertisement(){
+        Advertisement advertisement = new Advertisement();
+        String advertisementJson = preference.getString("editAdvertisement", null);
+        if(!TextUtils.isEmpty(advertisementJson)) {
+            advertisement = new Gson().fromJson(advertisementJson, Advertisement.class);
+        }
+        return advertisement;
+    }
+    
+    public void setEditAdvertisement(Advertisement advertisement) {
+        Timber.d("setEditAdvertisement: " + advertisement);
+        String editString = new Gson().toJson(advertisement);
+        preference.putString("editAdvertisement", editString);
+    }
 
     public BaseEditFragment() {
         // Required empty public constructor
@@ -122,19 +142,14 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            advertisement = getArguments().getParcelable(ARG_PARAM_ADVERTISEMENT);
-        } else if(savedInstanceState != null) {
-            advertisement = savedInstanceState.getParcelable(ARG_PARAM_ADVERTISEMENT);
-        } else {
-            advertisement = new Advertisement();
-        }
     }
     
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(METHOD_LOADER_ID, null, this);
+        if(isAdded()) {
+            getLoaderManager().initLoader(METHOD_LOADER_ID, null, this);
+        }
     }
 
     @Override
@@ -184,7 +199,7 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
                         }
                     }
                     if (permissionsDenied) {
-                        toast((advertisement == null) ? getString(R.string.toast_new_ad_canceled) : getString(R.string.toast_edit_ad_canceled));
+                        toast((editAdvertisement == null) ? getString(R.string.toast_new_ad_canceled) : getString(R.string.toast_edit_ad_canceled));
                         getActivity().finish();
                     } else {
                         startLocationMonitoring();
@@ -283,6 +298,12 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
                             }
                         });
                     }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Timber.e(throwable.getMessage());
+                        showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
+                    }
                 });
     }
     
@@ -339,7 +360,7 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
         }, new Action0() {
             @Override
             public void call() {
-                toast((advertisement == null) ? getString(R.string.toast_new_ad_canceled) : getString(R.string.toast_edit_ad_canceled));
+                toast((editAdvertisement == null) ? getString(R.string.toast_new_ad_canceled) : getString(R.string.toast_edit_ad_canceled));
                 getActivity().finish();
             }
         });
@@ -362,14 +383,16 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
                 .subscribe(new Action1<List<CurrencyItem>>() {
                     @Override
                     public void call(final List<CurrencyItem> currencies) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
-                                exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencies);
-                                onCurrencies(exchangeCurrencies);
-                            }
-                        });
+                        if(currencies != null && !currencies.isEmpty()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
+                                    exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencies);
+                                    onCurrencies(exchangeCurrencies);
+                                }
+                            });
+                        }
                     }
                 }, new Action1<Throwable>() {
                     @Override

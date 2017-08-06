@@ -84,7 +84,7 @@ public abstract class ContactItem
     public static final String MESSAGE = "message";
     public static final String BSB = "bsb";
 
-    // advertisement 3
+    // editAdvertisement 3
     public static final String ADVERTISEMENT_ID = "ad_id";
     public static final String ADVERTISEMENT_PAYMENT_METHOD = "payment_method";
 

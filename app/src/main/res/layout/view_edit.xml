@@ -257,7 +257,7 @@
                                     android:layout_width="match_parent"
                                     android:paddingLeft="@dimen/activity_padding"
                                     android:paddingRight="@dimen/activity_padding"
-                                    android:text="Changes displayed advertisement price to selected currency and updates price equation."/>
+                                    android:text="Changes displayed editAdvertisement price to selected currency and updates price equation."/>
 
                             <View
                                     android:background="?android:attr/dividerHorizontal"
@@ -946,7 +946,7 @@
                                     android:gravity="center_vertical"
                                     android:layout_gravity="center_vertical"
                                     android:theme="@style/EditTextTheme"
-                                    android:text="To contact your advertisement, users need to verify their identity by sending IDs, driver's licence or passport."/>
+                                    android:text="To contact your editAdvertisement, users need to verify their identity by sending IDs, driver's licence or passport."/>
 
                             <View
                                     android:background="?android:attr/dividerHorizontal"

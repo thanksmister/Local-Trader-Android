@@ -84,7 +84,6 @@ public class SyncProvider extends ContentProvider {
     }
 
     @Override
-    
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         String table = getTableName(uri);
         SQLiteDatabase database = dbOpenHelper.getReadableDatabase();

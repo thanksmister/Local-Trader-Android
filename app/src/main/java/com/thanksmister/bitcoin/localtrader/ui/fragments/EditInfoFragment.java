@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 import android.content.Context;
 import android.location.Address;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -120,11 +121,8 @@ public class EditInfoFragment extends BaseEditFragment {
         // nothing needed
     }
 
-    public static EditInfoFragment newInstance(Advertisement advertisement) {
+    public static EditInfoFragment newInstance() {
         EditInfoFragment fragment = new EditInfoFragment();
-        Bundle args = new Bundle();
-        args.putParcelable(ARG_PARAM_ADVERTISEMENT, advertisement);
-        fragment.setArguments(args);
         return fragment;
     }
     
@@ -142,7 +140,6 @@ public class EditInfoFragment extends BaseEditFragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadCurrencies();
     }
     
     @Override
@@ -219,6 +216,11 @@ public class EditInfoFragment extends BaseEditFragment {
             public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
+
+        editAdvertisement = getEditAdvertisement();
+        setAdvertisementOnView(editAdvertisement);
+        showLocationLayout();
+        loadCurrencies();
     }
 
     @Override
@@ -228,8 +230,6 @@ public class EditInfoFragment extends BaseEditFragment {
         if(isAdded() &&  actionBar != null) {
             actionBar.setTitle(R.string.text_title_advertisement_info);
         }
-        showLocationLayout();
-        setAdvertisement(advertisement);
     }
 
     @Override
@@ -260,11 +260,11 @@ public class EditInfoFragment extends BaseEditFragment {
     public void displayAddress(Address address) {
         String shortAddress = SearchUtils.getDisplayAddress(address);
         if (!TextUtils.isEmpty(shortAddress)) {
-            advertisement.location = shortAddress;
-            advertisement.city = address.getLocality();
-            advertisement.country_code = address.getCountryCode();
-            advertisement.lon = address.getLongitude();
-            advertisement.lat = address.getLatitude();
+            editAdvertisement.location = shortAddress;
+            editAdvertisement.city = address.getLocality();
+            editAdvertisement.country_code = address.getCountryCode();
+            editAdvertisement.lon = address.getLongitude();
+            editAdvertisement.lat = address.getLatitude();
             locationText.setText(shortAddress);
             showLocationLayout();
         } else {
@@ -287,16 +287,18 @@ public class EditInfoFragment extends BaseEditFragment {
 
     @Override
     protected void onCurrencies(List<ExchangeCurrency> currencies) {
-        currencies = CurrencyUtils.sortCurrencies(currencies);
-        CurrencyAdapter typeAdapter = new CurrencyAdapter(getActivity(), R.layout.spinner_layout, currencies);
-        currencySpinner.setAdapter(typeAdapter);
-        int i = 0;
-        for (ExchangeCurrency currency : currencies) {
-            if (currency.getCurrency().equals(advertisement.currency)) {
-                currencySpinner.setSelection(i);
-                break;
-            }
-            i++;
+        if(editAdvertisement != null) {
+            currencies = CurrencyUtils.sortCurrencies(currencies);
+            CurrencyAdapter typeAdapter = new CurrencyAdapter(getActivity(), R.layout.spinner_layout, currencies);
+            currencySpinner.setAdapter(typeAdapter);
+            int i = 0;
+            for (ExchangeCurrency currency : currencies) {
+                if (currency.getCurrency().equals(editAdvertisement.currency)) {
+                    currencySpinner.setSelection(i);
+                    break;
+                }
+                i++;
+            } 
         }
     }
 
@@ -308,17 +310,17 @@ public class EditInfoFragment extends BaseEditFragment {
             return false;
         }
         
-        advertisement.visible = activeCheckBox.isChecked();
+        editAdvertisement.visible = activeCheckBox.isChecked();
        
         String min = editMinimumAmount.getText().toString();
         String bankName = editBankName.getText().toString();
         String max = editMaximumAmount.getText().toString();
         String equation = editPriceEquation.getText().toString();
       
-        TradeType tradeType = advertisement.trade_type;
+        TradeType tradeType = editAdvertisement.trade_type;
         
         if (tradeType == TradeType.ONLINE_SELL) {
-            switch (advertisement.online_provider) {
+            switch (editAdvertisement.online_provider) {
                 case TradeUtils.QIWI:
                 case TradeUtils.SWISH:
                 case TradeUtils.MOBILEPAY_DANSKE_BANK:
@@ -327,7 +329,7 @@ public class EditInfoFragment extends BaseEditFragment {
                     break;
             }
         } else if (tradeType == TradeType.ONLINE_BUY) {
-            switch (advertisement.online_provider) {
+            switch (editAdvertisement.online_provider) {
                 case TradeUtils.NATIONAL_BANK:
                 case TradeUtils.CASH_DEPOSIT:
                 case TradeUtils.SPECIFIC_BANK:
@@ -335,7 +337,7 @@ public class EditInfoFragment extends BaseEditFragment {
                         toast("Bank name can't be blank.");
                         return false;
                     }
-                    advertisement.bank_name = bankName;
+                    editAdvertisement.bank_name = bankName;
                     break;
                 case TradeUtils.OTHER:
                 case TradeUtils.OTHER_REMITTANCE:
@@ -346,21 +348,21 @@ public class EditInfoFragment extends BaseEditFragment {
                         toast("Payment method can't be blank.");
                         return false;
                     }
-                    advertisement.bank_name = bankName;
+                    editAdvertisement.bank_name = bankName;
                     break;
                 case TradeUtils.INTERNATIONAL_WIRE_SWIFT:
                      if (TextUtils.isEmpty(bankName)) {
                         toast("SWIFT or Bic can't be blank.");
                          return false;
                     }
-                    advertisement.bank_name = bankName;
+                    editAdvertisement.bank_name = bankName;
                     break;
                 case TradeUtils.GIFT_CARD_CODE:
                     if (TextUtils.isEmpty(bankName)) {
                         toast("Gift card issuer can't be blank.");
                         return false;
                     }
-                    advertisement.bank_name = bankName;
+                    editAdvertisement.bank_name = bankName;
                     break;
             }
         }
@@ -376,64 +378,62 @@ public class EditInfoFragment extends BaseEditFragment {
             return false;
         }
         
-        advertisement.message = editMessageText.getText().toString();
-        advertisement.price_equation = equation;
-        advertisement.min_amount = String.valueOf(TradeUtils.convertCurrencyAmount(min));
-        advertisement.max_amount = String.valueOf(TradeUtils.convertCurrencyAmount(max));
+        editAdvertisement.message = editMessageText.getText().toString();
+        editAdvertisement.price_equation = equation;
+        editAdvertisement.min_amount = String.valueOf(TradeUtils.convertCurrencyAmount(min));
+        editAdvertisement.max_amount = String.valueOf(TradeUtils.convertCurrencyAmount(max));
+        
+        setEditAdvertisement(editAdvertisement);
 
         return true;
     }
+    
 
     @Override
-    public Advertisement getAdvertisement() {
-        return advertisement;
-    }
-
-    @Override
-    protected void setAdvertisement(Advertisement advertisement) {
+    public void setAdvertisementOnView(@NonNull Advertisement editAdvertisement) {
         
-        TradeType tradeType = advertisement.trade_type;
+        TradeType tradeType = editAdvertisement.trade_type;
 
-        activeCheckBox.setChecked(advertisement.visible);
+        activeCheckBox.setChecked(editAdvertisement.visible);
         
         if (tradeType == TradeType.LOCAL_SELL || tradeType == TradeType.LOCAL_BUY) {
             bankNameLayout.setVisibility(GONE);
-        } else if (!TextUtils.isEmpty((advertisement.bank_name))) {
-            String bankTitle = TradeUtils.getBankNameTitle(tradeType, advertisement.online_provider);
+        } else if (!TextUtils.isEmpty((editAdvertisement.bank_name))) {
+            String bankTitle = TradeUtils.getBankNameTitle(tradeType, editAdvertisement.online_provider);
             bankNameTitle.setText(bankTitle);
             bankNameLayout.setVisibility(View.VISIBLE);
-            editBankName.setText(advertisement.bank_name);
+            editBankName.setText(editAdvertisement.bank_name);
         }
 
-        if(TradeUtils.ALTCOIN_ETH.equals(advertisement.online_provider)) {
+        if(TradeUtils.ALTCOIN_ETH.equals(editAdvertisement.online_provider)) {
             currencyLayout.setVisibility(GONE);
             bankNameLayout.setVisibility(GONE);
             editMinimumAmountCurrency.setText(getString(R.string.eth));
             editMaximumAmountCurrency.setText(getString(R.string.eth));
         } else {
             currencyLayout.setVisibility(View.VISIBLE);
-            editMinimumAmountCurrency.setText(advertisement.currency);
-            editMaximumAmountCurrency.setText(advertisement.currency);
+            editMinimumAmountCurrency.setText(editAdvertisement.currency);
+            editMaximumAmountCurrency.setText(editAdvertisement.currency);
         }
 
-        if(!TextUtils.isEmpty(advertisement.min_amount)) {
-            editMinimumAmount.setText(advertisement.min_amount);
+        if(!TextUtils.isEmpty(editAdvertisement.min_amount)) {
+            editMinimumAmount.setText(editAdvertisement.min_amount);
         }
 
-        if(!TextUtils.isEmpty(advertisement.max_amount)) {
-            editMaximumAmount.setText(advertisement.max_amount);
+        if(!TextUtils.isEmpty(editAdvertisement.max_amount)) {
+            editMaximumAmount.setText(editAdvertisement.max_amount);
         }
 
-        if(!TextUtils.isEmpty(advertisement.price_equation)) {
-            editPriceEquation.setText(advertisement.price_equation);
+        if(!TextUtils.isEmpty(editAdvertisement.price_equation)) {
+            editPriceEquation.setText(editAdvertisement.price_equation);
         }
         
-        if(!TextUtils.isEmpty(advertisement.message)) {
-            editMessageText.setText(advertisement.message);
+        if(!TextUtils.isEmpty(editAdvertisement.message)) {
+            editMessageText.setText(editAdvertisement.message);
         }
         
-        if(!TextUtils.isEmpty(advertisement.location)) {
-            locationText.setText(advertisement.location);
+        if(!TextUtils.isEmpty(editAdvertisement.location)) {
+            locationText.setText(editAdvertisement.location);
         }
     }
 }

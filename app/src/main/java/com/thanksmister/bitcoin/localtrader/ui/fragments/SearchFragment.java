@@ -610,7 +610,7 @@ public class SearchFragment extends BaseFragment {
     }
 
     /**
-     * Set the currencies to be used for a new advertisement
+     * Set the currencies to be used for a new editAdvertisement
      * @param currencies
      */
     private void updateCurrencies(List<ExchangeCurrency> currencies) {
@@ -909,20 +909,20 @@ public class SearchFragment extends BaseFragment {
 
     public void checkLocationEnabled() {
         Timber.d("checkLocationEnabled");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+        if(isAdded() && getActivity() != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+                    return;
+                }
+            }
+            if (!NetworkUtils.hasLocationServices(locationManager)) {
+                showNoLocationServicesWarning();
                 return;
             }
+            startLocationMonitoring();
         }
-
-        if (!NetworkUtils.hasLocationServices(locationManager)) {
-            showNoLocationServicesWarning();
-            return;
-        }
-
-        startLocationMonitoring();
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -982,23 +982,30 @@ public class SearchFragment extends BaseFragment {
                     public Address call(List<Address> addresses) {
                         return (addresses != null && !addresses.isEmpty()) ? addresses.get(0) : null;
                     }
-                }).subscribe(new Action1<Address>() {
-            @Override
-            public void call(final Address address) {
-                getActivity().runOnUiThread(new Runnable() {
+                })
+                .subscribe(new Action1<Address>() {
                     @Override
-                    public void run() {
-                        hideProgressDialog();
-                        if(address == null) {
-                            showAddressError();
-                        } else {
-                            saveAddress(address);
-                            displayAddress(address);
-                        }
+                    public void call(final Address address) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                hideProgressDialog();
+                                if (address == null) {
+                                    showAddressError();
+                                } else {
+                                    saveAddress(address);
+                                    displayAddress(address);
+                                }
+                            }
+                        });
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Timber.e(throwable.getMessage());
+                        showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
                     }
                 });
-            }
-        });
     }
 
     private void showNoLocationServicesWarning() {

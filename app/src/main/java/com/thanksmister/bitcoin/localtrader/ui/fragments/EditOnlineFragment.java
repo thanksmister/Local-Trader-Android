@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 import android.content.Context;
 import android.location.Address;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -68,11 +69,8 @@ public class EditOnlineFragment extends BaseEditFragment {
         // Required empty public constructor
     }
 
-    public static EditOnlineFragment newInstance(Advertisement advertisement) {
+    public static EditOnlineFragment newInstance() {
         EditOnlineFragment fragment = new EditOnlineFragment();
-        Bundle args = new Bundle();
-        args.putParcelable(ARG_PARAM_ADVERTISEMENT, advertisement);
-        fragment.setArguments(args);
         return fragment;
     }
     
@@ -107,7 +105,8 @@ public class EditOnlineFragment extends BaseEditFragment {
     @Override
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(fragmentView, savedInstanceState);
-        setAdvertisement(advertisement);
+        editAdvertisement = getEditAdvertisement();
+        setAdvertisementOnView(editAdvertisement);
     }
 
     @Override
@@ -128,12 +127,12 @@ public class EditOnlineFragment extends BaseEditFragment {
     @Override
     public boolean validateChangesAndSave() {
         
-        TradeType tradeType = advertisement.trade_type;
+        TradeType tradeType = editAdvertisement.trade_type;
         String phoneNumber = detailsPhoneNumber.getText().toString();
         String accountInfo = editPaymentDetails.getText().toString();
        
         if (tradeType == TradeType.ONLINE_SELL) {
-            switch (advertisement.online_provider) {
+            switch (editAdvertisement.online_provider) {
                 case TradeUtils.QIWI:
                 case TradeUtils.SWISH:
                 case TradeUtils.MOBILEPAY_DANSKE_BANK:
@@ -143,53 +142,50 @@ public class EditOnlineFragment extends BaseEditFragment {
                         toast(getString(R.string.toast_missing_phone_number));
                         return false;
                     }
-                    advertisement.phone_number = phoneNumber;
+                    editAdvertisement.phone_number = phoneNumber;
                     break;
             }
         }
 
-        if (TextUtils.isEmpty(accountInfo) && TradeType.ONLINE_SELL.equals(advertisement.trade_type)) {
+        if (TextUtils.isEmpty(accountInfo) && TradeType.ONLINE_SELL.equals(editAdvertisement.trade_type)) {
             toast(getString(R.string.toast_provide_payment_details));
             return false;
         } 
 
         if (!TextUtils.isEmpty(phoneNumber)) {
-            advertisement.phone_number = detailsPhoneNumber.getText().toString();
+            editAdvertisement.phone_number = detailsPhoneNumber.getText().toString();
         }
 
         if (!TextUtils.isEmpty(minimumFeedbackText.getText().toString())) {
-            advertisement.require_feedback_score = minimumFeedbackText.getText().toString();
+            editAdvertisement.require_feedback_score = minimumFeedbackText.getText().toString();
         }
 
         if (!TextUtils.isEmpty(minimumVolumeText.getText().toString())) {
-            advertisement.require_trade_volume = minimumVolumeText.getText().toString();
+            editAdvertisement.require_trade_volume = minimumVolumeText.getText().toString();
         }
 
         if (!TextUtils.isEmpty(newBuyerLimitText.getText().toString())) {
-            advertisement.first_time_limit_btc = newBuyerLimitText.getText().toString();
+            editAdvertisement.first_time_limit_btc = newBuyerLimitText.getText().toString();
         }
 
         if (!TextUtils.isEmpty(editPaymentDetails.getText().toString())) {
-            advertisement.account_info = editPaymentDetails.getText().toString();
+            editAdvertisement.account_info = editPaymentDetails.getText().toString();
         }
+
+        setEditAdvertisement(editAdvertisement);
         
         return true;
     }
-
+    
     @Override
-    public Advertisement getAdvertisement() {
-        return advertisement;
-    }
-
-    @Override
-    protected void setAdvertisement(Advertisement advertisement) {
-
+    protected void setAdvertisementOnView(@NonNull Advertisement editAdvertisement) {
+        
         detailsPhoneNumberLayout.setVisibility(GONE);
         paymentDetailsLayout.setVisibility(View.VISIBLE);
         
-        TradeType tradeType = advertisement.trade_type;
+        TradeType tradeType = editAdvertisement.trade_type;
         if (tradeType == TradeType.ONLINE_SELL) {
-            switch (advertisement.online_provider) {
+            switch (editAdvertisement.online_provider) {
                 case TradeUtils.QIWI:
                 case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
                 case TradeUtils.MOBILEPAY_DANSKE_BANK:
@@ -206,24 +202,24 @@ public class EditOnlineFragment extends BaseEditFragment {
             }
         }
 
-        if (!TextUtils.isEmpty(advertisement.phone_number)) {
-            detailsPhoneNumber.setText(advertisement.phone_number);
+        if (!TextUtils.isEmpty(editAdvertisement.phone_number)) {
+            detailsPhoneNumber.setText(editAdvertisement.phone_number);
         }
 
-        if (!TextUtils.isEmpty(advertisement.require_feedback_score)) {
-            minimumFeedbackText.setText(advertisement.require_feedback_score);
+        if (!TextUtils.isEmpty(editAdvertisement.require_feedback_score)) {
+            minimumFeedbackText.setText(editAdvertisement.require_feedback_score);
         }
 
-        if (!TextUtils.isEmpty(advertisement.require_trade_volume)) {
-            minimumVolumeText.setText(advertisement.require_trade_volume);
+        if (!TextUtils.isEmpty(editAdvertisement.require_trade_volume)) {
+            minimumVolumeText.setText(editAdvertisement.require_trade_volume);
         }
 
-        if (!TextUtils.isEmpty(advertisement.first_time_limit_btc)) {
-            newBuyerLimitText.setText(advertisement.first_time_limit_btc);
+        if (!TextUtils.isEmpty(editAdvertisement.first_time_limit_btc)) {
+            newBuyerLimitText.setText(editAdvertisement.first_time_limit_btc);
         }
 
-        if (!TextUtils.isEmpty(advertisement.account_info)) {
-            editPaymentDetails.setText(advertisement.account_info);
+        if (!TextUtils.isEmpty(editAdvertisement.account_info)) {
+            editPaymentDetails.setText(editAdvertisement.account_info);
         }
     }
 

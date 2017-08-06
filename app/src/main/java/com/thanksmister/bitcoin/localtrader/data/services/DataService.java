@@ -527,7 +527,7 @@ public class DataService {
     }
 
     public Observable<Advertisement> getAdvertisement(final String adId) {
-        Timber.d("getAdvertisement");
+        Timber.d("getEditAdvertisement");
         return getAdvertisementObservable(adId)
                 .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementObservable(adId)))
                 .map(new ResponseToAd());
@@ -584,7 +584,7 @@ public class DataService {
                     @Override
                     public Observable<Boolean> call(JSONObject jsonObject) {
                         if (Parser.containsError(jsonObject)) {
-                            throw new Error("Error deleting advertisement");
+                            throw new Error("Error deleting editAdvertisement");
                         }
                         return Observable.just(true);
                     }
@@ -697,7 +697,7 @@ public class DataService {
         preference.putLong(PREFS_METHODS_EXPIRE_TIME, expire);
     }
 
-    private boolean needToRefreshCurrency() {
+    public boolean needToRefreshCurrency() {
         return System.currentTimeMillis() > preference.getLong(PREFS_CURRENCY_EXPIRE_TIME, -1);
     }
 
@@ -710,11 +710,11 @@ public class DataService {
         preference.removePreference(PREFS_ADVERTISEMENT_EXPIRE_TIME);
     }
 
-    private boolean needToRefreshContacts() {
+    public boolean needToRefreshContacts() {
         return System.currentTimeMillis() > preference.getLong(PREFS_CONTACTS_EXPIRE_TIME, -1);
     }
 
-    private boolean needToRefreshAdvertisements() {
+    public boolean needToRefreshAdvertisements() {
         return System.currentTimeMillis() > preference.getLong(PREFS_ADVERTISEMENT_EXPIRE_TIME, -1);
     }
 
@@ -723,11 +723,11 @@ public class DataService {
         preference.putLong(PREFS_ADVERTISEMENT_EXPIRE_TIME, expire);
     }
 
-    private boolean needToRefreshWalletBalance() {
+    public boolean needToRefreshWalletBalance() {
         return System.currentTimeMillis() > preference.getLong(PREFS_WALLET_BALANCE_EXPIRE_TIME, -1);
     }
 
-    private void setWalletBalanceExpireTime() {
+    public void setWalletBalanceExpireTime() {
         long expire = System.currentTimeMillis() + CHECK_WALLET_BALANCE_DATA; // 1 hours
         preference.putLong(PREFS_WALLET_BALANCE_EXPIRE_TIME, expire);
     }

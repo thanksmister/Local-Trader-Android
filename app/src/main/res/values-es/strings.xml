@@ -647,7 +647,7 @@
     <string name="text_advertisement_item_local_sale">Local Sale -</string>
     <string name="text_advertisement_item_online_buy">Online Buy -</string>
     <string name="text_advertisement_item_online_sale">Online Sale -</string>
-    <string name="toast_error_opening_advertisement">Error opening advertisement...</string>
+    <string name="toast_error_opening_advertisement">Error opening editAdvertisement...</string>
     <string name="toast_error_opening_contact">Error opening contact...</string>
     <string name="text_not_trades">No trades</string>
     <string name="toast_loading_trades">Loading trades...</string>
@@ -672,5 +672,7 @@
     <string name="text_trade_with">Trade with %1$s</string>
     <string name="text_no_transactions">No transactions.</string>
     <string name="button_send_message">SEND MESSAGE</string>
+    <string name="error_address_lookup_title">Address Lookup Error</string>
+    <string name="error_address_lookup_description">Error looking up the latitude and longitude for your current address, try a different address.</string>
 
 </resources>

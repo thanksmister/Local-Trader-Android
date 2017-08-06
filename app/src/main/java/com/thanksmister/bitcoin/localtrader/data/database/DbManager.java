@@ -442,22 +442,6 @@ public class DbManager {
                 .map(CurrencyItem.MAP);
     }
 
-    /**
-     * Returns the exchange currencies
-     *
-     * @return
-     */
-    public Observable<List<ExchangeCurrencyItem>> exchangeCurrencyQuery() {
-        return db.createQuery(ExchangeCurrencyItem.TABLE, ExchangeCurrencyItem.QUERY)
-                .distinct()
-                .map(ExchangeCurrencyItem.MAP);
-    }
-
-    public Observable<List<AdvertisementItem>> advertisementsQuery() {
-        return db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY)
-                .map(AdvertisementItem.MAP);
-    }
-
     public Observable<AdvertisementItem> advertisementItemQuery(String adId) {
         return db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId)
                 .map(AdvertisementItem.MAP)
@@ -678,7 +662,7 @@ public class DbManager {
         if(cursor != null && cursor.getCount() > 0)
             while (cursor.moveToNext()) {
                 String adId = Db.getString(cursor, AdvertisementItem.AD_ID);
-                Timber.d("current advertisement: " + adId);
+                Timber.d("current editAdvertisement: " + adId);
                 Advertisement match = entryMap.get(adId);
                 if (match == null) {
                     // delete advertisements that no longer exist in the list
@@ -704,12 +688,12 @@ public class DbManager {
             Cursor cursor = contentResolver.query(SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ? ", new String[]{item.ad_id}, null);
             if (cursor != null && cursor.getCount() > 0) {
                 while (cursor.moveToNext()) {
-                    Timber.d("update advertisement: " + item.ad_id);
+                    Timber.d("update editAdvertisement: " + item.ad_id);
                     long id = Db.getLong(cursor, AdvertisementItem.ID);
                     contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.createBuilder(item).build(), AdvertisementItem.ID + " = ?", new String[]{String.valueOf(id)});
                 }
             } else {
-                Timber.d("insert advertisement: " + item.ad_id);
+                Timber.d("insert editAdvertisement: " + item.ad_id);
                 contentResolver.insert(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.createBuilder(item).build());
             }
         }

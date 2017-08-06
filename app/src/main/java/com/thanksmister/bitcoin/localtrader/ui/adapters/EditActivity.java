@@ -737,7 +737,7 @@ public class EditActivity extends BaseActivity {
     }
 
     /**
-     * Set the currencies to be used for a new advertisement
+     * Set the currencies to be used for a new editAdvertisement
      *
      * @param currencies
      * @param advertisement
@@ -769,7 +769,7 @@ public class EditActivity extends BaseActivity {
     }
 
     /**
-     * Show the view for new advertisement
+     * Show the view for new editAdvertisement
      */
     private void createAdvertisement() {
         liquidityCheckBox.setChecked(false);
@@ -786,7 +786,7 @@ public class EditActivity extends BaseActivity {
     }
 
     /**
-     * Set the advertisement from the database
+     * Set the editAdvertisement from the database
      *
      * @param advertisement
      */
@@ -1064,7 +1064,7 @@ public class EditActivity extends BaseActivity {
                 return;
             }
 
-            // convert data to editable advertisement if not creating new advertisement
+            // convert data to editable editAdvertisement if not creating new editAdvertisement
             editedAdvertisement = editedAdvertisement.convertAdvertisementItemToAdvertisement(advertisementItem);
             editedAdvertisement.ad_id = adId;
             editedAdvertisement.visible = activeCheckBox.isChecked();
@@ -1171,7 +1171,7 @@ public class EditActivity extends BaseActivity {
     }
 
     public void cancelChanges(Boolean create) {
-        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+        toast((create) ? "New editAdvertisement canceled" : "Advertisement update canceled");
         setResult(RESULT_CANCELED);
         finish();
     }
@@ -1185,7 +1185,7 @@ public class EditActivity extends BaseActivity {
     public void updateAdvertisement(final Advertisement advertisement, final Boolean create) {
         if (create) {
 
-            showProgressDialog(new ProgressDialogEvent("Posting advertisement..."));
+            showProgressDialog(new ProgressDialogEvent("Posting editAdvertisement..."));
 
             Observable<JSONObject> createAdvertisementObservable = dataService.createAdvertisement(advertisement);
             advertisementSubscription = createAdvertisementObservable
@@ -1213,7 +1213,7 @@ public class EditActivity extends BaseActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    toast("New advertisement posted!");
+                                    toast("New editAdvertisement posted!");
                                     if (Parser.containsError(jsonObject)) {
                                         RetroError error = Parser.parseError(jsonObject);
                                         showAlertDialog(new AlertDialogEvent("Error Updating Advertisement", error.getMessage()));
@@ -1281,7 +1281,7 @@ public class EditActivity extends BaseActivity {
     }
 
     private void updateAdvertisement(Advertisement advertisement) {
-        /*int updated = dbManager.updateAdvertisement(advertisement);
+        /*int updated = dbManager.updateAdvertisement(editAdvertisement);
 
         if (updated > 0) {
 
@@ -1344,7 +1344,7 @@ public class EditActivity extends BaseActivity {
                                 }, new Action0() {
                                     @Override
                                     public void call() {
-                                        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                                        toast((create) ? "New editAdvertisement canceled" : "Advertisement update canceled");
                                         finish();
                                     }
                                 });
@@ -1545,7 +1545,7 @@ public class EditActivity extends BaseActivity {
                 }, new Action0() {
                     @Override
                     public void call() {
-                        toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                        toast((create) ? "New editAdvertisement canceled" : "Advertisement update canceled");
                         finish();
                     }
                 });
@@ -1561,7 +1561,7 @@ public class EditActivity extends BaseActivity {
         }, new Action0() {
             @Override
             public void call() {
-                toast((create) ? "New advertisement canceled" : "Advertisement update canceled");
+                toast((create) ? "New editAdvertisement canceled" : "Advertisement update canceled");
                 finish();
             }
         });

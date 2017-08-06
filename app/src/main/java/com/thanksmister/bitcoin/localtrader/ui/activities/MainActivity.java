@@ -207,7 +207,11 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     @Override
     public void onPause() {
         super.onPause();
-        unregisterReceiver(syncBroadcastReceiver);
+        try {
+            unregisterReceiver(syncBroadcastReceiver);
+        } catch (IllegalArgumentException e) {
+            Timber.e(e.getMessage());
+        }
     }
 
     @Override
@@ -498,8 +502,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-
+      
         Timber.d("Request Code: " + requestCode);
         Timber.d("Result Code: " + resultCode);
         
@@ -518,7 +521,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             if (resultCode == AdvertisementActivity.RESULT_DELETED) {
                 onRefresh();
             }
-        }
+        } 
+
+        super.onActivityResult(requestCode, resultCode, intent);
     }
 
     protected boolean validAddressOrAmount(String bitcoinUri) {

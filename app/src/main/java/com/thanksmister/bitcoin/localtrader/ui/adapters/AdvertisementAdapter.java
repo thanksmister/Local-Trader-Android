@@ -125,11 +125,11 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
                 break;
         }
         
-        /*holder.tradePrice.setText(advertisement.temp_price + " " + advertisement.currency);
-        if(advertisement.max_amount == null) {
-            holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
+        /*holder.tradePrice.setText(editAdvertisement.temp_price + " " + editAdvertisement.currency);
+        if(editAdvertisement.max_amount == null) {
+            holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, editAdvertisement.min_amount, editAdvertisement.currency));
         } else { // no maximum set
-            holder.tradeLimit.setText(context.getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount));
+            holder.tradeLimit.setText(context.getString(R.string.trade_limit, editAdvertisement.min_amount, editAdvertisement.max_amount));
         }*/
 
         String price = advertisement.temp_price() + " " + advertisement.currency();
@@ -148,7 +148,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
 
         } else {
             String paymentMethod = TradeUtils.getPaymentMethodFromItems(advertisement, methods);
-            //String bank = advertisement.bank_name;
+            //String bank = editAdvertisement.bank_name;
             holder.advertisementType.setText(type + " " + price);
             holder.advertisementDetails.setText("With " + paymentMethod + " in " + advertisement.city());
         }

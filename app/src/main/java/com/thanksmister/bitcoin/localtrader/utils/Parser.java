@@ -415,7 +415,7 @@ public class Parser
                 }
             }
 
-            JSONObject advertisement = data.getJSONObject("advertisement");
+            JSONObject advertisement = data.getJSONObject("editAdvertisement");
             if (advertisement.has("id")) {
                 item.advertisement.id = (advertisement.getString("id"));
             }
@@ -480,7 +480,7 @@ public class Parser
         } catch (JSONException e) {
             Timber.e("Error Parsing: " + e.getMessage());
             Crashlytics.setString("Message", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+            Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + object.toString()));
         }
         
     return null;
@@ -587,7 +587,7 @@ public class Parser
             Timber.e("Error Parsing: " + e.getMessage());
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("Message", "Parsing error discovered");
-                Crashlytics.logException(new Throwable("Error parsing advertisement: " + messageObj.toString()));
+                Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + messageObj.toString()));
             }
            
         }
@@ -875,7 +875,7 @@ public class Parser
             
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("Advertisement", "Parsing error discovered");
-                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+                Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + object.toString()));
             }
             return null;
         }
@@ -1001,7 +1001,7 @@ public class Parser
             Timber.e("Error Parsing: " + e.getMessage());
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("Advertisement", "Parsing error discovered");
-                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+                Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + object.toString()));
             }
         }
 

@@ -170,7 +170,11 @@ public class SendFragment extends BaseFragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        
         super.onActivityResult(requestCode, resultCode, intent);
+        
+        Timber.d("onActivityResult: requestCode " + requestCode);
+        Timber.d("onActivityResult: resultCode " + resultCode);
 
         if (requestCode == PinCodeActivity.REQUEST_CODE) {
 

@@ -367,12 +367,12 @@ public class TradeUtils {
         return paymentMethod;
     }
 
-    /*public static String getPaymentMethod(Advertisement advertisement, List<Method> methods)
+    /*public static String getPaymentMethod(Advertisement editAdvertisement, List<Method> methods)
     {
         String paymentMethod = "";
         for (Method method : methods) {
-            if(method.code.equals(advertisement.online_provider)) {
-                paymentMethod = getPaymentMethod(advertisement, method);
+            if(method.code.equals(editAdvertisement.online_provider)) {
+                paymentMethod = getPaymentMethod(editAdvertisement, method);
                 break;
             }
         }

@@ -69,8 +69,10 @@ import retrofit.client.OkClient;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -139,18 +141,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         this.canceled.set(false);
 
-        if(!isSyncing() && hasCredentials && !isCanceled()) {
+        if(!isSyncing() && hasCredentials) {
             getCurrencies();
             getMethods();
             getContacts();
             getAdvertisements();
             getNotifications();
             getWalletBalance();
-            if(!isSyncing() && !isCanceled()) {
-                onSyncComplete();
-            } else if (isCanceled()) {
-                onSyncCanceled();
-            }
         }
     }
 
@@ -245,6 +242,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("getCurrencies");
         updateSyncMap(SYNC_CURRENCIES, true);
         dataService.getCurrencies()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<ExchangeCurrency>>() {
                     @Override
                     public void call(List<ExchangeCurrency> currencies) {
@@ -267,6 +266,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("getMethods");
         updateSyncMap(SYNC_METHODS, true);
         dataService.getMethods()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Method>>() {
                     @Override
                     public void call(List<Method> methods) {
@@ -295,6 +296,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("getAdvertisements force: " + force);
         
         dataService.getAdvertisements(force)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Advertisement>>() {
                     @Override
                     public void call(List<Advertisement> advertisements) {
@@ -325,6 +328,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("getContacts");
         updateSyncMap(SYNC_CONTACTS, true);
         dataService.getContacts(DashboardType.ACTIVE)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Contact>>() {
                     @Override
                     public void call(List<Contact> contacts) {
@@ -347,6 +352,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("getNotifications");
         updateSyncMap(SYNC_NOTIFICATIONS, true);
         dataService.getNotifications()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<Notification>>() {
                     @Override
                     public void call(List<Notification> notifications) {
@@ -370,6 +377,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("getWalletBalance");
         updateSyncMap(SYNC_WALLET, true);
         dataService.getWalletBalance()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .flatMap(new Func1<Wallet, Observable<Wallet>>() {
                     @Override
                     public Observable<Wallet> call(final Wallet wallet) {

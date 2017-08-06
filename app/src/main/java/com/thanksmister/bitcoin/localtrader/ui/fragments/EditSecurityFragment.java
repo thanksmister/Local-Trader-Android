@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 import android.content.Context;
 import android.location.Address;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -35,7 +36,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import java.util.List;
 
 import butterknife.InjectView;
-import timber.log.Timber;
 
 public class EditSecurityFragment extends BaseEditFragment {
 
@@ -55,11 +55,8 @@ public class EditSecurityFragment extends BaseEditFragment {
         // Required empty public constructor
     }
 
-    public static EditSecurityFragment newInstance(Advertisement advertisement) {
+    public static EditSecurityFragment newInstance() {
         EditSecurityFragment fragment = new EditSecurityFragment();
-        Bundle args = new Bundle();
-        args.putParcelable(ARG_PARAM_ADVERTISEMENT, advertisement);
-        fragment.setArguments(args);
         return fragment;
     }
     
@@ -93,7 +90,8 @@ public class EditSecurityFragment extends BaseEditFragment {
     @Override
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(fragmentView, savedInstanceState);
-        setAdvertisement(advertisement);
+        editAdvertisement = getEditAdvertisement();
+        setAdvertisementOnView(editAdvertisement);
     }
 
     @Override
@@ -113,30 +111,20 @@ public class EditSecurityFragment extends BaseEditFragment {
 
     @Override
     public boolean validateChangesAndSave() {
-        advertisement.track_max_amount = liquidityCheckBox.isChecked();
-        advertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
-        advertisement.require_identification = identifiedCheckBox.isChecked();
-        advertisement.trusted_required = trustedCheckBox.isChecked();
+        editAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
+        editAdvertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
+        editAdvertisement.require_identification = identifiedCheckBox.isChecked();
+        editAdvertisement.trusted_required = trustedCheckBox.isChecked();
+        setEditAdvertisement(editAdvertisement);
         return true;
     }
-
+    
     @Override
-    public Advertisement getAdvertisement() {
-        return advertisement;
-    }
-
-    @Override
-    protected void setAdvertisement(Advertisement advertisement) {
-        
-        Timber.d("setAdvertisement sms_verification_required: " + advertisement.sms_verification_required);
-        Timber.d("setAdvertisement track_max_amount: " + advertisement.track_max_amount);
-        Timber.d("setAdvertisement require_identification: " + advertisement.require_identification);
-        Timber.d("setAdvertisement trusted_required: " + advertisement.trusted_required);
-        
-        liquidityCheckBox.setChecked(advertisement.track_max_amount);
-        smsVerifiedCheckBox.setChecked(advertisement.sms_verification_required);
-        identifiedCheckBox.setChecked(advertisement.require_identification);
-        trustedCheckBox.setChecked(advertisement.trusted_required);
+    protected void setAdvertisementOnView(@NonNull Advertisement editAdvertisement) {
+        liquidityCheckBox.setChecked(editAdvertisement.track_max_amount);
+        smsVerifiedCheckBox.setChecked(editAdvertisement.sms_verification_required);
+        identifiedCheckBox.setChecked(editAdvertisement.require_identification);
+        trustedCheckBox.setChecked(editAdvertisement.trusted_required);
     }
 
     // not implemented for this fragment

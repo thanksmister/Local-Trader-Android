@@ -124,14 +124,14 @@ public class AdvertiseAdapter extends BaseAdapter
         holder.tradeFeedback.setText(advertisement.profile.feedback_score);
         holder.tradeCount.setText(advertisement.profile.trade_count);
 
-        /*if(advertisement.isATM()) {
+        /*if(editAdvertisement.isATM()) {
             holder.tradeLimit.setText("");
-        } else if(advertisement.min_amount == null) {
+        } else if(editAdvertisement.min_amount == null) {
             holder.tradeLimit.setText("");
-        } else if(advertisement.max_amount == null) {
-            holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, advertisement.min_amount, advertisement.currency));
+        } else if(editAdvertisement.max_amount == null) {
+            holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, editAdvertisement.min_amount, editAdvertisement.currency));
         } else { // no maximum set
-            holder.tradeLimit.setText(context.getString(R.string.trade_limit_short, advertisement.min_amount, advertisement.max_amount));
+            holder.tradeLimit.setText(context.getString(R.string.trade_limit_short, editAdvertisement.min_amount, editAdvertisement.max_amount));
         }*/
 
         if(advertisement.isATM()) {

@@ -216,7 +216,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         Timber.d("onActivityResult resultCode: " + resultCode);
         if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
             if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
-                updateAdvertisement(); // update the new advertisement
+                updateAdvertisement(); // update the new editAdvertisement
             }
         }
     }
@@ -334,7 +334,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
-                        Timber.i("Update advertisement subscription safely unsubscribed");
+                        Timber.i("Update editAdvertisement subscription safely unsubscribed");
                     }
                 })
                 .compose(this.<Advertisement>bindUntilEvent(ActivityEvent.PAUSE))
@@ -351,7 +351,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Timber.e("Error updating advertisement: " + throwable.getMessage());
+                        Timber.e("Error updating editAdvertisement: " + throwable.getMessage());
                         toast(getString(R.string.toast_error_updat_advertisement));
                         onRefreshStop();
                     }
@@ -538,7 +538,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
-                        Timber.i("Delete advertisement safely unsubscribed");
+                        Timber.i("Delete editAdvertisement safely unsubscribed");
                     }
                 })
                 .compose(this.<Boolean>bindUntilEvent(ActivityEvent.DESTROY))
@@ -648,7 +648,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     }
 
     private void editAdvertisement(AdvertisementItem advertisement) {
-        Intent intent = EditAdvertisementActivity.createStartIntent(AdvertisementActivity.this, advertisement, false);
+        Intent intent = EditAdvertisementActivity.createStartIntent(AdvertisementActivity.this, advertisement.ad_id(), false);
         startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
     }
     

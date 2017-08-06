@@ -126,14 +126,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -159,14 +159,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -193,14 +193,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -233,14 +233,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -266,14 +266,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -301,14 +301,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -340,7 +340,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -348,7 +348,7 @@
                 <TextView
                         android:id="@+id/button7"
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -374,14 +374,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -408,14 +408,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -446,14 +446,14 @@
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -479,14 +479,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:layout_gravity="center"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
@@ -506,7 +506,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="6dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"

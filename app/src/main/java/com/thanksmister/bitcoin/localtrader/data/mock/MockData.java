@@ -24,7 +24,7 @@ public class MockData
             "            {\n" +
             "                \"data\": {\n" +
             "                    \"exchange_rate_updated_at\": \"2014-09-18T02:50:11+00:00\",\n" +
-            "                    \"advertisement\": {\n" +
+            "                    \"editAdvertisement\": {\n" +
             "                        \"payment_method\": \"CASH_DEPOSIT\",\n" +
             "                        \"advertiser\": {\n" +
             "                            \"username\": \"thanksmister\",\n" +
@@ -77,7 +77,7 @@ public class MockData
             "{\n" +
             "   \"data\":{\n" +
             "      \"exchange_rate_updated_at\":\"2014-10-08T18:11:49+00:00\",\n" +
-            "      \"advertisement\":{\n" +
+            "      \"editAdvertisement\":{\n" +
             "         \"advertiser\":{\n" +
             "            \"username\":\"miguelbtc\",\n" +
             "            \"feedback_score\":100,\n" +
@@ -296,7 +296,7 @@ public class MockData
             "               \"require_trade_volume\":0.00,\n" +
             "               \"online_provider\":\"NATIONAL_BANK\",\n" +
             "               \"max_amount_available\":\"20000\",\n" +
-            "               \"msg\":\"Contact hours: Mon-Sun 08:00-22:00\\r\\n\\r\\nMeeting preferences:  local Internet cafe or restaurant.\\r\\n\\r\\nThis advertisement is only for cash trades. \\r\\n\",\n" +
+            "               \"msg\":\"Contact hours: Mon-Sun 08:00-22:00\\r\\n\\r\\nMeeting preferences:  local Internet cafe or restaurant.\\r\\n\\r\\nThis editAdvertisement is only for cash trades. \\r\\n\",\n" +
             "               \"email\":null,\n" +
             "               \"volume_coefficient_btc\":\"1.50\",\n" +
             "               \"profile\":{\n" +
@@ -923,7 +923,7 @@ public class MockData
     public static final String CONTACT_LOCAL_SELL = "{\n" +
             "   \"data\":{\n" +
             "      \"exchange_rate_updated_at\":\"2014-10-08T18:11:49+00:00\",\n" +
-            "      \"advertisement\":{\n" +
+            "      \"editAdvertisement\":{\n" +
             "         \"advertiser\":{\n" +
             "            \"username\":\"miguelbtc\",\n" +
             "            \"feedback_score\":100,\n" +
@@ -977,7 +977,7 @@ public class MockData
     public static final String CONTACT_LOCAL_BUY = "{\n" +
             "   \"data\":{\n" +
             "      \"exchange_rate_updated_at\":\"2014-10-08T18:11:49+00:00\",\n" +
-            "      \"advertisement\":{\n" +
+            "      \"editAdvertisement\":{\n" +
             "         \"advertiser\":{\n" +
             "            \"username\":\"miguelbtc\",\n" +
             "            \"feedback_score\":100,\n" +
@@ -1090,7 +1090,7 @@ public class MockData
             "    \"closed_at\": null,\n" +
             "    \"contact_id\": 705238,\n" +
             "    \"escrowed_at\": \"2014-05-15T21:58:14+00:00\",\n" +
-            "    \"advertisement\": {\n" +
+            "    \"editAdvertisement\": {\n" +
             "      \"id\": 63041,\n" +
             "      \"advertiser\": {\n" +
             "        \"feedback_score\": 100,\n" +
@@ -1142,7 +1142,7 @@ public class MockData
     public static final String CONTACT_ONLINE_SALE_PAID = "{\n" +
             "  \"data\": {\n" +
             "    \"exchange_rate_updated_at\": \"2014-05-16T15:32:06+00:00\",\n" +
-            "    \"advertisement\": {\n" +
+            "    \"editAdvertisement\": {\n" +
             "      \"payment_method\": \"NATIONAL_BANK\",\n" +
             "      \"advertiser\": {\n" +
             "        \"username\": \"thanksmister\",\n" +
@@ -1197,7 +1197,7 @@ public class MockData
     public static final String  CONTACT_ONLINE_SALE_RELEASED = "{\n" +
             "  \"data\": {\n" +
             "    \"exchange_rate_updated_at\": \"2014-05-15T21:58:14+00:00\",\n" +
-            "    \"advertisement\": {\n" +
+            "    \"editAdvertisement\": {\n" +
             "      \"payment_method\": \"NATIONAL_BANK\",\n" +
             "      \"advertiser\": {\n" +
             "        \"username\": \"thanksmister\",\n" +
@@ -1251,7 +1251,7 @@ public class MockData
     public static final String  CONTACT_ONLINE_SALE_CANCELED = "{\n" +
             "  \"data\": {\n" +
             "    \"exchange_rate_updated_at\": \"2014-05-06T00:52:36+00:00\",\n" +
-            "    \"advertisement\": {\n" +
+            "    \"editAdvertisement\": {\n" +
             "      \"payment_method\": \"NATIONAL_BANK\",\n" +
             "      \"advertiser\": {\n" +
             "        \"username\": \"thanksmister\",\n" +
@@ -1305,7 +1305,7 @@ public class MockData
     public static final String CONTACT_ONLINE_SALE = "{\n" +
             "   \"data\":{\n" +
             "      \"exchange_rate_updated_at\":\"2014-10-30T14:01:41+00:00\",\n" +
-            "      \"advertisement\":{\n" +
+            "      \"editAdvertisement\":{\n" +
             "         \"payment_method\":\"NATIONAL_BANK\",\n" +
             "         \"advertiser\":{\n" +
             "            \"username\":\"thanksmister\",\n" +
