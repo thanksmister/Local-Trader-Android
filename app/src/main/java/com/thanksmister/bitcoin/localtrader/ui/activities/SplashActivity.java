@@ -55,9 +55,14 @@ public class SplashActivity extends BaseActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
-        } else {
+        } else if(AuthUtils.isFirstTime(preference)) {
             AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(this);
+        } else {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
         }
     }
 

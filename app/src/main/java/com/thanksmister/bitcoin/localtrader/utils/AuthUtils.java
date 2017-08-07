@@ -24,6 +24,7 @@ public class AuthUtils {
     private static final String PREFS_USER = "userName";
     private static final String PREFS_USER_FEEDBACK = "userFeedback";
     private static final String PREFS_USER_TRADES = "userTrades";
+    private static final String PREFS_FIRST_TIME = "firstTime";
     private static final String PREFS_DISTANCE_UNITS = "distanceUnits";
     private static final String PREFS_FORCE_UPDATES = "forceUpdates";
     private static final String PREFS_API_ENDPOINT = "apiEndpoint";
@@ -228,17 +229,21 @@ public class AuthUtils {
     public static void setTrades(@NonNull DPreference preference, @NonNull String trades) {
         preference.putString(PREFS_USER_TRADES, trades);
     }
-
-    /**
-     * Set the user trades
-     */
-
+    
     public static boolean getForceUpdate(@NonNull DPreference preference) {
         return preference.getBoolean(PREFS_FORCE_UPDATES, false);
     }
     
     public static void setForceUpdate(@NonNull DPreference preference, boolean force) {
         preference.putBoolean(PREFS_FORCE_UPDATES, force);
+    }
+
+    public static boolean isFirstTime(@NonNull DPreference preference) {
+        return preference.getBoolean(PREFS_FIRST_TIME, false);
+    }
+
+    public static void setFirstTime(@NonNull DPreference preference, boolean force) {
+        preference.putBoolean(PREFS_FIRST_TIME, force);
     }
 
     /**
@@ -259,6 +264,7 @@ public class AuthUtils {
         preference.removePreference(ACCESS_TOKEN);
         preference.removePreference(REFRESH_TOKEN);
         preference.removePreference(PREFS_USER_TRADES);
+        preference.removePreference(PREFS_FORCE_UPDATES);
         preference.removePreference(PREFS_USER_FEEDBACK);
         preference.removePreference(PREFS_USER);
         preference.removePreference(PREFS_API_ENDPOINT);

@@ -32,6 +32,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
@@ -167,6 +168,12 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
         swipeLayout.setProgressViewOffset(false, 48, 186);
         swipeLayout.setDistanceToTriggerSync(250);
+        
+        if(!AuthUtils.isFirstTime(preference)) {
+            Toast.makeText(MainActivity.this, R.string.toast_refreshing_data, Toast.LENGTH_LONG).show();
+            AuthUtils.setForceUpdate(preference, false);
+            SyncUtils.requestSyncNow(MainActivity.this);
+        }
     }
 
     @Override
@@ -603,6 +610,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 onRefreshStop();
                 break;
         }
+        
+        AuthUtils.setFirstTime(preference, false);
     }
 
     private BroadcastReceiver syncBroadcastReceiver = new BroadcastReceiver() {
