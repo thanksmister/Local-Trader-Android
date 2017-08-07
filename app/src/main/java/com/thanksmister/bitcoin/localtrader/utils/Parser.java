@@ -415,7 +415,7 @@ public class Parser
                 }
             }
 
-            JSONObject advertisement = data.getJSONObject("editAdvertisement");
+            JSONObject advertisement = data.getJSONObject("advertisement");
             if (advertisement.has("id")) {
                 item.advertisement.id = (advertisement.getString("id"));
             }
@@ -478,9 +478,12 @@ public class Parser
 
         
         } catch (JSONException e) {
-            Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Message", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + object.toString()));
+            Timber.e("Error Parsing Contact: " + e.getMessage());
+            Timber.e("Error Parsing Contact: " + object.toString());
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Message", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing contact: " + object.toString()));
+            }
         }
         
     return null;
@@ -587,7 +590,7 @@ public class Parser
             Timber.e("Error Parsing: " + e.getMessage());
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("Message", "Parsing error discovered");
-                Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + messageObj.toString()));
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + messageObj.toString()));
             }
            
         }
@@ -875,7 +878,7 @@ public class Parser
             
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("Advertisement", "Parsing error discovered");
-                Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + object.toString()));
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object));
             }
             return null;
         }
@@ -997,11 +1000,10 @@ public class Parser
             return item;
 
         } catch (JSONException e) {
-            
             Timber.e("Error Parsing: " + e.getMessage());
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("Advertisement", "Parsing error discovered");
-                Crashlytics.logException(new Throwable("Error parsing editAdvertisement: " + object.toString()));
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
             }
         }
 
