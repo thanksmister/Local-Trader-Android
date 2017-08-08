@@ -100,9 +100,6 @@ public class QRCodeActivity extends Activity
         setContentView(R.layout.dialog_qr_code);
         
         if(savedInstanceState != null) {
-            if(savedInstanceState.containsKey(EXTRA_QR_BITMAP)) 
-                bitmap = savedInstanceState.getParcelable(EXTRA_QR_BITMAP);
-            
             address = savedInstanceState.getString(EXTRA_QR_ADDRESS);
             amount = savedInstanceState.getString(EXTRA_QR_AMOUNT);
         } else {
@@ -111,12 +108,7 @@ public class QRCodeActivity extends Activity
         }
 
         ButterKnife.inject(this);
-        
-        if(bitmap == null) {
-            generateQrCodeImage(address, amount);
-        } else {
-            image.setImageBitmap(bitmap);
-        }  
+        generateQrCodeImage(address, amount); 
     }
 
     @Override
@@ -129,9 +121,7 @@ public class QRCodeActivity extends Activity
     }
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState)
-    {
-        outState.putParcelable(EXTRA_QR_BITMAP, bitmap);
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putString(EXTRA_QR_ADDRESS, address);
         outState.putString(EXTRA_QR_AMOUNT, amount);
         super.onSaveInstanceState(outState);

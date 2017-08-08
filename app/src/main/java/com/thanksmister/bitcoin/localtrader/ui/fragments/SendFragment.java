@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -58,7 +57,6 @@ import com.thanksmister.bitcoin.localtrader.ui.activities.PinCodeActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
@@ -70,6 +68,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import dpreference.DPreference;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -84,10 +83,12 @@ public class SendFragment extends BaseFragment {
     
     public static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
-    public static final String EXTRA_WALLET_DATA = "com.thanksmister.extra.EXTRA_WALLET_DATA";
 
     @Inject
     DataService dataService;
+
+    @Inject
+    DPreference dPreference;
 
     @Inject
     ExchangeService exchangeService;
@@ -132,7 +133,6 @@ public class SendFragment extends BaseFragment {
         Bundle args = new Bundle();
         args.putString(EXTRA_ADDRESS, address);
         args.putString(EXTRA_AMOUNT, amount);
-
         fragment.setArguments(args);
         return fragment;
     }
@@ -143,29 +143,30 @@ public class SendFragment extends BaseFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        
         super.onCreate(savedInstanceState);
         
         if (getArguments() != null) {
-
-            if (getArguments().containsKey(EXTRA_ADDRESS))
-                address = getArguments().getString(EXTRA_ADDRESS);
-
-            if (getArguments().containsKey(EXTRA_AMOUNT))
-                amount = getArguments().getString(EXTRA_AMOUNT);
-
-        } else if (savedInstanceState != null) {
-
-            if (savedInstanceState.containsKey(EXTRA_ADDRESS))
-                address = savedInstanceState.getString(EXTRA_ADDRESS);
-
-            if (savedInstanceState.containsKey(EXTRA_AMOUNT))
-                amount = savedInstanceState.getString(EXTRA_AMOUNT);
-
-            if (savedInstanceState.containsKey(EXTRA_WALLET_DATA))
-                walletData = savedInstanceState.getParcelable(EXTRA_WALLET_DATA);
+            address = getArguments().getString(EXTRA_ADDRESS);
+            amount = getArguments().getString(EXTRA_AMOUNT);
         }
 
+        amount = dPreference.getString("send_amount", null);
+        address = dPreference.getString("send_address", null);
+
+        Timber.d("onCreate address " + address);
+        Timber.d("onCreate amount " + amount);
+        
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Timber.d("onSaveInstanceState address " + address);
+        Timber.d("onSaveInstanceState amount " + amount);
+        dPreference.putString("send_amount", amount);
+        dPreference.putString("send_address", address);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -177,13 +178,10 @@ public class SendFragment extends BaseFragment {
         Timber.d("onActivityResult: resultCode " + resultCode);
 
         if (requestCode == PinCodeActivity.REQUEST_CODE) {
-
             if (resultCode == PinCodeActivity.RESULT_VERIFIED) {
-
                 String pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE);
                 String address = intent.getStringExtra(PinCodeActivity.EXTRA_ADDRESS);
                 String amount = intent.getStringExtra(PinCodeActivity.EXTRA_AMOUNT);
-
                 pinCodeEvent(pinCode, address, amount);
             }
         }
@@ -218,13 +216,19 @@ public class SendFragment extends BaseFragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
         
+        super.onViewCreated(view, savedInstanceState);
+        
+        Timber.d("onViewCreated");
+        
+        if (!TextUtils.isEmpty(amount)) {
+            amountText.setText(amount);
+        }
+
+        if (!TextUtils.isEmpty(address)) {
+            addressText.setText(address);
+        }
+
         sendDescription.setText(Html.fromHtml(getString(R.string.pin_code_send)));
         sendDescription.setMovementMethod(LinkMovementMethod.getInstance());
 
@@ -244,11 +248,11 @@ public class SendFragment extends BaseFragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+                amount = charSequence.toString();
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-
                 if (amountText.hasFocus()) {
                     String bitcoin = editable.toString();
                     calculateCurrencyAmount(bitcoin);
@@ -274,29 +278,14 @@ public class SendFragment extends BaseFragment {
             }
         });
 
-        if (!Strings.isBlank(amount)) {
-            amountText.setText(amount);
-        }
-
-        if (!Strings.isBlank(address)) {
-            addressText.setText(address);
-        }
-
         setCurrency();
-        setupToolbar();
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (address != null)
-            outState.putString(EXTRA_ADDRESS, address);
-
-        if (amount != null)
-            outState.putString(EXTRA_AMOUNT, amount);
-
-        if (walletData != null)
-            outState.putParcelable(EXTRA_WALLET_DATA, walletData);
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setupToolbar();
+        Timber.d("onActivityCreated");
     }
 
     @Override
@@ -316,6 +305,11 @@ public class SendFragment extends BaseFragment {
     @Override
     public void onDetach() {
         super.onDetach();
+
+        Timber.d("onDetach");
+
+        dPreference.removePreference("send_amount");
+        dPreference.removePreference("send_address");
 
         ButterKnife.reset(this);
 
@@ -400,7 +394,7 @@ public class SendFragment extends BaseFragment {
 
     public void setAddressFromClipboardTouch() {
         String clipText = getClipboardText();
-        if (Strings.isBlank(clipText)) {
+        if (TextUtils.isEmpty(clipText)) {
             return;
         }
 
@@ -414,7 +408,7 @@ public class SendFragment extends BaseFragment {
 
     public void setAddressFromClipboard() {
         String clipText = getClipboardText();
-        if (Strings.isBlank(clipText)) {
+        if (TextUtils.isEmpty(clipText)) {
             toast(R.string.toast_clipboard_empty);
             return;
         }
@@ -432,14 +426,14 @@ public class SendFragment extends BaseFragment {
             bitcoinAmount = null; // set it to null
         }
 
-        if (!Strings.isBlank(bitcoinAddress)) {
+        if (!TextUtils.isEmpty(bitcoinAddress)) {
             setBitcoinAddress(bitcoinAddress);
 
-            if (!Strings.isBlank(bitcoinAmount)) {
+            if (!TextUtils.isEmpty(bitcoinAmount)) {
                 setAmount(bitcoinAmount);
             }
 
-        } else if (!Strings.isBlank(bitcoinAmount)) {
+        } else if (!TextUtils.isEmpty(bitcoinAmount)) {
             setAmount(bitcoinAmount);
         }
     }
@@ -462,7 +456,11 @@ public class SendFragment extends BaseFragment {
     }
 
     public void pinCodeEvent(final String pinCode, final String address, final String amount) {
+        
         Timber.d("pinCodeEvent");
+        
+        this.address = address;
+        this.amount = amount;
 
         String confirmTitle = "Confirm Transaction";
         String confirmDescription = getString(R.string.send_confirmation_description, amount, address);
@@ -470,7 +468,6 @@ public class SendFragment extends BaseFragment {
             @Override
             public void call() {
                 confirmedPinCodeSend(pinCode, address, amount);
-                ;
             }
         }));
     }
@@ -512,13 +509,15 @@ public class SendFragment extends BaseFragment {
     }
 
     public void setBitcoinAddress(String bitcoinAddress) {
-        if (!Strings.isBlank(bitcoinAddress)) {
+        if (!TextUtils.isEmpty(bitcoinAddress)) {
+            address = bitcoinAddress;
             addressText.setText(bitcoinAddress);
         }
     }
 
     public void setAmount(String bitcoinAmount) {
-        if (!Strings.isBlank(bitcoinAmount)) {
+        if (!TextUtils.isEmpty(bitcoinAmount)) {
+            amount = bitcoinAmount;
             amountText.setText(bitcoinAmount);
             calculateCurrencyAmount(bitcoinAmount);
         }
@@ -526,6 +525,8 @@ public class SendFragment extends BaseFragment {
 
     public void resetWallet() {
         if(isAdded()) {
+            amount = "";
+            address = "";
             amountText.setText("");
             addressText.setText("");
             calculateCurrencyAmount("0.00");
@@ -537,7 +538,7 @@ public class SendFragment extends BaseFragment {
     public void setWallet() {
         computeBalance(0);
         setCurrency(); // update currency if there were any changes
-        if (Strings.isBlank(amountText.getText())) {
+        if (TextUtils.isEmpty(amountText.getText().toString())) {
             calculateCurrencyAmount("0.00");
         } else {
             calculateCurrencyAmount(amountText.getText().toString());
@@ -546,33 +547,33 @@ public class SendFragment extends BaseFragment {
 
     protected void validateForm() {
         boolean cancel = false;
-        if (Strings.isBlank(amountText.getText())) {
+        if (TextUtils.isEmpty(amountText.getText().toString())) {
             toast(getString(R.string.error_missing_address_amount));
             return;
         }
 
-        String bitcoinAmount = Conversions.formatBitcoinAmount(amountText.getText().toString());
-        String bitcoinAddress = addressText.getText().toString();
+        amount = Conversions.formatBitcoinAmount(amountText.getText().toString());
+        address = addressText.getText().toString();
 
-        if (Strings.isBlank(addressText.getText())) {
+        if (TextUtils.isEmpty(addressText.getText())) {
             toast(getString(R.string.error_missing_address_amount));
             return;
         }
 
-        if (bitcoinAmount == null) {
+        if (amount == null) {
             toast(getString(R.string.toast_invalid_btc_amount));
             cancel = true;
-        } else if (!WalletUtils.validAmount(bitcoinAmount)) {
+        } else if (!WalletUtils.validAmount(amount)) {
             toast(getString(R.string.toast_invalid_btc_amount));
             cancel = true;
-        } else if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
+        } else if (!WalletUtils.validBitcoinAddress(address)) {
             toast(getString(R.string.toast_invalid_address));
             cancel = true;
         }
 
         if (!cancel) { // There was an error
             //String usd = Calculations.computedValueOfBitcoin(exchange.ask(), exchange.bid(), bitcoinAmount);
-            promptForPin(bitcoinAddress, bitcoinAmount);
+            promptForPin(address, amount);
         }
     }
 
@@ -599,7 +600,8 @@ public class SendFragment extends BaseFragment {
         try {
             if (Doubles.convertToDouble(fiat) == 0) {
                 computeBalance(0);
-                amountText.setText("");
+                amount = "";
+                amountText.setText(amount);
                 return;
             }
         } catch (Exception e) {
@@ -610,7 +612,7 @@ public class SendFragment extends BaseFragment {
         try {
             String exchangeValue = walletData.getRate();
             double btc = Math.abs(Doubles.convertToDouble(fiat) / Doubles.convertToDouble(exchangeValue));
-            String amount = Conversions.formatBitcoinAmount(btc);
+            amount = Conversions.formatBitcoinAmount(btc);
             amountText.setText(amount); // set bitcoin amount
             computeBalance(btc);
         } catch (Exception e) {

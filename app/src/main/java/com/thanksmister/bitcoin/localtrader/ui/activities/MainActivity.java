@@ -367,30 +367,37 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             case R.id.navigationItemSearch:
                 lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_SEARCH);
+                onRefreshStop();
                 break;
             case R.id.navigationItemSend:
                 lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_SEND);
+                onRefreshStop();
                 break;
             case R.id.navigationItemReceive:
                 lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_RECEIVE);
+                onRefreshStop();
                 break;
             case R.id.navigationItemWallet:
                 lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_WALLET);
+                onRefreshStop();
                 break;
             case R.id.navigationItemAbout:
                 lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_ABOUT);
+                onRefreshStop();
                 break;
             case R.id.navigationItemSettings:
                 Intent intent = SettingsActivity.createStartIntent(this);
                 startActivity(intent);
+                onRefreshStop();
                 break;
             default:
                 lastMenuItemId = menuItem.getItemId();
                 setContentFragment(DRAWER_DASHBOARD);
+                break;
         }
 
         // Highlight the selected item, update the title, and close the drawer

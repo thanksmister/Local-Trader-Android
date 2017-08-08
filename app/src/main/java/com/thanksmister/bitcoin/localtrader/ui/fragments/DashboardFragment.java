@@ -100,16 +100,11 @@ public class DashboardFragment extends BaseFragment {
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        
         super.onCreate(savedInstanceState);
-
         if (getArguments() != null) {
             pagerPosition = getArguments().getInt("pagePosition", 0);
         }
-        
         setHasOptionsMenu(true);
-       
-        Timber.d("DashboardFragment");
     }
 
     @Override

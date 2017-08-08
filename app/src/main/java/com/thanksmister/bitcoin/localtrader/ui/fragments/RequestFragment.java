@@ -141,19 +141,12 @@ public class RequestFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            walletItem = savedInstanceState.getParcelable(EXTRA_WALLET);
-            exchangeItem = savedInstanceState.getParcelable(EXTRA_EXCHANGE);
-        }
         setHasOptionsMenu(true);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(EXTRA_WALLET, walletItem);
-        outState.putParcelable(EXTRA_EXCHANGE, exchangeItem);
     }
 
     @Override
@@ -182,7 +175,9 @@ public class RequestFragment extends BaseFragment {
                 }
                 return true;
             case R.id.action_blockchain:
-                viewBlockChain(walletItem.address());
+                if(walletItem != null) {
+                    viewBlockChain(walletItem.address());
+                }
             default:
                 break;
         }
