@@ -19,7 +19,6 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 
 import com.squareup.sqlbrite.BriteContentResolver;
@@ -34,7 +33,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,9 +99,6 @@ public class DbManager {
     }*/
 
     public List<String> insertContacts(List<Contact> items) {
-
-        Timber.d("insertContacts");
-
         HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
         for (Contact item : items) {
             entryMap.put(item.contact_id, item);
@@ -114,7 +109,6 @@ public class DbManager {
         if(cursor != null && cursor.getCount() > 0)
             while (cursor.moveToNext()) {
                 String contactId = Db.getString(cursor, ContactItem.CONTACT_ID);
-                Timber.d("current contact: " + contactId);
                 Contact match = entryMap.get(contactId);
                 if (match == null) {
                     // delete advertisements that no longer exist in the list
@@ -134,35 +128,6 @@ public class DbManager {
         
         return updatedContactIds;
     }
-    
-    /*public void updateContacts(List<Contact> contacts) {
-        HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
-        for (Contact item : contacts) {
-            entryMap.put(item.contact_id, item);
-        }
-        //db.beginTransaction();
-        Cursor cursor = db.query(ContactItem.QUERY);
-        if (cursor != null && cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                long id = Db.getLong(cursor, ContactItem._ID);
-                String contact_id = Db.getString(cursor, ContactItem.CONTACT_ID);
-                Contact match = entryMap.get(contact_id);
-                if (match != null) {
-                    entryMap.remove(contact_id);
-                    db.update(ContactItem.TABLE, ContactItem.createBuilder(match, match.messageCount, match.hasUnseenMessages).build(), ContactItem._ID + " = ?", String.valueOf(id));
-                } else {
-                    // Entry doesn't exist. Remove it from the database and its messages
-                    db.delete(ContactItem.TABLE, ContactItem._ID + " = ?", String.valueOf(id));
-                    db.delete(MessageItem.TABLE, MessageItem.CONTACT_ID + " = ?", String.valueOf(id));
-                }
-            }
-        }
-
-        for (Contact item : entryMap) {
-            int messageCount = item.messages.size();
-            contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(item, messageCount, true).build());
-        }
-    }*/
 
     /**
      * Updates or inserts new contact with message count and unseen messages flag.
@@ -464,7 +429,6 @@ public class DbManager {
 
     public void updateWallet(final Wallet wallet) {
         Timber.d("updateWallet: " + wallet);
-
         Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
                 .map(WalletItem.MAP)
                 .subscribe(new Action1<WalletItem>() {
@@ -475,25 +439,15 @@ public class DbManager {
                             if (!walletItem.address().equals(wallet.address)
                                     || !walletItem.balance().equals(wallet.balance)
                                     || !walletItem.sendable().equals(wallet.sendable)) {
-
-
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-
-                                WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
-                                //contentResolverAsyncHandler.startUpdate(0, null, SyncProvider.MESSAGE_TABLE_URI, builder.build(), WalletItem._ID + " = ?", new String[]{String.valueOf(walletItem.id())});
+                                
+                                WalletItem.Builder builder = WalletItem.createBuilder(wallet);
                                 contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
                             }
 
                         } else {
 
                             Timber.d("updateWallet insert");
-
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-
-                            WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
-                            // contentResolverAsyncHandler.startInsert(0, null, SyncProvider.WALLET_TABLE_URI, builder.build());
+                            WalletItem.Builder builder = WalletItem.createBuilder(wallet);
                             contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
                         }
                     }

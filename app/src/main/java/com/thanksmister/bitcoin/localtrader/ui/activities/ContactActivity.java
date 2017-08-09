@@ -48,7 +48,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
@@ -57,7 +56,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.DbUtils;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
@@ -65,6 +63,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
@@ -900,11 +899,12 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if(id == CONTACT_LOADER_ID) {
-            DbUtils.printQueryText(ContactItem.QUERY, Integer.parseInt(contactId));
+            //DbUtils.printQueryText(ContactItem.QUERY, Integer.parseInt(contactId));
             return new CursorLoader(ContactActivity.this, SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contactId}, null);
         } else if (id == MESSAGES_LOADER_ID) {
-            DbUtils.printQueryText(ContactItem.QUERY, Integer.parseInt(contactId));
-            return new CursorLoader(ContactActivity.this, SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ?", new String[]{contactId}, null);
+            //DbUtils.printQueryText(ContactItem.QUERY, Integer.parseInt(contactId));
+            return new CursorLoader(ContactActivity.this, SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ?", new String[]{contactId}, 
+                    MessageItem.CREATED_AT + " DESC");
         }
         return null;
     }
@@ -914,7 +914,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         switch (loader.getId()) {
             case CONTACT_LOADER_ID:
                 // https://stackoverflow.com/questions/7915050/cursorloader-not-updating-after-data-change
-                cursor.setNotificationUri(getContentResolver(), SyncProvider.CONTACT_TABLE_URI);
+                //cursor.setNotificationUri(getContentResolver(), SyncProvider.CONTACT_TABLE_URI);
                 ContactItem contactItem = ContactItem.getModel(cursor);
                 if(contactItem != null) {
                     showContent();
@@ -924,7 +924,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 }
                 break;
             case MESSAGES_LOADER_ID:
-                cursor.setNotificationUri(getContentResolver(), SyncProvider.MESSAGE_TABLE_URI);
+                //cursor.setNotificationUri(getContentResolver(), SyncProvider.MESSAGE_TABLE_URI);
                 List<MessageItem> messageItems = MessageItem.getModelList(cursor);
                 if(!messageItems.isEmpty()) {
                     getAdapter().replaceWith(messageItems);
@@ -932,6 +932,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 break;
         }
     }
+    
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {

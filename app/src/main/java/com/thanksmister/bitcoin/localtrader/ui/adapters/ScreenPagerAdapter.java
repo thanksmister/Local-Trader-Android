@@ -17,6 +17,8 @@
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.view.PagerAdapter;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -53,6 +55,13 @@ public class ScreenPagerAdapter extends PagerAdapter
     {
         this.context = context;
         this.inflater = LayoutInflater.from(context);
+    }
+
+    @Override
+    public Parcelable saveState() {
+        Bundle bundle = (Bundle) super.saveState();
+        bundle.putParcelableArray("states", null); // Never maintain any states from the base class to avoid TransactionTooLargeException
+        return bundle;
     }
 
     @Override

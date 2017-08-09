@@ -49,12 +49,11 @@ import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
-public class QRCodeActivity extends Activity
-{
-    public static final String EXTRA_QR_BITMAP = "EXTRA_QR_BITMAP";
+public class QRCodeActivity extends Activity {
+   
     public static final String EXTRA_QR_ADDRESS = "EXTRA_QR_ADDRESS";
     public static final String EXTRA_QR_AMOUNT = "EXTRA_QR_AMOUNT";
-    
+
     private Bitmap bitmap;
     private String address;
     private String amount;
@@ -67,39 +66,34 @@ public class QRCodeActivity extends Activity
     ImageView image;
 
     @OnClick(R.id.cancelButton)
-    public void cancelButtonClicked()
-    {
+    public void cancelButtonClicked() {
         finish();
     }
 
     @OnClick(R.id.copyButton)
-    public void copyButtonClicked()
-    {
+    public void copyButtonClicked() {
         setRequestOnClipboard();
     }
 
     @OnClick(R.id.shareButton)
-    public void shareButtonClicked()
-    {
+    public void shareButtonClicked() {
         shareBitcoinRequest();
     }
 
-    public static Intent createStartIntent(Context context, String address, String amount)
-    {
+    public static Intent createStartIntent(Context context, String address, String amount) {
         Intent intent = new Intent(context, QRCodeActivity.class);
         intent.putExtra(EXTRA_QR_ADDRESS, address);
         intent.putExtra(EXTRA_QR_AMOUNT, amount);
         return intent;
     }
-    
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) 
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         setContentView(R.layout.dialog_qr_code);
-        
-        if(savedInstanceState != null) {
+
+        if (savedInstanceState != null) {
             address = savedInstanceState.getString(EXTRA_QR_ADDRESS);
             amount = savedInstanceState.getString(EXTRA_QR_AMOUNT);
         } else {
@@ -108,15 +102,14 @@ public class QRCodeActivity extends Activity
         }
 
         ButterKnife.inject(this);
-        generateQrCodeImage(address, amount); 
+        generateQrCodeImage(address, amount);
     }
 
     @Override
-    protected void onDestroy()
-    {
+    protected void onDestroy() {
         super.onDestroy();
         ButterKnife.reset(this);
-        
+
         subscription.unsubscribe();
     }
 
@@ -129,25 +122,16 @@ public class QRCodeActivity extends Activity
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     @SuppressWarnings("deprecation")
-    public void setRequestOnClipboard()
-    {
-        String bitcoinUrl = (Strings.isBlank(amount))? WalletUtils.generateBitCoinURI(address, amount): WalletUtils.generateBitCoinURI(address, amount);
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText(getString(R.string.bitcoin_request_clipboard_title), bitcoinUrl);
-            clipboard.setPrimaryClip(clip);
-        } else {
-            android.text.ClipboardManager clipboardManager = (android.text.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            clipboardManager.setText(bitcoinUrl);
-        }
-
+    public void setRequestOnClipboard() {
+        String bitcoinUrl = (Strings.isBlank(amount)) ? WalletUtils.generateBitCoinURI(address, amount) : WalletUtils.generateBitCoinURI(address, amount);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText(getString(R.string.bitcoin_request_clipboard_title), bitcoinUrl);
+        clipboard.setPrimaryClip(clip);
         Toast.makeText(this, getString(R.string.bitcoin_request_copied_toast), Toast.LENGTH_LONG).show();
     }
-    
-    private void shareBitcoinRequest()
-    {
-        String bitcoinUrl = (Strings.isBlank(amount))? WalletUtils.generateBitCoinURI(address, amount): WalletUtils.generateBitCoinURI(address, amount);
+
+    private void shareBitcoinRequest() {
+        String bitcoinUrl = (Strings.isBlank(amount)) ? WalletUtils.generateBitCoinURI(address, amount) : WalletUtils.generateBitCoinURI(address, amount);
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(bitcoinUrl)));
         } catch (ActivityNotFoundException ex) {
@@ -164,42 +148,34 @@ public class QRCodeActivity extends Activity
         }
     }
 
-    public void generateQrCodeImage(final String address, final String amount)
-    {
+    public void generateQrCodeImage(final String address, final String amount) {
         subscription = generateBitmap(address, amount)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Bitmap>()
-                {
+                .subscribe(new Observer<Bitmap>() {
                     @Override
-                    public void onCompleted()
-                    {
-                        
+                    public void onCompleted() {
+
                     }
 
                     @Override
-                    public void onError(Throwable e)
-                    {
+                    public void onError(Throwable e) {
                         Timber.e(e.getMessage());
                         Toast.makeText(getApplicationContext(), "Error generating QR code", Toast.LENGTH_LONG).show();
                     }
 
                     @Override
-                    public void onNext(Bitmap data)
-                    {
+                    public void onNext(Bitmap data) {
                         bitmap = data;
                         image.setImageBitmap(bitmap);
                     }
                 });
     }
 
-    private Observable<Bitmap> generateBitmap(final String address, final String amount)
-    {
-        return Observable.create(new Observable.OnSubscribe<Bitmap>()
-        {
+    private Observable<Bitmap> generateBitmap(final String address, final String amount) {
+        return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
-            public void call(Subscriber<? super Bitmap> subscriber)
-            {
+            public void call(Subscriber<? super Bitmap> subscriber) {
                 try {
                     subscriber.onNext(WalletUtils.encodeAsBitmap(address, amount, getApplicationContext()));
                     subscriber.onCompleted();

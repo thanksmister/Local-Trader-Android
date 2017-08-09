@@ -101,7 +101,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
         if (viewHolder instanceof ItemViewHolder) {
             NotificationItem item = items.get(position);
-            ((ItemViewHolder) viewHolder).messageBody.setText(item.message());
+            ((ItemViewHolder) viewHolder).messageBody.setText(item.message().trim());
             ((ItemViewHolder) viewHolder).contactId.setVisibility(View.VISIBLE);
             if (item.contact_id() != null) {
                 ((ItemViewHolder) viewHolder).contactId.setText("Contact #" + item.contact_id());

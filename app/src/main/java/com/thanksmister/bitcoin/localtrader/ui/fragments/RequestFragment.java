@@ -22,7 +22,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -71,6 +70,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -80,10 +80,7 @@ import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 public class RequestFragment extends BaseFragment {
-
-    public static final String EXTRA_WALLET = "com.thanksmister.extra.EXTRA_WALLET";
-    public static final String EXTRA_EXCHANGE = "com.thanksmister.extra.EXTRA_EXCHANGE";
-
+    
     @Inject
     ExchangeService exchangeService;
 
@@ -343,12 +340,13 @@ public class RequestFragment extends BaseFragment {
     }
 
     public void setWallet(final WalletItem item) {
+        
         Observable.defer(new Func0<Observable<Bitmap>>() {
+            
             @Override
             public Observable<Bitmap> call() {
                         try {
-                            Bitmap qrCode = (BitmapFactory.decodeByteArray(item.qrcode(), 0, item.qrcode().length));
-                            return Observable.just(qrCode);
+                            return generateBitmap(item.address());
                         } catch (Exception e) {
                             Timber.e("Error reading wallet QR Code data: " + e.getLocalizedMessage());
                             return null;
@@ -393,6 +391,21 @@ public class RequestFragment extends BaseFragment {
                         }
                     }
                 });
+    }
+
+    private Observable<Bitmap> generateBitmap(final String address) {
+        return Observable.create(new Observable.OnSubscribe<Bitmap>() {
+            @Override
+            public void call(Subscriber<? super Bitmap> subscriber)
+            {
+                try {
+                    subscriber.onNext(WalletUtils.encodeAsBitmap(address, getActivity()));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
     }
 
     private void setupWallet(WalletItem walletItem, Bitmap qrImage) {

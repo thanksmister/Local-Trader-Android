@@ -37,8 +37,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 
-public class PromoActivity extends BaseActivity
-{
+public class PromoActivity extends BaseActivity {
     @InjectView(R.id.pager)
     ViewPager viewPager;
 
@@ -46,14 +45,12 @@ public class PromoActivity extends BaseActivity
     CirclePageIndicator circlePageIndicator;
 
     @OnClick(R.id.registerButton)
-    public void registerButtonClicked()
-    {
+    public void registerButtonClicked() {
         showRegistration();
     }
 
     @OnClick(R.id.loginButton)
-    public void loginButtonClicked()
-    {
+    public void loginButtonClicked() {
         showLoginView();
     }
 
@@ -61,17 +58,15 @@ public class PromoActivity extends BaseActivity
      * The pager adapter, which provides the pages to the view pager widget.
      */
     private PagerAdapter pagerAdapter;
-    
-    public static Intent createStartIntent(Context context)
-    {
+
+    public static Intent createStartIntent(Context context) {
         return new Intent(context, PromoActivity.class);
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) 
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         setContentView(R.layout.view_promo);
 
         ButterKnife.inject(this);
@@ -93,22 +88,20 @@ public class PromoActivity extends BaseActivity
         circlePageIndicator.setStrokeColor(getContext().getResources().getColor(R.color.gray_pressed));
         circlePageIndicator.setRadius(12);
 
-        if(AuthUtils.showUpgradedMessage(getApplicationContext(), preference)) {
+        if (AuthUtils.showUpgradedMessage(getApplicationContext(), preference)) {
             String title = "What's new in " + AuthUtils.getCurrentVersionName(getApplicationContext());
             showAlertDialogLinks(new AlertDialogEvent(title, getString(R.string.whats_new_message)));
             AuthUtils.setUpgradeVersion(getApplicationContext(), preference);
         }
     }
-    
-    public void showLoginView()
-    {
+
+    public void showLoginView() {
         Intent intent = LoginActivity.createStartIntent(getContext());
         intent.setClass(getContext(), LoginActivity.class);
         getContext().startActivity(intent);
     }
-    
-    public void showRegistration()
-    {
+
+    public void showRegistration() {
         String url = Constants.REGISTRATION_URL;
         try {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -119,11 +112,10 @@ public class PromoActivity extends BaseActivity
             showAlertDialogLinks(new AlertDialogEvent("Link Error",
                     getString(R.string.toast_error_no_installed_ativity)));
         }
-        
+
     }
-    
-    public Context getContext()
-    {
+
+    public Context getContext() {
         return this;
     }
 }

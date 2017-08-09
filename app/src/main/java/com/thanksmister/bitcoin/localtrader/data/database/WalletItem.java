@@ -21,8 +21,6 @@ import android.os.Parcelable;
 
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
 
-import java.io.ByteArrayOutputStream;
-
 import auto.parcel.AutoParcel;
 import rx.functions.Func1;
 
@@ -42,14 +40,12 @@ public abstract class WalletItem implements Parcelable
     public static final String SENDABLE = "sendable";
     public static final String ADDRESS = "address";
     public static final String RECEIVABLE = "receivable";
-    public static final String QRCODE = "qrcode";
     
     public abstract long id();
     public abstract String message();
     public abstract String balance();
     public abstract String sendable();
     public abstract String address();
-    public abstract byte[] qrcode();
 
     public static final Func1<Query, WalletItem> MAP = new Func1<Query, WalletItem>() {
         @Override
@@ -63,8 +59,7 @@ public abstract class WalletItem implements Parcelable
                     String balance = Db.getString(cursor, BALANCE);
                     String sendable = Db.getString(cursor, SENDABLE);
                     String address = Db.getString(cursor, ADDRESS);
-                    byte[] qrcode = Db.getBlob(cursor, QRCODE);
-                    return new AutoParcel_WalletItem(id, message, balance, sendable, address, qrcode);
+                    return new AutoParcel_WalletItem(id, message, balance, sendable, address);
                 }
                 
                 return null;
@@ -75,14 +70,12 @@ public abstract class WalletItem implements Parcelable
         }
     };
 
-    public static Builder createBuilder(Wallet wallet, ByteArrayOutputStream baos)
-    {
+    public static Builder createBuilder(Wallet wallet) {
         return new Builder()
                 .message(wallet.message)
                 .balance(wallet.balance)
                 .sendable(wallet.sendable)
-                .address(wallet.address)
-                .qrcode(baos.toByteArray());
+                .address(wallet.address);
     }
 
     public static final class Builder {
@@ -110,11 +103,7 @@ public abstract class WalletItem implements Parcelable
             values.put(ADDRESS, value);
             return this;
         }
-        public Builder qrcode(byte[] value) {
-            values.put(QRCODE, value);
-            return this;
-        }
-        
+      
         public ContentValues build() {
             return values; 
         }

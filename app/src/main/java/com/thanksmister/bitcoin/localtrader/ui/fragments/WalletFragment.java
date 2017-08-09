@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -44,6 +46,7 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.SectionRecycleViewAdapte
 import com.thanksmister.bitcoin.localtrader.ui.adapters.TransactionsAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
+import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
@@ -115,6 +118,11 @@ public class WalletFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(false);
+
+        // clear all wallt notifications
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(ns);
+        notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_BALANCE);
     }
 
     @Override

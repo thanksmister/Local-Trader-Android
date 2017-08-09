@@ -17,7 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -54,7 +53,6 @@ import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import org.json.JSONObject;
 
@@ -69,11 +67,8 @@ import dpreference.DPreference;
 import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 
@@ -284,11 +279,10 @@ public class DataService {
         return getWalletBalanceObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletBalanceObservable()))
                 .map(new ResponseToWalletBalance())
-                .flatMap(new Func1<Wallet, Observable<Wallet>>() {
+                .doOnNext(new Action1<Wallet>() {
                     @Override
-                    public Observable<Wallet> call(Wallet wallet) {
+                    public void call(Wallet wallet) {
                         setWalletBalanceExpireTime();
-                        return getWalletBitmap(wallet);
                     }
                 });
     }
@@ -599,64 +593,14 @@ public class DataService {
     public Observable<Wallet> getWallet() {
         return getWalletObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletObservable()))
-                .map(new ResponseToWallet())
-                .flatMap(new Func1<Wallet, Observable<Wallet>>() {
-                    @Override
-                    public Observable<Wallet> call(final Wallet wallet) {
-                        setWalletExpireTime();
-                        return generateBitmap(wallet.address)
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .map(new Func1<Bitmap, Wallet>() {
-                                    @Override
-                                    public Wallet call(Bitmap bitmap) {
-                                        wallet.qrImage = bitmap;
-                                        return wallet;
-                                    }
-                                }).onErrorReturn(new Func1<Throwable, Wallet>() {
-                                    @Override
-                                    public Wallet call(Throwable throwable) {
-                                        return wallet;
-                                    }
-                                });
-                    }
-                });
+                .map(new ResponseToWallet());
     }
 
     private Observable<Response> getWalletObservable() {
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getWallet(accessToken);
     }
-
-    ////  HMAC ////
     
-
-
-    private Observable<Wallet> getWalletBitmap(final Wallet wallet) {
-        return generateBitmap(wallet.address)
-                .map(new Func1<Bitmap, Wallet>() {
-                    @Override
-                    public Wallet call(Bitmap bitmap) {
-                        wallet.qrImage = bitmap;
-                        return wallet;
-                    }
-                });
-    }
-
-    private Observable<Bitmap> generateBitmap(final String address) {
-        return Observable.create(new Observable.OnSubscribe<Bitmap>() {
-            @Override
-            public void call(Subscriber<? super Bitmap> subscriber) {
-                try {
-                    subscriber.onNext(WalletUtils.encodeAsBitmap(address, baseApplication.getApplicationContext()));
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
-            }
-        });
-    }
-
     public Observable<List<Method>> getMethods() {
         if (!needToRefreshMethods()) {
             return Observable.just(null);

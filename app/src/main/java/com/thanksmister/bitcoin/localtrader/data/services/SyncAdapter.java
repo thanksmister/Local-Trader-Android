@@ -27,7 +27,6 @@ import android.content.SyncResult;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.text.TextUtils;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.sqlbrite.BriteContentResolver;
@@ -42,7 +41,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.Db;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
@@ -53,7 +51,6 @@ import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,9 +65,7 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import rx.Observable;
 import rx.Subscriber;
-import rx.Subscription;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -142,9 +137,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         if(!isSyncing() && hasCredentials && !isCanceled()) {
             getCurrencies();
             getMethods();
+            getNotifications();
             getContacts();
             getAdvertisements();
-            getNotifications();
             getWalletBalance();
             if(!isSyncing() && !isCanceled()) {
                 resetSyncing();
@@ -372,29 +367,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("getWalletBalance");
         updateSyncMap(SYNC_WALLET, true);
         dataService.getWalletBalance()
-                .flatMap(new Func1<Wallet, Observable<Wallet>>() {
-                    @Override
-                    public Observable<Wallet> call(final Wallet wallet) {
-                        if(wallet == null || TextUtils.isEmpty(wallet.address)) {
-                            return Observable.just(wallet);
-                        }
-                        
-                        return generateBitmap(wallet.address)
-                                .map(new Func1<Bitmap, Wallet>() {
-                                    @Override
-                                    public Wallet call(Bitmap bitmap) {
-                                        wallet.qrImage = bitmap;
-                                        return wallet;
-                                    }
-                                }).onErrorReturn(new Func1<Throwable, Wallet>() {
-                                    @Override
-                                    public Wallet call(Throwable throwable) {
-                                        reportError(throwable);
-                                        return wallet;
-                                    }
-                                });
-                    }
-                })
                 .subscribe(new Action1<Wallet>() {
                     @Override
                     public void call(Wallet wallet) {
@@ -478,6 +450,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void updateWalletBalance(final Wallet wallet) {
+        
         Timber.d("updateWalletBalance");
 
         boolean hasCredentials = AuthUtils.hasCredentials(preference, sharedPreferences);
@@ -492,9 +465,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             String address = Db.getString(cursor, WalletItem.ADDRESS);
             String balance = Db.getString(cursor, WalletItem.BALANCE);
             if (!address.equals(wallet.address) || !balance.equals(wallet.balance)) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-                WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+           
+                WalletItem.Builder builder = WalletItem.createBuilder(wallet);
                 contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(id)});
                 try {
                     double newBalance = Doubles.convertToDouble(wallet.balance);
@@ -511,9 +483,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             }
             cursor.close();
         } else {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            wallet.qrImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-            WalletItem.Builder builder = WalletItem.createBuilder(wallet, baos);
+            WalletItem.Builder builder = WalletItem.createBuilder(wallet);
             contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
             Timber.d("updateWalletBalance Init Balance: " + wallet.balance);
             notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.balance + " BTC");
@@ -544,85 +514,5 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .setEndpoint(BASE_URL)
                 .build();
         return restAdapter.create(LocalBitcoins.class);
-    }
-
-    @Deprecated
-    private void updateContacts(List<Contact> contacts) {
-        Timber.d("Update Contacts Data Size: " + contacts.size());
-
-        boolean hasCredentials = AuthUtils.hasCredentials(preference, sharedPreferences);
-        if (!hasCredentials) {
-            return;
-        }
-
-        final HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
-        for (Contact contact : contacts) {
-            entryMap.put(contact.contact_id, contact);
-        }
-
-        final ArrayList<Contact> newContacts = new ArrayList<Contact>();
-        final ArrayList<String> deletedContacts = new ArrayList<String>();
-        final ArrayList<Contact> updatedContacts = new ArrayList<Contact>();
-
-        Subscription subscription = briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, null, false)
-                .map(ContactItem.MAP)
-                .subscribe(new Action1<List<ContactItem>>() {
-                    @Override
-                    public void call(List<ContactItem> contactItems) {
-                        Timber.d("Contact Items in Database: " + contactItems.size());
-                        for (ContactItem contactItem : contactItems) {
-                            Contact match = entryMap.get(contactItem.contact_id());
-                            if (match != null) {
-                                entryMap.remove(contactItem.contact_id());
-                                if ((match.payment_completed_at != null && !match.payment_completed_at.equals(contactItem.payment_completed_at()))
-                                        || (match.closed_at != null && !match.closed_at.equals(contactItem.closed_at()))
-                                        || (match.disputed_at != null && !match.disputed_at.equals(contactItem.disputed_at()))
-                                        || (match.escrowed_at != null && !match.escrowed_at.equals(contactItem.escrowed_at()))
-                                        || (match.funded_at != null && !match.funded_at.equals(contactItem.funded_at()))
-                                        || (match.released_at != null && !match.released_at.equals(contactItem.released_at()))
-                                        || (match.canceled_at != null && !match.canceled_at.equals(contactItem.canceled_at()))
-                                        || (match.actions.fund_url != null && !match.actions.fund_url.equals(contactItem.funded_at()))
-                                        || (match.is_funded != contactItem.is_funded())) {
-                                    updatedContacts.add(match);
-                                } else if ((match.seller.last_online != null && !match.seller.last_online.equals(contactItem.seller_last_online()))
-                                        || (match.hasUnseenMessages != contactItem.hasUnseenMessages())
-                                        || (match.messageCount != contactItem.messageCount())
-                                        || (match.buyer.last_online != null && !match.buyer.last_online.equals(contactItem.buyer_last_online()))) {
-                                    updatedContacts.add(match);
-                                }
-                            } else {
-                                deletedContacts.add(contactItem.contact_id());
-                            }
-                        }
-
-                        for (Contact contact : entryMap.values()) {
-                            newContacts.add(contact);
-                        }
-
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        reportError(throwable);
-                    }
-                });
-
-        subscription.unsubscribe();
-        
-        for (Contact item : newContacts) {
-            int messageCount = item.messages.size();
-            contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(item, messageCount, true).build());
-        }
-        
-        for (Contact item : updatedContacts) {
-            int messageCount = item.messages.size();
-            contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(item, messageCount, item.hasUnseenMessages).build(), ContactItem.CONTACT_ID + " = ?", new String[]{item.contact_id});
-        }
-
-        // FIXME we are deleting contacts that we happen to want to see from our notifications, just keep the history
-        for (String id : deletedContacts) {
-            //contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{id});
-            //contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID + " = ?", new String[]{id});
-        }
     }
 }

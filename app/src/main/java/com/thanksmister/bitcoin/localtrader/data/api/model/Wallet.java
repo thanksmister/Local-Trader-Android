@@ -15,8 +15,6 @@
  */
 package com.thanksmister.bitcoin.localtrader.data.api.model;
 
-import android.graphics.Bitmap;
-
 import com.thanksmister.bitcoin.localtrader.utils.ISO8601;
 
 import java.util.ArrayList;
@@ -25,33 +23,28 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-public class Wallet
-{
+public class Wallet {
     public String id;
     public String message;
-    public Bitmap qrImage;
     public List<Transaction> sent_transactions = Collections.emptyList();
     public List<Transaction> receiving_transactions = Collections.emptyList();
     public String address;
     public String balance;
     public String sendable;
-    
-    public List<Transaction> getTransactions()
-    {
+
+    public List<Transaction> getTransactions() {
         ArrayList<Transaction> transactions = new ArrayList<>();
-        if(!sent_transactions.isEmpty()) {
+        if (!sent_transactions.isEmpty()) {
             transactions.addAll(sent_transactions);
         }
 
-        if(!receiving_transactions.isEmpty()) {
+        if (!receiving_transactions.isEmpty()) {
             transactions.addAll(receiving_transactions);
         }
-        
-        Collections.sort(transactions, new Comparator<Transaction>()
-        {
+
+        Collections.sort(transactions, new Comparator<Transaction>() {
             @Override
-            public int compare(Transaction t1, Transaction t2)
-            {
+            public int compare(Transaction t1, Transaction t2) {
                 Date d1 = null;
                 Date d2 = null;
                 try {
@@ -61,13 +54,13 @@ public class Wallet
                     e.printStackTrace();
                 }
 
-                if(d1 == null || d2 == null)
+                if (d1 == null || d2 == null)
                     return -1;
 
                 return (d1.getTime() > d2.getTime() ? -1 : 1);     //descending
             }
         });
-        
-        return  transactions;
+
+        return transactions;
     }
 }

@@ -16,7 +16,9 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
+import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -41,13 +43,13 @@ import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.NotificationAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
+import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 
@@ -95,6 +97,11 @@ public class NotificationsFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         // can't retain nested fragments
         setRetainInstance(false);
+        
+        // clear all notification types
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(ns);
+        notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION);
     }
 
     @Override
@@ -274,8 +281,9 @@ public class NotificationsFragment extends BaseFragment {
     }
     
     private void launchNotificationLink(String url) {
-        final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
-        final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint + "/" + URLEncoder.encode(url)));
+        String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
+        Intent intent;
+        intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint + url));
         startActivity(intent);
     }
     
