@@ -302,7 +302,14 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
                     @Override
                     public void call(Throwable throwable) {
                         Timber.e(throwable.getMessage());
-                        showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
+                        if(isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
+                                }
+                            });
+                        }
                     }
                 });
     }

@@ -46,7 +46,7 @@ public class DbOpenHelper extends SQLiteOpenHelper {
                     WalletItem.SENDABLE + TYPE_TEXT + COMMA_SEP +
                     WalletItem.ADDRESS + TYPE_TEXT + COMMA_SEP +
                     WalletItem.RECEIVABLE + TYPE_TEXT + COMMA_SEP +
-                    WalletItem.MESSAGE + TYPE_TEXT + COMMA_SEP + ")";
+                    WalletItem.MESSAGE + TYPE_TEXT + ")";
 
     private static final String CREATE_METHOD = ""
             + "CREATE TABLE IF NOT EXISTS " + MethodItem.TABLE + "("
