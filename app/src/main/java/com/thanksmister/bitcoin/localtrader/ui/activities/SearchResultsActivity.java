@@ -37,6 +37,7 @@ import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertiseAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.SearchUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
+import com.trello.rxlifecycle.ActivityEvent;
 
 import java.util.List;
 
@@ -44,11 +45,9 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class SearchResultsActivity extends BaseActivity {
@@ -76,8 +75,7 @@ public class SearchResultsActivity extends BaseActivity {
     
     private AdvertiseAdapter adapter;
     private TradeType tradeType = TradeType.NONE;
-
-    private Subscription geoLocationSubscription = Subscriptions.empty();
+    
 
     public static Intent createStartIntent(Context context) {
         return new Intent(context, SearchResultsActivity.class);
@@ -150,7 +148,6 @@ public class SearchResultsActivity extends BaseActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        geoLocationSubscription.unsubscribe();
     }
     
     @Override
@@ -160,22 +157,28 @@ public class SearchResultsActivity extends BaseActivity {
     
 
     public void showContent() {
-        content.setVisibility(View.VISIBLE);
-        emptyLayout.setVisibility(View.GONE);
-        progress.setVisibility(View.GONE);
+        if(content != null) {
+            content.setVisibility(View.VISIBLE);
+            emptyLayout.setVisibility(View.GONE);
+            progress.setVisibility(View.GONE); 
+        }
     }
 
     public void showEmpty() {
-        content.setVisibility(View.GONE);
-        emptyLayout.setVisibility(View.VISIBLE);
-        progress.setVisibility(View.GONE);
-        emptyText.setText(R.string.text_no_advertisers);
+        if(content != null) {
+            content.setVisibility(View.GONE);
+            emptyLayout.setVisibility(View.VISIBLE);
+            progress.setVisibility(View.GONE);
+            emptyText.setText(R.string.text_no_advertisers);
+        }
     }
 
     public void showProgress() {
-        content.setVisibility(View.GONE);
-        emptyLayout.setVisibility(View.GONE);
-        progress.setVisibility(View.VISIBLE);
+        if(content != null) {
+            content.setVisibility(View.GONE);
+            emptyLayout.setVisibility(View.GONE);
+            progress.setVisibility(View.VISIBLE);
+        }
     }
 
     protected void updateData() {
@@ -201,8 +204,9 @@ public class SearchResultsActivity extends BaseActivity {
         showProgress();
         
         if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
-            geoLocationSubscription = geoLocationService.getLocalAdvertisements(latitude, longitude, tradeType)
+           geoLocationService.getLocalAdvertisements(latitude, longitude, tradeType)
                     .subscribeOn(Schedulers.newThread())
+                    .compose(this.<List<Advertisement>>bindUntilEvent(ActivityEvent.PAUSE))
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<List<Advertisement>>() {
                         @Override
@@ -226,9 +230,10 @@ public class SearchResultsActivity extends BaseActivity {
                         }
                     });
         } else {
-            geoLocationSubscription = dbManager.methodQuery().cache()
+            dbManager.methodQuery().cache()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .compose(this.<List<MethodItem>>bindUntilEvent(ActivityEvent.PAUSE))
                     .subscribe(new Action1<List<MethodItem>>() {
                         @Override
                         public void call(final List<MethodItem> methodItems) {

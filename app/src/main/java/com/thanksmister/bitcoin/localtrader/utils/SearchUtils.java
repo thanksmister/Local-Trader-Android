@@ -171,8 +171,9 @@ public class SearchUtils {
             jsonObject.put("locality", address.getLocality());
             jsonObject.put("latitude", address.getLatitude());
             jsonObject.put("longitude", address.getLongitude());
-        } catch (JSONException e) {
+        } catch (IllegalStateException | JSONException e) {
             e.printStackTrace();
+            return;
         }
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_LOCATION_ADDRESS);
         stringPreference.set(jsonObject.toString());

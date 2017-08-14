@@ -26,7 +26,7 @@
     <string name="error_title" translatable="false">Error</string>
 
     <!-- What's New -->
-    <string name="whats_new_message"><![CDATA[* Redesigned the application to include bottom button navigation instead of tabs.<br><br>* Added support for many more online trade types, including Ether.<br><br>* Increase efficiency of loading background data for better performance.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
+    <string name="whats_new_message"><![CDATA[*Bug fixes and improvements<br><br>*Redesigned the application to include bottom button navigation.<br><br>*Added support for many more online trade types, including Ethereum.<br><br>*Increase efficiency of loading background data for better performance.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
 
     <!-- ERRORS & WARNINGS -->
     <string name="warning_no_location_active">Location services are required to use the search function, please enable location services to continue.</string>

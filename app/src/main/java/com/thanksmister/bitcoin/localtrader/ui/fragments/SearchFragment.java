@@ -760,32 +760,37 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<Address>>() {
                     @Override
                     public void call(final List<Address> addresses) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!addresses.isEmpty()) {
-                                    predictAdapter.replaceWith(addresses);
-                                } else {
-                                    showAddressError();
+
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (!addresses.isEmpty()) {
+                                        predictAdapter.replaceWith(addresses);
+                                    } else {
+                                        showAddressError();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(final Throwable throwable) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                                    imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
-                                } catch (NullPointerException e) {
-                                    Timber.w("Error closing keyboard");
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                                        imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
+                                    } catch (NullPointerException e) {
+                                        Timber.w("Error closing keyboard");
+                                    }
+                                    showAddressError();
                                 }
-                                showAddressError();
-                            }
-                        });
+                            });
+                        }
                     }
                 });
     }
@@ -825,85 +830,7 @@ public class SearchFragment extends BaseFragment {
             ((MainActivity) getActivity()).setContentFragment(MainActivity.DRAWER_DASHBOARD);
         }
     }
-
-    // ------  GOOGLE SERVICES ---------
-
-    /*
-    private boolean checkPlayServices() {
-        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
-        int result = googleAPI.isGooglePlayServicesAvailable(getActivity());
-        return result == ConnectionResult.SUCCESS;
-    }
-
-    private void showGoogleAPIResolveError() {
-        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
-        int result = googleAPI.isGooglePlayServicesAvailable(getActivity());
-        if (googleAPI.isUserResolvableError(result)) {
-            showGooglePlayServicesError();
-        } else {
-            toast(getString(R.string.warning_no_google_play_services));
-            getActivity().finish();
-        }
-    }
-
-    private void installGooglePlayServices() {
-        final String appPackageName = "com.google.android.gms"; // getPackageName() from Context or Activity object
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-        } catch (android.content.ActivityNotFoundException anfe) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appPackageName)));
-        }
-    }
-
-    private void showGooglePlayServicesError() {
-        
-        int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity());
-
-        switch (result) {
-            case ConnectionResult.SERVICE_MISSING:
-                showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services)), new Action0() {
-                    @Override
-                    public void call() {
-                        installGooglePlayServices();
-                    }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        toast(getString(R.string.warning_no_google_play_services));
-                        getActivity().finish();
-                    }
-                });
-                break;
-            case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
-                showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_update_google_play_services)), new Action0() {
-                    @Override
-                    public void call() {
-                        installGooglePlayServices();
-                    }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        toast(getString(R.string.warning_no_google_play_services));
-                        //getActivity().finish();
-                    }
-                });
-                break;
-            case ConnectionResult.SERVICE_DISABLED:
-                showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_google_play_services_title), getString(R.string.warning_no_google_play_services)), new Action0() {
-                    @Override
-                    public void call() {
-                        installGooglePlayServices();
-                    }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        toast(getString(R.string.warning_no_google_play_services));
-                        getActivity().finish();
-                    }
-                });
-                break;
-        }
-    }*/
+    
 
     // ------  LOCATION SERVICES ---------
 
@@ -959,9 +886,11 @@ public class SearchFragment extends BaseFragment {
             };
             locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 100, 10, locationListener);
         } catch (SecurityException e) {
-            hideProgressDialog();
-            Timber.e("Location manager could not use network provider", e);
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_location_title), getString(R.string.error_location_message)));
+            if (isAdded()) {
+                hideProgressDialog();
+                Timber.e("Location manager could not use network provider", e);
+                showAlertDialog(new AlertDialogEvent(getString(R.string.error_location_title), getString(R.string.error_location_message)));
+            }
         }
     }
 
@@ -986,24 +915,28 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<Address>() {
                     @Override
                     public void call(final Address address) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressDialog();
-                                if (address == null) {
-                                    showAddressError();
-                                } else {
-                                    saveAddress(address);
-                                    displayAddress(address);
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideProgressDialog();
+                                    if (address == null) {
+                                        showAddressError();
+                                    } else {
+                                        saveAddress(address);
+                                        displayAddress(address);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Timber.e(throwable.getMessage());
-                        showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
+                        if (isAdded()) {
+                            Timber.e(throwable.getMessage());
+                            showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
+                        }
                     }
                 });
     }
