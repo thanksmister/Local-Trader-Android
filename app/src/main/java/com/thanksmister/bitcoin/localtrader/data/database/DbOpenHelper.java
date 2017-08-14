@@ -290,10 +290,10 @@ public class DbOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        
+
         if (oldVersion < newVersion) {
-            
-            if(!isColumnExists(db, AdvertisementItem.TABLE, AdvertisementItem.PHONE_NUMBER)) {
+
+            if (!isColumnExists(db, AdvertisementItem.TABLE, AdvertisementItem.PHONE_NUMBER)) {
                 final String ALTER_TBL1 =
                         "ALTER TABLE " + AdvertisementItem.TABLE +
                                 " ADD COLUMN " + AdvertisementItem.PHONE_NUMBER + TYPE_TEXT;
@@ -301,7 +301,7 @@ public class DbOpenHelper extends SQLiteOpenHelper {
                 db.execSQL(ALTER_TBL1);
             }
 
-            if(!isColumnExists(db, AdvertisementItem.TABLE, AdvertisementItem.OPENING_HOURS)) {
+            if (!isColumnExists(db, AdvertisementItem.TABLE, AdvertisementItem.OPENING_HOURS)) {
                 final String ALTER_TBL2 =
                         "ALTER TABLE " + AdvertisementItem.TABLE +
                                 " ADD COLUMN " + AdvertisementItem.OPENING_HOURS + TYPE_TEXT;
@@ -309,64 +309,80 @@ public class DbOpenHelper extends SQLiteOpenHelper {
                 db.execSQL(ALTER_TBL2);
             }
         }
-            
-            
+
+
         if (oldVersion < ADDED_CONTACT_PARAMS) {
 
-                if(!isColumnExists(db, ContactItem.TABLE, ContactItem.RECEIVER_NAME)) {
-                    final String ALTER_TBL0 =
-                            "ALTER TABLE " + ContactItem.TABLE +
-                                    " ADD COLUMN " + ContactItem.RECEIVER_NAME + TYPE_TEXT;
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.RECEIVER_NAME)) {
+                final String ALTER_TBL0 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.RECEIVER_NAME + TYPE_TEXT;
 
-                    db.execSQL(ALTER_TBL0);
-                }
+                db.execSQL(ALTER_TBL0);
+            }
 
-                if(!isColumnExists(db, ContactItem.TABLE, ContactItem.MESSAGE)) {
-                    final String ALTER_TBL1 =
-                            "ALTER TABLE " + ContactItem.TABLE +
-                                    " ADD COLUMN " + ContactItem.MESSAGE + TYPE_TEXT;
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.MESSAGE)) {
+                final String ALTER_TBL1 =
+                        "ALTER TABLE " + ContactItem.TABLE +
+                                " ADD COLUMN " + ContactItem.MESSAGE + TYPE_TEXT;
 
-                    db.execSQL(ALTER_TBL1);
-                }
+                db.execSQL(ALTER_TBL1);
+            }
 
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.BILLER_CODE)) {
                 final String ALTER_TBL2 =
                         "ALTER TABLE " + ContactItem.TABLE +
                                 " ADD COLUMN " + ContactItem.BILLER_CODE + TYPE_TEXT;
 
                 db.execSQL(ALTER_TBL2);
+            }
 
+
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.SORT_CODE)) {
                 final String ALTER_TBL3 =
                         "ALTER TABLE " + ContactItem.TABLE +
                                 " ADD COLUMN " + ContactItem.SORT_CODE + TYPE_TEXT;
 
                 db.execSQL(ALTER_TBL3);
 
+            }
+
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.ETHEREUM_ADDRESS)) {
                 final String ALTER_TBL4 =
                         "ALTER TABLE " + ContactItem.TABLE +
                                 " ADD COLUMN " + ContactItem.ETHEREUM_ADDRESS + TYPE_TEXT;
 
                 db.execSQL(ALTER_TBL4);
 
+            }
+
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.BSB)) {
                 final String ALTER_TBL5 =
                         "ALTER TABLE " + ContactItem.TABLE +
                                 " ADD COLUMN " + ContactItem.BSB + TYPE_TEXT;
 
                 db.execSQL(ALTER_TBL5);
+            }
 
+
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.PHONE_NUMBER)) {
                 final String ALTER_TBL6 =
                         "ALTER TABLE " + ContactItem.TABLE +
                                 " ADD COLUMN " + ContactItem.PHONE_NUMBER + TYPE_TEXT;
 
                 db.execSQL(ALTER_TBL6);
+            }
 
+            if (!isColumnExists(db, ContactItem.TABLE, ContactItem.ACCOUNT_NUMBER)) {
                 final String ALTER_TBL7 =
                         "ALTER TABLE " + ContactItem.TABLE +
                                 " ADD COLUMN " + ContactItem.ACCOUNT_NUMBER + TYPE_TEXT;
 
                 db.execSQL(ALTER_TBL7);
-            
+            }
+
         }
-        
+
         if (oldVersion < UPDATED_EXCHANGES) {
             db.execSQL("DROP TABLE IF EXISTS exchange_item");
             db.execSQL(CREATE_EXCHANGE_RATES);
@@ -445,8 +461,8 @@ public class DbOpenHelper extends SQLiteOpenHelper {
     }
 
     //https://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
-    public boolean isColumnExists (SQLiteDatabase db, String table, String column) {
-        Cursor cursor = db.rawQuery("PRAGMA table_info("+ table +")", null);
+    public boolean isColumnExists(SQLiteDatabase db, String table, String column) {
+        Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null);
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 String name = cursor.getString(cursor.getColumnIndex("name"));
