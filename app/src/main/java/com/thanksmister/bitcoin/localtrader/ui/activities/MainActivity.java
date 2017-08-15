@@ -448,7 +448,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 swipeLayout.setEnabled(true);
                 fragment = DashboardFragment.newInstance();
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_frame, fragment, DASHBOARD_FRAGMENT).commit();
+                        .replace(R.id.content_frame, fragment, DASHBOARD_FRAGMENT)
+                        .commitAllowingStateLoss();
             } else if (position == DRAWER_ABOUT) {
                 swipeLayout.setEnabled(false);
                 fragment = AboutFragment.newInstance();

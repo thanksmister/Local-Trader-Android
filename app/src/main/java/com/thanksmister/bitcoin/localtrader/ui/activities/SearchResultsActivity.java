@@ -157,7 +157,7 @@ public class SearchResultsActivity extends BaseActivity {
     
 
     public void showContent() {
-        if(content != null) {
+        if(content != null && progress != null && emptyLayout != null) {
             content.setVisibility(View.VISIBLE);
             emptyLayout.setVisibility(View.GONE);
             progress.setVisibility(View.GONE); 
@@ -165,7 +165,7 @@ public class SearchResultsActivity extends BaseActivity {
     }
 
     public void showEmpty() {
-        if(content != null) {
+        if(content != null && progress != null && emptyLayout != null) {
             content.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.VISIBLE);
             progress.setVisibility(View.GONE);
@@ -174,7 +174,7 @@ public class SearchResultsActivity extends BaseActivity {
     }
 
     public void showProgress() {
-        if(content != null) {
+        if(content != null && progress != null && emptyLayout != null) {
             content.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.GONE);
             progress.setVisibility(View.VISIBLE);
