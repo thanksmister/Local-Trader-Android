@@ -17,7 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -56,6 +55,7 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.location.LocationRequest;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
@@ -88,6 +88,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -95,6 +96,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -107,7 +109,7 @@ import timber.log.Timber;
 import static com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService.MAX_ADDRESSES;
 
 public class SearchFragment extends BaseFragment {
-    
+
     private static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     private static final String EXTRA_TRADE_TYPE = "com.thanksmister.extra.EXTRA_TRADE_TYPE";
     public static final int REQUEST_CHECK_SETTINGS = 0;
@@ -118,7 +120,7 @@ public class SearchFragment extends BaseFragment {
 
     @Inject
     DataService dataService;
-    
+
     @Inject
     ExchangeService exchangeService;
 
@@ -228,10 +230,10 @@ public class SearchFragment extends BaseFragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.search, menu);
         locationMenuItem = menu.findItem(R.id.action_location);
-        if(locationMenuItem != null) {
+        if (locationMenuItem != null) {
             locationMenuItem.setVisible((tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL));
         }
-        
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -271,7 +273,7 @@ public class SearchFragment extends BaseFragment {
             dataServiceSubscription.unsubscribe();
             dataServiceSubscription = null;
         }
-        
+
         if (currencySubscription != null) {
             currencySubscription.unsubscribe();
             currencySubscription = null;
@@ -296,7 +298,7 @@ public class SearchFragment extends BaseFragment {
 
     @Override
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
-        
+
         super.onViewCreated(fragmentView, savedInstanceState);
 
         String[] countryNames = getResources().getStringArray(R.array.country_names);
@@ -333,15 +335,15 @@ public class SearchFragment extends BaseFragment {
                 ExchangeCurrency exchange = (ExchangeCurrency) currencySpinner.getAdapter().getItem(i);
                 SearchUtils.setSearchCurrency(sharedPreferences, exchange.getCurrency());
             }
+
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView)
-            {
+            public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
 
         tradeType = TradeType.valueOf(SearchUtils.getSearchTradeType(sharedPreferences));
-        
-        if(locationMenuItem != null) {
+
+        if (locationMenuItem != null) {
             locationMenuItem.setVisible((tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL));
         }
 
@@ -352,7 +354,7 @@ public class SearchFragment extends BaseFragment {
             onlineOptionsLayout.setVisibility(View.VISIBLE);
             localOptionsLayout.setVisibility(View.GONE);
         }
-        
+
         switch (tradeType) {
             case LOCAL_BUY:
                 typeSpinner.setSelection(0);
@@ -384,7 +386,7 @@ public class SearchFragment extends BaseFragment {
                         break;
                 }
                 SearchUtils.setSearchTradeType(sharedPreferences, tradeType.name());
-                if(locationMenuItem != null) {
+                if (locationMenuItem != null) {
                     locationMenuItem.setVisible((tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL));
                 }
             }
@@ -393,21 +395,22 @@ public class SearchFragment extends BaseFragment {
             public void onNothingSelected(AdapterView<?> arg0) {
             }
         });
-        
+
         countrySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 String[] countryCodes = getResources().getStringArray(R.array.country_codes);
-                
+
                 String selectedCountryName = (String) countrySpinner.getAdapter().getItem(position);
-                String selectedCountryCode = (position == 0)? "": countryCodes[position - 1];
-                
+                String selectedCountryCode = (position == 0) ? "" : countryCodes[position - 1];
+
                 Timber.d("Selected Country Name: " + selectedCountryName);
                 Timber.d("Selected Country Code: " + selectedCountryCode);
-                        
+
                 SearchUtils.setSearchCountryName(sharedPreferences, selectedCountryName);
                 SearchUtils.setSearchCountryCode(sharedPreferences, selectedCountryCode);
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> arg0) {
             }
@@ -430,7 +433,7 @@ public class SearchFragment extends BaseFragment {
                 }
                 Timber.d("TradeType: " + tradeType);
                 SearchUtils.setSearchTradeType(sharedPreferences, tradeType.name());
-                if(locationMenuItem != null) {
+                if (locationMenuItem != null) {
                     locationMenuItem.setVisible((tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL));
                 }
             }
@@ -517,14 +520,14 @@ public class SearchFragment extends BaseFragment {
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
-    
+
     private void setupToolbar() {
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
         final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
-        if(ab != null) {
+        if (ab != null) {
             ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
             ab.setTitle(getString(R.string.view_title_buy_sell));
-            ab.setDisplayHomeAsUpEnabled(true); 
+            ab.setDisplayHomeAsUpEnabled(true);
         }
     }
 
@@ -536,9 +539,13 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<CurrencyItem>>() {
                     @Override
                     public void call(List<CurrencyItem> currencyItems) {
-                        List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
-                        exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
-                        updateCurrencies(exchangeCurrencies);
+                        if(currencyItems == null || currencyItems.isEmpty()) {
+                            fetchCurrencies();
+                        } else {
+                            List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
+                            exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
+                            setCurrencies(exchangeCurrencies); 
+                        }
                     }
                 });
         dbManager.methodQuery()
@@ -554,12 +561,16 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<MethodItem>>() {
                     @Override
                     public void call(List<MethodItem> methodItems) {
-                        Method method = new Method();
-                        method.code = "all";
-                        method.name = getString(R.string.text_method_name_all);
-                        MethodItem methodItem =  MethodItem.getModelItem(method);
-                        methodItems.add(0, methodItem);
-                        setMethods(methodItems);
+                        if(methodItems == null || methodItems.isEmpty()) {
+                            fetchMethods();
+                        } else {
+                            Method method = new Method();
+                            method.code = "all";
+                            method.name = getString(R.string.text_method_name_all);
+                            MethodItem methodItem = MethodItem.getModelItem(method);
+                            methodItems.add(0, methodItem);
+                            setMethods(methodItems);
+                        }
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -569,12 +580,66 @@ public class SearchFragment extends BaseFragment {
                 });
     }
 
-    private void setMethods(final List<MethodItem> methods) {
+    private void fetchCurrencies() {
+
+        dataService.getCurrencies()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("Currencies network subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<ExchangeCurrency>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<ExchangeCurrency>>() {
+                    @Override
+                    public void call(List<ExchangeCurrency> currencies) {
+                        if(currencies != null) {
+                            dbManager.insertCurrencies(currencies);
+                            dataService.setCurrencyExpireTime();
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        handleError(throwable);
+
+                    }
+                });
+    }
+
+    private void fetchMethods() {
         
-        if (methods == null || methods.isEmpty()) {
-            toast(getString(R.string.toast_loading_methods));
-            return;
-        }
+        Timber.d("getMethods");
+        
+        dataService.getMethods()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("Method network subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<List<Method>>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<List<Method>>() {
+                    @Override
+                    public void call(List<Method> methods) {
+                        if(methods != null) {
+                            dbManager.updateMethods(methods);
+                            dataService.setMethodsExpireTime();
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        toast(getString(R.string.toast_loading_methods));
+                    }
+                });
+    }
+
+    private void setMethods(@NonNull List<MethodItem> methods) {
         
         MethodAdapter typeAdapter = new MethodAdapter(getActivity(), R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
@@ -599,7 +664,7 @@ public class SearchFragment extends BaseFragment {
                     MethodItem methodItem = (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
                     SearchUtils.setSearchPaymentMethod(sharedPreferences, methodItem.code());
                 } catch (IndexOutOfBoundsException e) {
-                    Timber.e("Error setting methods: " + methods.toString() + " Error message: " + e.getMessage());
+                    Timber.e("Error setting methods: " + e.getMessage());
                 }
             }
 
@@ -613,32 +678,30 @@ public class SearchFragment extends BaseFragment {
      * Set the currencies to be used for a new editAdvertisement
      * @param currencies
      */
-    private void updateCurrencies(List<ExchangeCurrency> currencies) {
-
+    private void setCurrencies(@NonNull List<ExchangeCurrency> currencies) {
+        
         currencies = CurrencyUtils.sortCurrencies(currencies);
-        
         String searchCurrency = SearchUtils.getSearchCurrency(sharedPreferences);
-        
-        if(currencies.isEmpty()) {
+        if (currencies.isEmpty()) {
             ExchangeCurrency exchangeCurrency = new ExchangeCurrency(searchCurrency);
             currencies.add(exchangeCurrency); // just revert back to default
-        } 
-        
+        }
+
         // TODO this is temporary fix for issues with Any as default currency
         boolean containsAny = false;
         for (ExchangeCurrency currency : currencies) {
-            if(currency.getCurrency().equals(getString(R.string.text_currency_any))) {
+            if (currency.getCurrency().toLowerCase().equals(getString(R.string.text_currency_any).toLowerCase())) {
                 containsAny = true;
                 break;
             }
         }
 
-        if(!containsAny) {
+        if (!containsAny) {
             // add "any" for search option
             ExchangeCurrency exchangeCurrency = new ExchangeCurrency(getString(R.string.text_currency_any));
             currencies.add(0, exchangeCurrency);
         }
-        
+
         CurrencyAdapter typeAdapter = new CurrencyAdapter(getActivity(), R.layout.spinner_layout, currencies);
         currencySpinner.setAdapter(typeAdapter);
 
@@ -651,29 +714,28 @@ public class SearchFragment extends BaseFragment {
             i++;
         }
     }
-    
+
     /**
      * Saves the current address to user preferences
      *
      * @param address Address
      */
     public void saveAddress(Address address) {
-        if (address != null) {
-            SearchUtils.setSearchLocationAddress(sharedPreferences, address);
-            if(address.hasLatitude()) {
-                SearchUtils.setSearchLatitude(sharedPreferences, address.getLatitude());
-            }
-            if(address.hasLongitude()) {
-                SearchUtils.setSearchLongitude(sharedPreferences, address.getLongitude());
-            }
-            if(!TextUtils.isEmpty(address.getCountryCode())) {
-                SearchUtils.setSearchCountryCode(sharedPreferences, address.getCountryCode());
-            }
-            if (!TextUtils.isEmpty(address.getAddressLine(0))) {
-                SearchUtils.setSearchCountryName(sharedPreferences, address.getAddressLine(0));
-            }
-        } else {
-            showAddressError();
+        
+        Timber.d("SaveAddress: " + address.toString());
+        
+        SearchUtils.setSearchLocationAddress(sharedPreferences, address);
+        if (address.hasLatitude()) {
+            SearchUtils.setSearchLatitude(sharedPreferences, address.getLatitude());
+        }
+        if (address.hasLongitude()) {
+            SearchUtils.setSearchLongitude(sharedPreferences, address.getLongitude());
+        }
+        if (!TextUtils.isEmpty(address.getCountryCode())) {
+            SearchUtils.setSearchCountryCode(sharedPreferences, address.getCountryCode());
+        }
+        if (!TextUtils.isEmpty(address.getAddressLine(0))) {
+            SearchUtils.setSearchCountryName(sharedPreferences, address.getAddressLine(0));
         }
     }
 
@@ -685,10 +747,10 @@ public class SearchFragment extends BaseFragment {
     public void displayAddress(Address address) {
         String shortAddress = SearchUtils.getDisplayAddress(address);
         if (!TextUtils.isEmpty(shortAddress)) {
-            if(address.hasLatitude()) {
-                editLatitude.setText(String.valueOf(address.getLatitude())); 
+            if (address.hasLatitude()) {
+                editLatitude.setText(String.valueOf(address.getLatitude()));
             }
-            if(address.hasLongitude()) {
+            if (address.hasLongitude()) {
                 editLongitude.setText(String.valueOf(address.getLongitude()));
             }
             locationText.setText(shortAddress);
@@ -698,18 +760,7 @@ public class SearchFragment extends BaseFragment {
     }
 
     private void showAddressError() {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_title), getString(R.string.error_dialog_no_address_edit)), new Action0() {
-            @Override
-            public void call() {
-                checkLocationEnabled();
-            }
-        }, new Action0() {
-            @Override
-            public void call() {
-                showEditTextLayout();
-                editLocation.setText("");
-            }
-        });
+        showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_title), getString(R.string.error_dialog_no_address_edit)));
     }
 
     private void showEditTextLayout() {
@@ -760,15 +811,12 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<Address>>() {
                     @Override
                     public void call(final List<Address> addresses) {
-
                         if (isAdded()) {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     if (!addresses.isEmpty()) {
                                         predictAdapter.replaceWith(addresses);
-                                    } else {
-                                        showAddressError();
                                     }
                                 }
                             });
@@ -787,6 +835,7 @@ public class SearchFragment extends BaseFragment {
                                     } catch (NullPointerException e) {
                                         Timber.w("Error closing keyboard");
                                     }
+                                    Timber.e("Address lookup error: " + throwable.getMessage());
                                     showAddressError();
                                 }
                             });
@@ -794,14 +843,14 @@ public class SearchFragment extends BaseFragment {
                     }
                 });
     }
-    
+
     private void showSearchResultsScreen() {
         TradeType tradeType = TradeType.valueOf(SearchUtils.getSearchTradeType(sharedPreferences));
-        if(TradeUtils.isLocalTrade(tradeType)) {
+        if (TradeUtils.isLocalTrade(tradeType)) {
 
             String latitude = editLatitude.getText().toString();
             String longitude = editLongitude.getText().toString();
-            
+
             if (TextUtils.isEmpty(latitude) || TextUtils.isEmpty(longitude)) {
                 SearchUtils.setSearchLatitude(sharedPreferences, 0);
                 SearchUtils.setSearchLongitude(sharedPreferences, 0);
@@ -810,12 +859,12 @@ public class SearchFragment extends BaseFragment {
                 return;
             } else if (SearchUtils.coordinatesValid(latitude, longitude)) {
                 SearchUtils.setSearchLatitude(sharedPreferences, Doubles.convertToDouble(latitude));
-                SearchUtils.setSearchLongitude(sharedPreferences, Doubles.convertToDouble(longitude)); 
+                SearchUtils.setSearchLongitude(sharedPreferences, Doubles.convertToDouble(longitude));
             }
-            
+
             double lat = SearchUtils.getSearchLatitude(sharedPreferences);
             double lon = SearchUtils.getSearchLongitude(sharedPreferences);
-            if(lon == 0 && lat == 0) {
+            if (lon == 0 && lat == 0) {
                 showAlertDialog(new AlertDialogEvent("Error", "To search local advertisers, enter valid latitude and longitude values."));
                 return;
             }
@@ -830,13 +879,12 @@ public class SearchFragment extends BaseFragment {
             ((MainActivity) getActivity()).setContentFragment(MainActivity.DRAWER_DASHBOARD);
         }
     }
-    
 
     // ------  LOCATION SERVICES ---------
 
     public void checkLocationEnabled() {
         Timber.d("checkLocationEnabled");
-        if(isAdded() && getActivity() != null) {
+        if (isAdded() && getActivity() != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                         && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -852,11 +900,88 @@ public class SearchFragment extends BaseFragment {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
+    /**
+     * Using the ReactiveLocationProvider to do location lookup because its more convenient than using
+     * the LocationManager and seems to perform better. 
+     */
     private void startLocationMonitoring() {
-        
+
         showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_progress_location)), true);
 
+        LocationRequest request = LocationRequest.create() //standard GMS LocationRequest
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setNumUpdates(5)
+                .setInterval(100);
+
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+            return;
+        }
+        geoLocationSubscription = locationProvider.getUpdatedLocation(request)
+                .timeout(20000, TimeUnit.MILLISECONDS)
+                .onErrorResumeNext(new Func1<Throwable, Observable<Location>>() {
+                    @Override
+                    public Observable<Location> call(Throwable throwable) {
+                        Timber.e("Location manager error:", throwable.getMessage());
+                        return Observable.just(null);
+                    }
+                })
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("geoLocationSubscription lookup subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Location>bindUntilEvent(FragmentEvent.PAUSE))
+                .observeOn(Schedulers.computation())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Location>() {
+                    @Override
+                    public void call(final Location location) {
+                        if (location != null) {
+                            if (isAdded()) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        reverseLocationLookup(location);
+                                    }
+                                });
+                            }
+                        } else {
+                            if (isAdded()) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        getLocationFromLocationManager();
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(final Throwable throwable) {
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Timber.e("Location manager error2 ", throwable.getMessage());
+                                    getLocationFromLocationManager();
+                                }
+                            });
+                        }
+                    }
+                });
+    }
+    
+    // TODO move these to base fragment
+    /**
+     * Used as a backup location service in case the first one fails, which 
+     * switch to using the LocationManager instead. 
+     */
+    private void getLocationFromLocationManager () {
+        Timber.d("getLocationFromLocationManager");
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_COARSE);
@@ -884,16 +1009,20 @@ public class SearchFragment extends BaseFragment {
                     Timber.d("onProviderDisabled");
                 }
             };
-            locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 100, 10, locationListener);
+            locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 100, 5, locationListener);
         } catch (SecurityException e) {
             if (isAdded()) {
                 hideProgressDialog();
                 Timber.e("Location manager could not use network provider", e);
                 showAlertDialog(new AlertDialogEvent(getString(R.string.error_location_title), getString(R.string.error_location_message)));
             }
-        }
+        } 
     }
 
+    /**
+     * Used from the location manager to do a reverse lookup of the address from the coordinates. 
+     * @param location
+     */
     private void reverseLocationLookup(Location location) {
         final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());
         locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
@@ -921,6 +1050,7 @@ public class SearchFragment extends BaseFragment {
                                 public void run() {
                                     hideProgressDialog();
                                     if (address == null) {
+                                        Timber.d("Address reverseLocationLookup error");
                                         showAddressError();
                                     } else {
                                         saveAddress(address);
@@ -932,10 +1062,16 @@ public class SearchFragment extends BaseFragment {
                     }
                 }, new Action1<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void call(final Throwable throwable) {
                         if (isAdded()) {
-                            Timber.e(throwable.getMessage());
-                            showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Timber.e("reverseLocationLookup: " + throwable.getMessage());
+                                    hideProgressDialog();
+                                    showAlertDialog(new AlertDialogEvent(getString(R.string.error_address_lookup_title), getString(R.string.error_address_lookup_description)));
+                                }
+                            });
                         }
                     }
                 });

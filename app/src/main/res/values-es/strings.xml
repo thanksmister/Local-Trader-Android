@@ -674,5 +674,7 @@
     <string name="button_send_message">SEND MESSAGE</string>
     <string name="error_address_lookup_title">Address Lookup Error</string>
     <string name="error_address_lookup_description">Error looking up the latitude and longitude for your current address, try a different address.</string>
+    <string name="progress_loading_localbitcoins">Loading LocalBitcoins...</string>
+    <string name="error_no_advertisement">The advertisement Id does not exist and can not be loaded.</string>
 
 </resources>

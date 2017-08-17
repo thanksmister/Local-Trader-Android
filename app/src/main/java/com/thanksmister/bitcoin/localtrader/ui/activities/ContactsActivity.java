@@ -150,7 +150,9 @@ public class ContactsActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        updateData(dashboardType);
+        if(dashboardType != null) {
+            updateData(dashboardType); 
+        }
     }
 
     @Override
@@ -166,22 +168,28 @@ public class ContactsActivity extends BaseActivity {
     }
 
     public void showContent() {
-        recycleView.setVisibility(View.VISIBLE);
-        emptyLayout.setVisibility(View.GONE);
-        progress.setVisibility(View.GONE);
+        if(recycleView != null && emptyLayout != null && progress != null) {
+            recycleView.setVisibility(View.VISIBLE);
+            emptyLayout.setVisibility(View.GONE);
+            progress.setVisibility(View.GONE); 
+        }
     }
     
     public void showEmpty() {
-        recycleView.setVisibility(View.GONE);
-        emptyLayout.setVisibility(View.VISIBLE);
-        progress.setVisibility(View.GONE);
-        emptyText.setText(getString(R.string.text_not_trades));
+        if(recycleView != null && emptyLayout != null && progress != null && emptyText != null) {
+            recycleView.setVisibility(View.GONE);
+            emptyLayout.setVisibility(View.VISIBLE);
+            progress.setVisibility(View.GONE);
+            emptyText.setText(getString(R.string.text_not_trades));
+        }
     }
 
     public void showProgress() {
-        recycleView.setVisibility(View.GONE);
-        emptyLayout.setVisibility(View.GONE);
-        progress.setVisibility(View.VISIBLE);
+        if(recycleView != null && emptyLayout != null && progress != null) {
+            recycleView.setVisibility(View.GONE);
+            emptyLayout.setVisibility(View.GONE);
+            progress.setVisibility(View.VISIBLE);
+        }
     }
 
     public void setToolBarMenu(Toolbar toolbar) {

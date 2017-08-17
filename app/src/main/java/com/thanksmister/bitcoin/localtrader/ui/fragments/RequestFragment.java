@@ -74,7 +74,6 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func0;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
@@ -340,8 +339,41 @@ public class RequestFragment extends BaseFragment {
     }
 
     public void setWallet(final WalletItem item) {
+        generateBitmap(item.address())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<Bitmap>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Observer<Bitmap>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+                    @Override
+                    public void onError(final Throwable e) {
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    setupWallet(walletItem, qrImage);
+                                    reportError(e);
+                                }
+                            });
+                        }
+                    }
+                    @Override
+                    public void onNext(final Bitmap data) {
+                        if (isAdded()) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    qrImage = data;
+                                    setupWallet(walletItem, qrImage);
+                                }
+                            });
+                        }
+                    }
+                });
         
-        Observable.defer(new Func0<Observable<Bitmap>>() {
+        /*Observable.defer(new Func0<Observable<Bitmap>>() {
             
             @Override
             public Observable<Bitmap> call() {
@@ -390,14 +422,13 @@ public class RequestFragment extends BaseFragment {
                             });
                         }
                     }
-                });
+                });*/
     }
 
     private Observable<Bitmap> generateBitmap(final String address) {
         return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
-            public void call(Subscriber<? super Bitmap> subscriber)
-            {
+            public void call(Subscriber<? super Bitmap> subscriber) {
                 try {
                     subscriber.onNext(WalletUtils.encodeAsBitmap(address, getActivity()));
                     subscriber.onCompleted();

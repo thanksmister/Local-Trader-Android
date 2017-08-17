@@ -185,7 +185,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
             final String endpoint = apiPreference.getEditText().getText().toString();
             final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
-
             if (TextUtils.isEmpty(endpoint)) {
                 ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "The service end point should not be a valid URL."));
             } else if (!Patterns.WEB_URL.matcher(endpoint).matches()) {
@@ -194,7 +193,11 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                 ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), new Action0() {
                     @Override
                     public void call() {
-                        resetEndPoint(endpoint);
+                        apiPreference.setText(endpoint);
+                        apiPreference.setSummary(endpoint);
+                        apiPreference.setDefaultValue(endpoint);
+                        AuthUtils.setServiceEndPoint(preference, endpoint);
+                        resetEndPoint();
                     }
                 }, new Action0() {
                     @Override
@@ -260,8 +263,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         marketCurrencyPreference.setValue(String.valueOf(selectedValue));
     }
     
-    private void resetEndPoint(String endpoint) {
-        AuthUtils.setServiceEndPoint(preference, endpoint);
+    private void resetEndPoint() {
         Intent intent = LoginActivity.createStartIntent(getActivity());
         PendingIntent restartIntent = PendingIntent.getActivity(getActivity(), 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);

@@ -41,9 +41,11 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.Db;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
@@ -240,6 +242,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void getCurrencies() {
         Timber.d("getCurrencies");
+        dbManager.currencyQuery().subscribe(new Action1<List<CurrencyItem>>() {
+            @Override
+            public void call(List<CurrencyItem> currencyItems) {
+                if(currencyItems == null || currencyItems.isEmpty()) {
+                    fetchCurrencies();
+                } else {
+                    if(dataService.needToRefreshCurrency()) {
+                        fetchCurrencies();
+                    }
+                }
+            }
+        });
+    }
+    
+    private void fetchCurrencies() {
         updateSyncMap(SYNC_CURRENCIES, true);
         dataService.getCurrencies()
                 .subscribe(new Action1<List<ExchangeCurrency>>() {
@@ -247,6 +264,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     public void call(List<ExchangeCurrency> currencies) {
                         if(currencies != null) {
                             dbManager.insertCurrencies(currencies);
+                            dataService.setCurrencyExpireTime();
                         }
                         updateSyncMap(SYNC_CURRENCIES, false);
                     }
@@ -262,6 +280,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     
     private void getMethods() {
         Timber.d("getMethods");
+        dbManager.methodQuery().subscribe(new Action1<List<MethodItem>>() {
+            @Override
+            public void call(List<MethodItem> methodItems) {
+                if(methodItems == null || methodItems.isEmpty()) {
+                    fetchMethods();
+                } else {
+                    if(dataService.needToRefreshMethods()) {
+                        fetchMethods();
+                    }
+                }
+            }
+        });
+    }
+
+    private void fetchMethods() {
+        Timber.d("getMethods");
         updateSyncMap(SYNC_METHODS, true);
         dataService.getMethods()
                 .subscribe(new Action1<List<Method>>() {
@@ -269,6 +303,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     public void call(List<Method> methods) {
                         if(methods != null) {
                             dbManager.updateMethods(methods);
+                            dataService.setMethodsExpireTime();
                         }
                         updateSyncMap(SYNC_METHODS, false);
                     }
@@ -465,7 +500,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             String address = Db.getString(cursor, WalletItem.ADDRESS);
             String balance = Db.getString(cursor, WalletItem.BALANCE);
             if (!address.equals(wallet.address) || !balance.equals(wallet.balance)) {
-           
                 WalletItem.Builder builder = WalletItem.createBuilder(wallet);
                 contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(id)});
                 try {

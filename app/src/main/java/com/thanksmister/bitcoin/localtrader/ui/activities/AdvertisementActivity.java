@@ -23,6 +23,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -41,7 +42,6 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.DbUtils;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
@@ -170,7 +170,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     private AdvertisementItem advertisement;
     private Handler handler;
     
-    public static Intent createStartIntent(Context context, String adId) {
+    public static Intent createStartIntent(Context context, @NonNull String adId) {
         Intent intent = new Intent(context, AdvertisementActivity.class);
         intent.putExtra(EXTRA_AD_ID, adId);
         return intent;
@@ -191,16 +191,27 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         } else if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_AD_ID)) {
             adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
-
+        
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("");
-            setToolBarMenu(toolbar);
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle("");
+                setToolBarMenu(toolbar);
+            }
         }
 
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
+
+        if(TextUtils.isEmpty(adId)) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
+                @Override
+                public void call() {
+                    finish();
+                }
+            });
+        }
     }
 
     // Bug: http://stackoverflow.com/questions/7575921/illegalstateexception-can-not-perform-this-action-after-onsaveinstancestate-wit
@@ -212,8 +223,6 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        Timber.d("onActivityResult requestCode: " + requestCode);
-        Timber.d("onActivityResult resultCode: " + resultCode);
         if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
             if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
                 updateAdvertisement(); // update the new editAdvertisement
@@ -654,8 +663,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if(id == ADVERTISEMENT_LOADER_ID) {
-            DbUtils.printQueryText(AdvertisementItem.QUERY_ITEM, Integer.parseInt(adId));
+        if(id == ADVERTISEMENT_LOADER_ID && !TextUtils.isEmpty(adId)) {
             return new CursorLoader(AdvertisementActivity.this, SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ?", new String[]{adId}, null);
         } else if (id == METHOD_LOADER_ID) {
             return new CursorLoader(AdvertisementActivity.this, SyncProvider.METHOD_TABLE_URI, null, null, null, MethodItem.KEY);

@@ -136,6 +136,15 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
             create = savedInstanceState.getBoolean(EXTRA_CREATE);
             adId = savedInstanceState.getString(EXTRA_ADVERTISEMENT_ID);
         }
+
+        if(!create && TextUtils.isEmpty(adId)) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
+                @Override
+                public void call() {
+                    finish();
+                }
+            });
+        }
         
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -574,7 +583,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == ADVERTISEMENT_LOADER_ID) {
+        if (id == ADVERTISEMENT_LOADER_ID && !TextUtils.isEmpty(adId)) {
             return new CursorLoader(EditAdvertisementActivity.this, SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ?", new String[]{adId}, null);
         } 
         return null;

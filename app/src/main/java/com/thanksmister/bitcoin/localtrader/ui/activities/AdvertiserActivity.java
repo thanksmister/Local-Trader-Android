@@ -241,16 +241,19 @@ public class AdvertiserActivity extends BaseActivity {
     }
 
     protected void subscribeData() {
-        Observable.combineLatest(dbManager.methodQuery().cache(), dataService.getAdvertisement(adId).cache(), new Func2<List<MethodItem>, Advertisement, AdvertisementData>() {
-            @Override
-            public AdvertisementData call(List<MethodItem> methods, Advertisement advertisement) {
-                MethodItem method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
-                advertisementData = new AdvertisementData();
-                advertisementData.method = method;
-                advertisementData.advertisement = advertisement;
-                return advertisementData;
-            }
-        })
+        Observable.combineLatest(
+                dbManager.methodQuery().cache(), 
+                dataService.getAdvertisement(adId).cache(), 
+                new Func2<List<MethodItem>, Advertisement, AdvertisementData>() {
+                    @Override
+                    public AdvertisementData call(List<MethodItem> methods, Advertisement advertisement) {
+                        MethodItem method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
+                        advertisementData = new AdvertisementData();
+                        advertisementData.method = method;
+                        advertisementData.advertisement = advertisement;
+                        return advertisementData;
+                    }
+                })
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {

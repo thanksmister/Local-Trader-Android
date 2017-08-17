@@ -27,6 +27,7 @@ import java.util.List;
 
 import auto.parcel.AutoParcel;
 import rx.functions.Func1;
+import timber.log.Timber;
 
 import static com.squareup.sqlbrite.SqlBrite.Query;
 
@@ -231,7 +232,12 @@ public abstract class AdvertisementItem implements Parcelable {
                 boolean track_max_amount = Db.getBoolean(cursor, TRACK_MAX_AMOUNT);
                 boolean trusted_required = Db.getBoolean(cursor, TRUSTED_REQUIRED);
                 boolean require_identification = Db.getBoolean(cursor, REQUIRE_IDENTIFICATION);
-                String phone_number = Db.getString(cursor, PHONE_NUMBER);
+                String phone_number = "";
+                try {
+                    phone_number = Db.getString(cursor, PHONE_NUMBER);
+                } catch (IllegalStateException e) {
+                    Timber.e("PHONE_NUMBER column error: " + e.getMessage());
+                }
                 String opening_hours = Db.getString(cursor, OPENING_HOURS);
 
                 values.add(new AutoParcel_AdvertisementItem(id, ad_id, created_at, visible, email, location_string, country_code, city,
@@ -286,7 +292,12 @@ public abstract class AdvertisementItem implements Parcelable {
                 boolean track_max_amount = Db.getBoolean(cursor, TRACK_MAX_AMOUNT);
                 boolean trusted_required = Db.getBoolean(cursor, TRUSTED_REQUIRED);
                 boolean require_identification = Db.getBoolean(cursor, REQUIRE_IDENTIFICATION);
-                String phone_number = Db.getString(cursor, PHONE_NUMBER);
+                String phone_number = "";
+                try {
+                   phone_number = Db.getString(cursor, PHONE_NUMBER);
+                } catch (IllegalStateException e) {
+                    Timber.e("PHONE_NUMBER column error: " + e.getMessage());
+                }
                 String opening_hours = Db.getString(cursor, OPENING_HOURS);
                 values.add(new AutoParcel_AdvertisementItem(id, ad_id, created_at, visible, email, location_string, country_code, city,
                         trade_type, online_provider, temp_price, temp_price_usd, price_equation, reference_type, atm_model,

@@ -37,6 +37,7 @@ import android.support.v4.content.Loader;
 import android.text.TextUtils;
 import android.view.inputmethod.InputMethodManager;
 
+import com.google.android.gms.location.LocationRequest;
 import com.google.gson.Gson;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
@@ -64,6 +65,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import dpreference.DPreference;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -95,6 +97,7 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
     public Advertisement editAdvertisement;
     public OnFragmentInteractionListener mListener;
     public PredictAdapter predictAdapter;
+    private Subscription geoLocationSubscription;
 
     public interface OnFragmentInteractionListener {
         //void onAdvertisementValidated(Advertisement editAdvertisement);
@@ -157,6 +160,11 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
         super.onDetach();
         ButterKnife.reset(this);
         mListener = null;
+
+        if (geoLocationSubscription != null) {
+            geoLocationSubscription.unsubscribe();
+            geoLocationSubscription = null;
+        }
     }
    
     @Override
@@ -227,7 +235,41 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
     
     // TODO async task
     public void startLocationMonitoring() {
+        
         showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_progress_location)), true);
+       
+        LocationRequest request = LocationRequest.create() //standard GMS LocationRequest
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setNumUpdates(5)
+                .setInterval(100);
+
+        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
+            return;
+        }
+        geoLocationSubscription = locationProvider.getUpdatedLocation(request)
+                .subscribe(new Action1<Location>() {
+                    @Override
+                    public void call(Location location) {
+                        if (location != null) {
+                            reverseLocationLookup(location);
+                        } else {
+                            hideProgressDialog();
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        if (isAdded()) {
+                            Timber.e("Location manager error", throwable.getMessage());
+                            getLocationFromLocationManager ();
+                        }
+                    }
+                });
+    }
+    
+    private void getLocationFromLocationManager() {
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_COARSE);

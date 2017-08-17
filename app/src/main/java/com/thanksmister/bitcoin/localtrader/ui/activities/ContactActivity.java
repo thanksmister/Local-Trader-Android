@@ -92,7 +92,6 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     // The loader's unique id. Loader ids are specific to the Activity or
     private static final int CONTACT_LOADER_ID = 1;
     private static final int MESSAGES_LOADER_ID = 2;
-
     
     public static final String EXTRA_ID = "com.thanksmister.extras.EXTRA_ID";
 
@@ -194,9 +193,20 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("");
-            setToolBarMenu(toolbar);
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle("");
+                setToolBarMenu(toolbar);
+            }
+        }
+
+        if(TextUtils.isEmpty(contactId)) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.toast_error_contact_data)), new Action0() {
+                @Override
+                public void call() {
+                    finish();
+                }
+            });
         }
 
         swipeLayout.setOnRefreshListener(this);
@@ -830,11 +840,9 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     public void showAdvertisement() {
-        
         if (contact == null) {
             return; 
         }
-
         dbManager.advertisementItemQuery(contact.advertisement_id())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -856,8 +864,17 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     private void loadAdvertisementView(ContactItem contact) {
-        Intent intent = AdvertisementActivity.createStartIntent(ContactActivity.this, contact.advertisement_id());
-        startActivity(intent);
+        if(TextUtils.isEmpty(contact.advertisement_id())) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
+                @Override
+                public void call() {
+                    finish();
+                }
+            });
+        } else {
+            Intent intent = AdvertisementActivity.createStartIntent(ContactActivity.this, contact.advertisement_id());
+            startActivity(intent);
+        }
     }
 
     private void launchAdvertisementLink(ContactItem contact) {

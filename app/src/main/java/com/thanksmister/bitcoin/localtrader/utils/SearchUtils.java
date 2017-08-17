@@ -30,7 +30,6 @@ import org.json.JSONObject;
 
 import java.util.Locale;
 
-import static com.thanksmister.bitcoin.localtrader.data.services.ExchangeService.PREFS_EXCHANGE_CURRENCY;
 import static com.thanksmister.bitcoin.localtrader.utils.NumberUtils.parseDouble;
 
 public class SearchUtils {
@@ -190,9 +189,7 @@ public class SearchUtils {
     }
 
     public static String getSearchCurrency(SharedPreferences sharedPreferences) {
-        StringPreference userCurrencyPref = new StringPreference(sharedPreferences, PREFS_EXCHANGE_CURRENCY, "USD");
-        StringPreference preference = new StringPreference(sharedPreferences, PREFS_SEARCH_CURRENCY, userCurrencyPref.get());
-        if(preference.get().equals("")) return "USD";
+        StringPreference preference = new StringPreference(sharedPreferences, PREFS_SEARCH_CURRENCY, "USD");
         return preference.get();
     }
 

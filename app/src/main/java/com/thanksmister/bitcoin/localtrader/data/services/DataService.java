@@ -161,17 +161,7 @@ public class DataService {
     }
 
     public Observable<List<ExchangeCurrency>> getCurrencies() {
-        if(!needToRefreshCurrency()) {
-            return Observable.just(null);
-        }
-        
         return localBitcoins.getCurrencies()
-                .doOnNext(new Action1<Response>() {
-                    @Override
-                    public void call(Response response) {
-                        setCurrencyExpireTime();
-                    }
-                })
                 .map(new ResponseToCurrencies());
     }
 
@@ -271,7 +261,6 @@ public class DataService {
     }
 
     public Observable<Wallet> getWalletBalance() {
-        
         if(!needToRefreshWalletBalance()) {
             return Observable.just(null);
         }
@@ -602,16 +591,7 @@ public class DataService {
     }
     
     public Observable<List<Method>> getMethods() {
-        if (!needToRefreshMethods()) {
-            return Observable.just(null);
-        }
         return localBitcoins.getOnlineProviders()
-                .doOnNext(new Action1<Response>() {
-                    @Override
-                    public void call(Response response) {
-                        setMethodsExpireTime();
-                    }
-                })
                 .map(new ResponseToMethod());
     }
 
@@ -636,7 +616,7 @@ public class DataService {
         preference.removePreference(PREFS_METHODS_EXPIRE_TIME);
     }
 
-    private void setMethodsExpireTime() {
+    public void setMethodsExpireTime() {
         long expire = System.currentTimeMillis() + CHECK_METHODS_DATA; // 1 hours
         preference.putLong(PREFS_METHODS_EXPIRE_TIME, expire);
     }

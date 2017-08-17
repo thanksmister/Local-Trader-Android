@@ -27,6 +27,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -151,14 +152,16 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             position = savedInstanceState.getInt(EXTRA_FRAGMENT);
         }
 
-        final String bitcoinUri = getIntent().getStringExtra(BITCOIN_URI);
-
         setupNavigationView();
 
+        final String bitcoinUri = getIntent().getStringExtra(BITCOIN_URI);
         boolean authenticated = AuthUtils.hasCredentials(preference, sharedPreferences);
+        
         if (authenticated) {
-            if (bitcoinUri != null && validAddressOrAmount(bitcoinUri)) { // we have a uri request so override setting content
-                handleBitcoinUri(bitcoinUri);
+            if(bitcoinUri != null) {
+                final String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
+                final String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
+                startSendFragment(bitcoinAddress, bitcoinAmount);
             } else {
                 setContentFragment(position);
             }
@@ -193,8 +196,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 launchPromoScreen();
                 return;
             } else if (AuthUtils.showUpgradedMessage(getApplicationContext(), preference)) {
-                String title = getString(R.string.text_whats_new) + AuthUtils.getCurrentVersionName(getApplicationContext());
-                showAlertDialogLinks(new AlertDialogEvent(title, getString(R.string.whats_new_message)));
+                //String title = getString(R.string.text_whats_new) + AuthUtils.getCurrentVersionName(getApplicationContext());
+                //showAlertDialogLinks(new AlertDialogEvent(title, getString(R.string.whats_new_message)));
                 AuthUtils.setUpgradeVersion(getApplicationContext(), preference);
             }
         }
@@ -524,7 +527,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         if (requestCode == REQUEST_SCAN) {
             IntentResult scanningResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
             if (scanningResult != null) {
-                handleBitcoinUri(scanningResult.getContents());
+                final String bitcoinAddress = WalletUtils.parseBitcoinAddress(scanningResult.getContents());
+                final String bitcoinAmount = WalletUtils.parseBitcoinAmount(scanningResult.getContents());
+                startSendFragment(bitcoinAddress, bitcoinAmount);
             } else {
                 toast(getString(R.string.toast_scan_canceled));
             }
@@ -540,32 +545,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
         super.onActivityResult(requestCode, resultCode, intent);
     }
-
-    protected boolean validAddressOrAmount(String bitcoinUri) {
-        String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
-        String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
-
-        if (bitcoinAddress == null) {
-            return false;
-        } else if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-            toast(getString(R.string.toast_invalid_address));
-            return false;
-        }
-
-        if (bitcoinAmount != null && !WalletUtils.validAmount(bitcoinAmount)) {
-            toast(getString(R.string.toast_invalid_btc_amount));
-            return false;
-        }
-
-        return true;
-    }
-
-    protected void handleBitcoinUri(String bitcoinUri) {
-        String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
-        String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
-        startSendFragment(bitcoinAddress, bitcoinAmount);
-    }
-
+    
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -584,7 +564,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             }
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_ADVERTISEMENT) {
             String id = extras.getString(EXTRA_NOTIFICATION_ID);
-            if (id != null) {
+            if(TextUtils.isEmpty(id)) {
+                showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)));
+            } else {
                 Intent launchIntent = AdvertisementActivity.createStartIntent(this, id);
                 startActivity(launchIntent);
             }

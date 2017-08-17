@@ -23,7 +23,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DbOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "localtrader.db";
-    // TODO back to 38
+   
     private static final int DATABASE_VERSION = 40;
     private static final int ADDED_CONTACT_PARAMS = 38;
     private static final int UPDATED_EXCHANGES = 37;
@@ -242,10 +242,7 @@ public class DbOpenHelper extends SQLiteOpenHelper {
             + TransactionItem.DESCRIPTION + TYPE_TEXT_NOT_NULL + COMMA_SEP
             + TransactionItem.TRANSACTION_TYPE + TYPE_TEXT_NOT_NULL + COMMA_SEP
             + TransactionItem.CREATED_AT + TYPE_TEXT_NOT_NULL + ")";
-
-    private static final String CREATE_CONTACT_LIST_ID_INDEX =
-            "CREATE INDEX contact_list_id ON " + MessageItem.TABLE + " (" + MessageItem.CONTACT_ID + ")";
-
+    
     public DbOpenHelper(Context context) {
         super(context, DATABASE_NAME, null /* factory */, DATABASE_VERSION);
     }
@@ -259,7 +256,6 @@ public class DbOpenHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_WALLET);
         db.execSQL(CREATE_ADVERTISEMENTS);
         db.execSQL(CREATE_TRANSACTIONS);
-        db.execSQL(CREATE_CONTACT_LIST_ID_INDEX);
         db.execSQL(CREATE_RECENT_MESSAGES);
         db.execSQL(CREATE_NOTIFICATIONS);
         db.execSQL(CREATE_EXCHANGE_CURRENCIES);
@@ -310,7 +306,6 @@ public class DbOpenHelper extends SQLiteOpenHelper {
             }
         }
 
-
         if (oldVersion < ADDED_CONTACT_PARAMS) {
 
             if (!isColumnExists(db, ContactItem.TABLE, ContactItem.RECEIVER_NAME)) {
@@ -336,8 +331,7 @@ public class DbOpenHelper extends SQLiteOpenHelper {
 
                 db.execSQL(ALTER_TBL2);
             }
-
-
+            
             if (!isColumnExists(db, ContactItem.TABLE, ContactItem.SORT_CODE)) {
                 final String ALTER_TBL3 =
                         "ALTER TABLE " + ContactItem.TABLE +

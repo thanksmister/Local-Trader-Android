@@ -290,8 +290,10 @@ public class GeoLocationService {
         String url;
         if (type == TradeType.LOCAL_BUY) {
             url = place.buy_local_url.replace("https://localbitcoins.com/", "");
+            url = place.buy_local_url.replace("https://localbitcoins.net/", "");
         } else {
             url = place.sell_local_url.replace("https://localbitcoins.com/", "");
+            url = place.sell_local_url.replace("https://localbitcoins.net/", "");
         }
 
         String[] split = url.split("/");

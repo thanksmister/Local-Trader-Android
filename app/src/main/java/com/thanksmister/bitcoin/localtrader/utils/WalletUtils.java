@@ -121,7 +121,14 @@ public class WalletUtils {
         return uri;
     }
 
+    /**
+     * Validates a Bitcoin address, but warning that this is not thread safe
+     * and needs to be run on separate thread.
+     * @param address
+     * @return
+     */
     public static boolean validBitcoinAddress(String address) {
+        
         if (address == null || (address.trim().length() < 1 || address.length() < 1)) {
             return false;
         }

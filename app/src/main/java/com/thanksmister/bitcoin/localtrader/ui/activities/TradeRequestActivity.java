@@ -34,12 +34,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -52,6 +53,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
@@ -188,7 +190,7 @@ public class TradeRequestActivity extends BaseActivity {
     private String countryCode;
     private String onlineProvider;
 
-    public static Intent createStartIntent(Context context, String adId, TradeType tradeType, String countryCode, String onlineProvider,
+    public static Intent createStartIntent(Context context, String adId, @NonNull TradeType tradeType, String countryCode, String onlineProvider,
                                            String adPrice, String adMin, String adMax, String currency, String profileName) {
         
         Intent intent = new Intent(context, TradeRequestActivity.class);
@@ -233,6 +235,15 @@ public class TradeRequestActivity extends BaseActivity {
             adMax = savedInstanceState.getString(EXTRA_AD_MAX_AMOUNT);
             currency = savedInstanceState.getString(EXTRA_AD_CURRENCY);
             profileName = savedInstanceState.getString(EXTRA_AD_PROFILE_NAME);
+        }
+
+        if(TradeType.NONE.name().equals(tradeType.name())) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_no_advertisement)), new Action0() {
+                @Override
+                public void call() {
+                    finish();
+                }
+            });
         }
         
         Timber.d("onlineProvider" + onlineProvider);

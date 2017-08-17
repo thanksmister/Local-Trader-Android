@@ -20,7 +20,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -70,6 +69,8 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import dpreference.DPreference;
 import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -150,20 +151,16 @@ public class SendFragment extends BaseFragment {
             address = getArguments().getString(EXTRA_ADDRESS);
             amount = getArguments().getString(EXTRA_AMOUNT);
         }
-
-        amount = dPreference.getString("send_amount", null);
-        address = dPreference.getString("send_address", null);
-
-        Timber.d("onCreate address " + address);
-        Timber.d("onCreate amount " + amount);
+        
+        // TODO make these static
+        amount = dPreference.getString("send_amount", amount);
+        address = dPreference.getString("send_address", address);
         
         setHasOptionsMenu(true);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Timber.d("onSaveInstanceState address " + address);
-        Timber.d("onSaveInstanceState amount " + amount);
         dPreference.putString("send_amount", amount);
         dPreference.putString("send_address", address);
         super.onSaveInstanceState(outState);
@@ -393,65 +390,123 @@ public class SendFragment extends BaseFragment {
     }
 
     public void setAddressFromClipboardTouch() {
+        
         String clipText = getClipboardText();
         if (TextUtils.isEmpty(clipText)) {
             return;
         }
 
-        String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
-        if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-            return;
-        }
+        Timber.d("setAddressFromClipboardTouch");
 
-        setAddressFromClipboard();
+        final String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
+        validateBitcoinAddress(bitcoinAddress)
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<Boolean>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Observer<Boolean>() {
+                    @Override
+                    public void onCompleted() {
+                        Timber.d("onCompleted");
+                    }
+                    @Override
+                    public void onError(final Throwable e) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Timber.e(e.getMessage() + " for validating bitcoinAddress :" + bitcoinAddress);
+                            }
+                        });
+                    }
+                    @Override
+                    public void onNext(final Boolean valid) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(valid) {
+                                    Timber.d("valid: " + String.valueOf(true));
+                                    setAddressFromClipboard();
+                                }
+                            }
+                        });
+                    }
+                });
     }
 
     public void setAddressFromClipboard() {
+        
         String clipText = getClipboardText();
         if (TextUtils.isEmpty(clipText)) {
             toast(R.string.toast_clipboard_empty);
             return;
         }
 
-        String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
-        String bitcoinAmount = WalletUtils.parseBitcoinAmount(clipText);
-
-        if (!WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-            toast(getString(R.string.toast_invalid_address));
-            return;
-        }
-
-        if (bitcoinAmount != null && !WalletUtils.validAmount(bitcoinAmount)) {
-            toast(getString(R.string.toast_invalid_btc_amount));
-            bitcoinAmount = null; // set it to null
-        }
-
-        if (!TextUtils.isEmpty(bitcoinAddress)) {
-            setBitcoinAddress(bitcoinAddress);
-
-            if (!TextUtils.isEmpty(bitcoinAmount)) {
-                setAmount(bitcoinAmount);
-            }
-
-        } else if (!TextUtils.isEmpty(bitcoinAmount)) {
-            setAmount(bitcoinAmount);
-        }
+        Timber.d("setAddressFromClipboard");
+        
+        final String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
+        final String bitcoinAmount = WalletUtils.parseBitcoinAmount(clipText);
+        validateBitcoinAddress(bitcoinAddress)
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<Boolean>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Observer<Boolean>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+                    @Override
+                    public void onError(final Throwable e) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Timber.e(e.getMessage() + " for validating bitcoinAddress :" + bitcoinAddress);
+                            }
+                        });
+                    }
+                    @Override
+                    public void onNext(final Boolean valid) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(valid) {
+                                    Timber.d("valid: " + String.valueOf(true));
+                                    setBitcoinAddress(bitcoinAddress);
+                                    if (bitcoinAmount != null && WalletUtils.validAmount(bitcoinAmount)) {
+                                        setAmount(bitcoinAmount);
+                                    } else {
+                                        toast(getString(R.string.toast_invalid_btc_amount));
+                                    }
+                                } else {
+                                    toast(getString(R.string.toast_invalid_address));
+                                }
+                            }
+                        });
+                    }
+                });
     }
-
+    
+    private Observable<Boolean> validateBitcoinAddress(final String address) {
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                try {
+                    String bitcoinAddress = WalletUtils.parseBitcoinAddress(address);
+                    boolean valid = WalletUtils.validBitcoinAddress(bitcoinAddress);
+                    Timber.d("validBitcoinAddress: " + valid);
+                    subscriber.onNext(valid);
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
+    }
+    
     private String getClipboardText() {
         String clipText = "";
         ClipboardManager clipboardManager = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            ClipData clip = clipboardManager.getPrimaryClip();
-            if (clip != null) {
-                ClipData.Item item = clip.getItemAt(0);
-                if (item.getText() != null)
-                    clipText = item.getText().toString();
-            }
-        } else {
-            clipText = clipboardManager.getText().toString();
+        ClipData clip = clipboardManager.getPrimaryClip();
+        if (clip != null) {
+            ClipData.Item item = clip.getItemAt(0);
+            if (item.getText() != null)
+                clipText = item.getText().toString();
         }
-
         return clipText;
     }
 
@@ -546,7 +601,7 @@ public class SendFragment extends BaseFragment {
     }
 
     protected void validateForm() {
-        boolean cancel = false;
+        
         if (TextUtils.isEmpty(amountText.getText().toString())) {
             toast(getString(R.string.error_missing_address_amount));
             return;
@@ -554,27 +609,47 @@ public class SendFragment extends BaseFragment {
 
         amount = Conversions.formatBitcoinAmount(amountText.getText().toString());
         address = addressText.getText().toString();
-
+        
         if (TextUtils.isEmpty(addressText.getText())) {
             toast(getString(R.string.error_missing_address_amount));
             return;
         }
 
-        if (amount == null) {
+        if (amount != null && WalletUtils.validAmount(amount)) {
             toast(getString(R.string.toast_invalid_btc_amount));
-            cancel = true;
-        } else if (!WalletUtils.validAmount(amount)) {
-            toast(getString(R.string.toast_invalid_btc_amount));
-            cancel = true;
-        } else if (!WalletUtils.validBitcoinAddress(address)) {
-            toast(getString(R.string.toast_invalid_address));
-            cancel = true;
+            return;
         }
-
-        if (!cancel) { // There was an error
-            //String usd = Calculations.computedValueOfBitcoin(exchange.ask(), exchange.bid(), bitcoinAmount);
-            promptForPin(address, amount);
-        }
+        
+        validateBitcoinAddress(address)
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("validateBitcoinAddress subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Boolean>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(final Boolean valid) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(valid) {
+                                    promptForPin(address, amount);
+                                } else {
+                                    toast(getString(R.string.toast_invalid_address));
+                                }
+                            }
+                        });
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Timber.w(throwable.getMessage());
+                    }
+                });
     }
 
     protected void computeBalance(double btcAmount) {

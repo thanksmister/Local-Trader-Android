@@ -56,6 +56,7 @@ import java.util.List;
 
 import butterknife.InjectView;
 import butterknife.OnClick;
+import rx.functions.Action0;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
@@ -187,6 +188,15 @@ public class EditTypeFragment extends BaseEditFragment {
     }
     
     public void setMethods(List<MethodItem> methods) {
+        if(methods.isEmpty()) {
+            showAlertDialog(new AlertDialogEvent("Methods Error", "There was an error retrieving payment methods, advertisement can't be created."), new Action0() {
+                @Override
+                public void call() {
+                    getActivity().finish();
+                }
+            });
+            return;
+        }
         List<MethodItem> removedAllFromMethods = new ArrayList<>();
         for (MethodItem methodItem : methods) {
             if(!methodItem.code().equals("all")) {
@@ -288,7 +298,12 @@ public class EditTypeFragment extends BaseEditFragment {
             return false;
         }
         
-        editAdvertisement.online_provider = ((MethodItem) paymentMethodSpinner.getSelectedItem()).code();
+        MethodItem methodItem = ((MethodItem) paymentMethodSpinner.getSelectedItem());
+        if(methodItem == null || methodItem.code() == null || TextUtils.isEmpty(methodItem.code())) {
+            toast(getString(R.string.toast_playment_method_blank));
+            return false;
+        }
+        editAdvertisement.online_provider = methodItem.code();
         setEditAdvertisement(editAdvertisement);
         return true;
     }

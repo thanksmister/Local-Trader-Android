@@ -202,7 +202,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
-            return;
         }
         
         alertDialog =  new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
@@ -218,7 +217,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
-            return;
         }
         
         View view = View.inflate(BaseActivity.this, R.layout.dialog_about, null);
@@ -238,7 +236,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
-            return;
         }
 
         alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
@@ -258,7 +255,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
-            return;
         }
 
         alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
@@ -285,7 +281,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
-            return;
         }
 
         alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
@@ -332,7 +327,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
-            return;
         }
 
         alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)

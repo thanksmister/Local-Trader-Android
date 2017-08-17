@@ -426,7 +426,13 @@ public class Parser
             
             if (advertisement.has("trade_type")) {
                 String trade_type = advertisement.getString("trade_type");
-                item.advertisement.trade_type = (TradeType.valueOf(trade_type));
+                if(trade_type.equals(TradeType.LOCAL_BUY.name()) 
+                        || trade_type.equals(TradeType.LOCAL_SELL.name()) 
+                        || trade_type.equals(TradeType.ONLINE_BUY.name())
+                        || trade_type.equals(TradeType.ONLINE_SELL.name())) {
+                    item.advertisement.trade_type = (TradeType.valueOf(trade_type));
+                }
+                item.advertisement.trade_type = TradeType.NONE;
             }
 
             JSONObject advertiser = advertisement.getJSONObject("advertiser");

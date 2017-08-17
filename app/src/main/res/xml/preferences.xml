@@ -72,6 +72,7 @@
                 android:dialogTitle="Update API Endpoint"
                 android:dialogMessage="After changing the LocalBitcoins API endpoint, restart the application for the changes to take effect."
                 android:summary="https://localbitcoins.com"
+                android:inputType="textWebEditText"
                 android:key="@string/pref_key_api"/>
 
     </PreferenceCategory>

@@ -33,6 +33,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -42,7 +43,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
@@ -51,6 +51,7 @@ import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 
 import java.util.regex.Matcher;
@@ -106,6 +107,7 @@ public class LoginActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.view_login);
@@ -123,7 +125,7 @@ public class LoginActivity extends BaseActivity {
         final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
         apiEndpoint.setText(currentEndpoint);
 
-        OAUTH_URL = currentEndpoint + "/oauth2/authorize/?ch=2hbo&client_id="
+        OAUTH_URL =  AuthUtils.getServiceEndpoint(preference, sharedPreferences) + "/oauth2/authorize/?ch=2hbo&client_id="
                 + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
 
         editTextDescription.setText(Html.fromHtml(getString(R.string.setup_description)));
@@ -176,14 +178,8 @@ public class LoginActivity extends BaseActivity {
             showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), new Action0() {
                 @Override
                 public void call() {
-                    // save for preference manager
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-                    SharedPreferences.Editor prefEditor = preferences.edit();
-                    prefEditor.putString(getString(R.string.pref_key_api), endpoint).apply();
-
                     // save for shared preferences
                     AuthUtils.setServiceEndPoint(preference, endpoint);
-
                     Intent intent = LoginActivity.createStartIntent(LoginActivity.this);
                     PendingIntent restartIntent = PendingIntent.getActivity(LoginActivity.this, 0, intent, 0);
                     AlarmManager alarmManager = (AlarmManager) LoginActivity.this.getSystemService(Context.ALARM_SERVICE);
@@ -196,10 +192,16 @@ public class LoginActivity extends BaseActivity {
                     apiEndpoint.setText(currentEndpoint);
                 }
             });
-
-            return;
         }
-        
+
+        // hide keyboard and notify
+        try{
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        } catch (NullPointerException e) {
+            Timber.e("Error closing keyboard");
+        }
+
         setUpWebViewDefaults();
     }
 
@@ -211,7 +213,7 @@ public class LoginActivity extends BaseActivity {
     private void setUpWebViewDefaults() {
         content.setVisibility(View.GONE);
         webView.setVisibility(View.VISIBLE);
-        showProgressDialog(new ProgressDialogEvent("Loading LocalBitcoins..."));
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_loading_localbitcoins)));
 
         try {
             webView = (WebView) findViewById(R.id.webView);

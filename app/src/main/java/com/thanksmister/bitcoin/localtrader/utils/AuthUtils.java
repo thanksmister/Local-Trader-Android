@@ -69,7 +69,7 @@ public class AuthUtils {
      * @return
      */
     public static String getServiceEndpoint(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_API_ENDPOINT, BASE_URL);
+        StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_API_ENDPOINT);
         String currentValue = stringPreference.get();
         if(!TextUtils.isEmpty(currentValue)) {
             setServiceEndPoint(preference, currentValue);
@@ -166,7 +166,6 @@ public class AuthUtils {
         String feedback = stringPreference.get();
         if(!TextUtils.isEmpty(feedback)) {
             setFeedbackScore(preference, feedback);
-            stringPreference.delete();
         }
         return preference.getString(PREFS_USER_FEEDBACK, feedback);
     }

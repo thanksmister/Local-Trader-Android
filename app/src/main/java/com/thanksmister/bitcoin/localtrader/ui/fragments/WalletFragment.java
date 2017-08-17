@@ -313,7 +313,6 @@ public class WalletFragment extends BaseFragment {
     }
 
     private void updateData(final boolean force) {
-        
         if(dataService.needToRefreshWallet() && !force) {
             showProgress();
             toast(getString(R.string.toast_refreshing_data));
