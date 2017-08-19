@@ -34,6 +34,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
@@ -186,7 +188,7 @@ public class TradeRequestActivity extends BaseActivity {
     private String adMax;
     private String currency;
     private String profileName;
-    private TradeType tradeType;
+    private TradeType tradeType = TradeType.NONE;
     private String countryCode;
     private String onlineProvider;
 
@@ -217,7 +219,10 @@ public class TradeRequestActivity extends BaseActivity {
 
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
-            tradeType = TradeType.valueOf(getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE));
+            String tradeTypeString = getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE);
+            if(!TextUtils.isEmpty(tradeTypeString)) {
+                tradeType = TradeType.valueOf(getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE)); 
+            }
             countryCode = getIntent().getStringExtra(EXTRA_AD_COUNTRY_CODE);
             onlineProvider = getIntent().getStringExtra(EXTRA_AD_ONLINE_PROVIDER);
             adPrice = getIntent().getStringExtra(EXTRA_AD_PRICE);
@@ -227,7 +232,10 @@ public class TradeRequestActivity extends BaseActivity {
             profileName = getIntent().getStringExtra(EXTRA_AD_PROFILE_NAME);
         } else {
             adId = savedInstanceState.getString(EXTRA_AD_ID);
-            tradeType = TradeType.valueOf(savedInstanceState.getString(EXTRA_AD_TRADE_TYPE));
+            String tradeTypeString = savedInstanceState.getString(EXTRA_AD_TRADE_TYPE);
+            if(!TextUtils.isEmpty(tradeTypeString)) {
+                tradeType = TradeType.valueOf(tradeTypeString);
+            }
             countryCode = savedInstanceState.getString(EXTRA_AD_COUNTRY_CODE);
             onlineProvider = savedInstanceState.getString(EXTRA_AD_ONLINE_PROVIDER);
             adPrice = savedInstanceState.getString(EXTRA_AD_PRICE);
@@ -237,18 +245,19 @@ public class TradeRequestActivity extends BaseActivity {
             profileName = savedInstanceState.getString(EXTRA_AD_PROFILE_NAME);
         }
 
-        if(TradeType.NONE.name().equals(tradeType.name())) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_no_advertisement)), new Action0() {
+        if(tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
                 @Override
                 public void call() {
+                    if(!BuildConfig.DEBUG) {
+                        Crashlytics.logException(new Throwable("Bad trade type for requested trade: " + tradeType + " advertisement Id: " + adId));
+                    }
                     finish();
                 }
             });
+            return;
         }
         
-        Timber.d("onlineProvider" + onlineProvider);
-        Timber.d("tradeType" + tradeType);
-
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             if(getSupportActionBar() != null) {

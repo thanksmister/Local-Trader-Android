@@ -17,7 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.utils;
 
 import android.content.Context;
-import android.location.Address;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -25,7 +24,6 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactSync;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
@@ -206,34 +204,19 @@ public class TradeUtils {
     }
 
     public static boolean canDisputeTrade(ContactItem contact) {
-        if (isClosedTrade(contact) && !isDisputed(contact)) {
-            return contact.dispute_url() != null;
-        }
-
-        return false;
+        return isClosedTrade(contact) && !isDisputed(contact) && contact.dispute_url() != null;
     }
 
     public static boolean canCancelTrade(ContactItem contact) {
-        if (!isClosedTrade(contact) && !isCanceledTrade(contact)) {
-
-            return contact.cancel_url() != null;
-        }
-
-        return false;
+        return !isClosedTrade(contact) && !isCanceledTrade(contact) && contact.cancel_url() != null;
     }
 
     public static boolean canReleaseTrade(ContactItem contact) {
-        if (isClosedTrade(contact))
-            return false;
-
-        return true;
+        return !isClosedTrade(contact);
     }
 
     public static boolean canFundTrade(ContactItem contact) {
-        if (isClosedTrade(contact))
-            return false;
-
-        return true;
+        return !isClosedTrade(contact);
     }
 
     public static boolean isLocalTrade(TradeType tradeType) {
@@ -318,16 +301,6 @@ public class TradeUtils {
         return null;
     }
 
-    /*public static Method getPaymentMethod(String code, List<Method> methods)
-    {
-        for (Method method : methods) {
-            if(method.code.equals(code)) {
-                return method;
-            }
-        }
-        return null;
-    }*/
-
     public static String getPaymentMethod(String code, List<MethodItem> methods) {
         for (MethodItem method : methods) {
             if (method.code().equals(code)) {
@@ -339,18 +312,7 @@ public class TradeUtils {
         }
         return code;
     }
-
-    public static String getPaymentMethodFromItems(Advertisement advertisement, List<MethodItem> methodItems) {
-        String paymentMethod = "";
-        for (MethodItem method : methodItems) {
-            if (method.code().equals(advertisement.online_provider)) {
-                paymentMethod = getPaymentMethod(advertisement, method);
-                break;
-            }
-        }
-        return paymentMethod;
-    }
-
+    
     public static String getPaymentMethodFromItems(AdvertisementItem advertisement, List<MethodItem> methodItems) {
         if (methodItems == null || methodItems.isEmpty()) {
             return "";
@@ -366,18 +328,6 @@ public class TradeUtils {
         }
         return paymentMethod;
     }
-
-    /*public static String getPaymentMethod(Advertisement editAdvertisement, List<Method> methods)
-    {
-        String paymentMethod = "";
-        for (Method method : methods) {
-            if(method.code.equals(editAdvertisement.online_provider)) {
-                paymentMethod = getPaymentMethod(editAdvertisement, method);
-                break;
-            }
-        }
-        return paymentMethod;
-    }*/
 
     public static String getPaymentMethod(Advertisement advertisement, List<MethodItem> methods) {
         String paymentMethod = "";
@@ -407,16 +357,7 @@ public class TradeUtils {
 
         return paymentMethod;
     }
-
-    public static String getPaymentMethodName(Advertisement advertisement, Method method) {
-        String paymentMethod = "Other";
-        if (method != null && method.code.equals(advertisement.online_provider)) {
-            paymentMethod = method.name;
-        }
-
-        return paymentMethod;
-    }
-
+    
     public static String getPaymentMethodName(String paymentMethod) {
         switch (paymentMethod) {
             case "NATIONAL_BANK":
@@ -498,14 +439,6 @@ public class TradeUtils {
         }
     }
 
-    public static String getContactName(ContactSync contact) {
-        if (contact.is_selling) {
-            return contact.buyer_name;
-        } else {
-            return contact.seller_name;
-        }
-    }
-
     public static int determineLastSeenIcon(@NonNull String lasOnline) {
         Date now = new Date();
         Date lastSeen = Dates.parseLastSeenDate(lasOnline);
@@ -520,59 +453,7 @@ public class TradeUtils {
 
         return R.drawable.last_seen_recently;
     }
-
-    public static String getAddress(Address address) {
-        String addressText = String.format(
-                "%s, %s, %s",
-                // If there's a street address, add it
-                address.getMaxAddressLineIndex() > 0 ?
-                        address.getAddressLine(0) : "",
-                // Locality is usually a city
-                address.getLocality(),
-                // The country of the address
-                address.getCountryName());
-
-        return addressText;
-    }
-
-    @Deprecated
-    public static String getAddressShort(Address address) {
-        String addressText = "";
-
-        String addressLine = "0";
-        String locality = "0";
-        String country = "0";
-
-        if (address.getMaxAddressLineIndex() > 0) {
-
-            if (address.getAddressLine(0) != null)
-                addressLine = address.getAddressLine(0);
-
-            if (address.getLocality() != null)
-                locality = address.getLocality();
-
-            if (address.getCountryName() != null)
-                country = address.getCountryName();
-
-            addressText = String.format(
-                    "%s, %s, %s",
-
-                    // If there's a street address, add it
-                    addressLine,
-
-                    // Locality is usually a city
-                    locality,
-
-                    // The country of the address
-                    country
-            );
-        }
-
-        addressText = addressText.replace("0,", "");
-
-        return addressText;
-    }
-
+    
     public static String[] parseUserString(String value) {
         String[] nameSplit;
         if (!value.contains(" ")) {
@@ -750,34 +631,6 @@ public class TradeUtils {
         }
 
         return equation;
-    }
-
-    public static String toTitleCase(String str) {
-
-        if (str == null) {
-            return null;
-        }
-
-        boolean space = true;
-        StringBuilder builder = new StringBuilder(str);
-        final int len = builder.length();
-
-        for (int i = 0; i < len; ++i) {
-            char c = builder.charAt(i);
-            if (space) {
-                if (!Character.isWhitespace(c)) {
-                    // Convert to title case and switch out of whitespace mode.
-                    builder.setCharAt(i, Character.toTitleCase(c));
-                    space = false;
-                }
-            } else if (Character.isWhitespace(c)) {
-                space = true;
-            } else {
-                builder.setCharAt(i, Character.toLowerCase(c));
-            }
-        }
-
-        return builder.toString();
     }
     
     public static List<MethodItem> sortMethods(List<MethodItem> methods) {

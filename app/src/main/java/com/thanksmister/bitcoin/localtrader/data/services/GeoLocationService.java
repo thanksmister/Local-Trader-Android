@@ -287,13 +287,23 @@ public class GeoLocationService {
     }
 
     public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type) {
-        String url;
+        String url = "";
         if (type == TradeType.LOCAL_BUY) {
-            url = place.buy_local_url.replace("https://localbitcoins.com/", "");
-            url = place.buy_local_url.replace("https://localbitcoins.net/", "");
-        } else {
-            url = place.sell_local_url.replace("https://localbitcoins.com/", "");
-            url = place.sell_local_url.replace("https://localbitcoins.net/", "");
+            if(place.buy_local_url.contains("https://localbitcoins.com/")) {
+                url = place.buy_local_url.replace("https://localbitcoins.com/", "");
+            } else if (place.buy_local_url.contains("https://localbitcoins.net/")) {
+                url = place.buy_local_url.replace("https://localbitcoins.net/", "");
+            }  else {
+                url = place.buy_local_url;
+            }
+        } else if(type == TradeType.LOCAL_SELL) {
+            if(place.sell_local_url.contains("https://localbitcoins.com/")) {
+                url = place.sell_local_url.replace("https://localbitcoins.com/", "");
+            } else if (place.sell_local_url.contains("https://localbitcoins.net/")) {
+                url = place.sell_local_url.replace("https://localbitcoins.net/", ""); 
+            }  else {
+                url = place.sell_local_url;
+            }
         }
 
         String[] split = url.split("/");
@@ -307,7 +317,7 @@ public class GeoLocationService {
                     }
                 });
     }
-
+    
     /**
      * Compares distance as a double value to list advertisements by shortest to longest distance from user
      */

@@ -28,16 +28,15 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import timber.log.Timber;
 
-public class DataServiceUtils
-{
+public class DataServiceUtils {
+    
     public static int CODE_MINUS_ONE = -1; // authorization failed
     public static int CODE_THREE = 3; // authorization failed
     public static int CODE_FORTY_ONE = 41; // bad hmac signature
     public static int CODE_FORTY_TWO = 42; // nonce too small
-    
-    public static boolean isNetworkError(Throwable throwable)
-    {
-        if(throwable instanceof UnknownHostException || throwable instanceof NetworkConnectionException) {
+
+    public static boolean isNetworkError(Throwable throwable) {
+        if (throwable instanceof UnknownHostException || throwable instanceof NetworkConnectionException) {
             return true;
         } else if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
@@ -47,26 +46,23 @@ public class DataServiceUtils
         return false;
     }
 
-    public static boolean isTimeoutError(Throwable throwable)
-    {
-        if(throwable instanceof TimeoutException) {
+    public static boolean isTimeoutError(Throwable throwable) {
+        if (throwable instanceof TimeoutException) {
             return true;
-        } 
+        }
 
         return false;
     }
 
-    public static boolean isConnectionError(Throwable throwable)
-    {
-        if(throwable instanceof ConnectException) {
+    public static boolean isConnectionError(Throwable throwable) {
+        if (throwable instanceof ConnectException) {
             return true;
-        } 
+        }
 
         return false;
     }
 
-    public static boolean isHttp41Error(Throwable throwable)
-    {
+    public static boolean isHttp41Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetroError retroError = createRetroError(throwable);
             return (retroError.getCode() == CODE_FORTY_ONE);
@@ -75,8 +71,7 @@ public class DataServiceUtils
         return false;
     }
 
-    public static boolean isHttp42Error(Throwable throwable)
-    {
+    public static boolean isHttp42Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetroError retroError = createRetroError(throwable);
             return (retroError.getCode() == CODE_FORTY_TWO);
@@ -84,10 +79,9 @@ public class DataServiceUtils
 
         return false;
     }
-    
+
     // bad gateway eror
-    public static boolean isHttp502Error(Throwable throwable)
-    {
+    public static boolean isHttp502Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 502);
@@ -95,21 +89,19 @@ public class DataServiceUtils
 
         return false;
     }
-    
+
     // authorization error
-    public static boolean isHttp403Error(Throwable throwable)
-    {
+    public static boolean isHttp403Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 403);
-        } 
+        }
 
         return false;
     }
 
     // bad request
-    public static boolean isHttp400Error(Throwable throwable)
-    {
+    public static boolean isHttp400Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 400);
@@ -119,8 +111,7 @@ public class DataServiceUtils
     }
 
     // network error
-    public static boolean isHttp401Error(Throwable throwable)
-    {
+    public static boolean isHttp401Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 401);
@@ -130,8 +121,7 @@ public class DataServiceUtils
     }
 
     // server error
-    public static boolean isHttp500Error(Throwable throwable)
-    {
+    public static boolean isHttp500Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 500);
@@ -140,8 +130,7 @@ public class DataServiceUtils
         return false;
     }
 
-    public static boolean isHttp404Error(Throwable throwable)
-    {
+    public static boolean isHttp404Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 404);
@@ -150,8 +139,7 @@ public class DataServiceUtils
         return false;
     }
 
-    public static boolean isHttp504Error(Throwable throwable)
-    {
+    public static boolean isHttp504Error(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError) == 504);
@@ -164,8 +152,7 @@ public class DataServiceUtils
    Added because service now always returns 400 error and have to check valid code
    {"error": {"message": "Invalid or expired access token for scope 2. 
     */
-    public static RetroError createRetroError(Throwable throwable)
-    {
+    public static RetroError createRetroError(Throwable throwable) {
         RetrofitError retroError = (RetrofitError) throwable;
         Response response = retroError.getResponse();
         String json = null;
@@ -174,7 +161,7 @@ public class DataServiceUtils
         } catch (RetroError error) {
             return error;
         }
-        
+
         Timber.e("JSON: " + json);
         RetroError err = Parser.parseError(json);
         Timber.e("Error: " + err.getMessage());
@@ -182,37 +169,35 @@ public class DataServiceUtils
         return err;
     }
 
-    public static int getStatusCode(RetrofitError error) 
-    {
+    public static int getStatusCode(RetrofitError error) {
         try {
             Timber.w("Status Kind: " + error.getKind());
-        } catch(Throwable e){
+        } catch (Throwable e) {
             Timber.w("Error Status: " + e.getMessage());
         }
-        
+
         try {
             if (error.getKind() == RetrofitError.Kind.NETWORK) {
                 return 503; // Use another code if you'd prefer
-            } 
-        } catch (Exception e){
+            }
+        } catch (Exception e) {
             Timber.w(e.getLocalizedMessage());
             return 503; // Use another code if you'd prefer
         }
-        
+
         try {
-            if(error.getResponse() != null) {
+            if (error.getResponse() != null) {
                 Timber.w("Error Code: " + error.getResponse().getStatus());
                 return error.getResponse().getStatus();
             }
-        } catch(Throwable e){
+        } catch (Throwable e) {
             Timber.w("Error Status: " + e.getMessage());
         }
-        
+
         return 0;
     }
 
-    public static int getStatusCode(Throwable throwable)
-    {
+    public static int getStatusCode(Throwable throwable) {
         if (throwable instanceof RetrofitError) {
             RetrofitError retroError = (RetrofitError) throwable;
             return (getStatusCode(retroError));

@@ -28,12 +28,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.SelectableLinkMovementMethod;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
@@ -167,8 +170,10 @@ public class AdvertiserActivity extends BaseActivity {
 
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("");
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle("");
+            }
             setToolBarMenu(toolbar);
         }
 
@@ -412,8 +417,22 @@ public class AdvertiserActivity extends BaseActivity {
     }
 
     public void showTradeRequest() {
-        if (advertisementData == null) return;
+        if (advertisementData == null || advertisementData.advertisement == null) return;
         Advertisement advertisement = advertisementData.advertisement;
+        final TradeType tradeType = advertisement.trade_type;
+        if(tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
+                @Override
+                public void call() {
+                    if(!BuildConfig.DEBUG) {
+                        Crashlytics.log("advertisement_data: " + advertisementData.advertisement.toString());
+                        Crashlytics.logException(new Throwable("Bad trade type for requested trade: " + tradeType + " advertisement Id: " + adId));
+                    }
+                }
+            });
+            return;
+        }
+        
         Intent intent = TradeRequestActivity.createStartIntent(this, advertisement.ad_id,
                 advertisement.trade_type, advertisement.country_code, advertisement.online_provider,
                 advertisement.temp_price, advertisement.min_amount,

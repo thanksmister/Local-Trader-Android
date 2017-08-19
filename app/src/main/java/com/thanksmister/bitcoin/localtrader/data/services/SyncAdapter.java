@@ -439,11 +439,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private void updateNotifications(final List<Notification> notifications) {
         Timber.d("updateNotifications : " + notifications.size());
 
-        boolean hasCredentials = AuthUtils.hasCredentials(preference, sharedPreferences);
-        if (!hasCredentials) {
-            return;
-        }
-
         final HashMap<String, Notification> entryMap = new HashMap<>();
         for (Notification notification : notifications) {
             entryMap.put(notification.notification_id, notification);
@@ -452,7 +447,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, null);
         if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
-                long id = Db.getLong(cursor, NotificationItem.ID);
+                final long id = Db.getLong(cursor, NotificationItem.ID);
                 String notificationId = Db.getString(cursor, NotificationItem.NOTIFICATION_ID);
                 boolean notificationRead = Db.getBoolean(cursor, NotificationItem.READ);
                 String url = Db.getString(cursor, NotificationItem.URL);
@@ -488,15 +483,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         
         Timber.d("updateWalletBalance");
 
-        boolean hasCredentials = AuthUtils.hasCredentials(preference, sharedPreferences);
-        if (!hasCredentials) {
-            return;
-        }
-
         Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
         if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
-            long id = Db.getLong(cursor, WalletItem.ID);
+            final long id = Db.getLong(cursor, WalletItem.ID);
             String address = Db.getString(cursor, WalletItem.ADDRESS);
             String balance = Db.getString(cursor, WalletItem.BALANCE);
             if (!address.equals(wallet.address) || !balance.equals(wallet.balance)) {
@@ -524,7 +514,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
-    // TODO move this to util as its used in other locations
+    // TODO save this to local disk to access later for faster render time
     private Observable<Bitmap> generateBitmap(final String address) {
         return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override

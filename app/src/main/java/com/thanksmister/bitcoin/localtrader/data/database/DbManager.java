@@ -20,9 +20,13 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
@@ -42,18 +46,11 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import rx.Observable;
-import rx.Subscription;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import timber.log.Timber;
 
 public class DbManager {
-    public static final String PREFS_USER = "pref_user";
-
-    public static String UPDATES = "updates";
-    public static String ADDITIONS = "additions";
-    public static String DELETIONS = "deletions";
-
+   
     private BriteDatabase db;
     private BriteContentResolver briteContentResolver;
     private ContentResolver contentResolver;
@@ -78,25 +75,17 @@ public class DbManager {
         db.delete(NotificationItem.TABLE, null);
         db.delete(ExchangeCurrencyItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
+        
+        // let's not clear these on reset as they require a lot of work to fetch
+        //db.delete(CurrencyItem.TABLE, null);
+        //db.delete(ExchangeItem.TABLE, null);
+        //db.delete(MethodItem.TABLE, null);
     }
 
     public void clearTable(String tableName) {
         db.delete(tableName, null);
     }
-
-    /*public Observable<ContactItem> contactQuery(String contactId) {
-        return db.createQuery(ContactItem.TABLE, ContactItem.QUERY, String.valueOf(contactId))
-                .map(ContactItem.MAP)
-                .flatMap(new Func1<List<ContactItem>, Observable<ContactItem>>() {
-                    @Override
-                    public Observable<ContactItem> call(List<ContactItem> contactItems) {
-                        if (contactItems.size() > 0) {
-                            return Observable.just(contactItems.get(0));
-                        }
-                        return Observable.just(null);
-                    }
-                });
-    }*/
+    
 
     public List<String> insertContacts(List<Contact> items) {
         HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
@@ -135,37 +124,54 @@ public class DbManager {
      * @param messageCount
      * @param hasUnseenMessages
      */
-    public long updateContact(Contact contact, int messageCount, boolean hasUnseenMessages) {
-        synchronized (this) {
-            Cursor cursor = contentResolver.query(SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id}, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                while (cursor.moveToNext()) {
-                    long id = Db.getLong(cursor, ContactItem._ID);
-                    contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build(), ContactItem._ID + " = ?", new String[]{String.valueOf(id)});
+    public long updateContact(@NonNull Contact contact, int messageCount, boolean hasUnseenMessages) {
+        if(!TextUtils.isEmpty(contact.contact_id)) {
+            synchronized (this) {
+                Cursor cursor = contentResolver.query(SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id}, null);
+                if (cursor != null && cursor.getCount() > 0) {
+                    while (cursor.moveToNext()) {
+                        long id = Db.getLong(cursor, ContactItem._ID);
+                        contentResolver.update(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build(), ContactItem._ID + " = ?", new String[]{String.valueOf(id)});
+                    }
+                    cursor.close();
+                } else {
+                    Uri uri = contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build());
+                    if (uri != null) {
+                        return Long.valueOf(uri.getLastPathSegment());
+                    }
+
                 }
-                cursor.close();
-            } else {
-                Uri uri = contentResolver.insert(SyncProvider.CONTACT_TABLE_URI, ContactItem.createBuilder(contact, messageCount, hasUnseenMessages).build());
-                if(uri != null) {
-                    return Long.valueOf(uri.getLastPathSegment()); 
-                }
-                
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("updateContact Id is null: " + contact.contact_id));
             }
         }
         return -1;
     }
     
-    public void deleteContact(String contactId, ContentResolverAsyncHandler.AsyncQueryListener listener) {
-        ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver, listener);
-        contentResolverAsyncHandler.startDelete(1, null, SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
-        contentResolverAsyncHandler.startDelete(2, null, SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID + " = ?", new String[]{contactId});
+    public void deleteContact(@NonNull String contactId, ContentResolverAsyncHandler.AsyncQueryListener listener) {
+        if(!TextUtils.isEmpty(contactId)) {
+            ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver, listener);
+            contentResolverAsyncHandler.startDelete(1, null, SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
+            contentResolverAsyncHandler.startDelete(2, null, SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID + " = ?", new String[]{contactId});
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("deleteContact Id is null: " + contactId));
+            }
+        }
     }
 
-    public void deleteContact(String contactId) {
-        synchronized( this ) {
-            Timber.d("deleteContact: " + contactId);
-            contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)});
-            contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID  + " = ?", new String[]{String.valueOf(contactId)});
+    private void deleteContact(@NonNull String contactId) {
+        if(!TextUtils.isEmpty(contactId)) {
+            synchronized( this ) {
+                contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)});
+                contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID  + " = ?", new String[]{String.valueOf(contactId)});
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("deleteContact Id is null: " + contactId));
+            }
         }
     }
 
@@ -173,47 +179,26 @@ public class DbManager {
         return briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, ContactItem.CREATED_AT + " ASC", false)
                 .map(ContactItem.MAP);
     }
-
-    public Observable<ContactItem> contactQuery(String contactId) {
-        return briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contactId}, null, false)
-                .map(ContactItem.MAP_SINGLE);
-    }
-
-    public Observable<List<MessageItem>> messagesQuery(String contactId) {
-        return briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ?", new String[]{contactId}, MessageItem.CREATED_AT + " DESC", false)
-                .map(MessageItem.MAP);
-    }
-
-    public Observable<List<RecentMessageItem>> recentMessagesQuery() {
-        return briteContentResolver.createQuery(SyncProvider.RECENT_MESSAGE_TABLE_URI, null, null, null, RecentMessageItem.CREATED_AT + " DESC", false)
-                .map(RecentMessageItem.MAP);
-    }
-
-    public void markRecentMessagesSeen(String contactId) {
-        synchronized (this) {
-            Cursor cursor = contentResolver.query(SyncProvider.RECENT_MESSAGE_TABLE_URI, null, RecentMessageItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)}, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(RecentMessageItem.SEEN, true);
-                contentResolver.update(SyncProvider.RECENT_MESSAGE_TABLE_URI, contentValues, RecentMessageItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)});
-                cursor.close();
-            }
-        }
-    }
-
+    
     public Observable<List<NotificationItem>> notificationsQuery() {
         return briteContentResolver.createQuery(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, NotificationItem.CREATED_AT + " DESC", false)
                 .map(NotificationItem.MAP);
     }
 
-    public void markNotificationRead(String notificationId) {
-        synchronized (this) {
-            Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, NotificationItem.NOTIFICATION_ID + " = ?", new String[]{String.valueOf(notificationId)}, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(NotificationItem.READ, true);
-                contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, contentValues, NotificationItem.NOTIFICATION_ID + " = ?", new String[]{String.valueOf(notificationId)});
-                cursor.close();
+    public void markNotificationRead(@NonNull  String notificationId) {
+        if(!TextUtils.isEmpty(notificationId)) {
+            synchronized (this) {
+                Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, NotificationItem.NOTIFICATION_ID + " = ?", new String[]{String.valueOf(notificationId)}, null);
+                if (cursor != null && cursor.getCount() > 0) {
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(NotificationItem.READ, true);
+                    contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, contentValues, NotificationItem.NOTIFICATION_ID + " = ?", new String[]{String.valueOf(notificationId)});
+                    cursor.close();
+                }
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("markNotificationRead Id is null: " + notificationId));
             }
         }
     }
@@ -235,10 +220,8 @@ public class DbManager {
 
         try {
             while (cursor.moveToNext()) {
-
-                long id = Db.getLong(cursor, TransactionItem.ID);
+                final long id = Db.getLong(cursor, TransactionItem.ID);
                 String tx_id = Db.getString(cursor, TransactionItem.TRANSACTION_ID);
-
                 Transaction match = entryMap.get(tx_id);
                 if (match != null) {
                     // Entry exists. Remove from entry map to prevent insert later. Do not update
@@ -255,7 +238,6 @@ public class DbManager {
             }
 
         } finally {
-
             cursor.close();
         }
     }
@@ -268,117 +250,63 @@ public class DbManager {
      * @param contactId Contact Id associated with the message.
      * @param messages List of Message items
      */
-    public void updateMessages(final String contactId, List<Message> messages) {
-        for (Message message : messages) {
-            message.contact_id = contactId;
-            updateMessage(message);
+    public void updateMessages(@NonNull String contactId, List<Message> messages) {
+        if(!TextUtils.isEmpty(contactId)) {
+            for (Message message : messages) {
+                message.contact_id = contactId;
+                updateMessage(message);
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("updateMessages Id is null: " + contactId));
+            }
         }
     }
     
     private void updateMessage(Message message)  {
-        synchronized( this ) {
-            Cursor cursor = contentResolver.query(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ? AND " + MessageItem.CREATED_AT + " = ? ", new String[]{message.contact_id, message.created_at}, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                while (cursor.moveToNext()) {
-                    long id = Db.getLong(cursor, MessageItem.ID);
-                    contentResolver.update(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(message).build(), MessageItem.ID + " = ?", new String[]{String.valueOf(id)});
+        if(!TextUtils.isEmpty(message.contact_id) && !TextUtils.isEmpty(message.created_at)) {
+            synchronized (this) {
+                Cursor cursor = contentResolver.query(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ? AND " + MessageItem.CREATED_AT + " = ? ", new String[]{message.contact_id, message.created_at}, null);
+                if (cursor != null && cursor.getCount() > 0) {
+                    while (cursor.moveToNext()) {
+                        long id = Db.getLong(cursor, MessageItem.ID);
+                        contentResolver.update(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(message).build(), MessageItem.ID + " = ?", new String[]{String.valueOf(id)});
+                    }
+                } else {
+                    contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(message).build());
                 }
-            } else {
-                contentResolver.insert(SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(message).build());
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("updateMessage Id is null: " + message.contact_id + " | createdAt " + message.created_at));
             }
         }
-    }
-
-    /**
-     * Bulk insert messages.
-     * @param items List of Message items
-     * @return
-     */
-    private int bulkInsertMessages(List<Message> items) {
-        ContentValues[] contentValuesList = new ContentValues[items.size()];
-        for (int i = 0; i < items.size(); i++) {
-            Message item = items.get(i);
-            ContentValues contentValues = MessageItem.createBuilder(item).build();
-            MessageItem model = (getMessage(item.contact_id, item.created_at));
-            if (model != null) {
-                contentValues = MessageItem.getContentValues(item, model.id());
-            }
-            Timber.d("MessageItem: " + model);
-            Timber.d("ContentValues: " + contentValues.toString());
-            contentValuesList[i] = contentValues;
-        }
-        if (contentValuesList.length > 0) {
-            return contentResolver.bulkInsert(SyncProvider.MESSAGE_TABLE_URI, contentValuesList);
-        }
-        return 0;
     }
 
     /**
      * Returns a single message item based on contact Id and created date.
-     * @param contentId Contact Id associated with the message.
+     * @param contactId Contact Id associated with the message.
      * @param createdAt The date the message was created.
      * @return MessageItem
      */
-    private MessageItem getMessage(String contentId, String createdAt) {
+    private MessageItem getMessage(@NonNull String contactId, @NonNull String createdAt) {
         MessageItem model = null;
-        Cursor cursor = contentResolver.query(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ? AND " + MessageItem.CREATED_AT + " = ? ", new String[]{contentId, createdAt}, null);
-        if (cursor != null && cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                model = MessageItem.getModel(cursor);
-                cursor.close();
+        if(!TextUtils.isEmpty(contactId)) {
+            Cursor cursor = contentResolver.query(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ? AND " + MessageItem.CREATED_AT + " = ? ", new String[]{contactId, createdAt}, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                while (cursor.moveToNext()) {
+                    model = MessageItem.getModel(cursor);
+                    cursor.close();
+                }
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("getMessage Id is null: " + contactId));
             }
         }
         return model;
     }
-
-    @Deprecated // see bulk insert
-    public void updateMessages(final String contactId, List<Message> messages, final ContentResolverAsyncHandler.AsyncQueryListener listener) {
-        final HashMap<String, Message> entryMap = new HashMap<String, Message>();
-
-        for (Message message : messages) {
-            message.id = contactId + "_" + message.created_at;
-            message.contact_id = contactId;
-            entryMap.put(message.id, message);
-        }
-
-        // get all the current messages
-        Subscription subscription = briteContentResolver.createQuery(SyncProvider.MESSAGE_TABLE_URI,
-                null, null, null, null, false)
-                .map(MessageItem.MAP)
-                .subscribe(new Action1<List<MessageItem>>() {
-                    @Override
-                    public void call(List<MessageItem> messageItems) {
-                        for (MessageItem messageItem : messageItems) {
-                            String id = messageItem.contact_id() + "_" + messageItem.create_at();
-                            Message match = entryMap.get(id);
-
-                            if (match != null) {
-                                entryMap.remove(id);
-                            }
-                        }
-
-                        ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver);
-                        contentResolverAsyncHandler.setQueryListener(listener);
-                        if (entryMap.isEmpty()) {
-                            contentResolverAsyncHandler.onQueryComplete();
-                        } else {
-                            int token = 100;
-                            for (Message message : entryMap.values()) {
-                                contentResolverAsyncHandler.startInsert(token, null, SyncProvider.MESSAGE_TABLE_URI, MessageItem.createBuilder(message).build());
-                                token++;
-                            }
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        reportError(throwable);
-                    }
-                });
-
-        subscription.unsubscribe();
-    }
-
+    
     public Observable<List<MethodItem>> methodQuery() {
         return db.createQuery(MethodItem.TABLE, MethodItem.QUERY)
                 .distinct()
@@ -407,19 +335,26 @@ public class DbManager {
                 .map(CurrencyItem.MAP);
     }
 
-    public Observable<AdvertisementItem> advertisementItemQuery(String adId) {
-        return db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId)
-                .map(AdvertisementItem.MAP)
-                .flatMap(new Func1<List<AdvertisementItem>, Observable<AdvertisementItem>>() {
-                    @Override
-                    public Observable<AdvertisementItem> call(List<AdvertisementItem> advertisementItems) {
-                        if (advertisementItems.size() > 0) {
-                            return Observable.just(advertisementItems.get(0));
+    public Observable<AdvertisementItem> advertisementItemQuery(@NonNull String adId) {
+        if(!TextUtils.isEmpty(adId)) {
+            return db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId)
+                    .map(AdvertisementItem.MAP)
+                    .flatMap(new Func1<List<AdvertisementItem>, Observable<AdvertisementItem>>() {
+                        @Override
+                        public Observable<AdvertisementItem> call(List<AdvertisementItem> advertisementItems) {
+                            if (advertisementItems.size() > 0) {
+                                return Observable.just(advertisementItems.get(0));
+                            }
+                            return null;
                         }
-
-                        return null;
-                    }
-                });
+                    });
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("advertisementItemQuery Id is null: " + adId));
+            }
+        }
+        
+        return Observable.just(null);
     }
 
     public Observable<WalletItem> walletQuery() {
@@ -428,106 +363,42 @@ public class DbManager {
     }
 
     public void updateWallet(final Wallet wallet) {
-        Timber.d("updateWallet: " + wallet);
-        Subscription subscription = briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
-                .map(WalletItem.MAP)
-                .subscribe(new Action1<WalletItem>() {
-                    @Override
-                    public void call(WalletItem walletItem) {
-                        if (walletItem != null) {
-
-                            if (!walletItem.address().equals(wallet.address)
-                                    || !walletItem.balance().equals(wallet.balance)
-                                    || !walletItem.sendable().equals(wallet.sendable)) {
-                                
-                                WalletItem.Builder builder = WalletItem.createBuilder(wallet);
-                                contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(walletItem.id())});
-                            }
-
-                        } else {
-
-                            Timber.d("updateWallet insert");
-                            WalletItem.Builder builder = WalletItem.createBuilder(wallet);
-                            contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        reportError(throwable);
-                    }
-                });
-
-        subscription.unsubscribe();
+        synchronized (this) {
+            Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                while (cursor.moveToNext()) {
+                    long id = Db.getLong(cursor, WalletItem.ID);
+                    contentResolver.update(SyncProvider.WALLET_TABLE_URI, WalletItem.createBuilder(wallet).build(), WalletItem.ID + " = ?", new String[]{String.valueOf(id)});
+                }
+            } else {
+                contentResolver.insert(SyncProvider.WALLET_TABLE_URI, WalletItem.createBuilder(wallet).build());
+            }
+        }
     }
 
     public void updateExchange(final ExchangeRate exchange) {
-        Cursor cursor = db.query(ExchangeRateItem.QUERY);
-        try {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
+        Cursor cursor = contentResolver.query(SyncProvider.EXCHANGE_TABLE_URI, null, null, null, null);
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
                 long id = Db.getLong(cursor, ExchangeRateItem.ID);
-                db.update(ExchangeRateItem.TABLE, ExchangeRateItem.createBuilder(exchange).build(), ExchangeRateItem.ID + " = ?", String.valueOf(id));
-            } else {
-                db.insert(ExchangeRateItem.TABLE, ExchangeRateItem.createBuilder(exchange).build());
+                contentResolver.update(SyncProvider.EXCHANGE_TABLE_URI, ExchangeRateItem.createBuilder(exchange).build(), ExchangeRateItem.ID + " = ?", new String[]{String.valueOf(id)});
             }
-        } finally {
-            cursor.close();
+        } else {
+            contentResolver.insert(SyncProvider.EXCHANGE_TABLE_URI, ExchangeRateItem.createBuilder(exchange).build());
         }
     }
 
     /**
      * Insert localbitcoins currencies
-     *
      * @param currencies
      */
     public void insertCurrencies(final List<ExchangeCurrency> currencies) {
-        db.delete(CurrencyItem.TABLE, null);
+        contentResolver.delete(SyncProvider.CURRENCY_TABLE_URI, null, null);
         for (ExchangeCurrency item : currencies) {
-            CurrencyItem.Builder builder = new CurrencyItem.Builder()
-                    .currency(item.getCurrency());
-            db.insert(CurrencyItem.TABLE, builder.build());
+            CurrencyItem.Builder builder = new CurrencyItem.Builder().currency(item.getCurrency());
+            contentResolver.insert(SyncProvider.CURRENCY_TABLE_URI, builder.build());
         }
     }
-
-    /**
-     * Insert exchange currencies
-     *
-     * @param currencies
-     */
-    public void insertExchangeCurrencies(final List<ExchangeCurrency> currencies) {
-        db.delete(ExchangeCurrencyItem.TABLE, null);
-        for (ExchangeCurrency item : currencies) {
-            ExchangeCurrencyItem.Builder builder = new ExchangeCurrencyItem.Builder()
-                    .currency(item.getCurrency());
-            db.insert(ExchangeCurrencyItem.TABLE, builder.build());
-        }
-    }
-    
-    /*
-    private int bulkInsertFlows(List<Flow> items) {
-        // remove duplicates
-        Set<Flow> hs = new HashSet<>();
-        hs.addAll(items);
-        items.clear();
-        items.addAll(hs);
-        
-        ContentValues[] contentValuesList = new ContentValues[items.size()];
-        for (int i = 0; i < items.size(); i++) {
-            Flow item = items.get(i);
-            ContentValues contentValues = FlowModel.createBuilder(item).build();
-            FlowModel model = getFlow(item.getFlowId());
-            if(model != null) {
-                contentValues = FlowModel.getContentValues(item, model.id());
-            }
-            contentValuesList[i] = contentValues;
-        }
-        if(contentValuesList.length > 0) {
-            return mContentResolver.bulkInsert(SyncProvider.FLOW_TABLE_URI, contentValuesList);
-        }
-        return 0;
-    }
-     */
 
     /**
      * Bulk inserting methods, removing any that don't exist and only inserting
@@ -590,13 +461,19 @@ public class DbManager {
      * @param key
      * @return
      */
-    private MethodItem getMethod(String key) {
+    private MethodItem getMethod(@NonNull String key) {
         MethodItem model = null;
-        Cursor cursor = contentResolver.query(SyncProvider.METHOD_TABLE_URI, null, MethodItem.KEY + " = ?", new String[]{key}, null);
-        if (cursor != null && cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                model = MethodItem.getModel(cursor);
-                cursor.close();
+        if(!TextUtils.isEmpty(key)) {
+            Cursor cursor = contentResolver.query(SyncProvider.METHOD_TABLE_URI, null, MethodItem.KEY + " = ?", new String[]{key}, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                while (cursor.moveToNext()) {
+                    model = MethodItem.getModel(cursor);
+                    cursor.close();
+                }
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("getMethod Key is null: " + key));
             }
         }
         return model;
@@ -616,9 +493,8 @@ public class DbManager {
         if(cursor != null && cursor.getCount() > 0)
             while (cursor.moveToNext()) {
                 String adId = Db.getString(cursor, AdvertisementItem.AD_ID);
-                Timber.d("current editAdvertisement: " + adId);
                 Advertisement match = entryMap.get(adId);
-                if (match == null) {
+                if (match == null && !TextUtils.isEmpty(adId)) {
                     // delete advertisements that no longer exist in the list
                     deleteAdvertisement(adId);
                 }
@@ -630,66 +506,49 @@ public class DbManager {
         }
     }
     
-    public void deleteAdvertisement(String adId) {
-        synchronized( this ) {
-            Timber.d("deleteAdvertisement: " + adId);
-            contentResolver.delete(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.AD_ID + " = ?", new String[]{String.valueOf(adId)});
+    public void deleteAdvertisement(@NonNull String adId) {
+        if(!TextUtils.isEmpty(adId)) {
+            synchronized (this) {
+                contentResolver.delete(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.AD_ID + " = ?", new String[]{String.valueOf(adId)});
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("deleteAdvertisement Id is null: " + adId));
+            }
         }
     }
     
     public void updateAdvertisement(Advertisement item) {
-        synchronized( this ) {
-            Cursor cursor = contentResolver.query(SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ? ", new String[]{item.ad_id}, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                while (cursor.moveToNext()) {
-                    Timber.d("update editAdvertisement: " + item.ad_id);
-                    long id = Db.getLong(cursor, AdvertisementItem.ID);
-                    contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.createBuilder(item).build(), AdvertisementItem.ID + " = ?", new String[]{String.valueOf(id)});
+        if(!TextUtils.isEmpty(item.ad_id)) {
+            synchronized (this) {
+                Cursor cursor = contentResolver.query(SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ? ", new String[]{item.ad_id}, null);
+                if (cursor != null && cursor.getCount() > 0) {
+                    while (cursor.moveToNext()) {
+                        Timber.d("update editAdvertisement: " + item.ad_id);
+                        long id = Db.getLong(cursor, AdvertisementItem.ID);
+                        contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.createBuilder(item).build(), AdvertisementItem.ID + " = ?", new String[]{String.valueOf(id)});
+                    }
+                } else {
+                    Timber.d("insert editAdvertisement: " + item.ad_id);
+                    contentResolver.insert(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.createBuilder(item).build());
                 }
-            } else {
-                Timber.d("insert editAdvertisement: " + item.ad_id);
-                contentResolver.insert(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.createBuilder(item).build());
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("updateAdvertisement Id is null: " + item.ad_id));
             }
         }
-    }
-
-    private int bulkInsertAdvertisements(List<Advertisement> items) {
-        ContentValues[] contentValuesList = new ContentValues[items.size()];
-        for (int i = 0; i < items.size(); i++) {
-            Advertisement item = items.get(i);
-            ContentValues contentValues = AdvertisementItem.createBuilder(item).build();
-            AdvertisementItem model = getAdvertisement(item.ad_id);
-            if (model != null) {
-                contentValues = AdvertisementItem.getContentValues(item, model.id());
-            }
-            contentValuesList[i] = contentValues;
-        }
-        if (contentValuesList.length > 0) {
-            int result = contentResolver.bulkInsert(SyncProvider.ADVERTISEMENT_TABLE_URI, contentValuesList);
-            return result;
-        }
-        return 0;
-    }
-
-    private AdvertisementItem getAdvertisement(String adId) {
-        AdvertisementItem model = null;
-        Cursor cursor = contentResolver.query(SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ? ", new String[]{adId}, null);
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToNext();
-            model = AdvertisementItem.getModel(cursor);
-        }
-        return model;
     }
     
-    public void updateAdvertisementVisibility(final String adId, final boolean visible) {
-        synchronized( this ) {
-            contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", new String[]{String.valueOf(adId)});
-        }
-    }
-
-    protected void reportError(Throwable throwable) {
-        if (throwable != null && throwable.getLocalizedMessage() != null) {
-            Timber.e("Database Manager Error: " + throwable.getLocalizedMessage());
+    public void updateAdvertisementVisibility(@NonNull String adId, final boolean visible) {
+        if(!TextUtils.isEmpty(adId)) {
+            synchronized (this) {
+                contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", new String[]{String.valueOf(adId)});
+            }
+        } else {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.logException(new Throwable("updateAdvertisementVisibility Id is null: " + adId));
+            }
         }
     }
 }

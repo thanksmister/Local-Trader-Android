@@ -23,9 +23,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
+import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
+import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 
 /*
  * Define an implementation of ContentProvider that stubs out
@@ -41,14 +47,15 @@ public class SyncProvider extends ContentProvider {
      * Base URI. (content://com.thanksmister.bitcoin.localtrader.provider)
      */
     public static final Uri CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
-
-    public static final Uri METHOD_TABLE_URI = CONTENT_URI.buildUpon().appendPath("method_item").build();
-    public static final Uri CONTACT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("contact_item").build();
-    public static final Uri ADVERTISEMENT_TABLE_URI = CONTENT_URI.buildUpon().appendPath("advertisement_item").build();
-    public static final Uri MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath("message_item").build();
-    public static final Uri RECENT_MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath(RecentMessageItem.TABLE).build();
+    
+    public static final Uri METHOD_TABLE_URI = CONTENT_URI.buildUpon().appendPath(MethodItem.TABLE).build();
+    public static final Uri CONTACT_TABLE_URI = CONTENT_URI.buildUpon().appendPath(ContactItem.TABLE).build();
+    public static final Uri ADVERTISEMENT_TABLE_URI = CONTENT_URI.buildUpon().appendPath(AdvertisementItem.TABLE).build();
+    public static final Uri MESSAGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath(MessageItem.TABLE).build();
     public static final Uri NOTIFICATION_TABLE_URI = CONTENT_URI.buildUpon().appendPath(NotificationItem.TABLE).build();
-    public static final Uri WALLET_TABLE_URI = CONTENT_URI.buildUpon().appendPath("wallet_item").build();
+    public static final Uri WALLET_TABLE_URI = CONTENT_URI.buildUpon().appendPath(WalletItem.TABLE).build();
+    public static final Uri EXCHANGE_TABLE_URI = CONTENT_URI.buildUpon().appendPath(ExchangeRateItem.TABLE).build();
+    public static final Uri CURRENCY_TABLE_URI = CONTENT_URI.buildUpon().appendPath(CurrencyItem.TABLE).build();
 
     DbOpenHelper dbOpenHelper;
     ContentResolver contentResolver;

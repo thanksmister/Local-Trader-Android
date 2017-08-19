@@ -603,8 +603,10 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         }
         
         String description = TradeUtils.getContactDescription(contact, this);
-        noteText.setText(Html.fromHtml(description));
-        noteText.setMovementMethod(LinkMovementMethod.getInstance());
+        if(!TextUtils.isEmpty(description)) {
+            noteText.setText(Html.fromHtml(description));
+            noteText.setMovementMethod(LinkMovementMethod.getInstance());
+        }
         contactHeaderLayout.setVisibility((description == null) ? View.GONE : View.VISIBLE);
         
         if(TradeUtils.isOnlineTrade(contact)) {
@@ -896,6 +898,9 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             case ONLINE_BUY:
             case ONLINE_SELL:
                 title = (contact.is_buying) ? "Buying Online" : "Selling Online";
+                break;
+            default:
+                title = "Trade";
                 break;
         }
 

@@ -331,6 +331,7 @@ public class WalletFragment extends BaseFragment {
                         public void call(final Wallet wallet) {
                             dbManager.updateWallet(wallet);
                             dbManager.updateTransactions(wallet.getTransactions());
+                            dataService.setWalletExpireTime();
                         }
                     }, new Action1<Throwable>() {
                         @Override

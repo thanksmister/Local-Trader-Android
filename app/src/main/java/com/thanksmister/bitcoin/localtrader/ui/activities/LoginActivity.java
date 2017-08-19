@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.TextUtils;
@@ -99,6 +100,7 @@ public class LoginActivity extends BaseActivity {
     private String endpoint;
     private boolean whatsNewShown;
     private boolean webViewLogin;
+    private Handler handler;
 
 
     public static Intent createStartIntent(Context context) {
@@ -120,12 +122,13 @@ public class LoginActivity extends BaseActivity {
             endpoint = savedInstanceState.getString(EXTRA_END_POINT);
         }
 
+        handler = new Handler();
         webView = (WebView) findViewById(R.id.webView);
 
         final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
+        Timber.d("currentEndpoint: " + currentEndpoint);
         apiEndpoint.setText(currentEndpoint);
-
-        OAUTH_URL =  AuthUtils.getServiceEndpoint(preference, sharedPreferences) + "/oauth2/authorize/?ch=2hbo&client_id="
+        OAUTH_URL = currentEndpoint + "/oauth2/authorize/?ch=2hbo&client_id="
                 + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
 
         editTextDescription.setText(Html.fromHtml(getString(R.string.setup_description)));
@@ -167,43 +170,66 @@ public class LoginActivity extends BaseActivity {
         endpoint = apiEndpoint.getText().toString();
         final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
 
+        Timber.d("endpoint: " + endpoint);
+        Timber.d("currentEndpoint: " + currentEndpoint);
+        
         if (TextUtils.isEmpty(endpoint)) {
             hideProgressDialog();
             showAlertDialog(new AlertDialogEvent(null, "The service end point should not be a valid URL."));
-            return;
         } else if (!Patterns.WEB_URL.matcher(endpoint).matches()) {
+            hideProgressDialog();
             showAlertDialog(new AlertDialogEvent(null, "The service end point should not be a valid URL."));
-            return;
         } else if (!currentEndpoint.equals(endpoint)) {
-            showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), new Action0() {
-                @Override
-                public void call() {
-                    // save for shared preferences
-                    AuthUtils.setServiceEndPoint(preference, endpoint);
-                    Intent intent = LoginActivity.createStartIntent(LoginActivity.this);
-                    PendingIntent restartIntent = PendingIntent.getActivity(LoginActivity.this, 0, intent, 0);
-                    AlarmManager alarmManager = (AlarmManager) LoginActivity.this.getSystemService(Context.ALARM_SERVICE);
-                    alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 100, restartIntent);
-                    System.exit(0);
-                }
-            }, new Action0() {
-                @Override
-                public void call() {
-                    apiEndpoint.setText(currentEndpoint);
-                }
-            });
-        }
+            hideProgressDialog();
+            showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), 
+                    new Action0() {
+                        @Override
+                        public void call() {
+                            // save for shared preferences
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showProgressDialog(new ProgressDialogEvent("Restarting...."));
+                                    apiEndpoint.setText(endpoint);
+                                    Timber.d("endpoint: " + endpoint);
+                                    Timber.d("currentEndpoint: " + currentEndpoint);
+                                    AuthUtils.setServiceEndPoint(preference, endpoint);
+                                    Timber.d("savedendpoint: " +  AuthUtils.getServiceEndpoint(preference, sharedPreferences));
+                                    handler = new Handler();
+                                    handler.postDelayed(refreshRunnable, 100);
+                                }
+                            });
+                        }
+                    }, new Action0() {
+                        @Override
+                        public void call() {
+                            apiEndpoint.setText(currentEndpoint);
+                        }
+                    });
+        } else {
+            // hide keyboard and notify
+            try{
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+            } catch (NullPointerException e) {
+                Timber.e("Error closing keyboard");
+            }
 
-        // hide keyboard and notify
-        try{
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-        } catch (NullPointerException e) {
-            Timber.e("Error closing keyboard");
+            setUpWebViewDefaults();
         }
-
-        setUpWebViewDefaults();
     }
+
+    private Runnable refreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hideProgressDialog();
+            Intent intent = LoginActivity.createStartIntent(LoginActivity.this);
+            PendingIntent restartIntent = PendingIntent.getActivity(LoginActivity.this, 0, intent, 0);
+            AlarmManager alarmManager = (AlarmManager) LoginActivity.this.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 100, restartIntent);
+            System.exit(0);
+        }
+    };
 
     public Context getContext() {
         return this;

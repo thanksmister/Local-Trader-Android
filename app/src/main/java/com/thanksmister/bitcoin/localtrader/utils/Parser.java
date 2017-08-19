@@ -426,13 +426,18 @@ public class Parser
             
             if (advertisement.has("trade_type")) {
                 String trade_type = advertisement.getString("trade_type");
-                if(trade_type.equals(TradeType.LOCAL_BUY.name()) 
-                        || trade_type.equals(TradeType.LOCAL_SELL.name()) 
+                if(trade_type.equals(TradeType.LOCAL_BUY.name())
+                        || trade_type.equals(TradeType.LOCAL_SELL.name())
                         || trade_type.equals(TradeType.ONLINE_BUY.name())
                         || trade_type.equals(TradeType.ONLINE_SELL.name())) {
                     item.advertisement.trade_type = (TradeType.valueOf(trade_type));
+                } else {
+                    if(BuildConfig.DEBUG) {
+                        Crashlytics.setString("contact_data_key", data.toString());
+                        Crashlytics.logException(new Throwable("Found invalid trade type for contact: " + trade_type));
+                    }
+                    item.advertisement.trade_type = TradeType.NONE; 
                 }
-                item.advertisement.trade_type = TradeType.NONE;
             }
 
             JSONObject advertiser = advertisement.getJSONObject("advertiser");

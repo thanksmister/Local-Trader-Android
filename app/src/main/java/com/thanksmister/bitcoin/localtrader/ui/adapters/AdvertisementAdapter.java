@@ -303,6 +303,9 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
                 case ONLINE_SELL:
                     type = (contact.is_buying)? "Buying Online":"Selling Online";
                     break;
+                default:
+                    type = "Trade";
+                    break;
             }
     
             String amount =  contact.amount + " " + contact.currency;

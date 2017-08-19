@@ -48,7 +48,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.QRCodeActivity;
@@ -157,17 +156,9 @@ public class RequestFragment extends BaseFragment {
             case R.id.action_paste:
                 setAmountFromClipboard();
                 return true;
-            case R.id.action_scan:
-                ((BaseActivity) getActivity()).launchScanner();
-                return true;
             case R.id.action_share:
                 if(walletItem != null) {
                     shareAddress(walletItem.address());
-                }
-                return true;
-            case R.id.action_copy:
-                if(walletItem != null) {
-                    setAddressOnClipboard(walletItem.address());
                 }
                 return true;
             case R.id.action_blockchain:

@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.R;
@@ -107,6 +108,8 @@ public class DataService {
         resetAdvertisementsExpireTime();
         resetMethodsExpireTime();
         resetContactsExpireTime();
+        resetWalletBalanceExpireTime();
+        resetWalletExpireTime();
     }
 
     public Observable<Authorization> getAuthorization(String code) {
@@ -431,13 +434,7 @@ public class DataService {
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getContactInfo(accessToken, contact_id);
     }
-
-    public Observable<List<Message>> getRecentMessages() {
-        return getRecentMessagesObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getRecentMessagesObservable()))
-                .map(new ResponseToMessages());
-    }
-
+    
     private Observable<Response> getRecentMessagesObservable() {
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.recentMessages(accessToken);
@@ -516,7 +513,7 @@ public class DataService {
                 .map(new ResponseToAd());
     }
 
-    private Observable<Response> getAdvertisementObservable(final String adId) {
+    private Observable<Response> getAdvertisementObservable(@NonNull String adId) {
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getAdvertisement(accessToken, adId);
     }
@@ -656,12 +653,20 @@ public class DataService {
         preference.putLong(PREFS_WALLET_BALANCE_EXPIRE_TIME, expire);
     }
 
+    private void resetWalletBalanceExpireTime() {
+        preference.removePreference(PREFS_WALLET_BALANCE_EXPIRE_TIME);
+    }
+
     public boolean needToRefreshWallet() {
         return System.currentTimeMillis() > preference.getLong(PREFS_WALLET_EXPIRE_TIME, -1);
     }
 
-    private void setWalletExpireTime() {
+    public void setWalletExpireTime() {
         long expire = System.currentTimeMillis() + CHECK_WALLET_DATA; // 1 hours
         preference.putLong(PREFS_WALLET_EXPIRE_TIME, expire);
+    }
+
+    private void resetWalletExpireTime() {
+        preference.removePreference(PREFS_WALLET_EXPIRE_TIME);
     }
 }

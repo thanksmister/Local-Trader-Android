@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -43,6 +44,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.activities.LoginActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.SettingsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
@@ -61,6 +63,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
+import timber.log.Timber;
 
 import static com.thanksmister.bitcoin.localtrader.R.xml.preferences;
 
@@ -88,6 +91,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     ListPreference unitsPreference;
     EditTextPreference apiPreference;
     ListPreference currencyPreference;
+    private Handler handler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -193,11 +197,21 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                 ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), new Action0() {
                     @Override
                     public void call() {
-                        apiPreference.setText(endpoint);
-                        apiPreference.setSummary(endpoint);
-                        apiPreference.setDefaultValue(endpoint);
-                        AuthUtils.setServiceEndPoint(preference, endpoint);
-                        resetEndPoint();
+                        Timber.d("endpoint: " + endpoint);
+                        Timber.d("currentEndpoint: " + currentEndpoint);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ((SettingsActivity) getActivity()).showProgressDialog(new ProgressDialogEvent("Restarting..."));
+                                apiPreference.setText(endpoint);
+                                apiPreference.setSummary(endpoint);
+                                apiPreference.setDefaultValue(endpoint);
+                                AuthUtils.setServiceEndPoint(preference, endpoint);
+                                handler = new Handler();
+                                handler.postDelayed(refreshRunnable, 100);
+                            }
+                        });
+                        
                     }
                 }, new Action0() {
                     @Override
@@ -211,6 +225,17 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             }
         }
     }
+
+    private Runnable refreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Intent intent = LoginActivity.createStartIntent(getActivity());
+            PendingIntent restartIntent = PendingIntent.getActivity(getActivity(), 0, intent, 0);
+            AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+            alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 100, restartIntent);
+            System.exit(0);
+        }
+    };
 
     private void subscribeData() {
         db.currencyQuery()
@@ -263,14 +288,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         marketCurrencyPreference.setValue(String.valueOf(selectedValue));
     }
     
-    private void resetEndPoint() {
-        Intent intent = LoginActivity.createStartIntent(getActivity());
-        PendingIntent restartIntent = PendingIntent.getActivity(getActivity(), 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 100, restartIntent);
-        System.exit(0);
-    }
-
     private void logOut() {
         ((SettingsActivity) getActivity()).logOutConfirmation();
     }

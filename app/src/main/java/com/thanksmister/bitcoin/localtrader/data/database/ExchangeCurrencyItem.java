@@ -56,16 +56,7 @@ public abstract class ExchangeCurrencyItem implements Parcelable
             return values;
         }
     };
-
-    /*public static List<ExchangeCurrency> getCurrencies(List<ExchangeCurrencyItem> currencyItems) {
-        List<ExchangeCurrency> exchangeCurrencies = new ArrayList<>();
-        for(ExchangeCurrencyItem exchangeCurrencyItem : currencyItems) {
-            ExchangeCurrency exchangeCurrency = new ExchangeCurrency(exchangeCurrencyItem.currency());
-            exchangeCurrencies.add(exchangeCurrency);
-        }
-        return exchangeCurrencies;
-    }
-*/
+    
     public static List<ExchangeCurrency> getCurrencies(List<CurrencyItem> currencyItems) {
         List<ExchangeCurrency> exchangeCurrencies = new ArrayList<>();
         for(CurrencyItem exchangeCurrencyItem : currencyItems) {

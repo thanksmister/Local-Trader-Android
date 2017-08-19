@@ -30,12 +30,13 @@ import static android.content.Context.ACCOUNT_SERVICE;
 /**
  * Static helper methods for working with the sync framework.
  */
-public class SyncUtils
-{
+public class SyncUtils {
+    
     public static final long SYNC_FREQUENCY = 5 * 60;  // 5 minutes in seconds
 
     /**
-     * Request immediate sync 
+     * Request immediate sync
+     *
      * @param context
      */
     public static void requestSyncNow(Context context) {
@@ -48,6 +49,7 @@ public class SyncUtils
 
     /**
      * Cancel any ongoing syncs
+     *
      * @param context
      */
     public static void cancelSync(Context context) {
@@ -56,45 +58,15 @@ public class SyncUtils
 
     /**
      * Get existing account or create a new account if non exists
+     *
      * @param context
      * @return
      */
     public static Account getSyncAccount(Context context) {
-        /*String acctType = "com.thanksmister.bitcoin.localtrader.sync";
-        Account[] accounts = AccountManager.get(context).getAccountsByType(acctType);
-        AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
-        int j = accounts.length;
-        int i = 0;
-        while (i < j) {
-            Account localAccount = accounts[i];
-            if (localAccount.name.equals(context.getString(R.string.app_name))) {
-                return localAccount;
-            }
-            if(localAccount.name.equals("Contacts")) {
-                deleteSyncAccounts(context, "Contacts");
-            }
-            i += 1;
-        }*/
         String acctType = "com.thanksmister.bitcoin.localtrader.sync";
         AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
         Account account = new Account(context.getString(R.string.app_name), acctType);
         accountManager.addAccountExplicitly(account, null, null);
         return account;
     }
-
-    /**
-     * Delete any sync accounts
-     * @param context
-     * @param paramString
-     */
-    /*public static void deleteSyncAccounts(Context context, String paramString) {
-        AccountManager accountManager = AccountManager.get(context);
-        Account[] accounts = accountManager.getAccountsByType(paramString);
-        int j = accounts.length;
-        int i = 0;
-        while (i < j) {
-            accountManager.removeAccount(accounts[i], null, null);
-            i += 1;
-        }
-    }*/
 }

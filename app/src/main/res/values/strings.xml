@@ -26,7 +26,6 @@
     <string name="error_title" translatable="false">Error</string>
 
     <!-- What's New -->
-    <string name="whats_new_message"><![CDATA[*Bug fixes and improvements<br><br>*Redesigned the application to include bottom button navigation.<br><br>*Added support for many more online trade types, including Ethereum.<br><br>*Increase efficiency of loading background data for better performance.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
 
     <!-- ERRORS & WARNINGS -->
     <string name="warning_no_location_active">Location services are required to use the search function, please enable location services to continue.</string>
@@ -72,9 +71,7 @@
     <string name="menu_action_map">View map</string>
     <string name="menu_action_visibility">Visibility</string>
     <string name="menu_action_scan">Scan</string>
-    <string name="menu_action_send">Send</string>
     <string name="menu_action_send_message">Message</string>
-    <string name="menu_action_copy">COPY</string>
     <string name="menu_action_delete">Delete</string>
     <string name="menu_action_edit">Edit</string>
     <string name="menu_action_web">View online</string>
@@ -88,14 +85,6 @@
     <string name="menu_action_cancel">Cancel</string>
     <string name="menu_action_dispute">Dispute</string>
     <string name="menu_action_blockchain">View Blockchain</string>
-    <string name="menu_action_address">New Address</string>
-
-    <array name="tab_items">
-        <item>@string/view_title_advertisements</item>
-        <item>@string/view_title_trades</item>
-        <item>@string/view_title_notifications</item>
-        <item>@string/view_title_wallet</item>
-    </array>
 
     <!-- LOGIN/REGISTER -->
 
@@ -200,7 +189,6 @@
     <!-- TOASTS -->
     <string name="toast_invalid_btc_amount">Invalid bitcoin amount.</string>
     <string name="toast_invalid_address">Not a valid bitcoin address.</string>
-    <string name="toast_invalid_amount">Not a valid bitcoin amount.</string>
     <string name="toast_clipboard_empty">The contents of the clipboard are empty.</string>
     <string name="toast_error_message">Error sending message.</string>
     <string name="toast_refreshing_data">Refreshing data…</string>
@@ -276,7 +264,6 @@
     ]]></string>
     
     <string name="error_unable_load_address_edit">Unable to use the address lookup service, user current location.</string>
-    <string name="error_no_trade_data">There are no trades.</string>
     <string name="dialog_logout_title">Logout</string>
     <string name="dialog_logout_message">Do you wish to logout and clear your data?</string>
     <string name="wallet_recent_activity_header">Recent Activity</string>
@@ -319,7 +306,6 @@
     <string name="setup_description"><![CDATA[For regions that may be blocked, change the default endpoint to the LocalBitcoins mirror site \"https://localbitcoins.net\".]]></string>
     <string name="setup_credentials">Authentication Settings</string>
     <string name="authentication_success">Authentication successful for %1$s</string>
-    <string name="send_form_description"><![CDATA[A PIN code is required for funding, releasing or sending payments. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page or use the mirror site <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo/\">localbitcoins.net</a> for blocked regions.]]></string>
     <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
     <string name="button_authenticate">Authenticate</string>
     <string name="trade_request_description"><![CDATA[All fields are required unless otherwise marked as optional. Please see <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">the online buying guide</a> for requirements by payment type.]]></string>
@@ -669,9 +655,7 @@
     <string name="text_title_deal_amount">Deal amount</string>
     <string name="text_title_current_price">Current price</string>
     <string name="text_title_market_price">MARKET PRICE</string>
-    <string name="text_title_source">Source: </string>
     <string name="toast_unable_update_currency_rate">Unable to update currency rate…</string>
-    <string name="text_whats_new">What\'s new in </string>
     <string name="toast_no_valid_address_bitcoin">No valid address to receive bitcoin…</string>
     <string name="text_title_request_specific_amount">Request Specific Amount</string>
     <string name="text_title_getting_started">Getting Started</string>
@@ -709,7 +693,6 @@
     <string name="toast_playment_method_blank">Payment method can\'t be blank.</string>
     <string name="toast_swift_blank">SWIFT or Bic can\'t be blank.</string>
     <string name="toast_gift_card_blank">Gift card issuer can\'t be blank.</string>
-    <string name="text_no_notifications">No notifications</string>
     <string name="text_advertisement_item_local_buy">Local Buy -</string>
     <string name="text_advertisement_item_local_sale">Local Sale -</string>
     <string name="text_advertisement_item_online_buy">Online Buy -</string>
@@ -743,5 +726,6 @@
     <string name="error_address_lookup_description">Error looking up the latitude and longitude for your current address, try a different address.</string>
     <string name="progress_loading_localbitcoins">Loading LocalBitcoins...</string>
     <string name="error_no_advertisement">The advertisement Id does not exist and can not be loaded.</string>
+    <string name="error_invalid_trade_type">This advertisement has an invalid trade type and cannot be displayed. The developer has been notified.</string>
 
 </resources>

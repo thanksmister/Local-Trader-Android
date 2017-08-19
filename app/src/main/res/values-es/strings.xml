@@ -1,9 +1,8 @@
 <resources>
 
-    <!-- What's New -->
-    <string name="whats_new_message"><![CDATA[* Redesigned the application to include bottom button navigation instead of tabs.<br><br>* Added support for many more online trade types, including Ether.<br><br>* Increase efficiency of loading background data for better performance.<br><br>Please join the <a href=\"https://www.reddit.com/r/LocalTrader/\">r/localtrader</a> community on Reddit for support.<br><br>If like the application, why not <a href=\"https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader\">submit a review</a>.]]></string>
+    <!-- What's New --><![CDATA[
     
-    <!-- ERRORS & WARNINGS -->
+    ]]><!-- ERRORS & WARNINGS -->
     <string name="warning_no_location_active">Los servicios de ubicación son necesarios para usar la función de búsqueda, por favor, habilite los servicios de ubicación para continuar.</string>
     <string name="warning_no_google_play_services">Los servicios de Google Play son necesarios, instale o actualice los servicios.</string>
     <string name="warning_update_google_play_services">Los servicios de Google Play están desactualizados, actualice los servicios.</string>
@@ -45,11 +44,12 @@
     <string name="menu_action_filter">Filtro</string>
     <string name="menu_action_map">Ver mapa</string>
     <string name="menu_action_visibility">Visibilidad</string>
-    <string name="menu_action_scan">Escanear</string>
-    <string name="menu_action_send">Enviar</string>
-    <string name="menu_action_send_message">Mensaje</string>
-    <string name="menu_action_copy">COPY</string>
-    <string name="menu_action_delete">Eliminar</string>
+    <string name="menu_action_scan">Escanear</string><![CDATA[
+    
+    ]]><string name="menu_action_send_message">Mensaje</string><![CDATA[
+    
+    ]]>
+    <string name="menu_action_delete">Eliminar</string>
     <string name="menu_action_edit">Editar</string>
     <string name="menu_action_web">Ver en línea</string>
     <string name="menu_action_share">Compartir</string>
@@ -61,10 +61,10 @@
     <string name="menu_action_profile">Perfil</string>
     <string name="menu_action_cancel">Cancelar</string>
     <string name="menu_action_dispute">Dispute</string>
-    <string name="menu_action_blockchain">Ver Blockchain</string>
-    <string name="menu_action_address">Nueva dirección</string>
+    <string name="menu_action_blockchain">Ver Blockchain</string><![CDATA[
+    
 
-    <!-- LOGIN/REGISTER -->
+    ]]><!-- LOGIN/REGISTER -->
 
     <string-array name="login_registration_screens_description">
         <item><![CDATA[Local Trader trabaja con tu cuenta <b>LocalBitcoins </ b>para administrar los oficios, anuncios, enviar mensajes o manejar los pagos.]]></item>
@@ -161,9 +161,10 @@
 
     <!-- TOASTS -->
     <string name="toast_invalid_btc_amount">Cantidad de bitcoin no válida.</string>
-    <string name="toast_invalid_address">No es una dirección bitcoin válida.</string>
-    <string name="toast_invalid_amount">No es una cantidad bitcoin válida.</string>
-    <string name="toast_clipboard_empty">El contenido del portapapeles está vacío.</string>
+    <string name="toast_invalid_address">No es una dirección bitcoin válida.</string><![CDATA[
+    
+    ]]>
+    <string name="toast_clipboard_empty">El contenido del portapapeles está vacío.</string>
     <string name="toast_error_message">Error al enviar el mensaje.</string>
     <string name="toast_refreshing_data">Actualizando datos…</string>
     <string name="toast_valid_address_required">Se requiere una dirección válida.</string>
@@ -214,7 +215,6 @@
     <string name="mail_subject_text">Enviar comentarios:</string>
 
     <string name="error_unable_load_address_edit">No se puede usar el servicio de búsqueda de direcciones, ubicación actual del usuario.</string>
-    <string name="error_no_trade_data">No hay operaciones.</string>
     <string name="dialog_logout_title">Cerrar sesión</string>
     <string name="dialog_logout_message">¿Desea cerrar la sesión y borrar sus datos?</string>
     <string name="wallet_recent_activity_header">Actividad reciente</string>
@@ -251,9 +251,10 @@
     <string name="require_location_permission">Crear, actualizar o buscar anuncios requiere permiso para comprobar su ubicación.</string>
     <string name="setup_description"><![CDATA[Para las regiones que pueden estar bloqueadas, cambie el punto final predeterminado al sitio de espejo de LocalBitcoins \"https://localbitcoins.net\".]]></string>
     <string name="setup_credentials">Configuración de autenticación</string>
-    <string name="authentication_success">Autenticación satisfactoria para %1$s</string>
-    <string name="send_form_description"><![CDATA[Se requiere un código PIN para la financiación, la liberación o el envío de pagos. Administrar el código PIN en la página <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Perfil de la cuenta</a> o utilizar el sitio del espejo <a href=\"https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo/\">localbitcoins.net</a> para regiones bloqueadas.]]></string>
-    <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
+    <string name="authentication_success">Autenticación satisfactoria para %1$s</string><![CDATA[
+    
+    ]]>
+    <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
     <string name="button_authenticate">Authenticate</string>
     <string name="trade_request_description"><![CDATA[Todos los campos son obligatorios a menos que se indique lo contrario como opcional. Consulte <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">la guía de compras en línea </a> para conocer los requisitos por tipo de pago.]]></string>
     <string name="error_dialog_no_address_edit">Esa dirección no es válida, ingresa una dirección diferente (como país o ciudad) o usa la ubicación actual.</string>
@@ -602,9 +603,7 @@
     <string name="text_title_deal_amount">Deal amount</string>
     <string name="text_title_current_price">Current price</string>
     <string name="text_title_market_price">MARKET PRICE</string>
-    <string name="text_title_source">Source: </string>
     <string name="toast_unable_update_currency_rate">Unable to update currency rate…</string>
-    <string name="text_whats_new">What\'s new in </string>
     <string name="toast_no_valid_address_bitcoin">No valid address to receive bitcoin…</string>
     <string name="text_title_request_specific_amount">Request Specific Amount</string>
     <string name="text_title_getting_started">Getting Started</string>
@@ -642,7 +641,6 @@
     <string name="toast_playment_method_blank">Payment method can\'t be blank.</string>
     <string name="toast_swift_blank">SWIFT or Bic can\'t be blank.</string>
     <string name="toast_gift_card_blank">Gift card issuer can\'t be blank.</string>
-    <string name="text_no_notifications">No notifications</string>
     <string name="text_advertisement_item_local_buy">Local Buy -</string>
     <string name="text_advertisement_item_local_sale">Local Sale -</string>
     <string name="text_advertisement_item_online_buy">Online Buy -</string>
@@ -676,5 +674,6 @@
     <string name="error_address_lookup_description">Error looking up the latitude and longitude for your current address, try a different address.</string>
     <string name="progress_loading_localbitcoins">Loading LocalBitcoins...</string>
     <string name="error_no_advertisement">The advertisement Id does not exist and can not be loaded.</string>
+    <string name="error_invalid_trade_type">This advertisement has an invalid trade type and cannot be displayed. The developer has been notified.</string>
 
 </resources>

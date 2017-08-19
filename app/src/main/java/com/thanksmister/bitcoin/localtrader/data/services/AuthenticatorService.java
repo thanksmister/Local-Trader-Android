@@ -26,92 +26,33 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
+import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 
 /**
  * A bound Service that instantiates the authenticator
  * when started.
  */
-public class AuthenticatorService extends Service
-{
-  
+public class AuthenticatorService extends Service {
     
     // Instance field that stores the authenticator object
     private Authenticator mAuthenticator;
 
     private static AccountAuthenticatorImpl sAccountAuthenticator = null;
     
-    /*@Override
-    public void onCreate() {
-        // Create a new authenticator object
-        mAuthenticator = new Authenticator(this);
-    }*/
-
     @Override
-    public void onCreate()
-    {
+    public void onCreate() {
         // Create a new authenticator object
         //mAuthenticator = new Authenticator(this);
         sAccountAuthenticator = new AccountAuthenticatorImpl(this);
     }
-
-    /**
-     * Obtain a handle to the {@link android.accounts.Account} used for sync in this application.
-     *
-     * @return Handle to application's account (not guaranteed to resolve unless CreateSyncAccount()
-     *         has been called)
-     */
-    public static Account GetAccount()
-    {
-        /*Account account = new Account(accountName, ACCOUNT_TYPE);
-        AccountManager am = AccountManager.get(context);
-        am.blockingGetAuthToken(account, )
-        boolean accountCreated = am.addAccountExplicitly(account, password, null);
-
-        Bundle extras = getIntent.getExtras();
-        if (extras != null) {
-            if (accountCreated) {  //Pass the new account back to the account manager
-                AccountAuthenticatorResponse response = extras.getParcelable(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
-                Bundle result = new Bundle();
-                result.putString(AccountManager.KEY_ACCOUNT_NAME, username);
-                result.putString(AccountManager.KEY_ACCOUNT_TYPE, getString(R.string.ACCOUNT_TYPE));
-                response.onResult(result);
-            }
-            finish();
-        }
-        */
-        // This string should *not* be localized. If the user switches locale, we would not be
-        // able to locate the old account, and may erroneously register multiple accounts.
-        return new Account(Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE);
-    }
-
-    /**
-     * Obtain a handle to the {@link android.accounts.Account} used for sync in this application.
-     *
-     * @return Handle to application's account (not guaranteed to resolve unless CreateSyncAccount()
-     *         has been called)
-     */
-    public static Account GetAccount(String accountName)
-    {
-        if(TextUtils.isEmpty(accountName))
-            accountName = Constants.ACCOUNT_NAME;
-                    
-        // This string should *not* be localized. If the user switches locale, we would not be
-        // able to locate the old account, and may erroneously register multiple accounts.
-        return new Account(accountName, Constants.ACCOUNT_TYPE);
-    }
     
-    private static class AccountAuthenticatorImpl extends AbstractAccountAuthenticator
-    {
+    private static class AccountAuthenticatorImpl extends AbstractAccountAuthenticator {
         private Context mContext;
 
-        public AccountAuthenticatorImpl(Context context)
-        {
+        public AccountAuthenticatorImpl(Context context) {
             super(context);
             mContext = context;
         }
@@ -122,8 +63,7 @@ public class AuthenticatorService extends Service
          */
         @Override
         public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options)
-                throws NetworkErrorException
-        {
+                throws NetworkErrorException {
             Bundle reply = new Bundle();
 
             Toast.makeText(mContext, mContext.getString(R.string.warning_no_multiple_account_supports), Toast.LENGTH_SHORT).show();
@@ -171,26 +111,8 @@ public class AuthenticatorService extends Service
      * When the system binds to this Service to make the RPC call
      * return the authenticator's IBinder.
      */
-    /*@Override
-    public IBinder onBind(Intent intent) {
-        return mAuthenticator.getIBinder();
-    }*/
-
-    /*
-     * When the system binds to this Service to make the RPC call
-     * return the authenticator's IBinder.
-     */
     @Override
-    public IBinder onBind(Intent intent)
-    {
+    public IBinder onBind(Intent intent) {
         return sAccountAuthenticator.getIBinder();
-    }
-
-    private AccountAuthenticatorImpl getAuthenticator()
-    {
-        if (sAccountAuthenticator == null)
-            sAccountAuthenticator = new AccountAuthenticatorImpl(this);
-
-        return sAccountAuthenticator;
     }
 }

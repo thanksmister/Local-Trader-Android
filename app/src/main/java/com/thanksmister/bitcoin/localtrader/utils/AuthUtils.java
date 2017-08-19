@@ -266,6 +266,6 @@ public class AuthUtils {
         preference.removePreference(PREFS_FORCE_UPDATES);
         preference.removePreference(PREFS_USER_FEEDBACK);
         preference.removePreference(PREFS_USER);
-        preference.removePreference(PREFS_API_ENDPOINT);
+        //preference.removePreference(PREFS_API_ENDPOINT);
     }
 }

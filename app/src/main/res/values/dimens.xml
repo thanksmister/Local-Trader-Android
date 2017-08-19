@@ -35,8 +35,6 @@
     <dimen name="activity_padding">16.0dip</dimen>
     <dimen name="activity_space">12dp</dimen>
 
-    <dimen name="activity_list_spacing">12dp</dimen>
-
     <dimen name="view_padding_small">8dp</dimen>
     <dimen name="view_padding">12dp</dimen>
 
@@ -44,6 +42,5 @@
     <dimen name="view_padding_xlarge">24dp</dimen>
     <dimen name="view_padding_xxlarge">36dp</dimen>
 
-    <dimen name="barcode_width">260dp</dimen>
     <dimen name="large_barcode_width">230dp</dimen>
 </resources>
