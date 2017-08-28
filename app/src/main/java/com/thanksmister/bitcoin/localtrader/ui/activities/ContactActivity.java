@@ -48,6 +48,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ContactAction;
@@ -686,6 +688,15 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     public void downloadAttachment(final MessageItem message) {
+        
+        if(TextUtils.isEmpty(message.attachment_url())) {
+            toast(getString(R.string.toast_attachment_empty));
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("download_error", message.attachment_url());
+                Crashlytics.logException(new Exception("Error downloading url: " + message.attachment_url()));
+            }
+            return;
+        }
         String token = AuthUtils.getAccessToken(preference, sharedPreferences);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(message.attachment_url() + "?access_token=" + token));
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
@@ -693,8 +704,15 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         request.setMimeType(message.attachment_type());
         request.setTitle(message.attachment_name());
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-        downloadManager.enqueue(request);
+        try {
+            downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            downloadManager.enqueue(request); 
+        } catch (NullPointerException e) {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("download_error", message.attachment_url());
+                Crashlytics.logException(new Exception("Error downloading url: " + message.attachment_url()));
+            }
+        }
     }
 
     private void showDownload() {

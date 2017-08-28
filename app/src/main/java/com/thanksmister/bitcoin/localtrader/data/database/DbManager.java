@@ -358,21 +358,19 @@ public class DbManager {
     }
 
     public Observable<WalletItem> walletQuery() {
-        return briteContentResolver.createQuery(SyncProvider.WALLET_TABLE_URI, null, null, null, null, false)
+        return db.createQuery(WalletItem.TABLE, WalletItem.QUERY)
                 .map(WalletItem.MAP);
     }
 
     public void updateWallet(final Wallet wallet) {
-        synchronized (this) {
-            Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                while (cursor.moveToNext()) {
-                    long id = Db.getLong(cursor, WalletItem.ID);
-                    contentResolver.update(SyncProvider.WALLET_TABLE_URI, WalletItem.createBuilder(wallet).build(), WalletItem.ID + " = ?", new String[]{String.valueOf(id)});
-                }
-            } else {
-                contentResolver.insert(SyncProvider.WALLET_TABLE_URI, WalletItem.createBuilder(wallet).build());
+        Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                long id = Db.getLong(cursor, WalletItem.ID);
+                contentResolver.update(SyncProvider.WALLET_TABLE_URI, WalletItem.createBuilder(wallet).build(), WalletItem.ID + " = ?", new String[]{String.valueOf(id)});
             }
+        } else {
+            contentResolver.insert(SyncProvider.WALLET_TABLE_URI, WalletItem.createBuilder(wallet).build());
         }
     }
 

@@ -38,6 +38,7 @@ import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
+import com.trello.rxlifecycle.ActivityEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -231,6 +232,7 @@ public class ContactsActivity extends BaseActivity {
         updateSubscription = dataService.getContacts(dashboardType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<List<Contact>>bindUntilEvent(ActivityEvent.PAUSE))
                 .subscribe(new Action1<List<Contact>>() {
                     @Override
                     public void call(List<Contact> contacts) {

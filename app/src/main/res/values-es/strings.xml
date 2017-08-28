@@ -675,5 +675,6 @@
     <string name="progress_loading_localbitcoins">Loading LocalBitcoins...</string>
     <string name="error_no_advertisement">The advertisement Id does not exist and can not be loaded.</string>
     <string name="error_invalid_trade_type">This advertisement has an invalid trade type and cannot be displayed. The developer has been notified.</string>
+    <string name="toast_attachment_empty">Message attachment can not be downloaded...</string>
 
 </resources>

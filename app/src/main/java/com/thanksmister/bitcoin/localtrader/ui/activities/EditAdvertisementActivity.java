@@ -51,6 +51,7 @@ import com.thanksmister.bitcoin.localtrader.ui.fragments.EditSecurityFragment;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.EditTypeFragment;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
+import com.trello.rxlifecycle.ActivityEvent;
 
 import org.json.JSONObject;
 
@@ -464,6 +465,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
             dataService.updateAdvertisement(editAdvertisement)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
                     .subscribe(new Action1<JSONObject>() {
                         @Override
                         public void call(final JSONObject jsonObject) {

@@ -242,18 +242,24 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void getCurrencies() {
         Timber.d("getCurrencies");
-        dbManager.currencyQuery().subscribe(new Action1<List<CurrencyItem>>() {
-            @Override
-            public void call(List<CurrencyItem> currencyItems) {
-                if(currencyItems == null || currencyItems.isEmpty()) {
-                    fetchCurrencies();
-                } else {
-                    if(dataService.needToRefreshCurrency()) {
-                        fetchCurrencies();
+        dbManager.currencyQuery()
+                .subscribe(new Action1<List<CurrencyItem>>() {
+                    @Override
+                    public void call(List<CurrencyItem> currencyItems) {
+                        if (currencyItems == null || currencyItems.isEmpty()) {
+                            fetchCurrencies();
+                        } else {
+                            if (dataService.needToRefreshCurrency()) {
+                                fetchCurrencies();
+                            }
+                        }
                     }
-                }
-            }
-        });
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Timber.e(throwable.getMessage());
+                    }
+                });
     }
     
     private void fetchCurrencies() {

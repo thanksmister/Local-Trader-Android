@@ -294,8 +294,11 @@ public abstract class AdvertisementItem implements Parcelable {
                 boolean require_identification = Db.getBoolean(cursor, REQUIRE_IDENTIFICATION);
                 String phone_number = "";
                 try {
-                   phone_number = Db.getString(cursor, PHONE_NUMBER);
-                } catch (IllegalStateException e) {
+                    int phoneIndex = cursor.getColumnIndex(PHONE_NUMBER);
+                    if(phoneIndex >= 0) {
+                        phone_number = Db.getString(cursor, PHONE_NUMBER);
+                    }
+                } catch (Exception e) {
                     Timber.e("PHONE_NUMBER column error: " + e.getMessage());
                 }
                 String opening_hours = Db.getString(cursor, OPENING_HOURS);

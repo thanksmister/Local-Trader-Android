@@ -220,8 +220,8 @@ public class DashboardFragment extends BaseFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putInt("pagePosition", pagerPosition);
+        super.onSaveInstanceState(outState);
     }
 
     @Override

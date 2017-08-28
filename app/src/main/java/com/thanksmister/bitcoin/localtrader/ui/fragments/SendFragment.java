@@ -443,6 +443,7 @@ public class SendFragment extends BaseFragment {
         
         final String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
         final String bitcoinAmount = WalletUtils.parseBitcoinAmount(clipText);
+        
         validateBitcoinAddress(bitcoinAddress)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Boolean>bindUntilEvent(FragmentEvent.PAUSE))
@@ -467,10 +468,12 @@ public class SendFragment extends BaseFragment {
                                 if(valid) {
                                     Timber.d("valid: " + String.valueOf(true));
                                     setBitcoinAddress(bitcoinAddress);
-                                    if (bitcoinAmount != null && WalletUtils.validAmount(bitcoinAmount)) {
-                                        setAmount(bitcoinAmount);
-                                    } else {
-                                        toast(getString(R.string.toast_invalid_btc_amount));
+                                    if(!TextUtils.isEmpty(bitcoinAmount)) {
+                                        if (WalletUtils.validAmount(bitcoinAmount)) {
+                                            setAmount(bitcoinAmount);
+                                        } else {
+                                            toast(getString(R.string.toast_invalid_btc_amount));
+                                        }
                                     }
                                 } else {
                                     toast(getString(R.string.toast_invalid_address));
@@ -600,6 +603,7 @@ public class SendFragment extends BaseFragment {
         }
     }
 
+    // TODO validate that the balance is not negative
     protected void validateForm() {
         
         if (TextUtils.isEmpty(amountText.getText().toString())) {
@@ -610,12 +614,12 @@ public class SendFragment extends BaseFragment {
         amount = Conversions.formatBitcoinAmount(amountText.getText().toString());
         address = addressText.getText().toString();
         
-        if (TextUtils.isEmpty(addressText.getText())) {
+        if (TextUtils.isEmpty(address)) {
             toast(getString(R.string.error_missing_address_amount));
             return;
         }
 
-        if (amount != null && WalletUtils.validAmount(amount)) {
+        if (TextUtils.isEmpty(amount) || !WalletUtils.validAmount(amount)) {
             toast(getString(R.string.toast_invalid_btc_amount));
             return;
         }

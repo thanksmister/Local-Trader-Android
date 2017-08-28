@@ -47,6 +47,8 @@ public abstract class WalletItem implements Parcelable
     public abstract String sendable();
     public abstract String address();
 
+    public static final String QUERY = "SELECT * FROM " + WalletItem.TABLE;
+
     public static final Func1<Query, WalletItem> MAP = new Func1<Query, WalletItem>() {
         @Override
         public WalletItem call(Query query) {

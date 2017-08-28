@@ -131,7 +131,11 @@ public class AuthUtils {
             stringPreference.delete();
         }
         
-        return preference.getString(REFRESH_TOKEN, null);
+        try {
+            return preference.getString(REFRESH_TOKEN, null);
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 
     /**
