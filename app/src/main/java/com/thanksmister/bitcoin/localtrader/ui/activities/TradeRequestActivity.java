@@ -480,10 +480,10 @@ public class TradeRequestActivity extends BaseActivity {
         }
         boolean cancel = false;
         try {
-            if (Strings.isBlank(amount)) {
+            if (TextUtils.isEmpty(amount)) {
                 toast(getString(R.string.toast_valid_trade_amount));
                 cancel = true;
-            } else if (Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
+            } else if (!TextUtils.isEmpty(adMax) && Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
                 toast(getString(R.string.toast_enter_lower_amount, adMax, currency));
                 cancel = true;
             } else if (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin)) {
@@ -677,9 +677,8 @@ public class TradeRequestActivity extends BaseActivity {
         }
     }
     
-
     private void calculateCurrencyAmount(String bitcoin) {
-        if (Strings.isBlank(bitcoin) || bitcoin.equals("0")) {
+        if (TextUtils.isEmpty(bitcoin) || bitcoin.equals("0")) {
             editAmountText.setText("");
             return;
         }

@@ -143,6 +143,7 @@ public class Calculations
     }
 
     public static boolean calculateEthereumWithinRange(String ethereum, String adMin, String adMax) {
+        if(TextUtils.isEmpty(adMin) || TextUtils.isEmpty(adMax)) return true;
         try {
             double ethDouble = Doubles.convertToDouble(ethereum);
             double minDouble = Doubles.convertToDouble(adMin);
@@ -150,7 +151,7 @@ public class Calculations
             return(ethDouble >= minDouble && ethDouble <= maxDouble);
         } catch (Exception e) {
             Timber.e(e.getMessage());
-            return false;
+            return true;
         }
     }
 }

@@ -22,7 +22,8 @@ public final class Strings {
     private Strings() {
         // No instances.
     }
-
+ 
+    @Deprecated
     public static boolean isBlank(CharSequence string) {
         return (string == null || string.toString().trim().length() == 0 || string.equals("") || string.equals("null"));
     }

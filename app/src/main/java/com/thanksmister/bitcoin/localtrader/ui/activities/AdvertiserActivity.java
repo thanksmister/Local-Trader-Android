@@ -26,6 +26,7 @@ import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
@@ -74,7 +75,7 @@ public class AdvertiserActivity extends BaseActivity {
     View progress;
 
     @InjectView(R.id.advertiserContent)
-    View content;
+    ScrollView content;
 
     @InjectView(R.id.priceLayout)
     View priceLayout;

@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.utils;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
@@ -632,6 +633,10 @@ public class Parser
             
             wallet.balance = (total.getString("balance"));
             wallet.sendable = (total.getString("sendable"));
+
+            if(TextUtils.isEmpty(wallet.balance) ||  wallet.balance.equals("0E-8")) {
+                wallet.balance = "0";
+            }
             
             JSONArray sent_transactions = data.getJSONArray("sent_transactions_30d");
 
@@ -762,6 +767,10 @@ public class Parser
             
             wallet.balance = (total.getString("balance"));
             wallet.sendable = (total.getString("sendable"));
+
+            if(TextUtils.isEmpty(wallet.balance) ||  wallet.balance.equals("0E-8")) {
+                wallet.balance = "0";
+            }
 
             return wallet;
 

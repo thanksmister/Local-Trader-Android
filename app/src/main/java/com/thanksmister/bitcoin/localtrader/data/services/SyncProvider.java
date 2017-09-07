@@ -23,6 +23,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
+import com.crashlytics.android.Crashlytics;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
@@ -94,10 +96,20 @@ public class SyncProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         String table = getTableName(uri);
         SQLiteDatabase database = dbOpenHelper.getReadableDatabase();
-        Cursor cursor = database.query(table, projection, selection, selectionArgs, null, null, sortOrder);
-        // https://stackoverflow.com/questions/7915050/cursorloader-not-updating-after-data-change
-        cursor.setNotificationUri(contentResolver, uri);
-        return cursor;
+        try {
+            Cursor cursor = database.query(table, projection, selection, selectionArgs, null, null, sortOrder);
+            // https://stackoverflow.com/questions/7915050/cursorloader-not-updating-after-data-change
+            cursor.setNotificationUri(contentResolver, uri);
+            return cursor;
+        } catch (IllegalArgumentException e) {
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("query_selection", selection);
+                Crashlytics.setString("query_uri", uri.toString());
+                Crashlytics.setString("query_args", selectionArgs.toString());
+                Crashlytics.logException(e);
+            }
+        }
+        return null;
     }
 
     @Override

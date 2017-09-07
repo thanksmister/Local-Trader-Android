@@ -21,41 +21,33 @@
         android:orientation="vertical"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
-
-    <android.support.design.widget.AppBarLayout
+    
+    <android.support.v7.widget.Toolbar
+            android:id="@+id/advertiserToolbar"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:minHeight="?android:attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            app:popupTheme="@style/Theme.AppCompat.Light"/>
+    
+    <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fitsSystemWindows="true">
+            android:layout_weight="1">
 
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/advertiserToolbar"
+        <ScrollView
+                android:id="@+id/advertiserContent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:minHeight="?android:attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
-
-    </android.support.design.widget.AppBarLayout>
-    
-    <android.support.v4.widget.NestedScrollView
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:fillViewport="true">
-        
-        <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:fillViewport="true"
+                android:visibility="invisible"
+                tools:visibility="visible">
 
             <LinearLayout
-                    android:id="@+id/advertiserContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/activity_padding"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    tools:visibility="visible">
+                    android:orientation="vertical">
 
                 <TextView
                         style="@style/TextLarge"
@@ -67,6 +59,7 @@
                         android:paddingLeft="16dp"
                         android:paddingRight="16dp"
                         android:gravity="center"
+                        android:textIsSelectable="true"
                         android:layout_gravity="center_vertical"
                         android:text="@string/advertiser_notes_text_online"/>
 
@@ -80,7 +73,6 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="@dimen/activity_padding"
                         android:paddingBottom="@dimen/view_padding_small"
-                        android:gravity="left"
                         android:text="@string/text_advertiser"/>
 
                 <LinearLayout
@@ -100,8 +92,7 @@
                         <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:layout_weight="1">
+                                android:orientation="horizontal">
 
                             <TextView
                                     android:id="@+id/traderName"
@@ -110,9 +101,7 @@
                                     android:layout_height="wrap_content"
                                     android:gravity="left|center_vertical"
                                     android:layout_gravity="center_vertical"
-                                    android:singleLine="true"
                                     android:ellipsize="end"
-                                    android:layout_weight="0"
                                     tools:text="ThanksMister"/>
 
                             <View
@@ -123,7 +112,6 @@
                                     android:id="@+id/lastSeenIcon"
                                     android:layout_width="12dp"
                                     android:layout_height="12dp"
-                                    android:layout_weight="0"
                                     android:background="@drawable/last_seen_recently"
                                     android:layout_gravity="center_vertical"/>
 
@@ -134,7 +122,6 @@
                                 style="@style/TextMedium.SmallAction.Light"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="left"
                                 android:layout_gravity="center_vertical"
                                 tools:text="Last Seen - Feb 6, 12:00"/>
 
@@ -152,7 +139,6 @@
                                 android:layout_height="wrap_content"
                                 android:src="@drawable/ic_action_grade"
                                 android:paddingRight="1dp"
-                                android:layout_weight="0"
                                 android:layout_gravity="center_vertical"/>
 
                         <TextView
@@ -161,7 +147,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:gravity="right"
-                                android:layout_weight="0"
                                 android:layout_gravity="center_vertical"
                                 tools:text="100"/>
 
@@ -170,7 +155,6 @@
                                 android:layout_height="wrap_content"
                                 android:paddingLeft="4dp"
                                 android:src="@drawable/ic_chart"
-                                android:layout_weight="0"
                                 android:layout_gravity="center_vertical"/>
 
                         <TextView
@@ -178,7 +162,6 @@
                                 style="@style/TextMedium.Secondary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="0"
                                 android:layout_gravity="center_vertical"
                                 tools:text="100+"/>
 
@@ -209,7 +192,6 @@
                                 android:paddingTop="@dimen/activity_padding"
                                 android:paddingLeft="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/view_padding_small"
-                                android:gravity="left"
                                 android:text="@string/text_deal_price"/>
 
                         <TextView
@@ -217,12 +199,10 @@
                                 style="@style/TextLarge.SmallAction"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="left"
                                 android:paddingLeft="@dimen/activity_padding"
                                 android:paddingRight="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/activity_padding"
                                 tools:text="7000 ARS (1 BTC)"
-                                android:singleLine="true"
                                 android:ellipsize="end"/>
 
                     </LinearLayout>
@@ -234,7 +214,6 @@
                             android:layout_weight="1"
                             android:orientation="vertical">
 
-
                         <TextView
                                 style="@style/TextSmall"
                                 android:layout_width="match_parent"
@@ -242,7 +221,6 @@
                                 android:paddingTop="@dimen/activity_padding"
                                 android:paddingLeft="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/view_padding_small"
-                                android:gravity="left"
                                 android:text="@string/text_amount_min_max"/>
 
                         <TextView
@@ -253,9 +231,7 @@
                                 android:paddingLeft="@dimen/activity_padding"
                                 android:paddingRight="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/activity_padding"
-                                android:gravity="left"
                                 tools:text="1000 - 10000 ARS"
-                                android:singleLine="true"
                                 android:ellipsize="end"/>
 
                     </LinearLayout>
@@ -282,7 +258,6 @@
                             style="@style/TextSmall"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="left"
                             android:paddingLeft="@dimen/activity_padding"
                             android:paddingRight="@dimen/activity_padding"
                             android:paddingBottom="@dimen/view_padding_small"
@@ -385,7 +360,6 @@
                         style="@style/TextSmall"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="left"
                         android:paddingLeft="@dimen/activity_padding"
                         android:paddingBottom="@dimen/view_padding_small"
                         android:text="@string/text_terms"/>
@@ -400,19 +374,17 @@
                         android:paddingBottom="@dimen/activity_padding"
                         android:textIsSelectable="true"/>
 
-
             </LinearLayout>
 
-            <include
-                    android:id="@+id/advertiserProgress"
-                    layout="@layout/view_progress"
-                    android:visibility="visible"
-                    tools:visibility="gone"/>
-            
-            
-        </FrameLayout>
+        </ScrollView>
+
+        <include
+                android:id="@+id/advertiserProgress"
+                layout="@layout/view_progress"
+                android:visibility="visible"
+                tools:visibility="gone"/>
         
-    </android.support.v4.widget.NestedScrollView>
+    </FrameLayout>
     
     <View
             style="@style/DividerHorizontal"
