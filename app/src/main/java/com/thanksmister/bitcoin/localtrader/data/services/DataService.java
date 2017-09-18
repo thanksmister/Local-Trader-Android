@@ -89,7 +89,7 @@ public class DataService {
     public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
     public static final int CHECK_WALLET_DATA = 15 * 60 * 1000;// 15 minutes
     public static final int CHECK_WALLET_BALANCE_DATA = 15 * 60 * 1000;// 15 minutes
-
+    
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
     private final DPreference preference;
@@ -520,9 +520,6 @@ public class DataService {
 
     public Observable<List<Advertisement>> getAdvertisements(boolean force) {
 
-        Timber.d("getAdvertisements needToRefreshAdvertisements: " + needToRefreshAdvertisements());
-        Timber.d("getAdvertisements force: " + force);
-        
         if (!needToRefreshAdvertisements() && !force) {
             return Observable.just(null);
         }

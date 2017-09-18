@@ -42,8 +42,15 @@
 
         <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
                 android:orientation="vertical">
+
+            <ImageView
+                    android:layout_width="144dp"
+                    android:layout_height="144dp"
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/ic_mister"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -53,7 +60,6 @@
                     android:paddingBottom="10dp"
                     android:gravity="center_horizontal">
                 
-
                 <TextView
                         android:text="@string/designer_developer_text"
                         android:layout_width="wrap_content"
@@ -112,7 +118,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Getting Started Guides"/>
+                        android:text="@string/text_getting_started_guides"/>
 
             </LinearLayout>
 
@@ -138,7 +144,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="LocalBitcoins Support"/>
+                        android:text="@string/text_localbitcoins_support"/>
 
             </LinearLayout>
 
@@ -164,31 +170,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Application Feedback"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                    android:id="@+id/tipBitcoinButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
-                    android:orientation="horizontal"
-                    android:visibility="gone">
-
-                <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_donate_bitcoin"/>
-
-                <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="Tip me!"/>
+                        android:text="@string/text_application_feedback"/>
 
             </LinearLayout>
 
@@ -213,7 +195,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Rate application"/>
+                        android:text="@string/text_rate_application"/>
 
             </LinearLayout>
 
@@ -238,7 +220,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Join community"/>
+                        android:text="@string/text_join_community"/>
 
             </LinearLayout>
 
@@ -263,7 +245,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="License information"/>
+                        android:text="@string/text_license_information"/>
 
             </LinearLayout>
 

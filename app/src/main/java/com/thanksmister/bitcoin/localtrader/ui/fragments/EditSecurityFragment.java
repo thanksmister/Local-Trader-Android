@@ -111,20 +111,42 @@ public class EditSecurityFragment extends BaseEditFragment {
 
     @Override
     public boolean validateChangesAndSave() {
-        editAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
-        editAdvertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
-        editAdvertisement.require_identification = identifiedCheckBox.isChecked();
-        editAdvertisement.trusted_required = trustedCheckBox.isChecked();
-        setEditAdvertisement(editAdvertisement);
-        return true;
+        if(isAdded()) {
+            if(liquidityCheckBox != null) {
+                editAdvertisement.track_max_amount = liquidityCheckBox.isChecked();
+            }
+            if(smsVerifiedCheckBox != null) {
+                editAdvertisement.sms_verification_required = smsVerifiedCheckBox.isChecked();
+            }
+            if(identifiedCheckBox != null) {
+                editAdvertisement.require_identification = identifiedCheckBox.isChecked();
+            }
+
+            if(trustedCheckBox != null) {
+                editAdvertisement.trusted_required = trustedCheckBox.isChecked();
+            }
+            setEditAdvertisement(editAdvertisement);
+            return true;
+        }
+        return false;
     }
     
     @Override
     protected void setAdvertisementOnView(@NonNull Advertisement editAdvertisement) {
-        liquidityCheckBox.setChecked(editAdvertisement.track_max_amount);
-        smsVerifiedCheckBox.setChecked(editAdvertisement.sms_verification_required);
-        identifiedCheckBox.setChecked(editAdvertisement.require_identification);
-        trustedCheckBox.setChecked(editAdvertisement.trusted_required);
+        if(isAdded()) {
+            if(liquidityCheckBox != null) {
+                liquidityCheckBox.setChecked(editAdvertisement.track_max_amount);
+            }
+            if(smsVerifiedCheckBox != null) {
+                smsVerifiedCheckBox.setChecked(editAdvertisement.sms_verification_required);
+            }
+            if(identifiedCheckBox != null) {
+                identifiedCheckBox.setChecked(editAdvertisement.require_identification);
+            }
+            if(trustedCheckBox != null) {
+                trustedCheckBox.setChecked(editAdvertisement.trusted_required);
+            }
+        }
     }
 
     // not implemented for this fragment

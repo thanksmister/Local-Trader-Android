@@ -37,7 +37,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.TextUtils;
-import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -120,8 +119,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
     @InjectView(R.id.emptyText)
     TextView emptyText;
-
-
+    
     private TextView detailsEthereumAddress;
     private TextView detailsSortCode;
     private TextView detailsBSB;
@@ -445,24 +443,9 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         emptyLayout.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
     }
-
-    public void showEmpty() {
-        content.setVisibility(View.GONE);
-        emptyLayout.setVisibility(View.VISIBLE);
-        progress.setVisibility(View.GONE);
-        emptyText.setText(R.string.text_no_advertisers);
-    }
-
-    public void showProgress() {
-        content.setVisibility(View.GONE);
-        emptyLayout.setVisibility(View.GONE);
-        progress.setVisibility(View.VISIBLE);
-    }
     
     private void updateContact() {
         
-        Timber.d("updateContact");
-
         toast(getString(R.string.toast_refreshing_data));
         
         dataService.getContactInfo(contactId)
@@ -488,17 +471,13 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Timber.e("Contact error: " + throwable.getMessage());
-                        toast(getString(R.string.toast_error_contact_data));
+                        handleError(throwable, true);
                         onRefreshStop();
                     }
                 });
     }
 
     private void updateData() {
-        
-        Timber.d("updateData");
-        
         dbManager.notificationsQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -607,7 +586,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         String description = TradeUtils.getContactDescription(contact, this);
         if(!TextUtils.isEmpty(description)) {
             noteText.setText(Html.fromHtml(description));
-            noteText.setMovementMethod(LinkMovementMethod.getInstance());
+            //noteText.setMovementMethod(LinkMovementMethod.getInstance());
         }
         contactHeaderLayout.setVisibility((description == null) ? View.GONE : View.VISIBLE);
         
@@ -690,7 +669,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     public void downloadAttachment(final MessageItem message) {
         
         if(TextUtils.isEmpty(message.attachment_url())) {
-            toast(getString(R.string.toast_attachment_empty));
+            showAlertDialog(getString(R.string.toast_attachment_empty));
             if(!BuildConfig.DEBUG) {
                 Crashlytics.setString("download_error", message.attachment_url());
                 Crashlytics.logException(new Exception("Error downloading url: " + message.attachment_url()));
@@ -721,7 +700,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             i.setAction(DownloadManager.ACTION_VIEW_DOWNLOADS);
             startActivity(i);
         } catch (ActivityNotFoundException exception) {
-            toast(getString(R.string.toast_error_no_installed_ativity));
+            showAlertDialog(getString(R.string.toast_error_no_installed_ativity));
         }
     }
 
@@ -802,7 +781,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                     @Override
                     public void call(Throwable throwable) {
                         hideProgressDialog();
-                        toast(getString(R.string.error_contact_action));
+                        showAlertDialog(getString(R.string.error_contact_action));
                     }
                 });
     }
@@ -844,43 +823,40 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     public void showProfile() {
-        if (contact == null) {
-            return;
-        }
-
-        try {
-            String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying()) ? contact.seller_username() : contact.buyer_username()) + "/";
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            startActivity(browserIntent);
-        } catch (SecurityException e) {
-            showAlertDialog(new AlertDialogEvent("Security Error", "Your phone is was trying to hijack the link, here is the security error: " + e.getMessage()));
-        } catch (ActivityNotFoundException e) {
-            toast(getString(R.string.toast_error_no_installed_ativity));
+        if (contact != null) {
+            try {
+                String url = "https://localbitcoins.com/accounts/profile/" + ((contact.is_buying()) ? contact.seller_username() : contact.buyer_username()) + "/";
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+            } catch (SecurityException e) {
+                showAlertDialog(getString(R.string.error_hijack_link) + e.getMessage());
+            } catch (ActivityNotFoundException e) {
+                showAlertDialog(getString(R.string.toast_error_no_installed_ativity));
+            }
         }
     }
 
     public void showAdvertisement() {
-        if (contact == null) {
-            return; 
-        }
-        dbManager.advertisementItemQuery(contact.advertisement_id())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<AdvertisementItem>() {
-                    @Override
-                    public void call(AdvertisementItem advertisement) {
-                        if (advertisement != null) {
-                            loadAdvertisementView(contact);
-                        } else {
+        if (contact != null) {
+            dbManager.advertisementItemQuery(contact.advertisement_id())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<AdvertisementItem>() {
+                        @Override
+                        public void call(AdvertisementItem advertisement) {
+                            if (advertisement != null) {
+                                loadAdvertisementView(contact);
+                            } else {
+                                launchAdvertisementLink(contact);
+                            }
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
                             launchAdvertisementLink(contact);
                         }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        launchAdvertisementLink(contact);
-                    }
-                });
+                    });
+        }
     }
 
     private void loadAdvertisementView(ContactItem contact) {
@@ -902,7 +878,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(contact.advertisement_public_view()));
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            toast(getString(R.string.toast_error_no_installed_ativity));
+            showAlertDialog(getString(R.string.toast_error_no_installed_ativity));
         }
     }
 
@@ -911,14 +887,14 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         switch (contact.advertisement.trade_type) {
             case LOCAL_BUY:
             case LOCAL_SELL:
-                title = (contact.is_buying) ? "Buying Locally" : "Selling Locally";
+                title = (contact.is_buying) ? getString(R.string.text_buying_locally) : getString(R.string.text_selling_locally);
                 break;
             case ONLINE_BUY:
             case ONLINE_SELL:
-                title = (contact.is_buying) ? "Buying Online" : "Selling Online";
+                title = (contact.is_buying) ? getString(R.string.text_buying_onling) : getString(R.string.text_selling_online);
                 break;
             default:
-                title = "Trade";
+                title = getString(R.string.text_trade);
                 break;
         }
 
@@ -934,15 +910,12 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             }
         }
     };
-
-
+    
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if(id == CONTACT_LOADER_ID) {
-            //DbUtils.printQueryText(ContactItem.QUERY, Integer.parseInt(contactId));
             return new CursorLoader(ContactActivity.this, SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contactId}, null);
         } else if (id == MESSAGES_LOADER_ID) {
-            //DbUtils.printQueryText(ContactItem.QUERY, Integer.parseInt(contactId));
             return new CursorLoader(ContactActivity.this, SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ?", new String[]{contactId}, 
                     MessageItem.CREATED_AT + " DESC");
         }
@@ -953,8 +926,6 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         switch (loader.getId()) {
             case CONTACT_LOADER_ID:
-                // https://stackoverflow.com/questions/7915050/cursorloader-not-updating-after-data-change
-                //cursor.setNotificationUri(getContentResolver(), SyncProvider.CONTACT_TABLE_URI);
                 ContactItem contactItem = ContactItem.getModel(cursor);
                 if(contactItem != null) {
                     showContent();
@@ -964,7 +935,6 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 }
                 break;
             case MESSAGES_LOADER_ID:
-                //cursor.setNotificationUri(getContentResolver(), SyncProvider.MESSAGE_TABLE_URI);
                 List<MessageItem> messageItems = MessageItem.getModelList(cursor);
                 if(!messageItems.isEmpty()) {
                     getAdapter().replaceWith(messageItems);
@@ -973,9 +943,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         }
     }
     
-
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        // TODO use cursor adapter for message items
     }
 }

@@ -109,8 +109,7 @@ public class PromoActivity extends BaseActivity {
         } catch (SecurityException e) {
             showAlertDialogLinks(new AlertDialogEvent("Security Error", "It appears that your connection is being rerouted, you may want to try LocalBitcoins.net. Here is the information: " + e.getMessage()));
         } catch (ActivityNotFoundException e) {
-            showAlertDialogLinks(new AlertDialogEvent("Link Error",
-                    getString(R.string.toast_error_no_installed_ativity)));
+            showAlertDialogLinks(new AlertDialogEvent("Link Error", getString(R.string.toast_error_no_installed_ativity)));
         }
 
     }

@@ -115,23 +115,6 @@ public class NotificationsFragment extends BaseFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-    }
-
-    private void setupList(List<NotificationItem> items) {
-        if (isAdded()) {
-            itemAdapter.replaceWith(items);
-            recycleView.setAdapter(itemAdapter);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_dashboard_items, container, false);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         itemAdapter = getAdapter();
         recycleView.setHasFixedSize(true);
@@ -151,11 +134,29 @@ public class NotificationsFragment extends BaseFragment {
                     try {
                         onNotificationLinkClicked(notificationItem);
                     } catch (ActivityNotFoundException e) {
-                        toast("Can't open external link.");
+                        toast(getString(R.string.text_cant_open_link));
                     }
                 }
             }
         });
+        recycleView.setAdapter(itemAdapter);
+    }
+
+    private void setupList(List<NotificationItem> items) {
+        if (isAdded()) {
+            itemAdapter.replaceWith(items);
+            recycleView.setAdapter(itemAdapter);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.view_dashboard_items, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override

@@ -88,6 +88,36 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        itemAdapter = getAdapter();
+        recycleView.setHasFixedSize(true);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recycleView.setLayoutManager(linearLayoutManager);
+
+        ItemClickSupport.addTo(recycleView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+            @Override
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                AdvertisementItem advertisement = getAdapter().getItemAt(position);
+                if (advertisement != null && !TextUtils.isEmpty(advertisement.ad_id())) {
+                    showAdvertisement(getAdapter().getItemAt(position));
+                }
+            }
+        });
+
+        itemAdapter = new AdvertisementsAdapter(getActivity(), new AdvertisementsAdapter.OnItemClickListener() {
+            @Override
+            public void onSearchButtonClicked() {
+                showSearchScreen();
+            }
+
+            @Override
+            public void onAdvertiseButtonClicked() {
+                createAdvertisementScreen();
+            }
+        });
+
+        recycleView.setAdapter(itemAdapter);
     }
 
     private void setupList(List<AdvertisementItem> advertisementItems, List<MethodItem> methodItems) {
@@ -107,33 +137,6 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         
         super.onActivityCreated(savedInstanceState);
 
-        itemAdapter = getAdapter();
-        recycleView.setHasFixedSize(true);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recycleView.setLayoutManager(linearLayoutManager);
-
-        ItemClickSupport.addTo(recycleView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
-            @Override
-            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                AdvertisementItem advertisement = getAdapter().getItemAt(position);
-                if (advertisement != null && !TextUtils.isEmpty(advertisement.ad_id())) {
-                    showAdvertisement(getAdapter().getItemAt(position));
-                } 
-            }
-        });
-
-        itemAdapter = new AdvertisementsAdapter(getActivity(), new AdvertisementsAdapter.OnItemClickListener() {
-            @Override
-            public void onSearchButtonClicked() {
-                showSearchScreen();
-            }
-
-            @Override
-            public void onAdvertiseButtonClicked() {
-                createAdvertisementScreen();
-            }
-        });
     }
 
     @Override

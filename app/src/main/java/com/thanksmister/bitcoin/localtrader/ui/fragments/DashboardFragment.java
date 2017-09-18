@@ -106,7 +106,7 @@ public class DashboardFragment extends BaseFragment {
         }
         setHasOptionsMenu(true);
     }
-
+    
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         

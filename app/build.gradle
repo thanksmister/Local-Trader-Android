@@ -23,7 +23,7 @@ apply plugin: 'com.neenbedankt.android-apt'
 
 def versionMajor = 2
 def versionMinor = 3
-def versionPatch = 4
+def versionPatch = 5
 def versionBuild = 0 // bump for dog food builds, public betas, etc.
 
 android {
@@ -117,6 +117,9 @@ dependencies {
     // Stetho
     compile 'com.facebook.stetho:stetho:1.0.0'
     //compile 'com.facebook.stetho:stetho-okhttp:1.0.0'
+    
+    // Rate app
+    compile 'io.github.kobakei:ratethisapp:1.2.0'
     
     // Google Play Support Libraries
     compile 'com.google.android.gms:play-services-location:11.0.1'

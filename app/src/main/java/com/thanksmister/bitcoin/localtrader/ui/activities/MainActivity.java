@@ -37,6 +37,7 @@ import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
+import com.kobakei.ratethisapp.RateThisApp;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
@@ -177,6 +178,17 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(MainActivity.this);
         }
+
+        // Application rating dialog
+        // Set custom criteria (optional)
+        RateThisApp.Config config = new RateThisApp.Config(7, 10);
+        RateThisApp.init(config);
+        
+        // Monitor launch times and interval from installation
+        RateThisApp.onCreate(this);
+        
+        // If the condition is satisfied, "Rate this app" dialog will be shown
+        RateThisApp.showRateDialogIfNeeded(this, R.style.DialogTheme);
     }
 
     @Override

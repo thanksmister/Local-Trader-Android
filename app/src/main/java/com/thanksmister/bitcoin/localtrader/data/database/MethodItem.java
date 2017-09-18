@@ -66,9 +66,10 @@ public abstract class MethodItem
     public static MethodItem getModelItem (Method method) {
         return new AutoParcel_MethodItem(0, method.key, method.code, method.name, method.countryCode, method.countryName);
     }
+    
     public static List<MethodItem> getModelList(Cursor cursor) {
         List<MethodItem> values = new ArrayList<>(cursor.getCount());
-        if (cursor != null && cursor.getCount() > 0) {
+        try {
             while (cursor.moveToNext()) {
                long id = Db.getLong(cursor, ID);
                String key = Db.getString(cursor, KEY);
@@ -78,24 +79,30 @@ public abstract class MethodItem
                String countryName = Db.getString(cursor, COUNTRY_NAME);
                values.add(new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName));
            }
-       }
-       return values;
+            return values;
+        } finally {
+            cursor.close();
+        }
     }
 
     public static final Func1<Query, List<MethodItem>> MAP = new Func1<Query, List<MethodItem>>() {
         @Override public List<MethodItem> call(Query query) {
             Cursor cursor = query.run();
             List<MethodItem> values = new ArrayList<>(cursor.getCount());
-            while (cursor.moveToNext()) {
-                long id = Db.getLong(cursor, ID);
-                String key = Db.getString(cursor, KEY);
-                String code = Db.getString(cursor, CODE);
-                String name = Db.getString(cursor, NAME);
-                String countryCode = Db.getString(cursor, COUNTRY_CODE);
-                String countryName = Db.getString(cursor, COUNTRY_NAME);
-                values.add(new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName));
+            try {
+                while (cursor.moveToNext()) {
+                    long id = Db.getLong(cursor, ID);
+                    String key = Db.getString(cursor, KEY);
+                    String code = Db.getString(cursor, CODE);
+                    String name = Db.getString(cursor, NAME);
+                    String countryCode = Db.getString(cursor, COUNTRY_CODE);
+                    String countryName = Db.getString(cursor, COUNTRY_NAME);
+                    values.add(new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName));
+                }
+               return values;
+            } finally {
+                cursor.close();
             }
-            return values;
         }
     };
 
@@ -103,19 +110,23 @@ public abstract class MethodItem
         @Override public List<MethodItem> call(Query query) {
             Cursor cursor = query.run();
             List<MethodItem> values = new ArrayList<>(cursor.getCount());
-            while (cursor.moveToNext()) {
-                long id = Db.getLong(cursor, ID);
-                String key = Db.getString(cursor, KEY);
-                String code = Db.getString(cursor, CODE);
-                String name = Db.getString(cursor, NAME);
-                String countryCode = Db.getString(cursor, COUNTRY_CODE);
-                String countryName = Db.getString(cursor, COUNTRY_NAME);
+            try {
+                while (cursor.moveToNext()) {
+                    long id = Db.getLong(cursor, ID);
+                    String key = Db.getString(cursor, KEY);
+                    String code = Db.getString(cursor, CODE);
+                    String name = Db.getString(cursor, NAME);
+                    String countryCode = Db.getString(cursor, COUNTRY_CODE);
+                    String countryName = Db.getString(cursor, COUNTRY_NAME);
 
-                if(!code.toUpperCase().equals("ALL")) {
-                    values.add(new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName));
+                    if (!code.toUpperCase().equals("ALL")) {
+                        values.add(new AutoParcel_MethodItem(id, key, code, name, countryCode, countryName));
+                    }
                 }
+                return values;
+            } finally {
+                cursor.close();
             }
-            return values;
         }
     };
 

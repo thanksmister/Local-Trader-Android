@@ -48,8 +48,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import timber.log.Timber;
 
-public class AboutFragment extends BaseFragment 
-{
+public class AboutFragment extends BaseFragment {
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
 
@@ -57,96 +56,77 @@ public class AboutFragment extends BaseFragment
     SharedPreferences sharedPreferences;
 
     @OnClick(R.id.guidesButton)
-    public void guidesButtonClicked()
-    {
+    public void guidesButtonClicked() {
         guides();
     }
 
     @OnClick(R.id.sendFeedbackButton)
-    public void sendButtonClicked()
-    {
-       feedback();
+    public void sendButtonClicked() {
+        feedback();
     }
-    
+
     @OnClick(R.id.sendAccountButton)
-    public void sendAccountButton()
-    {
+    public void sendAccountButton() {
         support();
     }
-
-    @OnClick(R.id.tipBitcoinButton)
-    public void tipButtonClicked()
-    {
-        blockchainTipMe();
-    }
-
+    
     @OnClick(R.id.rateApplicationButton)
-    public void rateButtonClicked()
-    {
+    public void rateButtonClicked() {
         rate();
     }
 
     @OnClick(R.id.joinCommunityButton)
-    public void communityButtonClicked()
-    {
+    public void communityButtonClicked() {
         join();
     }
 
     @OnClick(R.id.licenseButton)
-    public void licenseButtonClicked()
-    {
+    public void licenseButtonClicked() {
         showLicense();
     }
+    
+    private String versionText;
 
-    public static AboutFragment newInstance()
-    {
+    public static AboutFragment newInstance() {
         return new AboutFragment();
     }
 
-    public AboutFragment()
-    {
+    public AboutFragment() {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-    
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
-    {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.view_about, container, false);
-
         ButterKnife.inject(this, fragmentView);
-
         return fragmentView;
     }
 
     @Override
-    public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState)
-    {
+    public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(fragmentView, savedInstanceState);
-
         try {
             PackageInfo packageInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+            versionText = " v" + packageInfo.versionName;
             TextView versionName = (TextView) getActivity().findViewById(R.id.versionName);
-            versionName.setText(" v" + packageInfo.versionName);
+            versionName.setText(versionText);
         } catch (PackageManager.NameNotFoundException e) {
             Timber.e(e.getMessage());
         }
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState)
-    {
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setupToolbar();
     }
 
     @Override
-    public void onDetach()
-    {
+    public void onDetach() {
         super.onDetach();
 
         ButterKnife.reset(this);
@@ -163,8 +143,7 @@ public class AboutFragment extends BaseFragment
         }
     }
 
-    private void setupToolbar()
-    {
+    private void setupToolbar() {
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
 
         // Show menu icon
@@ -173,9 +152,8 @@ public class AboutFragment extends BaseFragment
         ab.setTitle(getString(R.string.view_title_about));
         ab.setDisplayHomeAsUpEnabled(true);
     }
-    
-    protected void rate()
-    {
+
+    protected void rate() {
         final String appName = Constants.GOOGLE_PLAY_RATING;
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appName)));
@@ -184,30 +162,15 @@ public class AboutFragment extends BaseFragment
         }
     }
 
-    protected void blockchainTipMe()
-    {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BITCOIN_URL)));
-        } catch (android.content.ActivityNotFoundException ex) {
-            Intent send = new Intent(Intent.ACTION_SEND);
-            send.setType("text/plain");
-            send.putExtra(Intent.EXTRA_SUBJECT, "Local Trader Address");
-            send.putExtra(Intent.EXTRA_TEXT, Constants.BITCOIN_URL);
-            startActivity(Intent.createChooser(send, "Share using:"));
-        }
-    }
-
-    protected void feedback()
-    {
+    protected void feedback() {
         Intent Email = new Intent(Intent.ACTION_SENDTO);
         Email.setType("text/email");
         Email.setData(Uri.parse("mailto:" + Constants.EMAIL_ADDRESS));
-        Email.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.mail_to_subject_text));
+        Email.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.mail_to_subject_text) + " " + versionText);
         startActivity(Intent.createChooser(Email, getString(R.string.mail_subject_text)));
     }
 
-    protected void guides()
-    {
+    protected void guides() {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GUIDES_URL)));
         } catch (android.content.ActivityNotFoundException ex) {
@@ -215,8 +178,7 @@ public class AboutFragment extends BaseFragment
         }
     }
 
-    protected void support()
-    {
+    protected void support() {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.SUPPORT_URL)));
         } catch (android.content.ActivityNotFoundException ex) {
@@ -224,8 +186,7 @@ public class AboutFragment extends BaseFragment
         }
     }
 
-    protected void join()
-    {
+    protected void join() {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.reddit.com/r/LocalTrader/")));
         } catch (android.content.ActivityNotFoundException ex) {
@@ -235,8 +196,7 @@ public class AboutFragment extends BaseFragment
         }
     }
 
-    protected void showLicense()
-    {
+    protected void showLicense() {
         ((BaseActivity) getActivity()).showAlertDialog(new AlertDialogEvent("License", getString(R.string.license)));
     }
 }

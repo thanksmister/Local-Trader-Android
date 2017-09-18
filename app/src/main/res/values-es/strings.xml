@@ -676,5 +676,18 @@
     <string name="error_no_advertisement">The advertisement Id does not exist and can not be loaded.</string>
     <string name="error_invalid_trade_type">This advertisement has an invalid trade type and cannot be displayed. The developer has been notified.</string>
     <string name="toast_attachment_empty">Message attachment can not be downloaded...</string>
+    <string name="text_cant_open_link">Can\'t open external link.</string>
+    <string name="text_license_information">License information</string>
+    <string name="text_join_community">Join community</string>
+    <string name="text_rate_application">Rate application</string>
+    <string name="text_application_feedback">Application Feedback</string>
+    <string name="text_localbitcoins_support">LocalBitcoins Support</string>
+    <string name="text_getting_started_guides">Getting Started Guides</string>
+    <string name="text_buying_locally">Buying Locally</string>
+    <string name="text_selling_locally">Selling Locally</string>
+    <string name="text_buying_onling">Buying Online</string>
+    <string name="text_selling_online">Selling Online</string>
+    <string name="text_trade">Trade</string>
+    <string name="error_hijack_link">Your phone is was trying to hijack the link:</string>
 
 </resources>

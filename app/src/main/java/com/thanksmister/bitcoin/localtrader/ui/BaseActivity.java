@@ -101,7 +101,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         super.onCreate(savedInstanceState);
         Injector.inject(this);
 
-        // force locale US for conversions
+        // TODO allow for multiple locale support
         setLocale("en", "US");
     }
 
@@ -195,6 +195,17 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             progressDialog.dismiss();
             progressDialog = null;
         }
+    }
+
+    public void showAlertDialog(String message) {
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+        }
+        alertDialog =  new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+                .setMessage(Html.fromHtml(message))
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     public void showAlertDialog(AlertDialogEvent event) {
@@ -442,7 +453,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             RetroError error = DataServiceUtils.createRetroError(throwable);
             if (error.getCode() == 403) {
                 toast(getString(R.string.error_bad_token));
-                showAlertDialog(new AlertDialogEvent("Token Expeired", getString(R.string.error_bad_token)), new Action0() {
+                showAlertDialog(new AlertDialogEvent("Token Expired", getString(R.string.error_bad_token)), new Action0() {
                     @Override
                     public void call() {
                         logOut();

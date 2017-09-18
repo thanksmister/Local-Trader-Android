@@ -91,25 +91,6 @@ public class ContactsFragment extends BaseFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-    }
-
-    private void setupList(List<ContactItem> items) {
-        if (!isAdded())
-            return;
-
-        itemAdapter.replaceWith(items);
-        recycleView.setAdapter(itemAdapter);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_dashboard_items, container, false);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
         itemAdapter = getAdapter();
         recycleView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
@@ -134,6 +115,25 @@ public class ContactsFragment extends BaseFragment {
                 createAdvertisementScreen();
             }
         });
+        recycleView.setAdapter(itemAdapter);
+    }
+
+    private void setupList(List<ContactItem> items) {
+        if (!isAdded())
+            return;
+
+        itemAdapter.replaceWith(items);
+        recycleView.setAdapter(itemAdapter);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.view_dashboard_items, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override

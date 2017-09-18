@@ -23,9 +23,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -39,7 +41,6 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.ui.components.SelectableLinkMovementMethod;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -135,6 +136,9 @@ public class AdvertiserActivity extends BaseActivity {
     @InjectView(R.id.volumeText)
     TextView volumeText;
 
+    @InjectView(R.id.requestButton)
+    Button requestButton;
+
     @OnClick(R.id.requestButton)
     public void requestButtonClicked() {
         showTradeRequest();
@@ -178,7 +182,7 @@ public class AdvertiserActivity extends BaseActivity {
             setToolBarMenu(toolbar);
         }
 
-        subscribeData();
+        requestButton.setEnabled(false);
     }
 
     @Override
@@ -199,18 +203,16 @@ public class AdvertiserActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (toolbar != null)
+        if (toolbar != null) {
             toolbar.inflateMenu(R.menu.advertiser);
-
+        }
         return true;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        if (toolbar != null)
-            subscribeData();
+        subscribeData();
     }
 
     @Override
@@ -248,8 +250,8 @@ public class AdvertiserActivity extends BaseActivity {
 
     protected void subscribeData() {
         Observable.combineLatest(
-                dbManager.methodQuery().cache(), 
-                dataService.getAdvertisement(adId).cache(), 
+                dbManager.methodQuery(), 
+                dataService.getAdvertisement(adId), 
                 new Func2<List<MethodItem>, Advertisement, AdvertisementData>() {
                     @Override
                     public AdvertisementData call(List<MethodItem> methods, Advertisement advertisement) {
@@ -282,14 +284,19 @@ public class AdvertiserActivity extends BaseActivity {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        reportError(throwable);
-                        toast(R.string.toast_error_advertisement_data);
+                        if(!BuildConfig.DEBUG) {
+                            Crashlytics.setString("advertiser_id", adId);
+                            Crashlytics.logException(throwable);
+                        }
+                        handleError(throwable);
+                        //toast(R.string.toast_error_advertisement_data);
                     }
                 });
     }
 
     public void setAdvertisement(Advertisement advertisement, MethodItem method) {
-        
+
+        requestButton.setEnabled(true);
         setHeader(advertisement.trade_type);
         String location = advertisement.location;
         String provider = TradeUtils.getPaymentMethod(advertisement, method);
@@ -321,11 +328,8 @@ public class AdvertiserActivity extends BaseActivity {
         traderName.setText(advertisement.profile.username);
 
         if (advertisement.isATM()) {
-
             tradeLimit.setText("");
-
         } else {
-
             if (advertisement.max_amount != null && advertisement.min_amount != null) {
                 tradeLimit.setText(getString(R.string.trade_limit, advertisement.min_amount, advertisement.max_amount, advertisement.currency));
             }
@@ -341,9 +345,8 @@ public class AdvertiserActivity extends BaseActivity {
             }
         }
 
-        if (!Strings.isBlank(advertisement.message)) {
+        if (!TextUtils.isEmpty(advertisement.message)) {
             tradeTerms.setText(advertisement.message.trim());
-            tradeTerms.setMovementMethod(SelectableLinkMovementMethod.getInstance());
         }
 
         tradeFeedback.setText(advertisement.profile.feedback_score);
@@ -365,7 +368,6 @@ public class AdvertiserActivity extends BaseActivity {
         if (advertisement.trusted_required
                 || advertisement.sms_verification_required
                 || advertisement.require_identification) {
-
             showLayout = true;
         }
 
@@ -413,8 +415,9 @@ public class AdvertiserActivity extends BaseActivity {
                 break;
         }
 
-        if (toolbar != null)
+        if (toolbar != null) {
             toolbar.setTitle(header);
+        }
     }
 
     public void showTradeRequest() {

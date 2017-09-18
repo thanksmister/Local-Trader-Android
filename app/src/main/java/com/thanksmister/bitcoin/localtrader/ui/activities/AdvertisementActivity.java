@@ -49,7 +49,6 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.ui.components.SelectableLinkMovementMethod;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -360,8 +359,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Timber.e("Error updating editAdvertisement: " + throwable.getMessage());
-                        toast(getString(R.string.toast_error_updat_advertisement));
+                        handleError(throwable, true);
                         onRefreshStop();
                     }
                 });
@@ -417,7 +415,6 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
 
         if (!TextUtils.isEmpty(advertisement.message())) {
             tradeTerms.setText(advertisement.message().trim());
-            tradeTerms.setMovementMethod(SelectableLinkMovementMethod.getInstance());
         } else {
             termsLayout.setVisibility(View.GONE);
         }
@@ -435,7 +432,6 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
             
             if(!TextUtils.isEmpty(advertisement.account_info())) {
                 paymentDetails.setText(advertisement.account_info().trim());
-                paymentDetails.setMovementMethod(SelectableLinkMovementMethod.getInstance()); 
             } else {
                 paymentDetailsLayout.setVisibility(View.GONE);
             }
@@ -523,7 +519,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.action_public_view()));
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            toast(getString(R.string.toast_error_no_installed_ativity));
+            showAlertDialog(getString(R.string.toast_error_no_installed_ativity));
         }
     }
 
@@ -566,7 +562,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                                     setResult(RESULT_DELETED); 
                                     finish();
                                 } else {
-                                    showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.alert_error_deleting_advertisement)));
+                                    showAlertDialog(getString(R.string.alert_error_deleting_advertisement));
                                 }
                             }
                         });
@@ -578,7 +574,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                             @Override
                             public void run() {
                                 hideProgressDialog();
-                                showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.alert_error_deleting_advertisement)));
+                                showAlertDialog(getString(R.string.alert_error_deleting_advertisement));
                             }
                         });
                     }
@@ -603,7 +599,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                     public void call(JSONObject jsonObject) {
                         hideProgressDialog();
                         if (Parser.containsError(jsonObject)) {
-                            toast(getString(R.string.toast_error_visibility_update));
+                            showAlertDialog(getString(R.string.toast_error_visibility_update));
                         } else {
                             dbManager.updateAdvertisementVisibility(adId, visible);
                             toast(getString(R.string.toast_update_visibility));
@@ -613,8 +609,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                     @Override
                     public void call(Throwable throwable) {
                         hideProgressDialog();
-                        toast(getString(R.string.toast_error_visibility_update));
-                        reportError(throwable);
+                        showAlertDialog(getString(R.string.toast_error_visibility_update));
                     }
                 });
     }

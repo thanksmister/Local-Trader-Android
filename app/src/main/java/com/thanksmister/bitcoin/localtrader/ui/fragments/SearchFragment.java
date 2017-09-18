@@ -923,7 +923,6 @@ public class SearchFragment extends BaseFragment {
                 .onErrorResumeNext(new Func1<Throwable, Observable<Location>>() {
                     @Override
                     public Observable<Location> call(Throwable throwable) {
-                        Timber.e("Location manager error:", throwable.getMessage());
                         return Observable.just(null);
                     }
                 })
@@ -966,7 +965,6 @@ public class SearchFragment extends BaseFragment {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Timber.e("Location manager error2 ", throwable.getMessage());
                                     getLocationFromLocationManager();
                                 }
                             });
