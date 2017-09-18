@@ -19,8 +19,8 @@
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
       tools:context=".ContactsActivity">
 
-    <item android:id="@+id/action_filter_trades"
-          android:title="@string/menu_action_filter"
+    <item
+            android:title="@string/menu_action_filter"
           android:icon="@drawable/ic_action_content_filter_list"
           thanksmister:showAsAction="ifRoom">
         

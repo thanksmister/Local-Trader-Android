@@ -63,6 +63,7 @@ public class HashUtils {
 
    }
 
+   // TODO not thread safe
    public static Sha256Hash doubleSha256(byte[] data, int offset, int length) {
       MessageDigest digest;
       digest = getSha256Digest();

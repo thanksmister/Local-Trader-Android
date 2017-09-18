@@ -18,21 +18,14 @@ package com.thanksmister.bitcoin.localtrader.data.api.model;
 
 public class ExchangeCurrency
 {
-    private String name;
-    private String link;
+    private String currency;
 
-    public ExchangeCurrency(String name, String link) {
-        this.name = name;
-        this.link = link;
+    public ExchangeCurrency(String name) {
+        this.currency = name;
     }
 
-    public String getName()
+    public String getCurrency()
     {
-        return name;
-    }
-
-    public String getLink()
-    {
-        return link;
+        return currency;
     }
 }

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2017 ThanksMister LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License. 
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software distributed 
+  ~ under the License is distributed on an "AS IS" BASIS, 
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+  ~ See the License for the specific language governing permissions and 
+  ~ limitations under the License.
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+
+    <TextView
+            style="@style/TextSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/activity_padding"
+            android:paddingLeft="@dimen/activity_padding"
+            android:paddingRight="@dimen/activity_padding"
+            android:text="@string/text_price_equation"/>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/view_padding_small"/>
+
+    <EditText
+            android:id="@+id/editPriceEquation"
+            style="@style/TextLarge.SmallAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/activity_padding"
+            android:layout_marginRight="@dimen/activity_padding"
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:lines="2"
+            android:minLines="1"
+            android:theme="@style/EditTextTheme"
+            android:gravity="left|bottom"/>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="4dp"/>
+
+    <TextView
+            style="@style/TextSmall"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:paddingLeft="@dimen/activity_padding"
+            android:paddingRight="@dimen/activity_padding"
+            android:text="@string/price_equation_edit_description"
+            android:focusable="false"
+            android:linksClickable="true"
+            android:autoLink="web"
+            android:textColorLink="@color/body_text_blue_1"/>
+
+    <View
+            android:background="?android:attr/dividerHorizontal"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
+    
+</LinearLayout>

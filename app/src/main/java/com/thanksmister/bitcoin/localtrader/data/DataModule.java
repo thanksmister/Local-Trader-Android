@@ -20,18 +20,21 @@ import android.content.SharedPreferences;
 
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Protocol;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
+import com.thanksmister.bitcoin.localtrader.data.api.Coinbase;
 import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Arrays;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import dpreference.DPreference;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -41,40 +44,41 @@ import static android.content.Context.MODE_PRIVATE;
         complete = false,
         library = true
 )
-public final class DataModule
-{
+public final class DataModule {
     static final int DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
+
 
     @Provides
     @Singleton
-    SharedPreferences provideSharedPreferences(BaseApplication app)
-    {
+    SharedPreferences provideSharedPreferences(BaseApplication app) {
         return app.getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
     }
 
     @Provides
     @Singleton
-    ExchangeService provideExchangeService(SharedPreferences preferences, BitcoinAverage average)
-    {
-        return new ExchangeService(preferences, average);
+    DPreference providePreferences(BaseApplication app) {
+        return new DPreference(app.getApplicationContext(), "LocalTraderPref");
     }
-    
+
     @Provides
     @Singleton
-    OkHttpClient provideOkHttpClient(BaseApplication app)
-    {
-        return createOkHttpClient(app);
+    ExchangeService provideExchangeService(SharedPreferences preferences, Coinbase coinbase) {
+        return new ExchangeService(preferences, coinbase);
     }
 
-    static OkHttpClient createOkHttpClient(BaseApplication app)
-    {
+    @Provides
+    @Singleton
+    OkHttpClient provideOkHttpClient(BaseApplication app) {
         OkHttpClient client = new OkHttpClient();
-
+        if (BuildConfig.DEBUG) {
+            //client.networkInterceptors().add(new StethoInterceptor()); 
+        }
         // Install an HTTP cache in the application cache directory.
         try {
             File cacheDir = new File(app.getCacheDir(), "http");
             Cache cache = new Cache(cacheDir, DISK_CACHE_SIZE);
             client.setCache(cache);
+            client.setProtocols(Arrays.asList(Protocol.HTTP_1_1));
         } catch (Exception e) {
             Timber.e(e, "Unable to install disk cache.");
         }

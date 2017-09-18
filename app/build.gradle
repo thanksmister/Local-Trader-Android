@@ -1,4 +1,3 @@
-
 repositories {
     jcenter()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
@@ -7,11 +6,12 @@ repositories {
 
 buildscript {
     repositories {
+        jcenter()
         mavenCentral()
         maven { url 'https://maven.fabric.io/public' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.3.0'
+        classpath 'com.android.tools.build:gradle:2.3.3'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
         classpath 'io.fabric.tools:gradle:1.+'
     }
@@ -22,41 +22,47 @@ apply plugin: 'io.fabric'
 apply plugin: 'com.neenbedankt.android-apt'
 
 def versionMajor = 2
-def versionMinor = 0
-def versionPatch = 9
-def versionBuild = 4 // bump for dog food builds, public betas, etc.
+def versionMinor = 3
+def versionPatch = 5
+def versionBuild = 0 // bump for dog food builds, public betas, etc.
 
 android {
-
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
-
+    signingConfigs {
+        release {
+            keyAlias 'mister'
+            keyPassword 'rdaneel11'
+            storeFile file('/Users/mritchie/local-trader-1.0-hmac/keystore/mister.keystore')
+            storePassword 'rdaneel11'
+            v2SigningEnabled false
+        }
+    }
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 25
         applicationId 'com.thanksmister.bitcoin.localtrader'
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
-        versionName "${versionMajor}.${versionMinor}.${versionPatch} Build ${versionBuild}"
+        versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
+        multiDexEnabled true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
-
     buildTypes {
+        debug {
+        }
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-        
     }
-
     productFlavors {
 
         dev {
             applicationId "com.thanksmister.bitcoin.localtrader"
-            versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
+            versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
+            versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         }
 
         qa {
@@ -66,60 +72,62 @@ android {
 
         prod {
             applicationId "com.thanksmister.bitcoin.localtrader"
-            versionName "${versionMajor}.${versionMinor}.${versionPatch} Build ${versionBuild}"
+            versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         }
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:support-annotations:25.3.1'
+    compile 'com.android.support:support-compat:25.3.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:recyclerview-v7:25.3.1'
+    compile 'com.android.support:multidex:1.0.1'
     
-    compile 'com.android.support:support-annotations:23.1.1'
-    compile 'com.android.support:gridlayout-v7:23.1.1'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
-    compile 'com.android.support:recyclerview-v7:23.1.1'
-
     compile 'com.trello:rxlifecycle:0.3.0'
     compile 'com.trello:rxlifecycle-components:0.3.0'
     
     compile 'com.squareup.dagger:dagger:1.2.2'
     apt 'com.squareup.dagger:dagger-compiler:1.2.2'
-
-    compile 'com.squareup:otto:1.3.5'
     compile 'com.jakewharton:butterknife:6.1.0'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
-
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.3.0'
-
     compile 'com.jakewharton.timber:timber:3.0.2'
-
-    compile 'io.reactivex:rxjava:1.0.14'
+    
+    compile 'io.reactivex:rxjava:1.2.0'
     compile 'io.reactivex:rxandroid:1.0.1'
-
     compile 'com.squareup.sqlbrite:sqlbrite:0.2.1'
-
-    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3.1'
-    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3.1'
-
+    
     compile 'com.github.frankiesardo:auto-parcel:0.3'
     apt 'com.github.frankiesardo:auto-parcel-processor:0.3'
-
+    
     // used for crypto libraries
-    compile 'com.google.guava:guava:18.0' 
-    
+    compile 'com.google.guava:guava:20.0'
     compile 'fr.baloomba:viewpagerindicator:2.4.2'
-    
-    // RxLocation
-    compile 'pl.charmas.android:android-reactive-location:0.8@aar'
 
-    // Google Play Support Libraries
-    compile 'com.google.android.gms:play-services-maps:8.3.0'
-    compile 'com.google.android.gms:play-services-location:8.3.0'
-    compile 'com.github.doctoror.geocoder:library:1.0.0'
+    // RxLocation
+    compile 'pl.charmas.android:android-reactive-location:0.10@aar'
     
-    compile('com.crashlytics.sdk.android:crashlytics:2.4.0@aar') {
+    // Stetho
+    compile 'com.facebook.stetho:stetho:1.0.0'
+    //compile 'com.facebook.stetho:stetho-okhttp:1.0.0'
+    
+    // Rate app
+    compile 'io.github.kobakei:ratethisapp:1.2.0'
+    
+    // Google Play Support Libraries
+    compile 'com.google.android.gms:play-services-location:11.0.1'
+    
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
+    
+    // Unit Testing
+    testCompile 'junit:junit:4.12'
 }

@@ -31,9 +31,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -43,26 +41,22 @@ import java.util.regex.PatternSyntaxException;
 import timber.log.Timber;
 
 
-public class WalletUtils
-{
-    
-    private static int BITCOIN_ADDRESS_BYTES_LENGTH = 21;
+public class WalletUtils {
 
+    private static int BITCOIN_ADDRESS_BYTES_LENGTH = 21;
     
-    public static Bitmap encodeAsBitmap(String address, Context appContext)
-    {
+    public static Bitmap encodeAsBitmap(String address, Context appContext) {
         return encodeAsBitmap(address, null, appContext);
     }
 
-    public static Bitmap encodeAsBitmap(String address, String amount, Context appContext)
-    {
+    public static Bitmap encodeAsBitmap(String address, String amount, Context appContext) {
         String contentsToEncode;
-        if(amount == null) {
+        if (amount == null) {
             contentsToEncode = generateBitCoinURI(address);
         } else {
             contentsToEncode = generateBitCoinURI(address, amount);
         }
-    
+
         if (contentsToEncode == null) {
             return null;
         }
@@ -103,23 +97,20 @@ public class WalletUtils
 
         return bitmap;
     }
-    
-    private static float dipToPixels(Context context, float dipValue) 
-    {
+
+    private static float dipToPixels(Context context, float dipValue) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
     }
 
-    public static String generateBitCoinURI(String address)
-    {
+    public static String generateBitCoinURI(String address) {
         String uri = "bitcoin:";
         uri += address;
         return uri;
     }
 
-    public static String generateBitCoinURI(String address, String amount)
-    {
-        if(amount == null) {
+    public static String generateBitCoinURI(String address, String amount) {
+        if (amount == null) {
             return generateBitCoinURI(address);
         }
         String uri = "bitcoin:";
@@ -130,15 +121,21 @@ public class WalletUtils
         return uri;
     }
 
-    public static boolean validBitcoinAddress(String address) 
-    {
-        if(address == null || (address.trim().length() < 1 || address.length() < 1)) {
+    /**
+     * Validates a Bitcoin address, but warning that this is not thread safe
+     * and needs to be run on separate thread.
+     * @param address
+     * @return
+     */
+    public static boolean validBitcoinAddress(String address) {
+        
+        if (address == null || (address.trim().length() < 1 || address.length() < 1)) {
             return false;
         }
-        
+
         //"if (!address.matches(\"[a-zA-Z0-9]*\"))
-        String [] invalidChars = address.split("/[^1-9A-HJ-NP-Za-km-z]/");
-        if(invalidChars.length > 1) {
+        String[] invalidChars = address.split("/[^1-9A-HJ-NP-Za-km-z]/");
+        if (invalidChars.length > 1) {
             return false;
         }
 
@@ -150,18 +147,17 @@ public class WalletUtils
         } catch (Error e) {
             return false;
         }
-       
+
         return true;
     }
 
     // TODO this is hacky, let's find a way to pull out a BTC address from any string
-    public static String parseBitcoinAddressFromTransaction(String address)
-    {
+    public static String parseBitcoinAddressFromTransaction(String address) {
         Timber.d("Address: " + address);
-        
-        if(address == null) return null;
 
-        if(address.toLowerCase().contains("send")) {
+        if (address == null) return null;
+
+        if (address.toLowerCase().contains("send")) {
 
             try {
                 String pattern = "(?<=Send to )[^#\\?\\:]+";
@@ -190,12 +186,11 @@ public class WalletUtils
 
         return address;
     }
-  
-    public static String parseBitcoinAddress(String address) 
-    {
-        if(address == null) return null;
-  
-        if(address.toLowerCase().contains("bitcoin") || address.toLowerCase().contains("amount")  ) {
+
+    public static String parseBitcoinAddress(String address) {
+        if (address == null) return null;
+
+        if (address.toLowerCase().contains("bitcoin") || address.toLowerCase().contains("amount")) {
 
             try {
                 String pattern = "(?<=bitcoin:)[^#\\?\\:]+";
@@ -209,38 +204,28 @@ public class WalletUtils
                 return address;
             }
         }
-       
+
         return address;
     }
 
-    public static String parseBitcoinAmount(String address)
-    {
-        if(address == null) return null;
-        if(address.contains("amount") ) {
+    public static String parseBitcoinAmount(String address) {
+        if (address == null) return null;
+        if (address.contains("amount")) {
             String pattern = "(?<=\\?amount=)[^#\\?\\:]+";
             Pattern compiledPattern = Pattern.compile(pattern, Pattern.DOTALL);
             Matcher matcher = compiledPattern.matcher(address);
 
-            if(matcher.find()){
+            if (matcher.find()) {
                 return matcher.group();
             }
         }
-        
+
         return null;
     }
-    
-    public static boolean invalidValue(String bitcoinAmount)
-    {
-        return bitcoinAmount.trim().length() < 1 
-                || bitcoinAmount.length() < 1 
-                || bitcoinAmount.equals("0.0") 
-                || bitcoinAmount.equals("0");
-    }
 
-    public static boolean validAmount(String amount)
-    {
-        if(amount == null || amount.isEmpty() || amount.equals("")) return false;
-        
+    public static boolean validAmount(String amount) {
+        if (amount == null || amount.isEmpty() || amount.equals("")) return false;
+
         try {
             Double.valueOf(amount);
         } catch (NumberFormatException e) {
@@ -248,37 +233,7 @@ public class WalletUtils
         } catch (NullPointerException e) {
             return true;
         }
-        
+
         return true;
     }
-    
-    public static ArrayList<String> parseContactIdsFromTransactions(ArrayList<Transaction> transactions)
-    {
-        ArrayList<String> contactIds = new ArrayList<String>();
-        for (Transaction transaction : transactions) {  
-            String contactId = parseContactIdFromTransaction(transaction);
-            if(contactId != null)
-                contactIds.add(contactId);
-        }
-        
-        return contactIds;
-    }
-    
-    public static String parseContactIdFromTransaction(Transaction transaction)
-    {
-        if(transaction.tx_type.equals("3")) {
-            // Contact #545335 trade canceled
-            if(transaction.description.contains("canceled")) {
-                String pattern = "[0-9]+";
-                Pattern compiledPattern = Pattern.compile(pattern, Pattern.DOTALL);
-                Matcher matcher = compiledPattern.matcher(transaction.description);
-                if(matcher.find()){
-                    return  matcher.group();
-                }
-            }
-        }
-        
-        return null;
-    }
-
 }

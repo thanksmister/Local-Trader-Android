@@ -26,7 +26,7 @@ public class WalletData implements Parcelable
     private String balance;
     private String rate;
     private Bitmap image;
-
+    
     public String getBalance()
     {
         return balance;

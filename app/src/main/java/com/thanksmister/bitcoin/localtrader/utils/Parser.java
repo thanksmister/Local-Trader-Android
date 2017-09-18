@@ -17,8 +17,10 @@
 package com.thanksmister.bitcoin.localtrader.utils;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
@@ -26,8 +28,10 @@ import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Place;
 import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
@@ -50,9 +54,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 import timber.log.Timber;
+
+import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils.CODE_MINUS_ONE;
 
 public class Parser
 {
@@ -66,7 +71,7 @@ public class Parser
             authorization.refresh_token = jsonObject.getString("refresh_token");
             authorization.expires_in = jsonObject.getString("expires_in");
             return authorization;
-            
+
         } catch (JSONException e) {
             Timber.e(e.getMessage());
             return null;
@@ -91,8 +96,11 @@ public class Parser
         return null;
     }
     
-    public static String parseRetrofitResponse(Response response)
+    public static String parseRetrofitResponse(Response response) throws RetroError
     {
+        if(response == null || response.getBody() == null)
+            throw new RetroError("Error connecting to service.", CODE_MINUS_ONE);
+        
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
         try {
@@ -104,21 +112,14 @@ public class Parser
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                return "";
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            return "";
         }
 
-        String result = sb.toString();
-        return result;
-    }
-
-    public static RetroError parseRetrofitError(RetrofitError error)
-    {
-        Response response = error.getResponse();
-        String json = parseRetrofitResponse(response);
-        Timber.e("Error Json: " + json);
-        return parseError(json);
+        return sb.toString();
     }
 
     public static boolean containsError(JSONObject jsonObject)
@@ -351,34 +352,93 @@ public class Parser
                 item.is_funded = true;
             }
 
-            if (data.has("payment_completed_at") && !data.isNull("payment_completed_at"))
+            if (data.has("payment_completed_at") && !data.isNull("payment_completed_at")) {
                 item.payment_completed_at = (data.getString("payment_completed_at"));
-
-            if (data.has("currency")) item.currency = (data.getString("currency"));
-            if (data.has("exchange_rate_updated_at"))
+            }
+            
+            if (data.has("currency")){
+                item.currency = data.getString("currency");
+            }
+            
+            if (data.has("exchange_rate_updated_at")) {
                 item.exchange_rate_updated_at = (data.getString("exchange_rate_updated_at"));
-            if (data.has("reference_code")) item.reference_code = (data.getString("reference_code"));
+            }
+            if (data.has("reference_code")) {
+                item.reference_code = (data.getString("reference_code"));
+            }
 
             if (!data.isNull("account_details") && data.has("account_details")) {
+                
                 JSONObject account_details = data.getJSONObject("account_details");
-                if (account_details.has("receiver_name"))
-                    item.account_details.receiver_name = (account_details.getString("receiver_name"));
-                if (account_details.has("email"))
-                    item.account_details.email = (account_details.getString("email"));
-                if (account_details.has("iban")) item.account_details.iban = (account_details.getString("iban"));
-                if (account_details.has("swift_bic"))
-                    item.account_details.swift_bic = (account_details.getString("swift_bic"));
-                if (account_details.has("reference"))
-                    item.account_details.reference = (account_details.getString("reference"));
+                
+                if (account_details.has("receiver_name")) {
+                    item.account_details.receiver_name = account_details.getString("receiver_name");
+                }
+                
+                if (account_details.has("receiver_email")) {
+                    item.account_details.receiver_email = account_details.getString("receiver_email");
+                }
+                
+                if (account_details.has("iban")) {
+                    item.account_details.iban = account_details.getString("iban");
+                }
+                
+                if (account_details.has("swift_bic")) {
+                    item.account_details.swift_bic = account_details.getString("swift_bic");
+                }
+                
+                if (account_details.has("reference")) {
+                    item.account_details.reference = account_details.getString("reference");
+                }
+
+                if (account_details.has("ethereum_address")) {
+                    item.account_details.ethereum_address = account_details.getString("ethereum_address");
+                }
+
+                if (account_details.has("phone_number")) {
+                    item.account_details.phone_number = account_details.getString("phone_number");
+                }
+                
+                if (account_details.has("bsb")) {
+                    item.account_details.bsb = account_details.getString("bsb");
+                }
+                
+                if (account_details.has("biller_code")) {
+                    item.account_details.biller_code = account_details.getString("biller_code");
+                }
+                
+                if (account_details.has("account_number")) {
+                    item.account_details.account_number = account_details.getString("account_number");
+                }
+                
+                if (account_details.has("sort_code")) {
+                    item.account_details.sort_code = account_details.getString("sort_code");
+                }
             }
 
             JSONObject advertisement = data.getJSONObject("advertisement");
-            if (advertisement.has("id")) item.advertisement.id = (advertisement.getString("id"));
-            if (advertisement.has("payment_method"))
+            if (advertisement.has("id")) {
+                item.advertisement.id = (advertisement.getString("id"));
+            }
+            
+            if (advertisement.has("payment_method")) {
                 item.advertisement.payment_method = (advertisement.getString("payment_method"));
+            }
+            
             if (advertisement.has("trade_type")) {
                 String trade_type = advertisement.getString("trade_type");
-                item.advertisement.trade_type = (TradeType.valueOf(trade_type));
+                if(trade_type.equals(TradeType.LOCAL_BUY.name())
+                        || trade_type.equals(TradeType.LOCAL_SELL.name())
+                        || trade_type.equals(TradeType.ONLINE_BUY.name())
+                        || trade_type.equals(TradeType.ONLINE_SELL.name())) {
+                    item.advertisement.trade_type = (TradeType.valueOf(trade_type));
+                } else {
+                    if(BuildConfig.DEBUG) {
+                        Crashlytics.setString("contact_data_key", data.toString());
+                        Crashlytics.logException(new Throwable("Found invalid trade type for contact: " + trade_type));
+                    }
+                    item.advertisement.trade_type = TradeType.NONE; 
+                }
             }
 
             JSONObject advertiser = advertisement.getJSONObject("advertiser");
@@ -430,14 +490,61 @@ public class Parser
 
         
         } catch (JSONException e) {
-            Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Message", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+            Timber.e("Error Parsing Contact: " + e.getMessage());
+            Timber.e("Error Parsing Contact: " + object.toString());
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Message", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing contact: " + object.toString()));
+            }
         }
         
     return null;
     }
 
+    public static ArrayList<Notification> parseNotifications(String response)
+    {
+        JSONObject jsonObject;
+        ArrayList<Notification> results = new ArrayList<Notification>();
+        try {
+            jsonObject = new JSONObject(response);
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+            return results;
+        }
+
+        try {
+            JSONArray notifications_list = jsonObject.getJSONArray("data");
+
+            for (int i = 0; i < notifications_list.length(); i++) {
+                JSONObject notificationObj = notifications_list.getJSONObject(i);
+                Notification notification = parseNotification(notificationObj);
+                if (notification != null) results.add(notification);
+            }
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+        }
+        
+        return results;
+    }
+    
+    private static Notification parseNotification(JSONObject jsonObject)
+    {
+        Notification notification = new Notification();
+        try {
+            if (jsonObject.has("url")) notification.url = (jsonObject.getString("url"));
+            if (jsonObject.has("created_at")) notification.created_at = (jsonObject.getString("created_at"));
+            if (jsonObject.has("contact_id")) notification.contact_id = (jsonObject.getString("contact_id"));
+            if (jsonObject.has("advertisement_id")) notification.advertisement_id = (jsonObject.getString("advertisement_id"));
+            if (jsonObject.has("read")) notification.read = (jsonObject.getBoolean("read"));
+            if (jsonObject.has("msg")) notification.msg = jsonObject.getString("msg");
+            if (jsonObject.has("id")) notification.notification_id = (jsonObject.getString("id"));
+            return notification;
+        } catch (JSONException e) {
+            Timber.e("Error Parsing Notification: " + e.getMessage());
+        }
+
+        return null;
+    }
     
     public static ArrayList<Message> parseMessages(String response)
     {
@@ -480,7 +587,7 @@ public class Parser
             if (sender.has("name")) message.sender.name = (sender.getString("name"));
             if (sender.has("trade_count")) message.sender.trade_count = (sender.getString("trade_count"));
             if (sender.has("last_online")) message.sender.last_seen_on = (sender.getString("last_online"));
-            
+            if (messageObj.has("contact_id")) message.contact_id = (messageObj.getString("contact_id"));
             if (messageObj.has("created_at")) message.created_at = (messageObj.getString("created_at"));
             if (messageObj.has("msg")) message.msg = (Uri.decode(messageObj.getString("msg")));
             if (messageObj.has("is_admin")) message.is_admin = (Boolean.valueOf(messageObj.getString("is_admin")));
@@ -493,8 +600,11 @@ public class Parser
         } catch (JSONException e) {
             
             Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Message", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + messageObj.toString()));
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Message", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + messageObj.toString()));
+            }
+           
         }
 
         return null;
@@ -517,11 +627,17 @@ public class Parser
             JSONObject data = jsonObject.getJSONObject("data");
 
             wallet.message = (data.getString("message"));
-
+            wallet.address = data.getString("receiving_address");
+            
             JSONObject total = data.getJSONObject("total");
+            
             wallet.balance = (total.getString("balance"));
             wallet.sendable = (total.getString("sendable"));
 
+            if(TextUtils.isEmpty(wallet.balance) ||  wallet.balance.equals("0E-8")) {
+                wallet.balance = "0";
+            }
+            
             JSONArray sent_transactions = data.getJSONArray("sent_transactions_30d");
 
             ArrayList<Transaction> sentTransactions = new ArrayList<>();
@@ -609,18 +725,21 @@ public class Parser
             wallet.receiving_transactions = receivedTransactions;
 
             // just get the first address
-            JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
+            /*JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
             JSONObject object = (JSONObject) receiving_address_list.get(receiving_address_list.length() - 1);
             wallet.address = (object.getString("address"));
-            wallet.received = (object.getString("received"));
+            wallet.received = (object.getString("received"))*/;
 
             return wallet;
 
         } catch (Exception e) {
            
             Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Wallet", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing wallet: " + response));
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Wallet", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing wallet: " + e.getMessage()));
+                //Timber.e("Error Parsing: " + e.getMessage());
+            }
         }
 
         return null;
@@ -642,16 +761,16 @@ public class Parser
 
             JSONObject data = jsonObject.getJSONObject("data");
             wallet.message = (data.getString("message"));
-
+            wallet.address = (data.getString("receiving_address"));
+            
             JSONObject total = data.getJSONObject("total");
+            
             wallet.balance = (total.getString("balance"));
             wallet.sendable = (total.getString("sendable"));
 
-            // just get the first address
-            JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
-            JSONObject object = (JSONObject) receiving_address_list.get(0);
-            wallet.address = (object.getString("address"));
-            wallet.received = (object.getString("received"));
+            if(TextUtils.isEmpty(wallet.balance) ||  wallet.balance.equals("0E-8")) {
+                wallet.balance = "0";
+            }
 
             return wallet;
 
@@ -765,7 +884,7 @@ public class Parser
     public static Advertisement parseAdvertisement(String response)
     {
         JSONObject jsonObject;
-        JSONObject object;
+        JSONObject object = null;
         try {
             jsonObject = new JSONObject(response);
             object = jsonObject.getJSONObject("data");
@@ -773,11 +892,14 @@ public class Parser
             JSONArray ad_list = object.getJSONArray("ad_list");
             JSONObject obj = ad_list.getJSONObject(0);
             return parseAdvertisement(obj, null);
+            
         } catch (JSONException e) {
             Timber.e(e.getMessage());
-            Crashlytics.setString("Advertisement", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + response));
             
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Advertisement", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object));
+            }
             return null;
         }
     }
@@ -898,10 +1020,11 @@ public class Parser
             return item;
 
         } catch (JSONException e) {
-            
             Timber.e("Error Parsing: " + e.getMessage());
-            Crashlytics.setString("Advertisement", "Parsing error discovered");
-            Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+            if(!BuildConfig.DEBUG) {
+                Crashlytics.setString("Advertisement", "Parsing error discovered");
+                Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
+            }
         }
 
         return null;
@@ -1016,38 +1139,80 @@ public class Parser
         }
     }
 
-    public static List<ExchangeCurrency> parseExchangeCurrencies(String response)
-    {
+    public static List<ExchangeCurrency> parseExchangeCurrencies(String response) {
+        
         JSONObject jsonObject;
         ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
 
         try {
             jsonObject = new JSONObject(response);
+            JSONObject dataObject = jsonObject.getJSONObject("data");
+            JSONObject currenciesObject = dataObject.getJSONObject("currencies");
+            Iterator<?> keys = currenciesObject.keys();
+            while( keys.hasNext() ){
+                String key = (String) keys.next();
+                ExchangeCurrency currency = new ExchangeCurrency(key);
+                currencies.add(currency);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
         }
 
-        Iterator<?> keys = jsonObject.keys();
-        while( keys.hasNext() ){
-            String key = (String) keys.next();
-            try {
-                if(!key.equals("all")) {
-                    ExchangeCurrency currency = new ExchangeCurrency(key, jsonObject.get(key).toString());
-                    currencies.add(currency);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
+        Collections.sort(currencies, new CurrencyComparator());
+        Timber.d("Currencies: " + currencies);
         return currencies;
     }
 
+    public static class CurrencyComparator implements Comparator<ExchangeCurrency>
+    {
+        @Override
+        public int compare(ExchangeCurrency o1, ExchangeCurrency o2) {
+            return o1.getCurrency().toLowerCase().compareTo(o2.getCurrency().toLowerCase());
+        }
+    }
+
+    public static List<ExchangeCurrency> parseCoinbaseCurrencies(String response) {
+        
+        ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
+        JSONObject jsonObject;
+        Timber.d("Response" + response);
+
+        try {
+            jsonObject = new JSONObject(response);
+            JSONArray dataObject = jsonObject.getJSONArray("data");
+            for (int i = 0; i < dataObject.length(); i++) {
+                JSONObject obj = dataObject.getJSONObject(i);
+                ExchangeCurrency exchange = new ExchangeCurrency(obj.getString("id"));
+                currencies.add(exchange);
+            }
+            return currencies;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    //{"data":{"amount":"2664.95","currency":"USD"}}
+    public static ExchangeRate parseExchangeRate(String response) {
+        JSONObject jsonObject;
+        Timber.d("Response" + response);
+        try {
+            jsonObject = new JSONObject(response);
+            JSONObject dataObject = jsonObject.getJSONObject("data");
+            String exchangeName = "Coinbase";
+            return new ExchangeRate(exchangeName, dataObject.getString("amount"), dataObject.getString("currency"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Deprecated
     public static Exchange parseMarket(String response)
     {
         JSONObject jsonObject;
+        Timber.d("Calculations" + response);
 
         try {
             jsonObject = new JSONObject(response);

@@ -17,8 +17,11 @@
 package com.thanksmister.bitcoin.localtrader.data.services;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 
 public class SyncService extends Service
 {
@@ -27,16 +30,9 @@ public class SyncService extends Service
 
     // Object to use as a thread-safe lock
     private static final Object sSyncAdapterLock = new Object();
-    /*
-     * Instantiate the sync adapter object.
-     */
+
     @Override
     public void onCreate() {
-        /*
-         * Create the sync adapter as a singleton.
-         * Set the sync adapter as syncable
-         * Disallow parallel syncs
-         */
         synchronized (sSyncAdapterLock) {
             if (sSyncAdapter == null) {
                 sSyncAdapter = new SyncAdapter(getApplicationContext(), true);
@@ -46,16 +42,21 @@ public class SyncService extends Service
     /**
      * Return an object that allows the system to invoke
      * the sync adapter.
-     *
      */
     @Override
     public IBinder onBind(Intent intent) {
-        /*
-         * Get the object that allows external processes
-         * to call onPerformSync(). The object is created
-         * in the base class code when the SyncAdapter
-         * constructors call super()
-         */
         return sSyncAdapter.getSyncAdapterBinder();
+    }
+
+    public static void requestSyncNow(Context context) {
+        SyncUtils.requestSyncNow(context);
+    }
+
+    public static void requestSyncLater(final Context context, long delay) {
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            public void run() {
+                SyncService.requestSyncNow(context);
+            }
+        }, delay);
     }
 }

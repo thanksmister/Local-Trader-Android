@@ -25,14 +25,39 @@ public class Conversions
     public static int MAXIMUM_BTC_DECIMALS = 8;
     public static int MINIMUM_BTC_DECIMALS = 1;
     public static int MINIMUM_CURRENCY_DECIMALS = 2;
+    
+    public static String ZERO_OR_MORE_DECIMALS = "###.##";
+    public static String ZERO_DECIMALS = "0";
+    public static String ONE_DECIMALS = "0.0";
+    public static String TWO_DECIMALS = "0.00";
+    public static String THREE_DECIMALS = "0.000";
+    public static String FOUR_DECIMALS = "0.0000";
+    public static String FIVE_DECIMALS = "0.00000";
+    public static double KILOMETERS_TO_MILES = .62137;
 
     private Conversions()
     {
     }
 
+    public static String kilometersToMiles(double km)
+    {
+        double mi = km * KILOMETERS_TO_MILES;
+        return Conversions.formatDecimalToString(mi, TWO_DECIMALS);
+    }
+
     public static double diffOfTwoValues(String value1, String value2)
     {
         return convertToDouble(value1) - convertToDouble(value2);
+    }
+
+    public static String formatDecimalToString(double value, String format)
+    {
+        try {
+            DecimalFormat decimalFormat = new DecimalFormat(format);
+            return decimalFormat.format(value);
+        } catch (Exception e) {
+            throw new NumberFormatException("Unable to format value to decimal: " + value);
+        }
     }
 
     public static double sumOfTwoValues(String value1, String value2)
@@ -141,7 +166,7 @@ public class Conversions
             e.printStackTrace();
         }
         
-        return null;
+        return "";
     }
     
     public static Double convertToDouble(String value)

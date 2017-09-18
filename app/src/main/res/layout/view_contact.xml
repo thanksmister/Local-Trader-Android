@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -22,52 +22,91 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
-    <android.support.design.widget.AppBarLayout
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/contactToolBar"
+        <android.support.design.widget.AppBarLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:minHeight="?android:attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
+                android:fitsSystemWindows="true">
 
-    </android.support.design.widget.AppBarLayout>
-
-    <!-- Your Scrollable View -->
-    <android.support.v4.widget.SwipeRefreshLayout
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:id="@+id/swipeLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            <ListView
-                    android:id="@+id/contactList"
-                    android:layout_width="match_parent"
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/contactToolBar"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:divider="@drawable/black_horizontal_line"
-                    android:dividerHeight="1px"
-                    android:scrollbars="none"
-                    android:drawSelectorOnTop="true"
-                    tools:visibility="visible"
-                    android:visibility="gone"/>
+                    android:layout_width="match_parent"
+                    android:minHeight="?android:attr/actionBarSize"
+                    android:background="@color/colorPrimary"
+                    app:popupTheme="@style/Theme.AppCompat.Light"/>
 
-            <include
-                    android:id="@+id/contactProgress"
-                    layout="@layout/view_progress"
-                    tools:visibility="visible"
-                    android:visibility="visible"/>
+        </android.support.design.widget.AppBarLayout>
 
-        </FrameLayout>
+        <!-- Your Scrollable View -->
+        <android.support.v4.widget.SwipeRefreshLayout
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                android:id="@+id/swipeLayout"
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+            <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                <ListView
+                        android:id="@+id/contactList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:divider="@drawable/black_horizontal_line"
+                        android:dividerHeight="1px"
+                        android:scrollbars="none"
+                        android:drawSelectorOnTop="true"
+                        android:visibility="gone"
+                        tools:visibility="visible"/>
+
+                <include
+                        layout="@layout/view_empty"
+                        android:id="@+id/emptyLayout"
+                        tools:visibility="visible"
+                        android:visibility="gone"/>
+
+                <include
+                        android:id="@+id/view_progress"
+                        layout="@layout/view_progress"
+                        android:visibility="gone"
+                        tools:visibility="visible"/>
+
+            </FrameLayout>
+
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+        <LinearLayout
+                android:id="@+id/buttonLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/gray_color"
+                android:layout_weight="0"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:orientation="vertical">
+
+            <View style="@style/DividerHorizontal"/>
+
+            <Button
+                    style="@style/ButtonGreen.Small"
+                    android:id="@+id/contactButton"
+                    android:layout_width="match_parent"
+                    android:layout_margin="@dimen/activity_padding"
+                    android:layout_height="48dp"
+                    android:textAllCaps="true"
+                    tools:text="@string/button_search_trades"
+                    android:text="@string/button_search_trades"/>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout> 

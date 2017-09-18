@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -42,24 +42,24 @@
 
         <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
                 android:orientation="vertical">
+
+            <ImageView
+                    android:layout_width="144dp"
+                    android:layout_height="144dp"
+                    android:layout_gravity="center_horizontal"
+                    android:src="@drawable/ic_mister"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:gravity="center_horizontal"
                     android:paddingTop="20dp"
-                    android:paddingBottom="20dp">
-
-                <ImageView
-                        android:layout_marginTop="10dp"
-                        android:layout_height="200dp"
-                        android:layout_width="200dp"
-                        android:src="@drawable/logo_screen"
-                        android:contentDescription="@string/desc"/>
-
+                    android:paddingBottom="10dp"
+                    android:gravity="center_horizontal">
+                
                 <TextView
                         android:text="@string/designer_developer_text"
                         android:layout_width="wrap_content"
@@ -92,26 +92,77 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         style="@style/SmallText.ExtraSmall"
-                        android:maxLines="2"
-
-                        android:autoLink="web|email"/>
+                        android:maxLines="2"/>
 
             </LinearLayout>
 
             <View style="@style/DividerHorizontal"/>
 
+            <LinearLayout
+                    android:id="@+id/guidesButton"
+                    style="@style/BorderlessButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal"
+                    android:visibility="visible">
+
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_action_guides"/>
+
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="@string/text_getting_started_guides"/>
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal"/>
+
+            <LinearLayout
+                    android:id="@+id/sendAccountButton"
+                    style="@style/BorderlessButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/view_padding"
+                    android:orientation="horizontal"
+                    android:visibility="visible">
+
+                <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_action_contact"/>
+
+                <TextView
+                        style="@style/TextMedium.SmallAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:gravity="left|center_vertical"
+                        android:text="@string/text_localbitcoins_support"/>
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal"/>
+            
             <LinearLayout
                     android:id="@+id/sendFeedbackButton"
                     style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="@dimen/view_padding"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:visibility="visible">
 
                 <ImageView
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:src="@drawable/ic_communication_email"/>
+                        android:src="@drawable/ic_action_email"/>
 
                 <TextView
                         style="@style/TextMedium.SmallAction"
@@ -119,32 +170,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Provide feedback"/>
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/tipBitcoinButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
-                    android:orientation="horizontal">
-
-                <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_donate_bitcoin"/>
-
-                <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="Tip me!"/>
+                        android:text="@string/text_application_feedback"/>
 
             </LinearLayout>
 
@@ -161,7 +187,7 @@
                 <ImageView
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:src="@drawable/ic_toggle_star"/>
+                        android:src="@drawable/ic_action_rating"/>
 
                 <TextView
                         style="@style/TextMedium.SmallAction"
@@ -169,7 +195,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Rate application"/>
+                        android:text="@string/text_rate_application"/>
 
             </LinearLayout>
 
@@ -179,14 +205,14 @@
                     android:id="@+id/joinCommunityButton"
                     style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
+                    android:layout_height="56dp"
                     android:orientation="horizontal">
 
                 <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_google_plus"/>
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginLeft="8dp"
+                        android:src="@drawable/ic_icon_reddit"/>
 
                 <TextView
                         style="@style/TextMedium.SmallAction"
@@ -194,7 +220,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="Join community"/>
+                        android:text="@string/text_join_community"/>
 
             </LinearLayout>
 
@@ -211,7 +237,7 @@
                 <ImageView
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:src="@drawable/ic_info_outline"/>
+                        android:src="@drawable/ic_action_license"/>
 
                 <TextView
                         style="@style/TextMedium.SmallAction"
@@ -219,7 +245,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="8dp"
                         android:gravity="left|center_vertical"
-                        android:text="License information"/>
+                        android:text="@string/text_license_information"/>
 
             </LinearLayout>
 
@@ -230,4 +256,3 @@
     </ScrollView>
 
 </LinearLayout>
-

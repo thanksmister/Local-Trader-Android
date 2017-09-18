@@ -22,12 +22,12 @@
     <item android:id="@+id/action_visible"
           android:title="@string/menu_action_visibility"
           android:icon="@drawable/ic_action_visibility"
-          thanksmister:showAsAction="ifRoom"/>
+          thanksmister:showAsAction="always"/>
 
     <item android:id="@+id/action_edit"
           android:title="@string/menu_action_edit"
           android:icon="@drawable/ic_action_content_create"
-          thanksmister:showAsAction="ifRoom"/>
+          thanksmister:showAsAction="always"/>
 
     <item android:id="@+id/action_share"
           android:title="@string/menu_action_share"

@@ -15,10 +15,10 @@
  */
 package com.thanksmister.bitcoin.localtrader;
 
+import android.content.Context;
 import android.location.LocationManager;
 
-import com.thanksmister.bitcoin.localtrader.data.DataModule;
-import com.thanksmister.bitcoin.localtrader.domain.DomainModule;
+import com.thanksmister.bitcoin.localtrader.ui.ActivityModule;
 
 import javax.inject.Singleton;
 
@@ -37,13 +37,21 @@ public class ApplicationModule
 {
     private final BaseApplication app;
 
-    public ApplicationModule(BaseApplication app) 
+    ApplicationModule(BaseApplication app) 
     {
         this.app = app;
     }
     
     @Provides 
     BaseApplication provideApplication() 
+    {
+        return app;
+    }
+
+    @Provides
+    @Singleton
+    @ForApplication
+    Context providesApplicationContext()
     {
         return app;
     }

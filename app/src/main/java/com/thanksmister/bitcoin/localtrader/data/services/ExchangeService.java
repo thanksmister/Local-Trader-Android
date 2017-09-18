@@ -16,28 +16,28 @@
 
 package com.thanksmister.bitcoin.localtrader.data.services;
 
-
 import android.content.SharedPreferences;
 
-import com.thanksmister.bitcoin.localtrader.data.api.BitcoinAverage;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.Coinbase;
 import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToExchange;
-import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToExchangeCurrencyList;
+import com.thanksmister.bitcoin.localtrader.data.api.transforms.ResponseToExchangeCurrencies;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 
-import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import retrofit.client.Response;
 import rx.Observable;
+import rx.functions.Action1;
 import timber.log.Timber;
 
 @Singleton
-public class ExchangeService
-{
+public class ExchangeService {
+    
     public static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
     public static final String PREFS_SELECTED_EXCHANGE = "selected_exchange";
     public static final String PREFS_EXCHANGE_CURRENCY = "exchange_currency";
@@ -48,106 +48,67 @@ public class ExchangeService
     public static final String EUR = "EUR";
     public static final String EXCHANGE = "Bitstamp";
     
-    private final BitcoinAverage bitcoinAverage;
+    private final Coinbase coinbase;
     private final SharedPreferences sharedPreferences;
     
     @Inject
-    public ExchangeService(SharedPreferences sharedPreferences, BitcoinAverage bitcoinAverage)
-    {
-        this.bitcoinAverage = bitcoinAverage;
+    public ExchangeService(SharedPreferences sharedPreferences, Coinbase coinbase) {
+        this.coinbase = coinbase;
         this.sharedPreferences = sharedPreferences;
     }
 
-    public void setSelectedExchange(String name)
-    {
+    public void setSelectedExchange(String name) {
         StringPreference preference = new StringPreference(sharedPreferences, PREFS_SELECTED_EXCHANGE, EXCHANGE);
         preference.set(name);
     }
 
-    public String getSelectedExchangeName()
-    {
+    public String getSelectedExchangeName() {
         StringPreference preference = new StringPreference(sharedPreferences, PREFS_SELECTED_EXCHANGE, EXCHANGE);
         Timber.d("Selected Name: " + preference.get());
         if(preference.get().equals("")) return EXCHANGE;
         return preference.get();
     }
 
-    public void setExchangeCurrency(String currency)
-    {
+    public void setExchangeCurrency(String currency) {
         StringPreference preference = new StringPreference(sharedPreferences, PREFS_EXCHANGE_CURRENCY, USD);
         preference.set(currency);
     }
 
-    public String getExchangeCurrency()
-    {
+    public String getExchangeCurrency() {
         StringPreference preference = new StringPreference(sharedPreferences, PREFS_EXCHANGE_CURRENCY, USD);
         if(preference.get().equals("")) return USD;
         return preference.get();
     }
-
-    public Observable<List<ExchangeCurrency>> getGlobalTickers()
-    {
-        return bitcoinAverage.globalTickers()
-                .map(new ResponseToExchangeCurrencyList());
-    }
-
-    public Observable<List<ExchangeCurrency>> getMarketTickers()
-    {
-        return bitcoinAverage.marketTickers()
-                .map(new ResponseToExchangeCurrencyList());
-    }
-
-    public Observable<Exchange> getMarket(boolean force)
-    {
-       /* if (!needToRefreshExchanges() && !force) {
-            return Observable.empty();
-        }*/
-
-        String currency = getExchangeCurrency();
-        
-        Timber.d("WalletFragment Currency: " + currency);
-        
-        return bitcoinAverage.globalCurrency(currency)
-                .map(new ResponseToExchange());
-                /*.doOnNext(new Action1<Exchange>()
-                {
-                    @Override
-                    public void call(Exchange exchange)
-                    {
-                        setExchangeExpireTime();
-                    }
-                });*/
+    
+    public Observable<List<ExchangeCurrency>> getCurrencies() {
+        return coinbase.currencies()
+                .map(new ResponseToExchangeCurrencies());
     }
     
-    /*public Observable<List<Exchange>> getExchangesObservable(boolean force)
-    {
-        if (!needToRefreshExchanges() && !force) {
-            return Observable.empty();
+    public Observable<ExchangeRate> getSpotPrice() {
+        if(needToRefreshExchanges()) {
+            String currency = getExchangeCurrency();
+            return coinbase.spotPrice(currency)
+                    .doOnNext(new Action1<Response>() {
+                        @Override
+                        public void call(Response response) {
+                            setExchangeExpireTime();
+                        }
+                    })
+                    .map(new ResponseToExchange());
+        } else {
+            return Observable.just(null);
         }
-        
-        String currency = getExchangeCurrency();
-        return bitcoinAverage.exchanges(currency)
-                .map(new ResponseToExchangeList())
-                .doOnNext(new Action1<List<Exchange>>()
-                {
-                    @Override
-                    public void call(List<Exchange> exchanges)
-                    {
-                        setExchangeExpireTime();
-                    }
-                });
-    }*/
+    }
 
-    private class ExchangeNameComparator implements Comparator<Exchange>
-    {
-        @Override
-        public int compare(Exchange o1, Exchange o2) {
-            return o1.getDisplay_name().toLowerCase().compareTo(o2.getDisplay_name().toLowerCase());
+    public void clearExchangeExpireTime() {
+        synchronized (this) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove(PREFS_EXCHANGE_EXPIRE_TIME).apply();
         }
     }
     
-    private void setExchangeExpireTime()
-    {
+    public void setExchangeExpireTime() {
         synchronized (this) {
             long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA; // 1 hours
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -156,8 +117,7 @@ public class ExchangeService
         }
     }
     
-    private boolean needToRefreshExchanges()
-    {
+    public boolean needToRefreshExchanges() {
         synchronized (this) {
             long expiresAt = sharedPreferences.getLong(PREFS_EXCHANGE_EXPIRE_TIME, -1);
             return System.currentTimeMillis() >= expiresAt;

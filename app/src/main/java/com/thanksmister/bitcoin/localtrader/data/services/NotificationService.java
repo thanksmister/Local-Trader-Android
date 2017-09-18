@@ -22,7 +22,8 @@ import android.content.SharedPreferences;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
+import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
+import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -32,31 +33,58 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import dpreference.DPreference;
 import timber.log.Timber;
 
-
 @Singleton
-public class NotificationService
-{
+public class NotificationService {
+    
+    private final DPreference preference;
     private final SharedPreferences sharedPreferences;
     private final Context context;
-    private StringPreference stringPreference;
-    
+
     @Inject
-    public NotificationService(Context context, SharedPreferences sharedPreferences)
-    {
+    public NotificationService(Context context, DPreference preference, SharedPreferences sharedPreferences) {
         this.context = context;
+        this.preference = preference;
         this.sharedPreferences = sharedPreferences;
-        stringPreference = new StringPreference(sharedPreferences, DataService.PREFS_USER);
     }
-    
-    public void messageNotifications(List<Message> messages)
-    {
-        if(messages.isEmpty()) return;
-        
+
+    public void createNotifications(List<Notification> notifications) {
+        Timber.d("createNotifications : " + notifications.size());
+        if (notifications.isEmpty())
+            return;
+
+        List<Notification> notificationList = new ArrayList<Notification>();
+        for (Notification notification : notifications) {
+            boolean read = notification.read;
+            boolean support = notification.url.contains("support");
+            boolean feedback = notification.url.contains("feedback");
+            if (!read && !feedback && !support) {
+                notificationList.add(notification);
+            }
+        }
+
+        if (notificationList.size() > 1) {
+            NotificationUtils.createNotification(context.getApplicationContext(), "New Notifications", "Notifications", "You have " + notificationList.size() + " new notifications.", NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION, null);
+        } else if (notificationList.size() == 1) {
+            Notification notification = notificationList.get(0);
+            if (notification.contact_id != null) {
+                NotificationUtils.createNotification(context.getApplicationContext(), "New Trade Notification", "Trade notification", notification.msg, NotificationUtils.NOTIFICATION_TYPE_CONTACT, notification.contact_id);
+            } else if (notification.advertisement_id != null) {
+                NotificationUtils.createNotification(context.getApplicationContext(), "New Advertisement Notification", "Advertisement notification", notification.msg, NotificationUtils.NOTIFICATION_TYPE_ADVERTISEMENT, notification.advertisement_id);
+            } else {
+                NotificationUtils.createNotification(context.getApplicationContext(), "New Notification", "Notification", notification.msg, NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION, null);
+            }
+        }
+    }
+
+    public void messageNotifications(List<Message> messages) {
+        if (messages.isEmpty()) return;
+
         List<Message> newMessages = new ArrayList<Message>();
         for (Message message : messages) {
-            boolean isAccountUser = message.sender.username.toLowerCase().equals(stringPreference.get());
+            boolean isAccountUser = message.sender.username.toLowerCase().equals(AuthUtils.getUsername(preference, sharedPreferences));
             if (!isAccountUser) {
                 newMessages.add(message);
             }
@@ -72,15 +100,14 @@ public class NotificationService
         }
     }
 
-    public void balanceUpdateNotification(String title, String ticker, String message)
-    {
+    public void balanceUpdateNotification(String title, String ticker, String message) {
+        Timber.d("balanceUpdateNotification");
         NotificationUtils.createBalanceNotification(context.getApplicationContext(), title, ticker, message, NotificationUtils.NOTIFICATION_TYPE_BALANCE, null);
     }
 
-    public void contactNewNotification(List<Contact> contacts)
-    {
+    public void contactNewNotification(List<Contact> contacts) {
         Timber.d("new contacts size: " + contacts.size());
-        
+
         if (contacts.size() > 1) {
             NotificationUtils.createNotification(context.getApplicationContext(), "New Trades", "You have new trades to buy or sell bitcoin!", "You have " + contacts.size() + " new trades to buy or sell bitcoins.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
         } else if (contacts.size() == 1) {
@@ -93,10 +120,9 @@ public class NotificationService
         }
     }
 
-    public void contactUpdateNotification(List<Contact> contacts)
-    {
+    public void contactUpdateNotification(List<Contact> contacts) {
         Timber.d("updated contacts size: " + contacts.size());
-        
+
         if (contacts.size() > 1) {
             NotificationUtils.createNotification(context.getApplicationContext(), "Trade Updates", "Trade status updates..", "Two or more of your trades have been updated.", NotificationUtils.NOTIFICATION_TYPE_CONTACT, null);
         } else if (contacts.size() == 1) {
@@ -108,57 +134,34 @@ public class NotificationService
         }
     }
 
-    public void contactDeleteNotification(List<Contact> contacts)
-    {
+    public void contactDeleteNotification(List<Contact> contacts) {
         Timber.d("Notify Deleted Contact Size: " + contacts.size());
-        
         if (contacts.size() > 1) {
-
             List<Contact> canceled = new ArrayList<Contact>();
             List<Contact> released = new ArrayList<Contact>();
-            
             for (Contact contact : contacts) {
-                
-                if(TradeUtils.isReleased(contact)) {
-                    
+                if (TradeUtils.isReleased(contact)) {
                     released.add(contact);
-                    
                 } else {
-                    
                     canceled.add(contact);
                 }
             }
 
-            if(canceled.size() > 1 && released.size() > 1) {
-                
+            if (canceled.size() > 1 && released.size() > 1) {
                 NotificationUtils.createNotification(context, "Trades canceled or released", "Trades canceled or released...", "Two or more of your trades have been canceled or released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-            
             } else if (canceled.size() > 1) {
-                
                 NotificationUtils.createNotification(context, "Trades canceled", "Trades canceled...", "Two or more of your trades have been canceled.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
-            
             } else if (released.size() > 1) {
-                
                 NotificationUtils.createNotification(context, "Trades released", "Trades released...", "Two or more of your trades have been released.", NotificationUtils.NOTIFICATION_TYPE_MESSAGE, null);
             }
-            
-        } else if (contacts.size() == 1) {
-            
-            Contact contact = contacts.get(0);
 
-            Timber.d("Trade Released: " + TradeUtils.isReleased(contact));
-            Timber.d("Trade Closed: " + TradeUtils.isClosedTrade(contact));
-            Timber.d("Trade Cancelled: " + TradeUtils.isCanceledTrade(contact));
-            
+        } else if (contacts.size() == 1) {
+            Contact contact = contacts.get(0);
             String contactName = TradeUtils.getContactName(contact);
             String saleType = (contact.is_selling) ? " with buyer " : " with seller ";
-            
             if (TradeUtils.isReleased(contact)) {
-                
                 NotificationUtils.createNotification(context, "Trade Released", ("Trade with" + contactName + " released."), ("Trade #" + contact.contact_id + saleType + contactName + " has been released."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
-            
             } else {
-                
                 NotificationUtils.createNotification(context, "Trade Canceled", ("Trade with" + contactName + " canceled."), ("Trade #" + contact.contact_id + saleType + contactName + " has been canceled."), NotificationUtils.NOTIFICATION_TYPE_CONTACT, contact.contact_id);
 
             }

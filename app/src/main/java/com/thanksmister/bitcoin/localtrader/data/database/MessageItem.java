@@ -34,13 +34,12 @@ import static com.squareup.sqlbrite.SqlBrite.Query;
  * https://github.com/square/sqlbrite/
  */
 @AutoParcel
-public abstract class MessageItem
-{
+public abstract class MessageItem {
     public static final String TABLE = "message_item";
 
     public static final String ID = "_id";
     public static final String CREATED_AT = "created_at";
-    public static final String CONTACT_LIST_ID = "contact_list_id";
+    public static final String CONTACT_ID = "contact_list_id";
     public static final String MESSAGE = "message";
     public static final String SEEN = "seen";
     public static final String SENDER_ID = "sender_id";
@@ -49,15 +48,15 @@ public abstract class MessageItem
     public static final String SENDER_TRADE_COUNT = "sender_trader_count";
     public static final String SENDER_LAST_ONLINE = "sender_last_online";
     public static final String IS_ADMIN = "is_admin";
-    public static final String ATTACHMENT_NAME  = "attachment_name";
-    public static final String ATTACHMENT_URL  = "attachment_url";
-    public static final String ATTACHMENT_TYPE  = "attachment_type";
-    
-    
+    public static final String ATTACHMENT_NAME = "attachment_name";
+    public static final String ATTACHMENT_URL = "attachment_url";
+    public static final String ATTACHMENT_TYPE = "attachment_type";
+
+
     public static final String QUERY = "SELECT * FROM "
             + MessageItem.TABLE
             + " WHERE "
-            + MessageItem.CONTACT_LIST_ID
+            + MessageItem.CONTACT_ID
             + " = ? ORDER BY "
             + MessageItem.CREATED_AT
             + " DESC";
@@ -65,29 +64,46 @@ public abstract class MessageItem
     public static final String SELECT_QUERY = "SELECT * FROM "
             + MessageItem.TABLE
             + " WHERE "
-            + MessageItem.CONTACT_LIST_ID
+            + MessageItem.CONTACT_ID
             + " = ?";
-    
+
     public static final String COUNT_QUERY = "SELECT COUNT(*) FROM "
             + MessageItem.TABLE
             + " WHERE "
-            + MessageItem.CONTACT_LIST_ID
+            + MessageItem.CONTACT_ID
             + " = ?";
-    
+
     public abstract long id();
+
     public abstract String create_at();
+
     public abstract long contact_id();
+
     public abstract String message();
+
     public abstract boolean seen();
-    @Nullable public abstract String sender_id();
+
+    @Nullable
+    public abstract String sender_id();
+
     public abstract String sender_name();
+
     public abstract String sender_username();
+
     public abstract String sender_trade_count();
+
     public abstract String sender_last_online();
+
     public abstract boolean is_admin();
-    @Nullable public abstract String attachment_name();
-    @Nullable public abstract String attachment_type();
-    @Nullable public abstract String attachment_url();
+
+    @Nullable
+    public abstract String attachment_name();
+
+    @Nullable
+    public abstract String attachment_type();
+
+    @Nullable
+    public abstract String attachment_url();
 
     public static final Func1<Query, List<MessageItem>> MAP = new Func1<Query, List<MessageItem>>() {
         @Override
@@ -98,7 +114,7 @@ public abstract class MessageItem
                 while (cursor.moveToNext()) {
                     long id = Db.getLong(cursor, ID);
                     String created_at = Db.getString(cursor, CREATED_AT);
-                    long contact_id = Db.getLong(cursor, CONTACT_LIST_ID);
+                    long contact_id = Db.getLong(cursor, CONTACT_ID);
                     String message = Db.getString(cursor, MESSAGE);
                     boolean seen = Db.getBoolean(cursor, SEEN);
                     String sender_id = Db.getString(cursor, SENDER_ID);
@@ -119,23 +135,60 @@ public abstract class MessageItem
             }
         }
     };
+
+    public static List<MessageItem> getModelList(Cursor cursor) {
+        List<MessageItem> values = new ArrayList<>(cursor.getCount());
+        while (cursor.moveToNext()) {
+            MessageItem messageItem = getModel(cursor);
+            if(messageItem != null) {
+                values.add(getModel(cursor)); 
+            }
+        }
+        return values;
+    }
+
+    public static MessageItem getModel(Cursor cursor) {
+        if (cursor != null && cursor.getCount() > 0) {
+            long id = Db.getLong(cursor, ID);
+            String created_at = Db.getString(cursor, CREATED_AT);
+            long contact_id = Db.getLong(cursor, CONTACT_ID);
+            String message = Db.getString(cursor, MESSAGE);
+            boolean seen = Db.getBoolean(cursor, SEEN);
+            String sender_id = Db.getString(cursor, SENDER_ID);
+            String sender_name = Db.getString(cursor, SENDER_NAME);
+            String sender_username = Db.getString(cursor, SENDER_USERNAME);
+            String sender_last_online = Db.getString(cursor, SENDER_LAST_ONLINE);
+            String sender_last_trade_count = Db.getString(cursor, SENDER_TRADE_COUNT);
+            boolean is_admin = Db.getBoolean(cursor, IS_ADMIN);
+            String attachment_name = Db.getString(cursor, ATTACHMENT_NAME);
+            String attachment_type = Db.getString(cursor, ATTACHMENT_TYPE);
+            String attachment_url = Db.getString(cursor, ATTACHMENT_URL);
+            return new AutoParcel_MessageItem(id, created_at, contact_id, message, seen, sender_id, sender_name, sender_username,
+                    sender_last_online, sender_last_trade_count, is_admin, attachment_name, attachment_type, attachment_url);
+        }
+        return null;
+    }
     
-    public static List<MessageItem> convertMessages(List<Message> messages, final String contactID)
-    {
+    public static List<MessageItem> convertMessages(List<Message> messages, final String contactID) {
         List<MessageItem> values = new ArrayList<MessageItem>();
         for (Message message : messages) {
-            try{
+            try {
                 values.add(new AutoParcel_MessageItem(0, message.created_at, Long.valueOf(contactID), message.msg, message.seen, message.sender.id, message.sender.name, message.sender.username,
                         message.sender.last_seen_on, message.sender.trade_count, message.is_admin, message.attachment_name, message.attachment_type, message.attachment_url));
-            } catch (Exception e){
+            } catch (Exception e) {
                 Timber.e("Exception: " + e.getMessage());
             }
         }
         return values;
     }
 
-    public static Builder createBuilder(Message item)
-    {
+    public static ContentValues getContentValues(Message item, long id) {
+        ContentValues values = createBuilder(item).build();
+        values.put(ID, id);
+        return values;
+    }
+    
+    public static Builder createBuilder(Message item) {
         return new Builder()
                 .contact_list_id(Long.parseLong(item.contact_id))
                 .message(item.msg)
@@ -153,6 +206,7 @@ public abstract class MessageItem
     }
 
     public static final class Builder {
+
         private final ContentValues values = new ContentValues();
 
         public Builder id(long id) {
@@ -161,7 +215,7 @@ public abstract class MessageItem
         }
 
         public Builder contact_list_id(long value) {
-            values.put(CONTACT_LIST_ID, value);
+            values.put(CONTACT_ID, value);
             return this;
         }
 
@@ -226,7 +280,7 @@ public abstract class MessageItem
         }
 
         public ContentValues build() {
-            return values; 
+            return values;
         }
     }
 }

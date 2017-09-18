@@ -16,33 +16,39 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
-public final class Strings
-{
-    private Strings()
-    {
+import android.text.TextUtils;
+
+public final class Strings {
+    private Strings() {
         // No instances.
     }
-
-    public static boolean isBlank(CharSequence string)
-    {
+ 
+    @Deprecated
+    public static boolean isBlank(CharSequence string) {
         return (string == null || string.toString().trim().length() == 0 || string.equals("") || string.equals("null"));
     }
 
-    public static String valueOrDefault(String string, String defaultString)
-    {
+    public static String valueOrDefault(String string, String defaultString) {
         return isBlank(string) ? defaultString : string;
     }
 
-    public static String truncateAt(String string, int length)
-    {
+    public static String removeExtension(String fileName) {
+        if (TextUtils.isEmpty(fileName)) {
+            return "document";
+        } else if (fileName.contains(".")) {
+            return fileName.substring(0, fileName.lastIndexOf('.'));
+        }
+        return fileName;
+    }
+
+    public static String truncateAt(String string, int length) {
         return string.length() > length ? string.substring(0, length) : string;
     }
 
-    public static String convertCamelCase(String value)
-    {
+    public static String convertCamelCase(String value) {
         String result = value.replace("_", " "); // replace any undersocres
         String[] words = result.split(" ");
-        
+
         StringBuilder sb = new StringBuilder();
         if (words[0].length() > 0) {
             sb.append(Character.toUpperCase(words[0].charAt(0)) + words[0].subSequence(1, words[0].length()).toString().toLowerCase());
@@ -51,7 +57,34 @@ public final class Strings
                 sb.append(Character.toUpperCase(words[i].charAt(0)) + words[i].subSequence(1, words[i].length()).toString().toLowerCase());
             }
         }
-        return  sb.toString();
+        return sb.toString();
     }
 
+    public static String toTitleCase(String str) {
+
+        if (str == null) {
+            return null;
+        }
+
+        boolean space = true;
+        StringBuilder builder = new StringBuilder(str);
+        final int len = builder.length();
+
+        for (int i = 0; i < len; ++i) {
+            char c = builder.charAt(i);
+            if (space) {
+                if (!Character.isWhitespace(c)) {
+                    // Convert to title case and switch out of whitespace mode.
+                    builder.setCharAt(i, Character.toTitleCase(c));
+                    space = false;
+                }
+            } else if (Character.isWhitespace(c)) {
+                space = true;
+            } else {
+                builder.setCharAt(i, Character.toLowerCase(c));
+            }
+        }
+
+        return builder.toString();
+    }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -61,6 +61,33 @@
                     android:singleLine="true"
                     android:ellipsize="end"
                     android:text="Palermo, Buenos Aires"/>
+            
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:orientation="horizontal">
+
+                <TextView
+                        android:id="@+id/advertisementDate"
+                        style="@style/TextMedium.SmallAction.Light"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="left"
+                        android:layout_weight="1"
+                        android:text="11/23/99"/>
+
+                <TextView
+                        android:id="@+id/advertisementId"
+                        style="@style/TextMedium.SmallAction.Light"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textIsSelectable="true"
+                        android:gravity="right"
+                        android:layout_weight="1"
+                        android:text="#559595"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 

@@ -1,0 +1,693 @@
+<resources>
+
+    <!-- What's New --><![CDATA[
+    
+    ]]><!-- ERRORS & WARNINGS -->
+    <string name="warning_no_location_active">Los servicios de ubicación son necesarios para usar la función de búsqueda, por favor, habilite los servicios de ubicación para continuar.</string>
+    <string name="warning_no_google_play_services">Los servicios de Google Play son necesarios, instale o actualice los servicios.</string>
+    <string name="warning_update_google_play_services">Los servicios de Google Play están desactualizados, actualice los servicios.</string>
+    <string name="warning_no_location_services_title">Servicios de ubicación</string>
+    <string name="warning_no_google_play_services_title">Servicios de Google Play</string>
+    <string name="error_no_internet">Conexión de Internet débil o no</string>
+    <string name="error_generic_error">Servicio inalcanzable, compruebe la conexión de red.</string>
+    <string name="error_unknown_error">Se ha producido un error desconocido.</string>
+    <string name="error_service_unreachable_error">El servicio es inaccesible o no responde.</string>
+    <string name="error_service_timeout_error">El servicio ha agotado el tiempo de espera y no responde.</string>
+    <string name="error_service_error">Error producido por el servicio no encontrado.</string>
+    <string name="error_authentication">Error de autenticación, compruebe que sus credenciales de inicio de sesión son correctas.</string>
+    <string name="error_bad_token">Token expirado, vuelve a iniciar sesión.</string>
+
+    <!-- DRAWER -->
+    <string name="view_title_advertisements">Anuncios</string>
+    <string name="view_title_search">Búsqueda</string>
+    <string name="view_title_trades">Comercios</string>
+    <string name="view_title_notifications">Notificaciones</string>
+    <string name="view_title_dashboard">Panel de control</string>
+    <string name="view_title_wallet">Cartera</string>
+    <string name="view_title_buy_sell">Búsqueda</string>
+    <string name="view_title_request">Solicitar</string>
+    <string name="view_title_send">Enviar</string>
+    <string name="view_title_about">Acerca de</string>
+    <string name="view_title_settings">Configuración</string>
+
+    <!-- BUTTONS & MENUS -->
+    <string name="button_ok">Aceptar</string>
+    <string name="button_cancel">Cancelar</string>
+    <string name="button_close">Cerrar</string>
+    <string name="button_dispute">Dispute</string>
+    <string name="button_release">Liberar</string>
+    <string name="button_fund">​​Fondo</string>
+    <string name="button_confirm">CONFIRMAR</string>
+    <string name="button_mark_paid">Marca pagada</string>
+    <string name="button_delete">Eliminar</string>
+    <string name="menu_action_paste">Pegar</string>
+    <string name="menu_action_filter">Filtro</string>
+    <string name="menu_action_map">Ver mapa</string>
+    <string name="menu_action_visibility">Visibilidad</string>
+    <string name="menu_action_scan">Escanear</string><![CDATA[
+    
+    ]]><string name="menu_action_send_message">Mensaje</string><![CDATA[
+    
+    ]]>
+    <string name="menu_action_delete">Eliminar</string>
+    <string name="menu_action_edit">Editar</string>
+    <string name="menu_action_web">Ver en línea</string>
+    <string name="menu_action_share">Compartir</string>
+    <string name="menu_action_search">Búsqueda</string>
+    <string name="menu_action_advertisement">Publicidad</string>
+    <string name="menu_action_advertise">Publicación</string>
+    <string name="menu_action_trades">Historial de Comercio</string>
+    <string name="menu_action_notifications">Marcar Notificaciones Leer</string>
+    <string name="menu_action_profile">Perfil</string>
+    <string name="menu_action_cancel">Cancelar</string>
+    <string name="menu_action_dispute">Dispute</string>
+    <string name="menu_action_blockchain">Ver Blockchain</string><![CDATA[
+    
+
+    ]]><!-- LOGIN/REGISTER -->
+
+    <string-array name="login_registration_screens_description">
+        <item><![CDATA[Local Trader trabaja con tu cuenta <b>LocalBitcoins </ b>para administrar los oficios, anuncios, enviar mensajes o manejar los pagos.]]></item>
+        <item><![CDATA[Local Trader utiliza <b>Autenticación Oauth2 </ b>a través del sitio web LocalBitcoins, sus credenciales nunca se almacenan en la aplicación.]]></item>
+        <item><![CDATA[Se requiere un <b>código PIN </ b>(no 2FA) para enviar Bitcoin, financiar o liberar operaciones. Administra el código PIN de la página <a href=\'https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\'>Perfil de LocalBitcoins </a>]]></item>
+    </string-array>
+
+    <string name="login_authorizing">Autenticando…</string>
+
+    <!-- TRADES -->
+    <string name="contact_fund_confirm">¿Estás seguro de que quieres financiar este negocio?</string>
+    <string name="contact_dispute_confirm">¿Está seguro de que desea disputar esta operación?</string>
+    <string name="contact_paid_confirm">¿Está seguro de que desea marcar esta operación como pagada?</string>
+    <string name="contact_cancel_confirm">¿Desea cancelar esta operación?</string>
+
+    <string name="contact_list_selling_online"><![CDATA[Venta en línea para  <b>%1$s</b> con <b>%2$s</b> iniciado en %3$s]]></string>
+    <string name="contact_list_selling_locally"><![CDATA[Venta local para <b>%1$s</b> niciada en %2$s]]></string>
+    <string name="contact_list_buying_online"><![CDATA[Compra en línea para <b>%1$s</b> con <b>%2$s</b> iniciado en %3$s]]></string>
+    <string name="contact_list_buying_locally"><![CDATA[Compra local para <b>%1$s</b> niciada en %2$s]]></string>
+    <string name="trade_request_title">Introduzca la cantidad %1$s o BTC</string>
+    
+    <string name="order_description_not_funded_local">Este intercambio aún no ha sido financiado. El vendedor debe financiar el comercio.</string>
+    <string name="order_description_funded_local">Este intercambio ha sido financiado. Ahora puede reunirse para realizar el intercambio.</string>
+    <string name="order_description_paid">Este comercio ha sido marcado como pagado y está a la espera de la liberación de fondos.</string>
+    <string name="order_description_online_paid">Este comercio ha sido financiado y marcado como pagado. Cuando detecte el pago en línea, puede liberar los fondos.</string>
+    <string name="order_description_mark_paid">Este comercio se ha iniciado pero aún no se ha marcado como pago, debe marcarlo como pagado.</string>
+    <string name="order_description_online_mark_paid">Este intercambio ha sido financiado automáticamente desde su cuenta, pero aún no ha sido marcado por el comprador.</string>
+    <string name="order_description_disputed">Este comercio ha sido disputado pero todavía puede ser lanzado.</string>
+    <string name="order_description_released">Esta operación ha sido liberada y está completa.</string>
+    <string name="order_description_cancel">Esta operación ha caducado o ha sido cancelada.</string>
+    <string name="order_description_closed">Este intercambio ha sido cerrado y ya no está activo.</string>
+    <string name="order_description_cancel_local">Este intercambio ha sido cancelado.</string>
+    <string name="trade_released_toast_text">¡Lanzamiento comercial!</string>
+    <string name="trade_canceled_toast_text">¡El comercio ha sido cancelado!</string>
+    <string name="message_clipboard_title">Mensaje</string>
+    <string name="message_copied_toast">Mensaje copiado al portapapeles!</string>
+    <string name="message_copied_attachment_toast">Mensaje copiado al portapapeles y descargando el archivo adjunto.</string>
+
+    <string name="list_trade_filter2">Comercios liberados</string>
+    <string name="list_trade_filter3">Operaciones Canceladas</string>
+    <string name="list_trade_filter4">Operaciones cerradas</string>
+
+    <!-- ADVERTISEMENTS -->
+    <string name="advertisement_invisible_warning">Este anuncio no está en ejecución, actualiza la visibilidad desde el menú.</string>
+    <string name="price_equation_edit_description">La ecuación de precios se obtiene combinando el precio de mercado bitcoin, la moneda y el valor del margen. Para una ecuación de precios más compleja edite directamente. Consulte localbitcoins.com/guides/equation-howto /</string>
+    <string name="ad_status_edit_description">Marque para activar el anuncio, desactive la opción para que se haga inactivo.</string>
+    <string name="advertisement_track_liquidity">Seguimiento de la liquidez</string>
+    <string name="advertisement_sms_verified">Sólo los contactos con un número de teléfono móvil verificado pueden ponerse en contacto con usted.</string>
+    <string name="advertisement_trusted_only">Restringe que tu anuncio se muestre sólo a los usuarios que has marcado como Confianza. Aprende a marcar usuarios como de confianza aquí localbitcoins.com/faq#trusted_users</string>
+    <string name="advertisement_payment_details">Opcional. Si es necesario, proporcione detalles sobre cómo transferir dinero. Se trata de un número de cuenta bancaria para transferencias electrónicas o de una cuenta de usuario para sitios web de transferencia de dinero.</string>
+    <string name="advertisement_bank">Nombre / código del proveedor bancario / de pago. Para transferencias internacionales, especifique el código SWIFT / BIC del banco</string>
+    <string name="advertisement_payment_method">Cada método de pago tiene un nivel de riesgo asociado. Vea las evaluaciones de riesgo en línea en localbitcoins.com/guides/how-to-sell-bitcoins-online#risk-level.</string>
+    <string name="advertisement_notes_text_online"><![CDATA[%1$s para <b>%2$s</b> utilizando <b>%3$s</b> en <b>%4$s</b>]]></string>
+    <string name="advertisement_notes_text_locally"><![CDATA[%1$s para <b>%2$s</b> cerca <b>%3$s</b>]]></string>
+    <string name="advertisement_notes_text_online_location"><![CDATA[%1$s para <b>%2$s</b> en <b>%3$s</b>]]></string>
+    <string name="advertisement_edit_margin_description">Se utiliza un margen en la ecuación de precios para sumar o restar valor adicional del precio de mercado. Utilice un margen negativo para establecer debajo del mercado.</string>
+    <string name="advertisement_delete_confirm">¿Desea eliminar de forma permanente este anuncio?</string>
+    
+    <string name="ad_sell_locally">Venda bitcoins localmente</string>
+    <string name="ad_buy_locally">Comprar bitcoins localmente</string>
+    <string name="ad_sell_online">Venda bitcoins en línea</string>
+    <string name="ad_buy_online">Comprar bitcoins en línea</string>
+    
+    <!-- TRANSACTIONS -->
+    <string name="transaction_sent_description"><![CDATA[Envió bitcoin a la dirección externa <a href="%1$s">%2$s</a>]]></string>
+    <string name="transaction_received_description"><![CDATA[Depósito de Bitcoin para dirigirse a <a href="%1$s">%2$s</a>]]></string>
+    <string name="transaction_fee_description"><![CDATA[Cuota de servicio cobrada]]></string>
+    <string name="transaction_contact_sent"><![CDATA[%1$s]]></string>
+    <string name="transaction_contact_received"><![CDATA[%1$s]]></string>
+    <string name="transaction_affiliate"><![CDATA[%1$s]]></string>
+    <string name="transaction_internal"><![CDATA[Transacción interna a <a href="%1$s">%2$s</a>]]></string>
+    <string name="transaction_sent_btc_amount"><![CDATA[<font color="#c33e29">%1$s</font>]]></string>
+    <string name="transaction_received_btc_amount"><![CDATA[<font color="#6f9e2f">%1$s</font>]]></string>
+    
+    <!-- WALLET -->
+    <string name="wallet_address_clipboard_title">Dirección de Wallet</string>
+    <string name="bitcoin_request_clipboard_title">Solicitud de Bitcoin</string>
+    <string name="qr_code_dialog_header">Escanear, compartir o copiar el código.</string>
+    <string name="wallet_address_copied_toast">Dirección copiada al portapapeles!</string>
+    <string name="bitcoin_request_copied_toast">Solicitar enlace copiado al portapapeles!</string>
+
+    <!-- SEND/RECEIVE -->
+    <string name="hint_bitcoin_address">Dirección de Bitcoi</string>
+    <string name="form_sendable_label">La cantidad que se puede enviar es la cantidad máxima que puede enviar menos los cargos.</string>
+    <string name="hint_amount">0.00</string>
+    <string name="hint_bitcoin">0.00000000</string>
+    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
+    <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s BTC / %2$s %3$s</font>]]></string>
+    <string name="pin_code_send"><![CDATA[Se requiere un código PIN para liberar, el fondo envía bitcoin. Administra el código PIN en la página <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Perfil de la cuenta</a>.]]></string>
+    <string name="toast_transaction_success">¡Bitcoins enviados!</string>
+    <string name="progress_sending_transaction">Enviando bitcoins…</string>
+    <string name="toast_pin_code_canceled">Código PIN cancelado</string>
+    <string name="toast_pin_code_invalid">Código PIN inválido</string>
+
+    <!-- TOASTS -->
+    <string name="toast_invalid_btc_amount">Cantidad de bitcoin no válida.</string>
+    <string name="toast_invalid_address">No es una dirección bitcoin válida.</string><![CDATA[
+    
+    ]]>
+    <string name="toast_clipboard_empty">El contenido del portapapeles está vacío.</string>
+    <string name="toast_error_message">Error al enviar el mensaje.</string>
+    <string name="toast_refreshing_data">Actualizando datos…</string>
+    <string name="toast_valid_address_required">Se requiere una dirección válida.</string>
+    <string name="toast_missing_phone_number">El número de teléfono no debe estar en blanco.</string>
+    <string name="toast_price_equation_blank">La ecuación de precios no puede estar en blanco.</string>
+    <string name="toast_minimum_amount">Ingrese un monto mínimo válido.</string>
+    <string name="toast_maximum_amount">Ingrese una cantidad máxima válida.</string>
+    <string name="toast_error_visibility_update">Error al actualizar la visibilidad!</string>
+    <string name="toast_update_visibility">Visibilidad actualizada!</string>
+    <string name="toast_error_updat_advertisement">Error al actualizar el anuncio…</string>
+    <string name="toast_error_contact_data">Error al recuperar datos de contacto…</string>
+    <string name="toast_message_canceled">Mensaje cancelado…</string>
+    <string name="toast_error_advertisement_data">No se pueden recuperar los datos del anuncio.</string>
+    <string name="toast_no_activity_for_maps">No hay actividad para manejar esta acción (no mapas).</string>
+    <string name="toast_advertisement_deleted">Anuncio eliminado!</string>
+
+    <!-- Search -->
+    <string name="trade_limit"><![CDATA[%1$s - %2$s %3$s]]></string>
+    <string name="trade_limit_min"><![CDATA[Al menos %1$s %2$s]]></string>
+    <string name="trade_limit_max"><![CDATA[Máximo %1$s %2$s]]></string>
+    <string name="trade_price"><![CDATA[%1$s %2$s]]></string>
+    
+
+    <string name="spinner_buy">Comprar Bitcoins</string>
+    <string name="spinner_sell">Vender Bitcoins</string>
+    <string name="spinner_local">Anunciantes Locales</string>
+    <string name="spinner_online">Anunciantes en línea</string>
+    <string name="search_local_sellers_header">Vendedores Locales</string>
+    <string name="search_local_buyers_header">Local Buyers</string>
+    <string name="search_online_sellers_header">Vendedores en línea</string>
+    <string name="search_online_buyers_header">Compradores en línea</string>
+    <string name="advertiser_notes_text_online"><![CDATA[Este comerciante desea %1$s bitcoins en línea para <b>%2$s</b>utilizando <b>%3$s</b>]]></string>
+    <string name="advertiser_notes_text_locally"><![CDATA[This trader wishes to %1$s bitcoins localmente para <b>%2$s</b> cerca <b>%3$s</b>]]></string>
+    <string name="advertiser_notes_text_atm"><![CDATA[Este es un cajero automático local para <b>%1$s</b> cerca <b>%2$s</b>]]></string>
+
+    <!-- SCANNING -->
+    <string name="toast_scan_canceled">Escaneo cancelado!</string>
+    <string name="button_send">ENVIAR</string>
+    <string name="error_missing_amount">Ingrese un importe válido.</string>
+    <string name="error_missing_address_amount">Ingrese la dirección y la cantidad.</string>
+    <string name="warning_no_multiple_account_supports">Esta aplicación no admite varias cuentas.</string>
+
+    <!-- ABOUT -->
+    <string name="thanks_mister_title">Thanks, Mister!</string>
+    <string name="designer_developer_text">Diseño y desarrollo</string>
+    <string name="company_url_text">thanksmister.com</string>
+    <string name="mail_to_subject_text">Local Trader Comentarios</string>
+    <string name="mail_subject_text">Enviar comentarios:</string>
+
+    <string name="error_unable_load_address_edit">No se puede usar el servicio de búsqueda de direcciones, ubicación actual del usuario.</string>
+    <string name="dialog_logout_title">Cerrar sesión</string>
+    <string name="dialog_logout_message">¿Desea cerrar la sesión y borrar sus datos?</string>
+    <string name="wallet_recent_activity_header">Actividad reciente</string>
+    <string name="wallet_my_address_share">Mi dirección de Bitcoin</string>
+    <string name="share_using">Compartir usando:</string>
+    <string name="error_invalid_credentials">La autenticación falló, compruebe que tiene las credenciales correctas.</string>
+    <string name="message_advertisement_changed">Anuncio cambiado con éxito!</string>
+    <string name="message_advertisement_created">Anuncio creado con éxito!</string>
+    <string name="button_search_trades">Búsqueda</string>
+    <string name="dialog_send_message">Enviar mensaje…</string>
+
+    <!-- SETTINGS -->
+    <string name="title_activity_settings">Ajustes</string>
+
+    <string name="list_unit_kilometers">Kilómetros</string>
+    <string name="list_unit_miles">Millas</string>
+    <string name="list_unit_km">km</string>
+    <string name="list_unit_mi">mi</string>
+    <string name="pref_key_distance">distancia_unidades</string>
+    <string name="pref_key_api">api_endpoint</string>
+    <string name="trade_request_warning">El anunciante puede tener otras restricciones en este anuncio. Consulte el comercio en línea para ver todas las restricciones.</string>
+    <string name="trade_request_minimum_volume">Volumen mínimo: <b>%1$s BTC</b></string>
+    <string name="trade_request_new_buyer_limit">Nuevo límite de comprador: <b>%1$s BTC</b></string>
+    <string name="trade_request_minimum_feedback_score">Puntuación de retroalimentación mínima: <b>%1$s%%</b></string>
+    <string name="trade_request_sms_required">Se requiere verificación de SMS</string>
+    <string name="trade_request_identified_people">Personas identificadas solamente</string>
+    <string name="trade_request_trusted_people">Sólo personas de confianza</string>
+    <string name="error_device_softare_description">Este dispositivo tiene una versión desactualizada del sistema operativo Android (4.2.2), es necesaria una actualización de software para que esta aplicación funcione correctamente.</string>
+    <string name="error_device_title">Error de dispositivo</string>
+    <string name="wallet_account_balance">BALANCE DE CUENTA</string>
+    <string name="text_account_balance">Cantidad de envío:</string>
+    <string name="send_confirmation_description">Envíe <b>%1$s BTC</b> a la dirección <b>%2$s</b>.</string>
+    <string name="alert_permission_required">Permiso requerido</string>
+    <string name="require_location_permission">Crear, actualizar o buscar anuncios requiere permiso para comprobar su ubicación.</string>
+    <string name="setup_description"><![CDATA[Para las regiones que pueden estar bloqueadas, cambie el punto final predeterminado al sitio de espejo de LocalBitcoins \"https://localbitcoins.net\".]]></string>
+    <string name="setup_credentials">Configuración de autenticación</string>
+    <string name="authentication_success">Autenticación satisfactoria para %1$s</string><![CDATA[
+    
+    ]]>
+    <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
+    <string name="button_authenticate">Authenticate</string>
+    <string name="trade_request_description"><![CDATA[Todos los campos son obligatorios a menos que se indique lo contrario como opcional. Consulte <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">la guía de compras en línea </a> para conocer los requisitos por tipo de pago.]]></string>
+    <string name="error_dialog_no_address_edit">Esa dirección no es válida, ingresa una dirección diferente (como país o ciudad) o usa la ubicación actual.</string>
+    <string name="toast_error_no_installed_ativity">No hay ninguna aplicación instalada para manejar la solicitud.</string>
+    <string name="pin_code_trade"><![CDATA[Se requiere un código PIN para financiar, liberar o enviar pagos. Administra el código PIN en la página <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Perfil de la cuenta</a>.]]></string>
+    <string name="form_send_to">Enviar a:</string>
+    <string name="form_bitcoin_amount">Cantidad de Bitcoin:</string>
+    <string name="local_bitcoins_url">https://localbitcoins.com</string>
+    <string name="toast_edit_canceled">Editar cancelado…</string>
+    <string name="snack_no_advertisement_data">No hay datos de anuncio.</string>
+    <string name="toast_new_ad_canceled">Nuevo anuncio cancelado…</string>
+    <string name="toast_edit_ad_canceled">Actualización del anuncio cancelada…</string>
+    <string name="dialog_progress_location">Conseguir ubicación…</string>
+    <string name="form_fiat_amount">Cantidad Fiat</string>
+    <string name="form_eth_amount">Cantidad Ethereum</string>
+    <string name="button_create_request">Crear solicitud</string>
+    <string name="form_trade_amount">Monto comercial</string>
+    <string name="menu_get_device_location">Obtener ubicación del dispositivo</string>
+    <string name="text_local_search_instructions">Las búsquedas locales requieren una latitud / longitud. Utilice la ubicación del dispositivo, introduzca un país, una ciudad o una dirección, o introduzca una latitud / longitud. Busque "latitud y longitud de google maps \" para obtener más información.</string>
+    <string name="text_location_edit_instructions">Los nuevos anuncios requieren una latitud / longitud. Utilice la ubicación del dispositivo, ingrese un país, una ciudad o una dirección</string>
+    <string name="toast_search_canceled">Búsqueda cancelada…</string>
+    <string name="error_unable_load_payment_methods">No se pueden cargar los métodos de pago en línea.</string>
+    <string name="toast_loading_methods">Error al obtener métodos…</string>
+    
+    <string-array name="country_names">
+        <item>Afganistán</item>
+        <item>Islas Åland</item>
+        <item>Albania</item>
+        <item>Argelia</item>
+        <item>Samoa Americana</item>
+        <item>Andorra</item>
+        <item>Angola</item>
+        <item>Anguila</item>
+        <item>Antártida</item>
+        <item>Antigua y Barbuda</item>
+        <item>Argentina</item>
+        <item>Armenia</item>
+        <item>Aruba</item>
+        <item>Australia</item>
+        <item>Austria</item>
+        <item>Azerbaiyán</item>
+        <item>Bahamas</item>
+        <item>Bahrein</item>
+        <item>Bangladesh</item>
+        <item>Barbados</item>
+        <item>Bielorrusia</item>
+        <item>Bélgica</item>
+        <item>Belice</item>
+        <item>Benin</item>
+        <item>Bermuda</item>
+        <item>Bhután</item>
+        <item>Bolivia (Estado Plurinacional de)</item>
+        <item>Bonaire, Sint Eustatius y Saba</item>
+        <item>Bosnia y Herzegovina</item>
+        <item>Botswana</item>
+        <item>Isla Bouvet</item>
+        <item>Brasil</item>
+        <item>Territorio Británico del Océano Índico</item>
+        <item>Brunei Darussalam</item>
+        <item>Bulgaria</item>
+        <item>Burkina Faso</item>
+        <item>Burundi</item>
+        <item>Cabo Verde</item>
+        <item>Camboya</item>
+        <item>Camerún</item>
+        <item>Canadá</item>
+        <item>Islas Caimán</item>
+        <item>República Centroafricana</item>
+        <item>Chad</item>
+        <item>Chile</item>
+        <item>China</item>
+        <item>Isla de Navidad</item>
+        <item>Islas Cocos (Keeling)</item>
+        <item>Colombia</item>
+        <item>Comoras</item>
+        <item>Congo</item>
+        <item>Congo (República Democrática del)</item>
+        <item>Islas Cook</item>
+        <item>Costa Rica</item>
+        <item>"Côte d'Ivoire"</item>
+        <item>Croacia</item>
+        <item>Curaçao</item>
+        <item>Chipre</item>
+        <item>Czechia</item>
+        <item>Dinamarca</item>
+        <item>Djibouti</item>
+        <item>Dominica</item>
+        <item>República Dominicana</item>
+        <item>Ecuador</item>
+        <item>Egipto</item>
+        <item>El Salvador</item>
+        <item>Guinea Ecuatorial</item>
+        <item>Eritrea</item>
+        <item>Estonia</item>
+        <item>Etiopía</item>
+        <item>Islas Malvinas</item>
+        <item>Islas Feroe</item>
+        <item>Fiji</item>
+        <item>Finlandia</item>
+        <item>Francia</item>
+        <item>Guayana Francesa</item>
+        <item>Polinesia Francesa</item>
+        <item>Territorios Australes Franceses</item>
+        <item>Gabón</item>
+        <item>Gambia</item>
+        <item>Georgia</item>
+        <item>Alemania</item>
+        <item>Ghana</item>
+        <item>Gibraltar</item>
+        <item>Grecia</item>
+        <item>Groenlandia</item>
+        <item>Granada</item>
+        <item>Guadalupe</item>
+        <item>Guam</item>
+        <item>Guatemala</item>
+        <item>Guernsey</item>
+        <item>Guinea</item>
+        <item>Guinea-Bissau</item>
+        <item>Guyana</item>
+        <item>Haití</item>
+        <item>Islas Heard y McDonald</item>
+        <item>Santa Sede</item>
+        <item>Honduras</item>
+        <item>Hong Kong</item>
+        <item>Hungría</item>
+        <item>Islandia</item>
+        <item>India</item>
+        <item>Indonesia</item>
+        <item>Iraq</item>
+        <item>Irlanda</item>
+        <item>Isla de Man</item>
+        <item>Israel</item>
+        <item>Italia</item>
+        <item>Jamaica</item>
+        <item>Japón</item>
+        <item>Jersey</item>
+        <item>Jordania</item>
+        <item>Kazajstán</item>
+        <item>Kenia</item>
+        <item>Kiribati</item>
+        <item>Corea (República de)</item>
+        <item>Kuwait</item>
+        <item>Kirguistán</item>
+        <item>"República Democrática Popular Lao"</item>
+        <item>Letonia</item>
+        <item>Líbano</item>
+        <item>Lesotho</item>
+        <item>Liberia</item>
+        <item>Libia</item>
+        <item>Liechtenstein</item>
+        <item>Lituania</item>
+        <item>Luxemburgo</item>
+        <item>Macao</item>
+        <item>Macedonia (ex República Yugoslava de)</item>
+        <item>Madagascar</item>
+        <item>Malawi</item>
+        <item>Malasia</item>
+        <item>Maldivas</item>
+        <item>Mali</item>
+        <item>Malta</item>
+        <item>Islas Marshall</item>
+        <item>Martinica</item>
+        <item>Mauritania</item>
+        <item>Mauricio</item>
+        <item>Mayotte</item>
+        <item>México</item>
+        <item>Micronesia (Estados Federados de)</item>
+        <item>Moldova (República de)</item>
+        <item>Mónaco</item>
+        <item>Mongolia</item>
+        <item>Montenegro</item>
+        <item>Montserrat</item>
+        <item>Marruecos</item>
+        <item>Mozambique</item>
+        <item>Myanmar</item>
+        <item>Namibia</item>
+        <item>Nauru</item>
+        <item>Nepal</item>
+        <item>Países Bajos</item>
+        <item>Nueva Caledonia</item>
+        <item>Nueva Zelanda</item>
+        <item>Nicaragua</item>
+        <item>Niger</item>
+        <item>Nigeria</item>
+        <item>Niue</item>
+        <item>Isla de Norfolk</item>
+        <item>Islas Marianas del Norte</item>
+        <item>Noruega</item>
+        <item>Omán</item>
+        <item>Pakistán</item>
+        <item>Palau</item>
+        <item>Palestina, estado de</item>
+        <item>Panamá</item>
+        <item>Papúa Nueva Guinea</item>
+        <item>Paraguay</item>
+        <item>Perú</item>
+        <item>Filipinas</item>
+        <item>Pitcairn</item>
+        <item>Polonia</item>
+        <item>Portugal</item>
+        <item>Puerto Rico</item>
+        <item>Qatar</item>
+        <item>Réunion</item>
+        <item>Rumania</item>
+        <item>Federación de Rusia</item>
+        <item>Ruanda</item>
+        <item>San Bartolomé</item>
+        <item>Santa Helena, Ascensión y Tristan da Cunha</item>
+        <item>San Cristóbal y Nieves</item>
+        <item>Santa Lucía</item>
+        <item>San Martín (parte francesa)</item>
+        <item>San Pedro y Miquelón</item>
+        <item>San Vicente y las Granadinas</item>
+        <item>Samoa</item>
+        <item>San Marino</item>
+        <item>Santo Tomé y Príncipe</item>
+        <item>Arabia Saudita</item>
+        <item>Senegal</item>
+        <item>Serbia</item>
+        <item>Seychelles</item>
+        <item>Sierra Leona</item>
+        <item>Singapur</item>
+        <item>Sint Maarten (parte neerlandesa)</item>
+        <item>Eslovaquia</item>
+        <item>Eslovenia</item>
+        <item>Islas Salomón</item>
+        <item>Somalia</item>
+        <item>Sudáfrica</item>
+        <item>Georgia del Sur y las islas Sandwich del Sur</item>
+        <item>Sudán del Sur</item>
+        <item>España</item>
+        <item>Sri Lanka</item>
+        <item>Surinam</item>
+        <item>Svalbard y Jan Mayen</item>
+        <item>Swazilandia</item>
+        <item>Suecia</item>
+        <item>Suiza</item>
+        <item>Taiwán, Provincia de China [a]</item>
+        <item>Tayikistán</item>
+        <item>Tanzania, República Unida de</item>
+        <item>Tailandia</item>
+        <item>Timor-Leste</item>
+        <item>Togo</item>
+        <item>Tokelau</item>
+        <item>Tonga</item>
+        <item>Trinidad y Tobago</item>
+        <item>Túnez</item>
+        <item>Turquía</item>
+        <item>Turkmenistán</item>
+        <item>Islas Turcas y Caicos</item>
+        <item>Tuvalu</item>
+        <item>Uganda</item>
+        <item>Ucrania</item>
+        <item>Emiratos Árabes Unidos</item>
+        <item>Reino Unido de Gran Bretaña e Irlanda del Norte</item>
+        <item>Estados Unidos de América</item>
+        <item>Islas menores alejadas de los Estados Unidos</item>
+        <item>Uruguay</item>
+        <item>Uzbekistán</item>
+        <item>Vanuatu</item>
+        <item>Venezuela (República Bolivariana de)</item>
+        <item>Viet Nam</item>
+        <item>Islas Vírgenes Británicas</item>
+        <item>Islas Vírgenes (EE.UU.)</item>
+        <item>Wallis y Futuna</item>
+        <item>Sáhara Occidental</item>
+        <item>Yemen</item>
+        <item>Zambia</item>
+        <item>Zimbabwe</item>
+    </string-array>
+    
+    <string name="hint_enter_county_city_or_address">Ingrese el condado, la ciudad o la dirección</string>
+    <string name="text_payment_method">Método de pago</string>
+    <string name="text_new_post_canceled">Nuevo anuncio cancelado</string>
+    <string name="text_post_update_canceled">Actualización del anuncio cancelada</string>
+    <string name="error_address_title">Error de dirección</string>
+    <string name="error_location_title">Error de ubicación</string>
+    <string name="error_location_message">El administrador de ubicaciones no pudo usar el proveedor disponible, su ubicación no se pudo determinar</string>
+    <string name="menu_get_location">Obtener ubicación del dispositivo</string>
+    <string name="text_advertisement_status">Estado</string>
+    <string name="dialog_loading">Cargando…</string>
+    <string name="button_previous">Anterior</string>
+    <string name="button_next">Siguiente</string>
+    <string name="text_i_want_to">Quiero…</string>
+    <string name="text_method_name_all">Todos</string>
+    <string name="text_currency">Moneda</string>
+    <string name="text_currency_description">Cambia el precio del anuncio a la moneda seleccionada y actualiza la ecuación del precio.</string>
+    <string name="text_price_equation">Ecuación de precios</string>
+    <string name="text_minimum_amount_to_trade">Cantidad mínima a negociar</string>
+    <string name="text_maximum_amount_to_trade">Cantidad máxima a negociar</string>
+    <string name="text_terms_of_trade">Condiciones comerciales</string>
+    <string name="text_liquidity_description">Disminuye el importe máximo de la solicitud cuando los oficios se llenan para que coincida con el saldo restante. Esta opción limita la liquidez de este anuncio a la cantidad máxima.</string>
+    <string name="text_track_liquidity">Seguimiento de la liquidez</string>
+    <string name="text_identified_people_only">Personas identificadas solamente</string>
+    <string name="text_identified_people_only_description">Para contactar con su anuncio, los usuarios deben verificar su identidad enviando ID, licencia de conducir o pasaporte.</string>
+    <string name="text_sms_verification_required">Se requiere verificación de SMS</string>
+    <string name="text_trusted_people_only">Sólo personas de confianza</string>
+    <string name="text_identify_user_before_continuing_trade">Identifique al usuario antes de continuar con el comercio</string>
+    <string name="text_identify_user_before_continuing_trade_description">Otros usuarios pueden establecer un contacto con su anuncio, pero deben identificarse antes de que el comercio pueda continuar. Los detalles del pago están ocultos y el comprador no puede enviar el pago hasta que la identificación sea aprobada por usted.</string>
+    <string name="text_real_name_required">Nombre real requerido</string>
+    <string name="text_real_name_required_description">El comprador debe tener un nombre real. Confirma el nombre real cuando el comprador responde al anuncio. Para obtener más información, consulte localbitcoins.com/guides/real-name</string>
+    <string name="text_minimum_volume">Volumen mínimo</string>
+    <string name="text_minimum_volume_description">Cuánto volumen de comercio anterior se requiere que el comprador tenga en BTC. Establezca este valor mayor que cero para filtrar a los compradores de primera vez que no tienen volumen.</string>
+    <string name="text_hint_payment_details">Introduzca detalles de pago</string>
+    <string name="text_payment_details">Detalles del pago</string>
+    <string name="text_minimum_feedback_score">Calificación mínima de retroalimentación</string>
+    <string name="text_minimum_feedback_score_description">El porcentaje de retroalimentación positiva que el comprador debe tener (0–100). Esto no se aplica a los compradores por primera vez que aún no tienen puntuación de retroalimentación.</string>
+    <string name="text_new_buyer_limit">Nuevo límite de comprador</string>
+    <string name="text_new_buyer_limit_description">Opcional. Si el contacto no tiene historial de operaciones, este es el límite de bitcoin para la primera transacción.</string>
+    <string name="text_bank_name">Nombre del banco</string>
+    <string name="text_bank_name_hint">Introduzca el nombre del banco</string>
+    <string name="text_margin_value">Valor de margen</string>
+    <string name="text_location">Ubicación</string>
+    <string name="text_location_online_description">Para el comercio en línea es necesario especificar el país. Para el comercio local, especifique una ciudad, un código postal o un nombre de calle.</string>
+    <string name="text_phone_number">Número de teléfono</string>
+    <string name="text_phone_number_hint">Ingrese el número de teléfono</string>
+    <string name="text_phone_number_description">Se utiliza para recibir pagos.</string>
+    <string name="error_unable_to_load_currencies">No se pueden cargar monedas, sin ellas no podemos crear un nuevo anuncio.</string>
+    <string name="text_trade_terms_hint">Introduzca los términos</string>
+    <string name="text_floating_price">Precio flotante</string>
+    <string name="text_floating_price_description">Haga que el tipo de cambio flote con el mercado mientras el comercio está abierto. El precio de negociación se determina en el momento de la liberación de bitcoin. Tenga en cuenta que se añade una reserva adicional del 15% en la cantidad de bitcoin reservada. La cantidad de exceso se devolverá una vez finalizada la operación.</string>
+    <string name="button_save_changes">Guardar cambios</string>
+    <string name="text_title_advertisement_info">Información del anuncio</string>
+    <string name="text_title_online_options">Opciones en línea</string>
+    <string name="text_title_security_options">Otras opciones</string>
+    <string name="dialog_saving_changes">Guardando cambios…</string>
+    <string name="error_advertisement">Error de anuncio</string>
+    <string name="dialog_updating_visibility">Actualización de la visibilidad…</string>
+    <string name="error_contact_action">No se puede realizar una acción de contacto.</string>
+    <string name="alert_dispute_trade_title">Diferencias comerciales</string>
+    <string name="alert_fund_trade_title">Comercio de Fondos</string>
+    <string name="alert_mark_paid_title">Marca pagada</string>
+    <string name="progress_marking_paid">Marcado pagado…</string>
+    <string name="progress_funding">Financiamiento…</string>
+    <string name="progress_disputing">Disputando…</string>
+    <string name="progress_releasing">Liberando…</string>
+    <string name="alert_release_trade_title">Liberar comercio</string>
+    <string name="alert_cancel_trade_title">Cancelar comercio</string>
+    <string name="progress_canceling_trade">Cancelando…</string>
+    <string name="alert_error_deleting_advertisement">Error al eliminar el anuncio.</string>
+    <string name="progress_deleting">Eliminando…</string>
+    
+    <string name="text_title_online_provider">Online provider</string>
+    <string name="text_title_requirements">Requirements</string>
+    <string name="text_title_advertisement_id">Advertisement Id</string>
+    <string name="text_title_deal_amount">Deal amount</string>
+    <string name="text_title_current_price">Current price</string>
+    <string name="text_title_market_price">MARKET PRICE</string>
+    <string name="toast_unable_update_currency_rate">Unable to update currency rate…</string>
+    <string name="toast_no_valid_address_bitcoin">No valid address to receive bitcoin…</string>
+    <string name="text_title_request_specific_amount">Request Specific Amount</string>
+    <string name="text_title_getting_started">Getting Started</string>
+    <string name="button_post_trade">Post Trade</string>
+    <string name="text_description_getting_started">You can buy or sell Bitcoin by searching for traders or creating your own trade.</string>
+    <string name="toast_invalid_clipboard_contents">There is no valid address or amount ont the clipboard.</string>
+    <string name="text_search_locally_or_online">Locally or online?</string>
+    <string name="text_longitude">Longitude</string>
+    <string name="text_search_currency">Currency?</string>
+    <string name="text_search_online_payment_method">Online payment method?</string>
+    <string name="text_search_country">Country?</string>
+    <string name="text_latitude">Latitude</string>
+    <string name="text_search_buying_or_selling">Buying or selling?</string>
+    <string name="text_title_trade_type">Trade Type</string>
+    <string name="text_buy">Buy</string>
+    <string name="text_sell">Sell</string>
+    <string name="text_from">from</string>
+    <string name="text_to">to</string>
+    <string name="text_locally">locally</string>
+    <string name="text_online">online</string>
+    <string name="text_chooser_share_to">Share to:</string>
+    <string name="text_share_advertisement">%1$s bitcoins in %2$s</string>
+    <string name="text_advertisement_message">%1$s bitcoins %2$s in %3$s via %4$s: %5$s</string>
+    <string name="text_advertisement_message_short">%1$s bitcoins %2$s in %3$s: %4$s</string>
+    <string name="text_advertisement_local_buy">Local buy</string>
+    <string name="text_advertisement_local_sale">Local sale</string>
+    <string name="text_advertisement_online_buy">Online buy</string>
+    <string name="text_advertisement_online_sale">Online sale</string>
+    <string name="text_title_more_info">More Info</string>
+    <string name="toast_error_retrieving_trades">Error retrieving trades.</string>
+    <string name="toast_contact_not_exist">That contact doesn\'t seem valid…</string>
+    <string name="toast_bank_name_required">Please provide a bank name.</string>
+    <string name="toast_complete_all_fields">Please complete all fields.</string>
+    <string name="toast_provide_payment_details">Please provide payment details.</string>
+    <string name="toast_playment_method_blank">Payment method can\'t be blank.</string>
+    <string name="toast_swift_blank">SWIFT or Bic can\'t be blank.</string>
+    <string name="toast_gift_card_blank">Gift card issuer can\'t be blank.</string>
+    <string name="text_advertisement_item_local_buy">Local Buy -</string>
+    <string name="text_advertisement_item_local_sale">Local Sale -</string>
+    <string name="text_advertisement_item_online_buy">Online Buy -</string>
+    <string name="text_advertisement_item_online_sale">Online Sale -</string>
+    <string name="toast_error_opening_advertisement">Error opening editAdvertisement...</string>
+    <string name="toast_error_opening_contact">Error opening contact...</string>
+    <string name="text_not_trades">No trades</string>
+    <string name="toast_loading_trades">Loading trades...</string>
+    <string name="text_currency_any">Any</string>
+    <string name="toast_error_advertisers">Unable to load online advertisers.</string>
+    <string name="toast_searching">Searching...</string>
+    <string name="text_no_advertisers">No advertisers located.</string>
+    <string name="text_results_for">Results for %1$s</string>
+    <string name="button_request_trade">Request Trade</string>
+    <string name="text_terms">Terms</string>
+    <string name="text_requirements">Requirements</string>
+    <string name="text_amount_min_max">Amount (Min - Max)</string>
+    <string name="text_deal_price">Deal Price</string>
+    <string name="text_advertiser">Advertiser</string>
+    <string name="text_last_seen">Last Seen - %1$s</string>
+    <string name="text_escrow_amount">Escrow Amount</string>
+    <string name="toast_valid_trade_amount">Enter a valid amount for the trade.</string>
+    <string name="toast_enter_lower_amount">Enter an amount lower than %1$s %2$s</string>
+    <string name="toast_enter_higher_amount">Enter an amount greater than %1$s %2$s</string>
+    <string name="progress_sending_trade_request">Sending trade request...</string>
+    <string name="toast_trade_request_sent">Trade request sent to</string>
+    <string name="text_trade_with">Trade with %1$s</string>
+    <string name="text_no_transactions">No transactions.</string>
+    <string name="button_send_message">SEND MESSAGE</string>
+    <string name="error_address_lookup_title">Address Lookup Error</string>
+    <string name="error_address_lookup_description">Error looking up the latitude and longitude for your current address, try a different address.</string>
+    <string name="progress_loading_localbitcoins">Loading LocalBitcoins...</string>
+    <string name="error_no_advertisement">The advertisement Id does not exist and can not be loaded.</string>
+    <string name="error_invalid_trade_type">This advertisement has an invalid trade type and cannot be displayed. The developer has been notified.</string>
+    <string name="toast_attachment_empty">Message attachment can not be downloaded...</string>
+    <string name="text_cant_open_link">Can\'t open external link.</string>
+    <string name="text_license_information">License information</string>
+    <string name="text_join_community">Join community</string>
+    <string name="text_rate_application">Rate application</string>
+    <string name="text_application_feedback">Application Feedback</string>
+    <string name="text_localbitcoins_support">LocalBitcoins Support</string>
+    <string name="text_getting_started_guides">Getting Started Guides</string>
+    <string name="text_buying_locally">Buying Locally</string>
+    <string name="text_selling_locally">Selling Locally</string>
+    <string name="text_buying_onling">Buying Online</string>
+    <string name="text_selling_online">Selling Online</string>
+    <string name="text_trade">Trade</string>
+    <string name="error_hijack_link">Your phone is was trying to hijack the link:</string>
+
+</resources>

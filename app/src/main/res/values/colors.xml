@@ -19,9 +19,6 @@
     <color name="colorPrimary">#d7523e</color>
     <color name="colorPrimaryDark">#ffd3402a</color>
     <color name="colorAccent">#d7523e</color>
-    <color name="colorAccentDark">#ffd3402a</color>
-    <color name="colorSecondary">#0099cc</color>
-    <color name="colorSecondaryDark">#eeeeee</color>
 
     <color name="primary_text">#ffffff</color>
     <color name="secondary_text">#ffffff</color>
@@ -33,10 +30,8 @@
     <color name="body_text_1">#8a000000</color>
     <color name="body_text_2">#64000000</color>
     <color name="body_text_3">#4d000000</color>
-    <color name="body_text_disabled">#ffcdcdcd</color>
     <color name="body_text_blue_1">#0099cc</color>
     <color name="body_text_1_inverse">#deffffff</color>
-    <color name="body_text_2_inverse">#8affffff</color>
 
 
     <color name="light_green">#ff7dac2f</color>
@@ -44,38 +39,26 @@
     <color name="text_green">#ff67932c</color>
     <color name="yellow">#eeee22</color>
     <color name="orange">#D5B213</color>
-    <color name="orange_pressed">#C5A213</color>
-    <color name="disabled_color">#CCCCCC</color>
     <color name="gray">#fe818181</color>
     <color name="blue">#0099cc</color>
-    <color name="button_blue">#0d7b9c</color>
     <color name="blue_pressed">#ff0083b2</color>
-    <color name="button_blue_pressed">#0D5A7A</color>
+
+    <color name="promo_background_red">#f6a598</color>
 
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="light_gray">#efefef</color>
     <color name="red">#d7523e</color>
-    <color name="text_red">#d7523e</color>
-    <color name="button_red">#d7523e</color>
     <color name="red_light_up">#fff4492c</color>
     <color name="red_light_pressed">#ffd3402a</color>
-    <color name="black_overlay">#66000000</color>
     <color name="gray_color">#eeeeee</color>
-    <color name="background_gray_color">#eeeeee</color>
     <color name="list_gray_color">#f7f7f7</color>
     
     <color name="gray_up">#e5e5e5</color>
     <color name="gray_pressed">#cfcfcf</color>
     
     <color name="dark_gray_color">#ff707070</color>
-    <color name="darker_gray_color">#ff505050</color>
-    <color name="text_background_gray_color">#ffefefef</color>
-    <color name="stroke">#e5e5e5</color>
-    <color name="stroke_blue">#0099cc</color>
-    <color name="stroke_gray">#d8d8d8</color>
-    <color name="text">#000000</color>
-    <color name="text_light">#8d8d8d</color>
     <color name="text_link">#0099cc</color>
-    <color name="login_background_color">#eeeeee</color>
+    
+    
 </resources>

@@ -16,9 +16,6 @@
 
 <resources>
 
-    <dimen name="element_spacing_normal">8dp</dimen>
-    <dimen name="content_padding_normal">16dp</dimen>
-
     <dimen name="text_size_xsmall">11sp</dimen>
     <dimen name="text_size_small">12sp</dimen>
     <dimen name="text_size_medium">14sp</dimen>
@@ -27,38 +24,23 @@
     <dimen name="text_size_xlarge">20sp</dimen>
     <dimen name="text_size_headline">24sp</dimen>
     <dimen name="text_size_login">36sp</dimen>
-    <dimen name="text_size_diff_large_small">6sp</dimen>
+    <dimen name="text_size_key_pad">32sp</dimen>
 
-    <dimen name="navigation_drawer_width">240dp</dimen>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <dimen name="activity_horizontal_text_margin">68dp</dimen>
 
     <dimen name="extra_small_text">11.0sp</dimen>
     <dimen name="action_small_text">12.0sp</dimen>
 
-    <dimen name="action_text">16.0sp</dimen>
-
     <dimen name="activity_padding">16.0dip</dimen>
     <dimen name="activity_space">12dp</dimen>
-    <dimen name="list_divider_height">8dp</dimen>
-    <dimen name="button_spacer_height">4dp</dimen>
-
-    <dimen name="activity_list_top">12dp</dimen>
-    <dimen name="activity_list_padding">12dp</dimen>
-    <dimen name="activity_list_spacing">12dp</dimen>
 
     <dimen name="view_padding_small">8dp</dimen>
     <dimen name="view_padding">12dp</dimen>
-    <dimen name="view_padding_medium">14dp</dimen>
 
     <dimen name="view_padding_large">18dp</dimen>
     <dimen name="view_padding_xlarge">24dp</dimen>
     <dimen name="view_padding_xxlarge">36dp</dimen>
 
-    <dimen name="top_scroll_padding">62dp</dimen>
-
-    <dimen name="small_barcode_width">120dp</dimen>
-    <dimen name="barcode_width">260dp</dimen>
     <dimen name="large_barcode_width">230dp</dimen>
 </resources>

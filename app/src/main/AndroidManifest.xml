@@ -16,26 +16,29 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.thanksmister.bitcoin.localtrader" >
-
+          xmlns:tools="http://schemas.android.com/tools"
+          package="com.thanksmister.bitcoin.localtrader">
+    
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
-    
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+
     <application
         android:name=".BaseApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.activities.SplashActivity"
             android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -62,6 +65,13 @@
                 android:exported="false"
                 android:syncable="true"/>
 
+        <!-- Preference Provider -->
+        <provider
+                android:name="dpreference.PreferenceProvider"
+                android:authorities="thanksmister.bitcoin.localtrader.PreferenceProvider"
+                android:enabled="true"
+                android:exported="false"/>
+
         <!-- Services -->
         <service android:name=".data.services.AuthenticatorService" >
             <intent-filter>
@@ -85,75 +95,86 @@
                     android:resource="@xml/syncadapter" />
         </service>
 
-        <activity android:name=".ui.LoginActivity"
+        <activity android:name=".ui.activities.MainActivity"
                   android:screenOrientation="portrait"
+                  android:windowSoftInputMode="stateHidden"
+                  android:configChanges="locale"/>
+
+        <activity android:name=".ui.activities.LoginActivity"
+                  android:screenOrientation="portrait"
+                  android:windowSoftInputMode="stateHidden"
+                  android:configChanges="locale"/>
+
+        <activity android:name=".ui.activities.MessageActivity"
+                  android:screenOrientation="portrait"
+                  android:windowSoftInputMode="stateHidden"
                   android:configChanges="locale"/>
                 
         <activity
-            android:name=".ui.advertisements.AdvertisementActivity"
+            android:name=".ui.activities.AdvertisementActivity"
             android:screenOrientation="portrait"
             android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.contacts.ContactActivity"
+                android:name=".ui.activities.ContactActivity"
                 android:screenOrientation="portrait"
                 android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.PinCodeActivity"
+                android:name=".ui.activities.PinCodeActivity"
                 android:screenOrientation="portrait"
                 android:noHistory="true"
                 android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.search.SearchResultsActivity"
+                android:name=".ui.activities.SearchResultsActivity"
                 android:screenOrientation="portrait"
                 android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.advertisements.AdvertiserActivity"
+                android:name=".ui.activities.AdvertiserActivity"
                 android:screenOrientation="portrait"
                 android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.bitcoin.QRCodeActivity"
+                android:name=".ui.activities.QRCodeActivity"
                 android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"
                 android:screenOrientation="portrait">
         </activity>
 
         <activity
-                android:name=".ui.search.TradeRequestActivity"
+                android:name=".ui.activities.TradeRequestActivity"
+                android:windowSoftInputMode="adjustResize"
                 android:screenOrientation="portrait"
                 android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.contacts.ContactsActivity"
+                android:name=".ui.activities.ContactsActivity"
                 android:screenOrientation="portrait"
                 android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.advertisements.EditActivity"
+                android:name=".ui.activities.EditAdvertisementActivity"
                 android:screenOrientation="portrait"
                 android:configChanges="locale">
         </activity>
 
         <activity
-                android:name=".ui.PromoActivity"
+                android:name=".ui.activities.PromoActivity"
                 android:screenOrientation="portrait"
                 android:noHistory="true"
                 android:configChanges="locale">
         </activity>
         
-
         <activity
-                android:name=".ui.settings.SettingsActivity"
+                android:name=".ui.activities.SettingsActivity"
                 android:label="@string/title_activity_settings"
                 android:theme="@style/PreferencesTheme"
                 android:screenOrientation="portrait"
@@ -161,7 +182,7 @@
         </activity>
 
         <activity
-               android:name=".ui.bitcoin.BitcoinHandler"
+               android:name=".ui.activities.BitcoinHandler"
                android:exported="true"
                android:label="Send Bitcoins"
                android:noHistory="true"

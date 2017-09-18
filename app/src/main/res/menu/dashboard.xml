@@ -19,16 +19,15 @@
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
       tools:context=".MainActivity">
 
- 
     <item android:id="@+id/action_search"
           android:title="@string/menu_action_search"
           android:icon="@drawable/ic_action_search"
-          thanksmister:showAsAction="ifRoom"/>
+          thanksmister:showAsAction="always"/>
 
-    <item android:id="@+id/action_send"
-          android:title="@string/menu_action_send"
-          android:icon="@drawable/ic_action_content_send"
-          thanksmister:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_scan"
+          android:title="@string/menu_action_scan"
+          android:icon="@drawable/ic_action_barcode_2"
+          thanksmister:showAsAction="always"/>
 
     <item android:id="@+id/action_advertise"
           android:title="@string/menu_action_advertise"
@@ -38,6 +37,11 @@
     <item android:id="@+id/action_trades"
           android:title="@string/menu_action_trades"
           android:orderInCategory="50"
+          thanksmister:showAsAction="never"/>
+
+    <item android:id="@+id/action_clear_notifications"
+          android:title="@string/menu_action_notifications"
+          android:orderInCategory="60"
           thanksmister:showAsAction="never"/>
     
 </menu>

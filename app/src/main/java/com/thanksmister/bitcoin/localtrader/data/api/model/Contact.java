@@ -20,10 +20,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import java.util.Collections;
 import java.util.List;
 
-import timber.log.Timber;
-
-public class Contact
-{
+public class Contact {
     public long id;
     public String reference_code;
     public String currency;
@@ -44,7 +41,7 @@ public class Contact
     public String released_at;
     public String payment_completed_at;
     public String exchange_rate_updated_at;
-    
+
     public boolean hasUnseenMessages = false;
     public int messageCount = 0;
 
@@ -53,9 +50,8 @@ public class Contact
     public Advertisement advertisement = new Advertisement();
     public Actions actions = new Actions();
     public Account_Details account_details = new Account_Details();
-
     public List<Message> messages = Collections.emptyList();
-  
+
     public class Seller {
         public String username;
         public String feedback_score;
@@ -85,10 +81,17 @@ public class Contact
 
     public class Account_Details {
         public String receiver_name;
+        public String receiver_email;
+        public String ethereum_address;
         public String iban;
         public String swift_bic;
         public String reference;
-        public String email;
+        public String phone_number;
+        public String biller_code;
+        public String account_number;
+        public String message;
+        public String sort_code;
+        public String bsb;
     }
 
     public class Advertisement {
@@ -105,9 +108,8 @@ public class Contact
             public String name;
         }
     }
-    
-    public Contact convertContentItemToContact(ContactItem contactItem)
-    {
+
+    public Contact convertContentItemToContact(ContactItem contactItem) {
         Contact contact = new Contact();
         contact.id = contactItem.id();
         contact.contact_id = contactItem.contact_id();
@@ -115,11 +117,11 @@ public class Contact
         contact.currency = contactItem.currency();
         contact.amount = contactItem.amount();
         contact.amount_btc = contactItem.amount_btc();
-        
+
         contact.is_funded = contactItem.is_funded();
         contact.is_selling = contactItem.is_selling();
         contact.is_buying = contactItem.is_buying();
-        
+
         contact.created_at = contactItem.created_at();
         contact.closed_at = contactItem.closed_at();
         contact.disputed_at = contactItem.disputed_at();
@@ -129,7 +131,7 @@ public class Contact
         contact.released_at = contactItem.released_at();
         contact.payment_completed_at = contactItem.payment_completed_at();
         contact.exchange_rate_updated_at = contactItem.exchange_rate_updated_at();
-        
+
         contact.actions.release_url = contactItem.release_url();
         contact.actions.advertisement_public_view = contactItem.advertisement_public_view();
         contact.actions.messages_url = contactItem.message_url();
@@ -138,26 +140,35 @@ public class Contact
         contact.actions.dispute_url = contactItem.dispute_url();
         contact.actions.cancel_url = contactItem.cancel_url();
         contact.actions.fund_url = contactItem.fund_url();
-        
-        contact.account_details.receiver_name = contactItem.account_receiver_name();
-        contact.account_details.iban = contactItem.account_iban();
-        contact.account_details.swift_bic = contactItem.account_swift_bic();
-        contact.account_details.reference = contactItem.account_reference();
-        contact.account_details.email = contactItem.account_receiver_email();
-        
+
+    
+        contact.account_details.receiver_name = contactItem.details_receiver_name();
+        contact.account_details.receiver_email = contactItem.details_receiver_email();
+        contact.account_details.iban = contactItem.details_iban();
+        contact.account_details.swift_bic = contactItem.details_swift_bic();
+        contact.account_details.biller_code = contactItem.details_biller_code();
+        contact.account_details.bsb = contactItem.details_bsb();
+        contact.account_details.account_number = contactItem.details_account_number();
+        contact.account_details.ethereum_address = contactItem.details_ethereum_address();
+        contact.account_details.phone_number = contactItem.details_phone_number();
+        contact.account_details.message = contactItem.details_message();
+        contact.account_details.sort_code = contactItem.details_sort_code();
+        contact.account_details.reference = contactItem.details_reference();
+       
+
         contact.advertisement.id = contactItem.advertisement_id();
         contact.advertisement.payment_method = contactItem.advertisement_payment_method();
         contact.advertisement.trade_type = TradeType.valueOf(contactItem.advertisement_trade_type());
-       
+
         contact.advertisement.advertiser.username = contactItem.advertiser_username();
         contact.advertisement.advertiser.feedback_score = contactItem.advertiser_feedback_score();
         contact.advertisement.advertiser.trade_count = contactItem.advertiser_trade_count();
         contact.advertisement.advertiser.last_online = contactItem.advertiser_last_online();
         contact.advertisement.advertiser.name = contactItem.advertiser_name();
-        
+
         contact.messageCount = contactItem.messageCount();
         contact.hasUnseenMessages = contactItem.hasUnseenMessages();
-        
+
         return contact;
     }
 }

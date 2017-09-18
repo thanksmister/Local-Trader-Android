@@ -16,22 +16,20 @@
 
 package com.thanksmister.bitcoin.localtrader;
 
-import android.app.Application;
-import android.content.Context;
+import android.content.ContentResolver;
+import android.os.Bundle;
+import android.support.multidex.MultiDexApplication;
 
 import com.crashlytics.android.Crashlytics;
-import com.squareup.leakcanary.LeakCanary;
-import com.squareup.leakcanary.RefWatcher;
+import com.facebook.stetho.Stetho;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
 
-import butterknife.ButterKnife;
-import dagger.ObjectGraph;
 import io.fabric.sdk.android.Fabric;
-import rx.plugins.RxJavaErrorHandler;
-import rx.plugins.RxJavaPlugins;
 import timber.log.Timber;
 
-public class BaseApplication extends Application
+public class BaseApplication extends MultiDexApplication
 {
     @Override
     public void onCreate() 
@@ -44,7 +42,11 @@ public class BaseApplication extends Application
             //ButterKnife.setDebug(BuildConfig.DEBUG);
             //LeakCanary.install(this);
             //refWatcher = LeakCanary.install(this);
-            
+
+           Stetho.initialize(Stetho.newInitializerBuilder(this)
+                    .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
+                    .build());
+
         } else {
             
             Fabric.with(this, new Crashlytics());
@@ -62,12 +64,10 @@ public class BaseApplication extends Application
         }
         
         Injector.init(this);
-    }
 
-    public static RefWatcher getRefWatcher(Context context) {
-        BaseApplication application = (BaseApplication) context.getApplicationContext();
-        return application.refWatcher;
+        // set up sync
+        ContentResolver.setIsSyncable(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, 1);
+        ContentResolver.setSyncAutomatically(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, true);
+        ContentResolver.addPeriodicSync(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, Bundle.EMPTY, SyncUtils.SYNC_FREQUENCY);
     }
-
-    private RefWatcher refWatcher;
 }

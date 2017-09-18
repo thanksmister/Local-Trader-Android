@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -15,46 +15,67 @@
   ~ See the License for the specific language governing permissions and 
   ~ limitations under the License.
   -->
-<LinearLayout
+
+<ScrollView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/screenBackground"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="@dimen/activity_padding"
-        android:background="@color/login_background_color">
-    
-    <View
+        android:fillViewport="true"
+        android:layout_height="match_parent">
+
+    <LinearLayout
+            android:id="@+id/screenBackground"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/view_padding_xxlarge"/>
+            android:layout_height="match_parent"
+            android:background="@color/promo_background_red"
+            android:orientation="vertical">
 
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="top"
+                android:padding="@dimen/activity_padding"
+                android:orientation="vertical">
 
-    <ImageView
-            android:id="@+id/screenImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:src="@drawable/logo_screen"/>
+            <android.support.v4.widget.Space
+                    android:id="@+id/spacerTop"
+                    android:layout_alignParentTop="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"/>
 
-    <TextView
-            android:id="@+id/headerText"
-            style="@style/Text.Headline"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:gravity="center"
-            android:text="@string/app_name"/>
+            <ImageView
+                    android:id="@+id/screenImage"
+                    android:layout_width="360dp"
+                    android:layout_height="360dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_below="@+id/spacerTop"
+                    android:src="@drawable/logo_screen"/>
+            
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/screenImage"
+                    android:layout_centerHorizontal="true"
+                    android:layout_alignParentBottom="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                
+                <TextView
+                        android:id="@+id/descriptionText"
+                        style="@style/TextLarge.SmallAction"
+                        android:textColor="@color/body_text_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:layout_marginLeft="36dp"
+                        android:layout_marginRight="36dp"
+                        android:linksClickable="true"
+                        tools:text="Local Trader works with your LocalBitcoins account, manage trades, advertisements, send messages, or to handle payments"/>
 
+            </LinearLayout>
 
-    <TextView
-            android:id="@+id/screenText"
-            style="@style/TextLarge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:layout_marginRight="@dimen/activity_horizontal_margin"
-            android:gravity="center"/>
+        </RelativeLayout>
 
+    </LinearLayout>
 
-</LinearLayout>
+</ScrollView>

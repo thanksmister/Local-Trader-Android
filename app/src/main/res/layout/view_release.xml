@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -25,7 +25,6 @@
         android:orientation="vertical">
    
     <android.support.design.widget.AppBarLayout
-            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true">
@@ -40,54 +39,74 @@
     </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:gravity="center"
             android:layout_weight="1">
 
-        <ImageView
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode1"
+                    android:src="@drawable/ic_pin_code_off"/>
+    
+            <View
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode2"
+                    android:src="@drawable/ic_pin_code_off"/>
+    
+            <View
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode3"
+                    android:src="@drawable/ic_pin_code_off"/>
+    
+            <View
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"/>
+    
+    
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/pinCode4"
+                    android:src="@drawable/ic_pin_code_off"/>
+            
+        </LinearLayout>
+        
+        <android.support.v4.widget.Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp"/>
+
+        <TextView
+                android:id="@+id/descriptionText"
+                style="?android:textAppearanceSmallInverse"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode1"
-                android:src="@drawable/ic_pin_code_off"/>
-
-        <View
-                android:layout_width="4dp"
-                android:layout_height="match_parent"/>
-
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode2"
-                android:src="@drawable/ic_pin_code_off"/>
-
-        <View
-                android:layout_width="4dp"
-                android:layout_height="match_parent"/>
-
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode3"
-                android:src="@drawable/ic_pin_code_off"/>
-
-        <View
-                android:layout_width="4dp"
-                android:layout_height="match_parent"/>
-
-
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:id="@+id/pinCode4"
-                android:src="@drawable/ic_pin_code_off"/>
-
+                android:layout_height="wrap_content"
+                android:textColorLink="@color/white"
+                tools:text="@string/pin_code_trade"/>
 
     </LinearLayout>
 
@@ -107,14 +126,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -140,14 +159,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -174,14 +193,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -214,14 +233,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -247,14 +266,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -282,14 +301,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -321,7 +340,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
@@ -329,7 +348,7 @@
                 <TextView
                         android:id="@+id/button7"
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -355,14 +374,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -389,14 +408,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -427,14 +446,14 @@
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -460,14 +479,14 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:layout_weight="1">
 
                 <TextView
                         style="?android:textAppearanceLarge"
-                        android:textSize="@dimen/text_size_login"
+                        android:textSize="@dimen/text_size_key_pad"
                         android:layout_gravity="center"
                         android:textColor="@color/white"
                         android:layout_width="wrap_content"
@@ -487,7 +506,7 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="8dp"
+                    android:padding="4dp"
                     android:orientation="vertical"
                     android:layout_gravity="center"
                     android:gravity="center"

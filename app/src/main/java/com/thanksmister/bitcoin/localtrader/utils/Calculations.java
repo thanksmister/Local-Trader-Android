@@ -20,6 +20,8 @@ import android.text.InputFilter;
 import android.text.Spanned;
 import android.text.TextUtils;
 
+import timber.log.Timber;
+
 public class Calculations
 {
     public static String computedValueOfBitcoin(String bid, String ask, String btc)
@@ -103,6 +105,53 @@ public class Calculations
             }
 
             return null;
+        }
+    }
+
+    public static String calculateBitcoinToEther(String bitcoinAmount, String tempPrice) {
+        try {
+            if (TextUtils.isEmpty(bitcoinAmount) || bitcoinAmount.equals("0")) {
+                return "";
+            }
+
+            double bitcoinDouble = Doubles.convertToDouble(bitcoinAmount);
+            double tempPriceDouble = Doubles.convertToDouble(tempPrice);
+            double eth = bitcoinDouble*tempPriceDouble;
+            return String.valueOf(eth);
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+        }
+
+        return "";
+    }
+
+    public static String calculateEtherToBitcoin(String ethereumAmount, String tempPrice) {
+        try {
+            if (TextUtils.isEmpty(ethereumAmount) || ethereumAmount.equals("0")) {
+                return "";
+            }
+
+            double ethereumDouble = Doubles.convertToDouble(ethereumAmount);
+            double tempPriceDouble = Doubles.convertToDouble(tempPrice);
+            double btc = ethereumDouble/tempPriceDouble;
+            return String.valueOf(btc);
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+        }
+
+        return "";
+    }
+
+    public static boolean calculateEthereumWithinRange(String ethereum, String adMin, String adMax) {
+        if(TextUtils.isEmpty(adMin) || TextUtils.isEmpty(adMax)) return true;
+        try {
+            double ethDouble = Doubles.convertToDouble(ethereum);
+            double minDouble = Doubles.convertToDouble(adMin);
+            double maxDouble = Doubles.convertToDouble(adMax);
+            return(ethDouble >= minDouble && ethDouble <= maxDouble);
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+            return true;
         }
     }
 }

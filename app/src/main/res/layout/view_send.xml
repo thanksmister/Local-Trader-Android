@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -22,48 +22,92 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
-    <android.support.design.widget.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
-
-    </android.support.design.widget.AppBarLayout>
-
-    <android.support.v4.widget.SwipeRefreshLayout
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:id="@+id/swipeLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-     
-    <android.support.v4.widget.NestedScrollView
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fillViewport="true">
-        
+            android:orientation="vertical">
+
+        <android.support.design.widget.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary"
+                    app:popupTheme="@style/Theme.AppCompat.Light"/>
+
+        </android.support.design.widget.AppBarLayout>
+
+
+        <android.support.v4.widget.NestedScrollView
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fillViewport="true">
+
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:padding="16dp"
                     android:orientation="vertical">
                 
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingTop="8dp"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingRight="@dimen/activity_padding"
                         android:orientation="vertical">
 
                     <TextView
                             style="@style/TextSmall"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Send to"/>
+                            android:text="@string/text_account_balance"/>
+
+                    <android.support.v4.widget.Space
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"/>
+
+                    <TextView
+                            android:id="@+id/balanceText"
+                            android:textIsSelectable="true"
+                            android:textStyle="bold"
+                            android:textSize="15sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:layout_marginRight="4dp"
+                            android:layout_gravity="left"
+                            android:textColor="@color/text_green"
+                            tools:text=".011626091 BTC / 275.89 USD"
+                            style="@style/TextLarge.SmallAction"/>
+
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"/>
+
+                    <TextView
+                            style="@style/SmallText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/form_sendable_label"/>
+
+                </LinearLayout>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="16dp"/>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/form_send_to"/>
 
                     <View
                             android:layout_width="match_parent"
@@ -73,8 +117,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:id="@+id/address"
-                            style="@style/TextLarge.SmallAction"
-                            android:singleLine="true"
+                            style="@style/TextMedium"
                             android:theme="@style/EditTextTheme"
                             android:hint="@string/hint_bitcoin_address"
                             android:nextFocusDown="@+id/amountText"/>
@@ -86,22 +129,16 @@
                         android:layout_height="8dp"/>
 
                 <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:paddingLeft="@dimen/activity_padding"
-                            android:paddingRight="@dimen/activity_padding"
+                            android:paddingTop="8dp"
                             android:orientation="vertical">
 
                         <TextView
                                 style="@style/TextSmall"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Bitcoin amount"/>
+                                android:text="@string/form_bitcoin_amount"/>
 
                         <View
                                 android:layout_width="match_parent"
@@ -116,12 +153,11 @@
                                     android:id="@+id/amountText"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    style="@style/TextLarge.SmallAction"
+                                    style="@style/TextMedium"
                                     android:inputType="numberDecimal"
                                     android:digits="0123456789."
-                                    android:singleLine="true"
                                     android:layout_weight="1"
-                                    android:gravity="center"
+                                    android:gravity="left"
                                     android:theme="@style/EditTextTheme"
                                     android:hint="@string/hint_bitcoin"
                                     android:nextFocusDown="@+id/buttonLayout"/>
@@ -143,19 +179,39 @@
                                     android:gravity="center"
                                     android:layout_weight="0"
                                     android:layout_marginBottom="2dp"/>
-                            
+
+                        </LinearLayout>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="8dp"/>
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/form_fiat_amount"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="8dp"/>
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
 
                             <EditText
                                     android:id="@+id/fiatEditText"
                                     android:theme="@style/EditTextTheme"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    style="@style/TextLarge.SmallAction"
+                                    style="@style/TextMedium"
                                     android:inputType="numberDecimal"
                                     android:digits="0123456789."
-                                    android:singleLine="true"
                                     android:layout_weight="1"
-                                    android:gravity="center"
+                                    android:gravity="left"
                                     android:hint="@string/hint_amount"
                                     android:nextFocusForward="@+id/buttonLayout"/>
 
@@ -180,76 +236,36 @@
                         </LinearLayout>
 
                     </LinearLayout>
-
-                </LinearLayout>
+                
 
                 <View
                         android:layout_width="match_parent"
                         android:layout_height="8dp"/>
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginLeft="16dp"
-                        android:layout_marginRight="@dimen/view_padding"
-                        android:padding="4dp"
-                        android:background="@color/gray_color">
-
-                    <TextView
-                        android:id="@+id/balanceTitle"
-                        style="@style/TextMedium.Secondary"
-                        android:layout_marginLeft="4dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/form_balance_label"/>
-                    
-                    <TextView
-                            android:id="@+id/balanceText"
-                            android:textIsSelectable="true"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="4dp"
-                            android:layout_gravity="center"
-                            style="@style/TextMedium.Secondary"/>
-                    
-                </LinearLayout>
-                
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"/>
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="8dp"
-                        style="@style/DividerHorizontal"
-                        android:layout_gravity="top"/>
-                
-                <Button
-                        android:id="@+id/sendButton"
-                        android:layout_margin="@dimen/activity_padding"
-                        style="@style/ButtonGreen"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nextFocusUp="@id/amountText"
-                        android:text="Send"/>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/view_padding_small"/>
 
                 <TextView
-                        style="@style/SmallText.ExtraSmall"
+                        android:id="@+id/sendDescription"
+                        style="@style/SmallText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="@dimen/activity_padding"
-                        android:paddingRight="@dimen/activity_padding"
-                        android:text="Fees are calculated by LocalBitcoins at the time you send and not reflected in the remaining balance. Unless you know the fee amount, the entire wallet balance can not be sent."/>
-                
+                        android:linksClickable="true"
+                        android:text="@string/pin_code_send"/>
+
+                <android.support.v4.widget.Space
+                        android:layout_width="match_parent"
+                        android:layout_height="16dp"/>
+
+                <Button
+                        style="@style/ButtonGreen.Small"
+                        android:id="@+id/sendButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/button_send"/>
+
             </LinearLayout>
+
+        </android.support.v4.widget.NestedScrollView>
         
-    </android.support.v4.widget.NestedScrollView>
-    
-    </android.support.v4.widget.SwipeRefreshLayout>
+        
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

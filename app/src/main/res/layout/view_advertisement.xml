@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2016 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License. 
@@ -33,8 +33,8 @@
                 android:minHeight="?attr/actionBarSize"
                 android:background="@color/colorPrimary"
                 app:popupTheme="@style/Theme.AppCompat.Light"/>
-        
-        </android.support.design.widget.AppBarLayout>
+
+    </android.support.design.widget.AppBarLayout>
 
     <!-- Your Scrollable View -->
     <android.support.v4.widget.SwipeRefreshLayout
@@ -44,167 +44,345 @@
             android:layout_height="match_parent">
 
         <android.support.v4.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-            <FrameLayout
+            <LinearLayout
+                    android:id="@+id/advertisementContent"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-                
-                <LinearLayout
-                        android:id="@+id/advertisementContent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/activity_padding"
+                    android:orientation="vertical">
+
+                <FrameLayout
+                        android:id="@+id/noteLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingBottom="@dimen/activity_padding"
-                        android:orientation="vertical">
-
-                    <FrameLayout
-                            android:id="@+id/noteLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding_small"
-                            android:paddingBottom="@dimen/view_padding_small"
-                            android:paddingLeft="12dp"
-                            android:paddingRight="16dp"
-                            android:background="@color/yellow"
-                            tools:visibility="visible"
-                            android:visibility="gone">
-
-                        <TextView
-                                style="@style/TextMedium"
-                                android:id="@+id/noteText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="left|top"
-                                android:layout_gravity="center_vertical"
-                                android:drawableLeft="@drawable/ic_action_bulb_dark"
-                                android:drawablePadding="4dp"
-                                tools:text="This trade is invisible, toggle the visibility from the menu."/>
-
-                    </FrameLayout>
+                        android:paddingTop="@dimen/view_padding_small"
+                        android:paddingBottom="@dimen/view_padding_small"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="16dp"
+                        android:background="@color/yellow"
+                        tools:visibility="visible"
+                        android:visibility="gone">
 
                     <TextView
-                            style="@style/TextLarge"
-                            android:id="@+id/noteTextAdvertisement"
-                            android:layout_width="match_parent"
+                            style="@style/TextMedium"
+                            android:id="@+id/noteText"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding_xlarge"
-                            android:paddingBottom="@dimen/view_padding_xlarge"
-                            android:paddingLeft="16dp"
-                            android:paddingRight="16dp"
-                            android:gravity="center"
+                            android:gravity="left|top"
                             android:layout_gravity="center_vertical"
-                            tools:text="@string/advertiser_notes_text_online"/>
+                            android:drawableLeft="@drawable/ic_action_bulb_dark"
+                            android:drawablePadding="4dp"
+                            tools:text="This trade is invisible, toggle the visibility from the menu."/>
 
-                    <View style="@style/DividerHorizontal"/>
+                </FrameLayout>
+
+                <TextView
+                        style="@style/TextLarge"
+                        android:id="@+id/noteTextAdvertisement"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/view_padding_xlarge"
+                        android:paddingBottom="@dimen/view_padding_xlarge"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:gravity="center"
+                        android:layout_gravity="center_vertical"
+                        tools:text="@string/advertiser_notes_text_online"/>
+
+                <View style="@style/DividerHorizontal"/>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
-                        <LinearLayout
+                        <TextView
+                                style="@style/TextSmall"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
+                                android:paddingTop="@dimen/activity_padding"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingBottom="@dimen/view_padding_small"
+                                android:gravity="left"
+                                android:text="@string/text_title_current_price"/>
 
-                            <TextView
-                                    style="@style/TextSmall"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:paddingTop="@dimen/activity_padding"
-                                    android:paddingLeft="@dimen/activity_padding"
-                                    android:paddingBottom="@dimen/view_padding_small"
-                                    android:gravity="left"
-                                    android:text="Current Price"/>
-
-                            <TextView
-                                    android:id="@+id/tradePrice"
-                                    style="@style/TextLarge.SmallAction"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:gravity="left"
-                                    android:paddingLeft="@dimen/activity_padding"
-                                    android:paddingRight="@dimen/activity_padding"
-                                    android:paddingBottom="@dimen/activity_padding"
-                                    android:textIsSelectable="true"
-                                    tools:text="7000 ARS/BTC"
-                                    android:singleLine="true"
-                                    android:ellipsize="end"/>
-
-                        </LinearLayout>
-
-                        <LinearLayout
+                        <TextView
+                                android:id="@+id/tradePrice"
+                                style="@style/TextMedium"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-
-                            <TextView
-                                    style="@style/TextSmall"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:paddingTop="@dimen/activity_padding"
-                                    android:paddingLeft="@dimen/activity_padding"
-                                    android:paddingBottom="@dimen/view_padding_small"
-                                    android:gravity="left"
-                                    android:text="Deal amount"/>
-
-
-                            <TextView
-                                    android:id="@+id/tradeLimit"
-                                    style="@style/TextLarge.SmallAction"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:paddingLeft="@dimen/activity_padding"
-                                    android:paddingRight="@dimen/activity_padding"
-                                    android:paddingBottom="@dimen/activity_padding"
-                                    android:textIsSelectable="true"
-                                    android:gravity="left"
-                                    tools:text="1000 - 10000 ARS"
-                                    android:singleLine="true"
-                                    android:ellipsize="end"/>
-
-                        </LinearLayout>
+                                android:gravity="left"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:paddingBottom="@dimen/activity_padding"
+                                android:textIsSelectable="true"
+                                tools:text="7000 ARS/BTC"
+                                android:singleLine="true"
+                                android:ellipsize="end"/>
 
                     </LinearLayout>
 
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_marginBottom="@dimen/activity_padding"/>
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingTop="@dimen/activity_padding"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingBottom="@dimen/view_padding_small"
+                                android:gravity="left"
+                                android:text="@string/text_title_deal_amount"/>
+
+                        <TextView
+                                android:id="@+id/tradeLimit"
+                                style="@style/TextMedium"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingLeft="@dimen/activity_padding"
+                                android:paddingRight="@dimen/activity_padding"
+                                android:paddingBottom="@dimen/activity_padding"
+                                android:textIsSelectable="true"
+                                android:gravity="left"
+                                tools:text="1000 - 10000 ARS"
+                                android:singleLine="true"
+                                android:ellipsize="end"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <View style="@style/DividerHorizontal"/>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingBottom="8dp"
+                        android:paddingTop="@dimen/activity_padding"
+                        android:gravity="top">
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <TextView
+                                style="@style/TextSmall"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:gravity="left"
+                                android:text="@string/text_title_advertisement_id"/>
+
+                        <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/view_padding_small"/>
+
+                        <TextView
+                                android:id="@+id/advertisementId"
+                                style="@style/TextMedium"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                tools:text="KDJ839080983LKJD"
+                                android:layout_marginLeft="@dimen/activity_padding"
+                                android:selectAllOnFocus="true"
+                                android:textIsSelectable="true"
+                                android:ellipsize="end"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <View
+                        style="@style/DividerHorizontal"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="@dimen/activity_padding"/>
+
+                <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="left"
+                        android:layout_marginLeft="@dimen/activity_padding"
+                        android:paddingBottom="@dimen/view_padding_small"
+                        android:text="@string/text_price_equation"/>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:layout_gravity="center_vertical">
+
+                    <TextView
+                            android:id="@+id/priceEquation"
+                            style="@style/TextMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left"
+                            android:layout_gravity="center_vertical"
+                            android:maxLines="2"
+                            android:ellipsize="end"
+                            android:textIsSelectable="true"
+                            tools:text="bitstampusd*USD_in_XAR*1.015-100"/>
+
+                </LinearLayout>
+                
+                <LinearLayout
+                        android:id="@+id/termsLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                <View
+                        style="@style/DividerHorizontal"
+                        android:layout_marginTop="@dimen/activity_padding"
+                        android:layout_marginBottom="@dimen/activity_padding"/>
+
+                <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="left"
+                        android:layout_marginLeft="@dimen/activity_padding"
+                        android:paddingBottom="@dimen/view_padding_small"
+                        android:text="@string/text_terms_of_trade"/>
+
+
+                <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="@dimen/activity_padding"
+                        android:paddingRight="@dimen/activity_padding"
+                        android:background="@color/white">
+
+                    <TextView
+                            android:id="@+id/tradeTerms"
+                            style="@style/TextMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autoLink="all"
+                            android:textIsSelectable="true"/>
+
+                </FrameLayout>
+
+                </LinearLayout>
+
+                <View
+                        style="@style/DividerHorizontal"
+                        android:layout_marginTop="@dimen/activity_padding"
+                        android:layout_marginBottom="@dimen/activity_padding"/>
+
+                <LinearLayout
+                        android:id="@+id/requirementsLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
                     <TextView
                             style="@style/TextSmall"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="left"
-                            android:layout_marginLeft="@dimen/activity_padding"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
                             android:paddingBottom="@dimen/view_padding_small"
-                            android:text="Price equation"/>
+                            android:text="@string/text_title_requirements"/>
 
-                    <LinearLayout
+                    <TextView
+                            android:id="@+id/trustedTextView"
+                            style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingLeft="16dp"
-                            android:paddingRight="16dp"
-                            android:layout_gravity="center_vertical">
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:text="@string/trade_request_trusted_people"
+                            android:drawableLeft="@drawable/ic_navigation_check"
+                            android:drawablePadding="4dp"
+                            android:layout_gravity="center_vertical"/>
 
-                        <TextView
-                                android:id="@+id/priceEquation"
-                                style="@style/TextLarge.SmallAction"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="left"
-                                android:layout_gravity="center_vertical"
-                                android:maxLines="2"
-                                android:ellipsize="end"
-                                android:textIsSelectable="true"
-                                tools:text="bitstampusd*USD_in_XAR*1.015-100"/>
+                    <TextView
+                            android:id="@+id/identifiedTextView"
+                            style="@style/TextMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:drawableLeft="@drawable/ic_navigation_check"
+                            android:drawablePadding="4dp"
+                            android:text="@string/trade_request_identified_people"
+                            android:layout_gravity="center_vertical"/>
 
-                    </LinearLayout>
+                    <TextView
+                            android:id="@+id/smsTextView"
+                            style="@style/TextMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:drawableLeft="@drawable/ic_navigation_check"
+                            android:drawablePadding="4dp"
+                            android:text="@string/trade_request_sms_required"
+                            android:layout_gravity="center_vertical"/>
+
+                    <TextView
+                            android:id="@+id/feedbackText"
+                            style="@style/TextMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:drawableLeft="@drawable/ic_navigation_check"
+                            android:drawablePadding="4dp"
+                            android:text="@string/trade_request_minimum_feedback_score"
+                            android:layout_gravity="center_vertical"/>
+
+                    <TextView
+                            android:id="@+id/limitText"
+                            style="@style/TextMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:drawableLeft="@drawable/ic_navigation_check"
+                            android:drawablePadding="4dp"
+                            android:text="@string/trade_request_new_buyer_limit"
+                            android:layout_gravity="center_vertical"/>
+
+                    <TextView
+                            android:id="@+id/volumeText"
+                            style="@style/TextMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/activity_padding"
+                            android:paddingRight="@dimen/activity_padding"
+                            android:drawableLeft="@drawable/ic_navigation_check"
+                            android:drawablePadding="4dp"
+                            android:text="@string/trade_request_minimum_volume"
+                            android:layout_gravity="center_vertical"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/onlinePaymentLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
                     <View
                             style="@style/DividerHorizontal"
@@ -218,28 +396,33 @@
                             android:gravity="left"
                             android:layout_marginLeft="@dimen/activity_padding"
                             android:paddingBottom="@dimen/view_padding_small"
-                            android:text="Message"/>
+                            android:text="@string/text_title_online_provider"/>
 
-
-                    <FrameLayout
+                    <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:paddingLeft="@dimen/activity_padding"
-                            android:paddingRight="@dimen/activity_padding"
+                            android:orientation="horizontal"
+                            android:paddingLeft="16dp"
+                            android:paddingRight="16dp"
+                            android:layout_gravity="center_vertical"
                             android:background="@color/white">
 
                         <TextView
-                                android:id="@+id/tradeTerms"
-                                style="@style/TextMedium.SmallAction"
+                                android:id="@+id/onlineProvider"
+                                style="@style/TextMedium"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:autoLink="all"
-                                android:textIsSelectable="true"/>
+                                android:gravity="left"
+                                android:layout_gravity="center_vertical"
+                                android:maxLines="2"
+                                android:ellipsize="end"
+                                android:textIsSelectable="true"
+                                tools:text="National Bank"/>
 
-                    </FrameLayout>
+                    </LinearLayout>
 
                     <LinearLayout
-                            android:id="@+id/onlinePaymentLayout"
+                            android:id="@+id/bankNameLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical">
@@ -256,8 +439,7 @@
                                 android:gravity="left"
                                 android:layout_marginLeft="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/view_padding_small"
-                                android:text="Online provider"/>
-
+                                android:text="@string/text_bank_name"/>
 
                         <LinearLayout
                                 android:layout_width="match_parent"
@@ -269,8 +451,8 @@
                                 android:background="@color/white">
 
                             <TextView
-                                    android:id="@+id/onlineProvider"
-                                    style="@style/TextLarge.SmallAction"
+                                    android:id="@+id/bankName"
+                                    style="@style/TextMedium"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:gravity="left"
@@ -278,9 +460,18 @@
                                     android:maxLines="2"
                                     android:ellipsize="end"
                                     android:textIsSelectable="true"
-                                    android:text="National Bank"/>
+                                    tools:text="My Bank"/>
 
                         </LinearLayout>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                            android:id="@+id/paymentDetailsLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
                         <View
                                 style="@style/DividerHorizontal"
@@ -294,7 +485,7 @@
                                 android:gravity="left"
                                 android:layout_marginLeft="@dimen/activity_padding"
                                 android:paddingBottom="@dimen/view_padding_small"
-                                android:text="Payment details"/>
+                                android:text="@string/text_payment_details"/>
 
                         <FrameLayout
                                 android:layout_width="match_parent"
@@ -305,32 +496,26 @@
 
                             <TextView
                                     android:id="@+id/paymentDetails"
-                                    style="@style/TextMedium.SmallAction"
+                                    style="@style/TextMedium"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:autoLink="all"
                                     android:textIsSelectable="true"/>
 
                         </FrameLayout>
 
                     </LinearLayout>
 
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/view_padding_large"/>
-
                 </LinearLayout>
-                
-                <include
-                        android:id="@+id/advertisementProgress"
-                        layout="@layout/view_progress"
-                        tools:visibility="invisible"
-                        android:visibility="visible"/>
 
-            </FrameLayout>
-        
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/view_padding_large"/>
+
+            </LinearLayout>
+
+
         </android.support.v4.widget.NestedScrollView>
-        
-        </android.support.v4.widget.SwipeRefreshLayout>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </android.support.design.widget.CoordinatorLayout>

@@ -26,7 +26,10 @@ public class ConfirmationDialogEvent
     public final String negative;
     public final Action0 action;
 
-    public ConfirmationDialogEvent(final String title, final String message, final String positive, final String negative, Action0 action) 
+    public ConfirmationDialogEvent(final String title, final String message, 
+                                   final String positive, 
+                                   final String negative, 
+                                   Action0 action) 
     {
         this.title = title;
         this.message = message;

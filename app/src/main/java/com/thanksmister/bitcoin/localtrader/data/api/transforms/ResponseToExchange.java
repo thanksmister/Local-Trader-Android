@@ -16,7 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.data.api.transforms;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 
 import java.io.BufferedReader;
@@ -26,10 +26,10 @@ import java.io.InputStreamReader;
 import retrofit.client.Response;
 import rx.functions.Func1;
 
-public class ResponseToExchange implements Func1<Response, Exchange>
+public class ResponseToExchange implements Func1<Response, ExchangeRate>
 {
     @Override
-    public Exchange call(Response response)
+    public ExchangeRate call(Response response)
     {
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
@@ -48,6 +48,6 @@ public class ResponseToExchange implements Func1<Response, Exchange>
         }
 
         String result = sb.toString();
-        return Parser.parseMarket(result);
+        return Parser.parseExchangeRate(result);
     }
 }
