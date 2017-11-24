@@ -58,6 +58,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.services.DataService;
 import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
@@ -82,9 +83,12 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Func2;
+import rx.observers.Observers;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -299,6 +303,17 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
         adapter = new MessageAdapter(this);
         setAdapter(adapter);
+
+        Observable<AdvertisementItem> o1 = dbManager.advertisementItemQuery("dfdfdf");
+        Observable<List<MethodItem>> o2 = dbManager.methodQuery();
+        Observable.zip(o1, o2, new Func2<AdvertisementItem, List<MethodItem>, Object>() {
+            @Override
+            public Object call(AdvertisementItem advertisementItem, List<MethodItem> methodItems) {
+                return null;
+            }
+        })
+                .subscribe();
+
     }
 
     @Override

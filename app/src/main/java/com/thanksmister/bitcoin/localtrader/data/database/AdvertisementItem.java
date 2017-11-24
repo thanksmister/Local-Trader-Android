@@ -103,6 +103,7 @@ public abstract class AdvertisementItem implements Parcelable {
 
     public abstract boolean visible();
 
+    @Nullable
     public abstract String email();
 
     public abstract String location_string();

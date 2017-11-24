@@ -167,8 +167,8 @@ public class TradeUtils {
         return (TextUtils.isEmpty(closedAt) && TextUtils.isEmpty(canceledAt));
     }
     
-    public static boolean isCanceledTrade(ContactItem contact) {
-        return contact.canceled_at() != null;
+    private static boolean isCanceledTrade(ContactItem contact) {
+        return !TextUtils.isEmpty(contact.canceled_at());
     }
 
     public static boolean isCanceledTrade(Contact contact) {
@@ -195,8 +195,8 @@ public class TradeUtils {
         return contact.disputed_at() != null;
     }
 
-    public static boolean isClosedTrade(ContactItem contact) {
-        return contact.closed_at() != null;
+    private static boolean isClosedTrade(ContactItem contact) {
+        return !TextUtils.isEmpty(contact.closed_at());
     }
 
     public static boolean isClosedTrade(Contact contact) {
@@ -204,11 +204,13 @@ public class TradeUtils {
     }
 
     public static boolean canDisputeTrade(ContactItem contact) {
-        return isClosedTrade(contact) && !isDisputed(contact) && contact.dispute_url() != null;
+        //return isClosedTrade(contact) && !isDisputed(contact) && !TextUtils.isEmpty(contact.dispute_url());
+        return !TextUtils.isEmpty(contact.dispute_url());
     }
 
     public static boolean canCancelTrade(ContactItem contact) {
-        return !isClosedTrade(contact) && !isCanceledTrade(contact) && contact.cancel_url() != null;
+        //return !isClosedTrade(contact) && !isCanceledTrade(contact) && !TextUtils.isEmpty(contact.cancel_url());
+        return !TextUtils.isEmpty(contact.cancel_url());
     }
 
     public static boolean canReleaseTrade(ContactItem contact) {

@@ -19,6 +19,8 @@ package com.thanksmister.bitcoin.localtrader.data.api.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -28,7 +30,13 @@ public class Advertisement implements Parcelable
     public String created_at;
     public boolean visible = true;
     public String email;
+
+    @SerializedName("location_string")
+    @Expose
     public String location;
+
+    @SerializedName("countrycode")
+    @Expose
     public String country_code;
     public String city;
     public TradeType trade_type = TradeType.LOCAL_SELL;

@@ -190,9 +190,9 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             final String endpoint = apiPreference.getEditText().getText().toString();
             final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
             if (TextUtils.isEmpty(endpoint)) {
-                ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "The service end point should not be a valid URL."));
+                ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "The service end point should be a valid URL."));
             } else if (!Patterns.WEB_URL.matcher(endpoint).matches()) {
-                ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "The service end point should not be a valid URL."));
+                ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "The service end point should be a valid URL."));
             } else if (!currentEndpoint.equals(endpoint)) {
                 ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), new Action0() {
                     @Override
