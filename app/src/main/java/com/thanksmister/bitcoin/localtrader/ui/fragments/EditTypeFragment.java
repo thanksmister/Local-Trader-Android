@@ -39,9 +39,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MethodAdapter;

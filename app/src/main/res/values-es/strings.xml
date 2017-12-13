@@ -690,4 +690,24 @@
     <string name="text_trade">Trade</string>
     <string name="error_hijack_link">Your phone is was trying to hijack the link:</string>
 
+    <string name="pref_market_currency">Market currency (%1$s)</string>
+    <string name="pref_exchange">Exchange to use (%1$s)</string>
+    <string name="pref_exchange_summary">Exchange used to display and calculate order amounts. Note that not all exchanges support all currencies. If you get an error, try another exchange or currency.</string>
+    <string name="pref_currency_settings">Currency Settings</string>
+    <string name="pref_market_currency_summary">Currency for displaying market rate and calculating Bitcoin value.</string>
+    <string name="pref_search_settings">Search Settings</string>
+    <string name="pref_distance_units_summary">Unit used for measuring distance to advertiser.</string>
+    <string name="pref_service_endpoint">Service Endpoint</string>
+    <string name="pref_endpoint">LocalBitcoins API endpoint</string>
+    <string name="pref_dialog_endpoint_title">Update API Endpoint</string>
+    <string name="pref_dialog_endpoint_message">After changing the LocalBitcoins API endpoint, restart the application for the changes to take effect.</string>
+    <string name="pref_application_settings">Application Settings</string>
+    <string name="pref_logout">Logout</string>
+    <string name="pref_logout_summary">Logout and reset the application</string>
+    <string name="pref_distance_km">Kilometers (km)</string>
+    <string name="pref_distance_mi">Miles (mi)</string>
+    <string name="toast_authentication_canceled">Authentication canceled...</string>
+    <string name="error_update_exchange_rate">Unable to update exchange rate.</string>
+    <string name="text_donate_button">Buy me a coffee</string>
+
 </resources>

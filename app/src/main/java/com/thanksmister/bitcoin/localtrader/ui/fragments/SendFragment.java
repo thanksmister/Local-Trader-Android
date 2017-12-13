@@ -41,12 +41,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.WalletData;
+import com.thanksmister.bitcoin.localtrader.network.api.model.WalletData;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
@@ -341,21 +341,17 @@ public class SendFragment extends BaseFragment {
         // this must be set each time
         CompositeSubscription dataSubscriptions = new CompositeSubscription();
 
-        dataSubscriptions.add(Observable.combineLatest(dbManager.exchangeQuery(), dbManager.walletQuery(), new Func2<List<ExchangeRateItem>, WalletItem, WalletData>() {
+        dataSubscriptions.add(Observable.combineLatest(dbManager.exchangeQuery(), dbManager.walletQuery(), new Func2<ExchangeRateItem, WalletItem, WalletData>() {
             @Override
-            public WalletData call(List<ExchangeRateItem> exchanges, WalletItem wallet) {
+            public WalletData call(ExchangeRateItem rateItem, WalletItem wallet) {
                 WalletData walletData = null;
                 if (wallet != null) {
                     walletData = new WalletData();
                     walletData.setAddress(wallet.address());
                     walletData.setBalance(wallet.sendable()); // only have sendable balance available to send
                     walletData.setRate("0");
-                    String currency = exchangeService.getExchangeCurrency();
-                    for (ExchangeRateItem rateItem : exchanges) {
-                        if (rateItem.currency().equals(currency)) {
-                            walletData.setRate(rateItem.rate());
-                            break;
-                        }
+                    if(rateItem != null) {
+                        walletData.setRate(rateItem.rate());
                     }
                 }
                 return walletData;

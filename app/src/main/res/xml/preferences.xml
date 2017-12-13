@@ -14,30 +14,25 @@
   ~ limitations under the License.
   -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!--android:entries="@array/pref_exchange_titles"
-               android:entryValues="@array/pref_exchange_values"-->
-
-   <!-- android:entries="@array/pref_exchange_currency_titles"
-    android:entryValues="@array/pref_exchange_currency_values"-->
     
     <PreferenceCategory
             android:key="exchange_category"
-            android:title="Currency Settings"
-            android:summary="Currency used to set market price (from Coinbase)">
+            android:title="@string/pref_currency_settings">
 
-        <!--<ListPreference
-                android:key="exchange"
-                android:title="Exchange to use (Bitstamp)"
-                android:summary="Exchange used to display and calculate order amounts"
-                android:defaultValue="0"
+        <ListPreference
+                android:key="pref_exchange"
+                android:title="@string/pref_exchange"
+                android:summary="@string/pref_exchange_summary"
+                android:defaultValue="Coinbase"
+                android:entries="@array/pref_market_entries"
+                android:entryValues="@array/pref_market_values"
                 android:negativeButtonText="@null"
-                android:positiveButtonText="@null"/>-->
+                android:positiveButtonText="@null"/>
 
         <ListPreference
                 android:key="exchange_currency"
-                android:title="Market currency (USD)"
-                android:summary="Currency for displaying market rate and calculating Bitcoin value."
+                android:title="@string/pref_market_currency"
+                android:summary="@string/pref_market_currency_summary"
                 android:defaultValue="0"
                 android:negativeButtonText="@null"
                 android:positiveButtonText="@null"/>
@@ -46,13 +41,12 @@
 
     <PreferenceCategory
             android:key="search_category"
-            android:title="Search Settings"
-            android:summary="Distance measured Kilometers or Miles">
+            android:title="@string/pref_search_settings">
         
         <ListPreference
                 android:key="@string/pref_key_distance"
                 android:title="Kilometers (km)"
-                android:summary="Unit used for measuring distance to advertiser."
+                android:summary="@string/pref_distance_units_summary"
                 android:defaultValue="0"
                 android:entries="@array/units_entries"
                 android:entryValues="@array/units_values"
@@ -63,14 +57,13 @@
 
     <PreferenceCategory
             android:key="api_category"
-            android:title="Service Endpoint"
-            android:summary="Change the LocalBitcoins service url">
+            android:title="@string/pref_service_endpoint">
 
         <EditTextPreference
-                android:title="LocalBitcoins API endpoint"
+                android:title="@string/pref_endpoint"
                 android:defaultValue="@string/local_bitcoins_url"
-                android:dialogTitle="Update API Endpoint"
-                android:dialogMessage="After changing the LocalBitcoins API endpoint, restart the application for the changes to take effect."
+                android:dialogTitle="@string/pref_dialog_endpoint_title"
+                android:dialogMessage="@string/pref_dialog_endpoint_message"
                 android:summary="https://localbitcoins.com"
                 android:inputType="textWebEditText"
                 android:key="@string/pref_key_api"/>
@@ -79,12 +72,11 @@
 
     <PreferenceCategory
             android:key="application_category"
-            android:title="Application Settings"
-            android:summary="Application specific settings">
+            android:title="@string/pref_application_settings">
 
         <Preference
-                android:title="Logout"
-                android:summary="Logout and reset the application"
+                android:title="@string/pref_logout"
+                android:summary="@string/pref_logout_summary"
                 android:key="reset"/>
 
     </PreferenceCategory>

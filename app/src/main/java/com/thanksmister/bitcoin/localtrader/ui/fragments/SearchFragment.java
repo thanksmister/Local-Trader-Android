@@ -58,16 +58,16 @@ import android.widget.TextView;
 import com.google.android.gms.location.LocationRequest;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
-import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
@@ -106,7 +106,7 @@ import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
-import static com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService.MAX_ADDRESSES;
+import static com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService.MAX_ADDRESSES;
 
 public class SearchFragment extends BaseFragment {
 

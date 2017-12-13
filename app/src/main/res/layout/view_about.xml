@@ -227,6 +227,31 @@
             <View style="@style/DividerHorizontal"/>
 
             <LinearLayout
+                android:id="@+id/donateButton"
+                style="@style/BorderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/view_padding"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_donate_bitcoin"/>
+
+                <TextView
+                    style="@style/TextMedium.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="8dp"
+                    android:gravity="left|center_vertical"
+                    android:text="@string/text_donate_button"/>
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal"/>
+
+            <LinearLayout
                     android:id="@+id/licenseButton"
                     style="@style/BorderlessButtonStyle"
                     android:layout_width="match_parent"

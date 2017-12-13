@@ -32,10 +32,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;

@@ -16,29 +16,30 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
+import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ContactRequest;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Currency;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Exchange;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Notification;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Place;
-import com.thanksmister.bitcoin.localtrader.data.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TransactionType;
-import com.thanksmister.bitcoin.localtrader.data.api.model.User;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Currency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Exchange;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
+import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.User;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,11 +54,12 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit.client.Response;
 import timber.log.Timber;
 
-import static com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils.CODE_MINUS_ONE;
+import static com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils.CODE_MINUS_ONE;
 
 public class Parser
 {
@@ -1173,11 +1175,9 @@ public class Parser
     }
 
     public static List<ExchangeCurrency> parseCoinbaseCurrencies(String response) {
-        
         ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
         JSONObject jsonObject;
         Timber.d("Response" + response);
-
         try {
             jsonObject = new JSONObject(response);
             JSONArray dataObject = jsonObject.getJSONArray("data");
@@ -1193,8 +1193,69 @@ public class Parser
         }
     }
 
+    public static ExchangeRate parseBitcoinAverageExchangeRate(String exchangeName, String currency, Response response) {
+        // Read the body
+        BufferedReader reader = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
+            String line;
+            try {
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String result = sb.toString();
+
+        try {
+            JSONObject jsonObject;
+            jsonObject = new JSONObject(result);
+            Iterator<?> keys = jsonObject.keys();
+            while( keys.hasNext()) {
+                String key = (String) keys.next();
+                if( jsonObject.get(key) instanceof JSONObject) {
+                    JSONObject exchangeObj = (JSONObject) jsonObject.get(key);
+                    JSONObject rateObject = (JSONObject) exchangeObj.get("rates");
+                    String rate = rateObject.getString("last");
+                    if(exchangeObj.has("avg_1h")) {
+                        rate = exchangeObj.getString("avg_1h");
+                    }
+                    if(currency.equals(key)){
+                        return new ExchangeRate(exchangeName, rate, currency);
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @SuppressLint("DefaultLocale")
+    public static ExchangeRate parseBitfinexExchangeRate(String response) {
+        JSONArray jsonArray;
+        Timber.d("Response" + response);
+        try {
+            jsonArray = new JSONArray(response);
+            if(jsonArray.length() > 6) {
+                String rate = jsonArray.get(6).toString();
+                rate = String.format("%.2f", Doubles.convertToDouble(rate));
+                return new ExchangeRate("Bitfinex", rate, "");
+            }
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     //{"data":{"amount":"2664.95","currency":"USD"}}
-    public static ExchangeRate parseExchangeRate(String response) {
+    public static ExchangeRate parseCoinbaseExchangeRate(String response) {
         JSONObject jsonObject;
         Timber.d("Response" + response);
         try {

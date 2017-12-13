@@ -23,8 +23,8 @@ import android.support.multidex.MultiDexApplication;
 import com.crashlytics.android.Crashlytics;
 import com.facebook.stetho.Stetho;
 import com.thanksmister.bitcoin.localtrader.data.CrashlyticsTree;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
 
 import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;

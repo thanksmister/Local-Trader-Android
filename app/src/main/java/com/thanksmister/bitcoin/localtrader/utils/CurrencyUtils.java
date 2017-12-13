@@ -16,7 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 
 import java.util.Collections;
 import java.util.Comparator;

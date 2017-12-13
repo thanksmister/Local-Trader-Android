@@ -20,7 +20,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcelable;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 
 import java.util.ArrayList;
 import java.util.List;

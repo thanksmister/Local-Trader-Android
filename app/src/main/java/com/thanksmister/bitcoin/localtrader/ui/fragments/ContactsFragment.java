@@ -30,7 +30,7 @@ import android.view.ViewGroup;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.EditAdvertisementActivity;

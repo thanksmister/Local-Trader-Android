@@ -47,7 +47,7 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.QRCodeActivity;
@@ -165,6 +165,7 @@ public class RequestFragment extends BaseFragment {
                 if(walletItem != null) {
                     viewBlockChain(walletItem.address());
                 }
+                return true;
             default:
                 break;
         }
@@ -277,23 +278,19 @@ public class RequestFragment extends BaseFragment {
         dbManager.exchangeQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<List<ExchangeRateItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .compose(this.<ExchangeRateItem>bindUntilEvent(FragmentEvent.PAUSE))
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
                         Timber.i("Exchange Rate subscription safely unsubscribed");
                     }
                 })
-                .subscribe(new Action1<List<ExchangeRateItem>>() {
+                .subscribe(new Action1<ExchangeRateItem>() {
                     @Override
-                    public void call(List<ExchangeRateItem> results) {
-                        String currency = exchangeService.getExchangeCurrency();
-                        for (ExchangeRateItem rateItem : results) {
-                            if (rateItem.currency().equals(currency)) {
-                                exchangeItem = rateItem;
-                                setCurrencyAmount();
-                                break;
-                            }
+                    public void call(ExchangeRateItem rateItem) {
+                        if (rateItem != null) {
+                            exchangeItem = rateItem;
+                            setCurrencyAmount();
                         }
                     }
                 }, new Action1<Throwable>() {

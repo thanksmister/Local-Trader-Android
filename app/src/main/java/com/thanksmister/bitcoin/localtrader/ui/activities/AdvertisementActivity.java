@@ -38,13 +38,13 @@ import android.widget.TextView;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;

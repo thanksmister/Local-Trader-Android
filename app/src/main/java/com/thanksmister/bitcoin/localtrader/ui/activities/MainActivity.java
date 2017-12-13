@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -39,11 +40,11 @@ import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
 import com.kobakei.ratethisapp.RateThisApp;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncAdapter;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.EditActivity;
@@ -214,8 +215,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             }
         }
 
-        updateData();
         subscribeData();
+        updateData();
         navigationView.getMenu().findItem(lastMenuItemId).setChecked(true);
         registerReceiver(syncBroadcastReceiver, syncIntentFilter);
     }
@@ -267,9 +268,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     }
     
     private void updateData() {
-
         Timber.d("UpdateData");
-
         exchangeService.getSpotPrice()
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -277,28 +276,32 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                         Timber.i("Update Exchange subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<ExchangeRate>bindUntilEvent(ActivityEvent.PAUSE))
+                .compose(this.<ExchangeRate>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<ExchangeRate>() {
                     @Override
-                    public void call(ExchangeRate exchange) {
+                    public void call(final ExchangeRate exchange) {
                         if(exchange != null) {
+                            MainActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    setHeaderItem(exchange.getRate(), exchange.getCurrency(), exchange.getDisplay_name());
+                                }
+                            });
                             dbManager.updateExchange(exchange);
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        snackError(getString(R.string.toast_unable_update_currency_rate));
+                        snackError(getString(R.string.error_update_exchange_rate));
                     }
                 });
     }
 
     private void subscribeData() {
-
         Timber.d("subscribeData");
-
         dbManager.exchangeQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -306,20 +309,19 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                         Timber.i("Exchange subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<List<ExchangeRateItem>>bindUntilEvent(ActivityEvent.PAUSE))
+                .compose(this.<ExchangeRateItem>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<ExchangeRateItem>>() {
+                .subscribe(new Action1<ExchangeRateItem>() {
                     @Override
-                    public void call(List<ExchangeRateItem> exchanges) {
-                        if (!exchanges.isEmpty()) {
-                            String currency = exchangeService.getExchangeCurrency();
-                            for (ExchangeRateItem rateItem : exchanges) {
-                                if (rateItem.currency().equals(currency)) {
-                                    setHeaderItem(rateItem);
-                                    break;
+                    public void call(final ExchangeRateItem exchange) {
+                        if(exchange != null) {
+                            MainActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    setHeaderItem(exchange.rate(), exchange.currency(), exchange.exchange());
                                 }
-                            }
+                            });
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -421,10 +423,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     }
 
     public void setContentFragment(int position) {
-        
-        Timber.d("setContentFragment position: " + position);
-        Timber.d("setContentFragment isFinishing: " + isFinishing());
-        
+
         this.position = position;
 
         try {
@@ -588,16 +587,15 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         }
     }
     
-    private void setHeaderItem(ExchangeRateItem exchange) {
-        String currency = exchange.currency();
-        String rate = exchange.rate();
+    @SuppressLint("SetTextI18n")
+    private void setHeaderItem(String rate, String currency, String exchange) {
+        Timber.d("Exchange Rate Header:  " + rate);
         bitcoinTitle.setText(R.string.text_title_market_price);
-        bitcoinPrice.setText(rate + " " + exchange.currency() + "/" + getString(R.string.btc));
-        bitcoinValue.setText(exchange.exchange() + " (" + currency + ")");
+        bitcoinPrice.setText(rate + " " + currency + "/" + getString(R.string.btc));
+        bitcoinValue.setText(exchange + " (" + currency + ")");
     }
 
     protected void handleSyncEvent(String syncActionType, String extraErrorMessage, int extraErrorCode) {
-        Timber.d("handleSyncEvent: " + syncActionType);
         switch (syncActionType) {
             case SyncAdapter.ACTION_TYPE_START:
                 break;

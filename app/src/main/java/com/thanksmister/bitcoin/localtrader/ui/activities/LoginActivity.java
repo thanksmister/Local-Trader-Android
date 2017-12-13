@@ -46,10 +46,10 @@ import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Authorization;
-import com.thanksmister.bitcoin.localtrader.data.api.model.User;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.DataServiceUtils;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
+import com.thanksmister.bitcoin.localtrader.network.api.model.User;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
@@ -154,7 +154,7 @@ public class LoginActivity extends BaseActivity {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
             content.setVisibility(View.VISIBLE);
             webView.setVisibility(View.GONE);
-            toast("Authentication canceled...");
+            toast(getString(R.string.toast_authentication_canceled));
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -189,7 +189,7 @@ public class LoginActivity extends BaseActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    showProgressDialog(new ProgressDialogEvent("Restarting...."));
+                                    showProgressDialog(new ProgressDialogEvent("Restarting...."), true);
                                     apiEndpoint.setText(endpoint);
                                     Timber.d("endpoint: " + endpoint);
                                     Timber.d("currentEndpoint: " + currentEndpoint);
@@ -239,7 +239,7 @@ public class LoginActivity extends BaseActivity {
     private void setUpWebViewDefaults() {
         content.setVisibility(View.GONE);
         webView.setVisibility(View.VISIBLE);
-        showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_loading_localbitcoins)));
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_loading_localbitcoins)), true);
 
         try {
             webView = (WebView) findViewById(R.id.webView);
@@ -283,7 +283,7 @@ public class LoginActivity extends BaseActivity {
     }
 
     public void setAuthorizationCode(final String code) {
-        showProgressDialog(new ProgressDialogEvent(getString(R.string.login_authorizing)));
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.login_authorizing)), true);
 
         content.setVisibility(View.VISIBLE);
         webView.setVisibility(View.GONE);

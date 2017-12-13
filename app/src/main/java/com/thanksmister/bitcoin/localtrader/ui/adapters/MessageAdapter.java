@@ -17,7 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,11 +25,9 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.Collections;
 import java.util.Date;

@@ -19,14 +19,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcelable;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import auto.parcel.AutoParcel;
 import rx.functions.Func1;
-import timber.log.Timber;
 
 import static com.squareup.sqlbrite.SqlBrite.Query;
 

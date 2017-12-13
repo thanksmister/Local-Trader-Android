@@ -21,7 +21,7 @@ import android.location.Address;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.prefs.DoublePreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 

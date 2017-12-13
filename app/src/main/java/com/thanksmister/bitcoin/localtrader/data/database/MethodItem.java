@@ -18,7 +18,7 @@ package com.thanksmister.bitcoin.localtrader.data.database;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 
 import java.util.ArrayList;
 import java.util.List;

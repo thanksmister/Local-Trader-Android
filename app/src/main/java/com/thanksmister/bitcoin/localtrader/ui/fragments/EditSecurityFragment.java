@@ -29,8 +29,8 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
 import java.util.List;

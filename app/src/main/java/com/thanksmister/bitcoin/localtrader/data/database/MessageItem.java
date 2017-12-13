@@ -19,7 +19,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -268,4 +268,19 @@
         <item>ZM</item>
         <item>ZW</item>
     </string-array>
+
+    <string-array name="pref_market_entries">
+        <item>Coinbase</item>
+        <item>Bitstamp</item>
+        <item>Bitfinex</item>
+        <item>BitcoinAverage</item>
+    </string-array>
+
+    <string-array name="pref_market_values">
+        <item>Coinbase</item>
+        <item>Bitstamp</item>
+        <item>Bitfinex</item>
+        <item>BitcoinAverage</item>
+    </string-array>
+
 </resources>

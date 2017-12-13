@@ -37,7 +37,7 @@ import android.view.ViewGroup;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.EditAdvertisementActivity;

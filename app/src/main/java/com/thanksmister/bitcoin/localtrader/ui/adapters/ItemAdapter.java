@@ -26,7 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;

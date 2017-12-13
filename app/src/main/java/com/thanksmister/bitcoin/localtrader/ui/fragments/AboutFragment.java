@@ -16,16 +16,19 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.util.AndroidRuntimeException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
+import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.lang.reflect.Field;
 
@@ -47,6 +51,8 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import timber.log.Timber;
+
+import static com.thanksmister.bitcoin.localtrader.constants.Constants.BITCOIN_ADDRESS;
 
 public class AboutFragment extends BaseFragment {
     @InjectView(R.id.toolbar)
@@ -83,6 +89,11 @@ public class AboutFragment extends BaseFragment {
     @OnClick(R.id.licenseButton)
     public void licenseButtonClicked() {
         showLicense();
+    }
+
+    @OnClick(R.id.donateButton)
+    public void donateButtonClicked() {
+        donateBitcoin();
     }
     
     private String versionText;
@@ -198,5 +209,25 @@ public class AboutFragment extends BaseFragment {
 
     protected void showLicense() {
         ((BaseActivity) getActivity()).showAlertDialog(new AlertDialogEvent("License", getString(R.string.license)));
+    }
+
+    protected void donateBitcoin() {
+        Intent sendIntent;
+        try {
+            sendIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(WalletUtils.generateBitCoinURI(BITCOIN_ADDRESS)));
+            sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(sendIntent);
+        } catch (ActivityNotFoundException ex) {
+            try {
+                sendIntent = new Intent(Intent.ACTION_SEND);
+                sendIntent.setType("text/plain");
+                sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                sendIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.wallet_my_address_share));
+                sendIntent.putExtra(Intent.EXTRA_TEXT, BITCOIN_ADDRESS);
+                startActivity(Intent.createChooser(sendIntent, getString(R.string.share_using)));
+            } catch (AndroidRuntimeException e) {
+                Timber.e(e.getMessage());
+            }
+        }
     }
 }

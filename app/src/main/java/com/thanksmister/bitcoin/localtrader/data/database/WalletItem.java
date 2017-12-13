@@ -19,7 +19,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcelable;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 
 import auto.parcel.AutoParcel;
 import rx.functions.Func1;

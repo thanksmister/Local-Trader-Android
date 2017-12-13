@@ -25,7 +25,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
@@ -38,7 +38,6 @@ import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import rx.Observable;
 
 // TODO make a base calss
 public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder> {

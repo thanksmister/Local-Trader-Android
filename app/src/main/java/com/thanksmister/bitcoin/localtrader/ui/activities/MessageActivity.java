@@ -36,7 +36,7 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;

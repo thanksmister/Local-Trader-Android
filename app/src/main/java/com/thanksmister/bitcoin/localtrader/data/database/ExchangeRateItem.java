@@ -19,7 +19,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcelable;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +35,9 @@ public abstract class ExchangeRateItem implements Parcelable
     public static final String TABLE = "exchange_rate_item";
     
     public static final String ID = "_id";
-    public static final String EXCHANGE = "exchange";
-    public static final String CURRENCY = "currency";
-    public static final String RATE = "rate";
+    static final String EXCHANGE = "exchange";
+    static final String CURRENCY = "currency";
+    static final String RATE = "rate";
 
     public static final String QUERY = "SELECT * FROM " + ExchangeRateItem.TABLE;
 
@@ -63,6 +63,22 @@ public abstract class ExchangeRateItem implements Parcelable
             } finally {
                 cursor.close();
             }
+        }
+    };
+
+    public static final Func1<Query, ExchangeRateItem> MAP_SINGLE = new Func1<Query, ExchangeRateItem>() {
+        @Override
+        public ExchangeRateItem call(Query query) {
+                Cursor cursor = query.run();
+                if(cursor.getCount() > 0) {
+                    cursor.moveToFirst();
+                    long id = Db.getLong(cursor, ID);
+                    String exchange = Db.getString(cursor, EXCHANGE);
+                    String currency = Db.getString(cursor, CURRENCY);
+                    String rate = Db.getString(cursor, RATE);
+                    return new AutoParcel_ExchangeRateItem(id, exchange, rate, currency);
+                }
+                return null;
         }
     };
 

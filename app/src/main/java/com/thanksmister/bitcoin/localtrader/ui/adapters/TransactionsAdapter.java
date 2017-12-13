@@ -29,8 +29,8 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TransactionType;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;

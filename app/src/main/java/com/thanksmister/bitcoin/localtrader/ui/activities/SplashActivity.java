@@ -24,8 +24,8 @@ import android.os.Bundle;
 
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncAdapter;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncUtils;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 

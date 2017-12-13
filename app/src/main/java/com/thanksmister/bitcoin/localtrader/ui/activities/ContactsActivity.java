@@ -29,11 +29,11 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;

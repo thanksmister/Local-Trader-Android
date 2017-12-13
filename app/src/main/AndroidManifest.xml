@@ -59,7 +59,7 @@
                 android:value="@string/maps_apikey" />-->
 
         <provider
-                android:name="com.thanksmister.bitcoin.localtrader.data.services.SyncProvider"
+                android:name="com.thanksmister.bitcoin.localtrader.network.services.SyncProvider"
                 android:label="LocalBitcoins"
                 android:authorities="com.thanksmister.bitcoin.localtrader.provider"
                 android:exported="false"
@@ -73,7 +73,7 @@
                 android:exported="false"/>
 
         <!-- Services -->
-        <service android:name=".data.services.AuthenticatorService" >
+        <service android:name=".network.services.AuthenticatorService" >
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -83,7 +83,7 @@
         </service>
         
         <service
-                android:name=".data.services.SyncService"
+                android:name=".network.services.SyncService"
                 android:exported="true"
                 android:process=":sync">
             <intent-filter>

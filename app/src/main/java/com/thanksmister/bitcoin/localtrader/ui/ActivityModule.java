@@ -20,11 +20,11 @@ import android.content.SharedPreferences;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.data.DataModule;
-import com.thanksmister.bitcoin.localtrader.data.api.LocalBitcoins;
+import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.data.database.DbModule;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.data.services.NotificationService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.network.services.NotificationService;
 import com.thanksmister.bitcoin.localtrader.domain.DomainModule;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.AboutFragment;

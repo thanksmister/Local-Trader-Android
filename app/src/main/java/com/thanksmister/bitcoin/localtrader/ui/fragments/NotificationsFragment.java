@@ -34,7 +34,7 @@ import android.view.ViewGroup;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactActivity;
@@ -101,7 +101,9 @@ public class NotificationsFragment extends BaseFragment {
         // clear all notification types
         String ns = Context.NOTIFICATION_SERVICE;
         NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(ns);
-        notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION);
+        if(notificationManager != null) {
+            notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION);
+        }
     }
 
     @Override

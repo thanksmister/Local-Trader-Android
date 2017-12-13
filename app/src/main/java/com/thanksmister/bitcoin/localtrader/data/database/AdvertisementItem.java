@@ -20,7 +20,7 @@ import android.database.Cursor;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 
 import java.util.ArrayList;
 import java.util.List;

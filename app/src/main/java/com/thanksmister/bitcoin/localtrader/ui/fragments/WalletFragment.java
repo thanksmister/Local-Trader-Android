@@ -33,13 +33,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.data.services.DataService;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.SectionRecycleViewAdapter;
@@ -285,21 +285,13 @@ public class WalletFragment extends BaseFragment {
                         Timber.i("Exchange subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<List<ExchangeRateItem>>bindUntilEvent(FragmentEvent.PAUSE))
+                .compose(this.<ExchangeRateItem>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<ExchangeRateItem>>() {
+                .subscribe(new Action1<ExchangeRateItem>() {
                     @Override
-                    public void call(List<ExchangeRateItem> exchanges) {
-                        if (!exchanges.isEmpty()) {
-                            String currency = exchangeService.getExchangeCurrency();
-                            for (ExchangeRateItem rateItem : exchanges) {
-                                if (rateItem.currency().equals(currency)) {
-                                    exchangeItem = rateItem;
-                                    break;
-                                }
-                            }
-                        }
+                    public void call(ExchangeRateItem exchange) {
+                        exchangeItem = exchange;
                         if (exchangeItem != null && walletItem != null) {
                             setAppBarText(exchangeItem.rate(), walletItem.balance(), exchangeItem.exchange());
                         }

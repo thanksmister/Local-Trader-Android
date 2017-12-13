@@ -89,8 +89,6 @@ public class PromoActivity extends BaseActivity {
         circlePageIndicator.setRadius(12);
 
         if (AuthUtils.showUpgradedMessage(getApplicationContext(), preference)) {
-            //String title = "What's new in " + AuthUtils.getCurrentVersionName(getApplicationContext());
-            //showAlertDialogLinks(new AlertDialogEvent(title, getString(R.string.whats_new_message)));
             AuthUtils.setUpgradeVersion(getApplicationContext(), preference);
         }
     }

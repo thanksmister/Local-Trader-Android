@@ -28,11 +28,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertiseAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.SearchUtils;

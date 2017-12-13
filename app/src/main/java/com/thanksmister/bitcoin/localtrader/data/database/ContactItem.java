@@ -20,7 +20,7 @@ import android.database.Cursor;
 import android.support.annotation.Nullable;
 
 import com.squareup.sqlbrite.SqlBrite;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 
 import java.util.ArrayList;
 import java.util.List;

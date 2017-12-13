@@ -22,10 +22,12 @@ import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Protocol;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.data.api.ApiModule;
-import com.thanksmister.bitcoin.localtrader.data.api.Coinbase;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.api.ApiModule;
+import com.thanksmister.bitcoin.localtrader.network.api.BitcoinAverage;
+import com.thanksmister.bitcoin.localtrader.network.api.BitfinexExchange;
+import com.thanksmister.bitcoin.localtrader.network.api.BitstampExchange;
+import com.thanksmister.bitcoin.localtrader.network.api.Coinbase;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 
 import java.io.File;
 import java.util.Arrays;
@@ -45,8 +47,8 @@ import static android.content.Context.MODE_PRIVATE;
         library = true
 )
 public final class DataModule {
-    static final int DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
 
+    private static final int DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
 
     @Provides
     @Singleton
@@ -62,17 +64,15 @@ public final class DataModule {
 
     @Provides
     @Singleton
-    ExchangeService provideExchangeService(SharedPreferences preferences, Coinbase coinbase) {
-        return new ExchangeService(preferences, coinbase);
+    ExchangeService provideExchangeService(SharedPreferences preferences, Coinbase coinbase, BitstampExchange bitstampExchange,
+                                           BitfinexExchange bitfinexExchange, BitcoinAverage bitcoinAverage) {
+        return new ExchangeService(preferences, coinbase, bitstampExchange, bitfinexExchange, bitcoinAverage);
     }
 
     @Provides
     @Singleton
     OkHttpClient provideOkHttpClient(BaseApplication app) {
         OkHttpClient client = new OkHttpClient();
-        if (BuildConfig.DEBUG) {
-            //client.networkInterceptors().add(new StethoInterceptor()); 
-        }
         // Install an HTTP cache in the application cache directory.
         try {
             File cacheDir = new File(app.getCacheDir(), "http");

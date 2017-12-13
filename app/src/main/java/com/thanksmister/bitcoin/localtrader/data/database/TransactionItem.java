@@ -21,15 +21,14 @@ import android.database.Cursor;
 import android.support.annotation.Nullable;
 
 import com.squareup.sqlbrite.SqlBrite;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
-import com.thanksmister.bitcoin.localtrader.data.api.model.TransactionType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import auto.parcel.AutoParcel;
 import rx.functions.Func1;
-import timber.log.Timber;
 
 @AutoParcel
 public abstract class TransactionItem

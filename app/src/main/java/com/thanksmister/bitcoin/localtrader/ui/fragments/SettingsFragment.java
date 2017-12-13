@@ -38,11 +38,11 @@ import android.widget.ListView;
 
 import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.activities.LoginActivity;
@@ -66,6 +66,7 @@ import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static com.thanksmister.bitcoin.localtrader.R.xml.preferences;
+import static com.thanksmister.bitcoin.localtrader.network.services.ExchangeService.PREFS_EXCHANGE;
 
 
 /**
@@ -88,6 +89,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     private Subscription currencySubscription = Subscriptions.empty();
 
     ListPreference marketCurrencyPreference;
+    ListPreference exchangePreference;
     ListPreference unitsPreference;
     EditTextPreference apiPreference;
     ListPreference currencyPreference;
@@ -117,11 +119,15 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
         String units = preference.getString(getString(R.string.pref_key_distance), "0");
         unitsPreference = (ListPreference) findPreference(getString(R.string.pref_key_distance));
-        unitsPreference.setTitle((units.equals("0") ? "Kilometers (km)" : "Miles (mi)"));
+        unitsPreference.setTitle((units.equals("0") ? getString(R.string.pref_distance_km) : getString(R.string.pref_distance_mi)));
 
         String currency = exchangeService.getExchangeCurrency();
         marketCurrencyPreference = (ListPreference) findPreference("exchange_currency");
-        marketCurrencyPreference.setTitle("Market currency (" + currency + ")");
+        marketCurrencyPreference.setTitle(getString(R.string.pref_market_currency, currency));
+
+        exchangePreference = (ListPreference) findPreference(PREFS_EXCHANGE);
+        exchangePreference.setDefaultValue(exchangeService.getSelectedExchange());
+        exchangePreference.setTitle(getString(R.string.pref_exchange, exchangeService.getSelectedExchange()));
 
         String[] currencyList = {"USD"};
         String[] currencyValues = {"0"};
@@ -171,8 +177,14 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
     @Override
     public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, String key) {
-        
-        if (key.equals("exchange_currency")) {
+
+        if (key.equals(PREFS_EXCHANGE)) {
+
+            String exchange = exchangePreference.getValue();
+            exchangeService.setSelectedExchange(exchange);
+            exchangePreference.setTitle(getString(R.string.pref_exchange, exchangeService.getSelectedExchange()));
+
+        } else if (key.equals("exchange_currency")) {
 
             String marketCurrency = marketCurrencyPreference.getEntry().toString();
             String storedMarketCurrency = exchangeService.getExchangeCurrency();

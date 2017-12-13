@@ -25,8 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 
 import java.util.Collections;
 import java.util.List;

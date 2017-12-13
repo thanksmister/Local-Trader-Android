@@ -27,15 +27,15 @@ import com.crashlytics.android.Crashlytics;
 import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeRate;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Transaction;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -319,9 +319,9 @@ public class DbManager {
                 .map(MethodItem.MAP_SUBSET);
     }
 
-    public Observable<List<ExchangeRateItem>> exchangeQuery() {
+    public Observable<ExchangeRateItem> exchangeQuery() {
         return db.createQuery(ExchangeRateItem.TABLE, ExchangeRateItem.QUERY)
-                .map(ExchangeRateItem.MAP);
+                .map(ExchangeRateItem.MAP_SINGLE);
     }
 
     /**

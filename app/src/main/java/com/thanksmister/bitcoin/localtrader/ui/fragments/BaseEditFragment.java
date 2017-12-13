@@ -41,14 +41,14 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.gson.Gson;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.data.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.services.ExchangeService;
-import com.thanksmister.bitcoin.localtrader.data.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
@@ -73,7 +73,7 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-import static com.thanksmister.bitcoin.localtrader.data.services.GeoLocationService.MAX_ADDRESSES;
+import static com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService.MAX_ADDRESSES;
 import static com.thanksmister.bitcoin.localtrader.ui.fragments.SearchFragment.REQUEST_CHECK_SETTINGS;
 
 public abstract class BaseEditFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor> {
