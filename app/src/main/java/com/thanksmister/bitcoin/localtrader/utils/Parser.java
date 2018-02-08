@@ -913,21 +913,20 @@ public class Parser
         try {
             JSONObject data = object.getJSONObject("data");
             JSONObject actions = object.getJSONObject("actions");
-            
+
             //Timber.d("Advertisement Data: " + data.toString());
 
             item.ad_id = (data.getString("ad_id"));
             item.created_at = (data.getString("created_at"));
-            
+
             if (data.has("atm_model") && !data.isNull("atm_model")) {
-                String atm = (data.getString("atm_model"));
-                item.atm_model = atm;
+                item.atm_model = (data.getString("atm_model"));
             }
 
             item.visible = (data.getBoolean("visible"));
             item.temp_price = ((data.getString("temp_price")));
             item.temp_price_usd = ((data.getString("temp_price_usd")));
-            
+
             item.temp_price_usd = ((data.getString("temp_price_usd")));
             item.temp_price_usd = ((data.getString("temp_price_usd")));
 
@@ -942,8 +941,11 @@ public class Parser
 
             if (data.has("require_identification"))
                 item.require_identification = (data.getBoolean("require_identification"));
-            
-            item.email = (data.getString("email"));
+
+            if (data.has("email")) {
+                item.email = (data.getString("email"));
+            }
+
             item.location = (data.getString("location_string"));
             
             item.country_code = (data.getString("countrycode"));
@@ -983,9 +985,8 @@ public class Parser
             }
 
             if (data.has("msg") && !data.isNull("msg")) {
-                String message = (data.getString("msg"));
                 //message = message.replace("\n", "").replace("\r", "<br>");
-                item.message = message;
+                item.message = (data.getString("msg"));
             }
 
             if (data.has("min_amount") && !data.isNull("min_amount")) {
