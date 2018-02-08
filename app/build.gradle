@@ -27,15 +27,6 @@ def versionPatch = 8
 def versionBuild = 0 // bump for dog food builds, public betas, etc.
 
 android {
-    signingConfigs {
-        release {
-            keyAlias 'mister'
-            keyPassword 'rdaneel11'
-            storeFile file('/Users/mritchie/local-trader-1.0-hmac/keystore/mister.keystore')
-            storePassword 'rdaneel11'
-            v2SigningEnabled false
-        }
-    }
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
@@ -52,24 +43,20 @@ android {
         debug {
         }
         release {
-            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     productFlavors {
-
         dev {
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
             versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         }
-
         qa {
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}-QA"
         }
-
         prod {
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionName "${versionMajor}.${versionMinor}.${versionPatch}"
