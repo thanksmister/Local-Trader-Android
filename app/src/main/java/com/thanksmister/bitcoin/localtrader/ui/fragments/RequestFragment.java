@@ -65,7 +65,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
@@ -85,16 +85,16 @@ public class RequestFragment extends BaseFragment {
     @Inject
     DbManager dbManager;
 
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.amountText)
+    @BindView(R.id.amountText)
     TextView amountText;
 
-    @InjectView(R.id.currencyText)
+    @BindView(R.id.currencyText)
     TextView currencyText;
 
-    @InjectView(R.id.fiatEditText)
+    @BindView(R.id.fiatEditText)
     TextView fiatEditText;
 
     @OnClick(R.id.qrButton)
@@ -102,10 +102,10 @@ public class RequestFragment extends BaseFragment {
         validateForm(walletItem);
     }
 
-    @InjectView(R.id.codeImage)
+    @BindView(R.id.codeImage)
     ImageView qrCodeImage;
 
-    @InjectView(R.id.walletAddressButton)
+    @BindView(R.id.walletAddressButton)
     AutoResizeTextView addressButton;
 
     @OnClick(R.id.codeImage)
@@ -181,7 +181,9 @@ public class RequestFragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_request, container, false);
+        View view = inflater.inflate(R.layout.view_request, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -248,9 +250,6 @@ public class RequestFragment extends BaseFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-
-        ButterKnife.reset(this);
-
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
             Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");

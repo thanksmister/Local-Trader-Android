@@ -38,7 +38,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
@@ -59,10 +59,10 @@ public class QRCodeActivity extends Activity {
     private String amount;
     private Subscription subscription = Subscriptions.empty();
 
-    @InjectView(R.id.headerText)
+    @BindView(R.id.headerText)
     TextView headerText;
 
-    @InjectView(R.id.image)
+    @BindView(R.id.image)
     ImageView image;
 
     @OnClick(R.id.cancelButton)
@@ -101,15 +101,13 @@ public class QRCodeActivity extends Activity {
             amount = getIntent().getStringExtra(EXTRA_QR_AMOUNT);
         }
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         generateQrCodeImage(address, amount);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        ButterKnife.reset(this);
-
         subscription.unsubscribe();
     }
 

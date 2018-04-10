@@ -98,10 +98,10 @@ public class Parser
         return null;
     }
     
-    public static String parseRetrofitResponse(Response response) throws RetroError
+    public static String parseRetrofitResponse(Response response) throws Throwable
     {
         if(response == null || response.getBody() == null)
-            throw new RetroError("Error connecting to service.", CODE_MINUS_ONE);
+            throw new Exception("Error connecting to service.");
         
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();

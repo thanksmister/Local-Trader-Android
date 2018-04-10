@@ -93,7 +93,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import rx.Observable;
@@ -133,49 +133,49 @@ public class SearchFragment extends BaseFragment {
     @Inject
     LocationManager locationManager;
 
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.editLocationText)
+    @BindView(R.id.editLocationText)
     AutoCompleteTextView editLocation;
 
-    @InjectView(R.id.locationText)
+    @BindView(R.id.locationText)
     TextView locationText;
 
-    @InjectView(R.id.editLatitude)
+    @BindView(R.id.editLatitude)
     EditText editLatitude;
 
-    @InjectView(R.id.editLongitude)
+    @BindView(R.id.editLongitude)
     EditText editLongitude;
 
-    @InjectView(R.id.editLocationLayout)
+    @BindView(R.id.editLocationLayout)
     View editLocationLayout;
 
-    @InjectView(R.id.locationSpinner)
+    @BindView(R.id.locationSpinner)
     Spinner locationSpinner;
 
-    @InjectView(R.id.typeSpinner)
+    @BindView(R.id.typeSpinner)
     Spinner typeSpinner;
 
-    @InjectView(R.id.countrySpinner)
+    @BindView(R.id.countrySpinner)
     Spinner countrySpinner;
 
-    @InjectView(R.id.paymentMethodSpinner)
+    @BindView(R.id.paymentMethodSpinner)
     Spinner paymentMethodSpinner;
 
-    @InjectView(R.id.onlineOptionsLayout)
+    @BindView(R.id.onlineOptionsLayout)
     View onlineOptionsLayout;
 
-    @InjectView(R.id.localOptionsLayout)
+    @BindView(R.id.localOptionsLayout)
     View localOptionsLayout;
 
-    @InjectView(R.id.searchButton)
+    @BindView(R.id.searchButton)
     Button searchButton;
 
-    @InjectView(R.id.clearButton)
+    @BindView(R.id.clearButton)
     ImageButton clearButton;
 
-    @InjectView(R.id.currencySpinner)
+    @BindView(R.id.currencySpinner)
     Spinner currencySpinner;
 
     @OnClick(R.id.clearButton)
@@ -257,8 +257,6 @@ public class SearchFragment extends BaseFragment {
     public void onDetach() {
         super.onDetach();
 
-        ButterKnife.reset(this);
-
         if (geoSubscription != null) {
             geoSubscription.unsubscribe();
             geoSubscription = null;
@@ -293,7 +291,9 @@ public class SearchFragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_search, container, false);
+        View view = inflater.inflate(R.layout.view_search, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -994,20 +994,27 @@ public class SearchFragment extends BaseFragment {
                         hideProgressDialog();
                     }
                 }
+
                 @Override
                 public void onStatusChanged(String provider, int status, Bundle extras) {
                     Timber.d("onStatusChanged: " + status);
                 }
+
                 @Override
                 public void onProviderEnabled(String provider) {
                     Timber.d("onProviderEnabled");
                 }
+
                 @Override
                 public void onProviderDisabled(String provider) {
                     Timber.d("onProviderDisabled");
                 }
             };
             locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 100, 5, locationListener);
+        } catch (IllegalArgumentException e) {
+            hideProgressDialog();
+            Timber.e("Location manager could not use network provider", e);
+            showAlertDialog(new AlertDialogEvent(getString(R.string.error_location_title), getString(R.string.error_location_message)));
         } catch (SecurityException e) {
             if (isAdded()) {
                 hideProgressDialog();

@@ -52,7 +52,7 @@ import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -75,106 +75,106 @@ public class TradeRequestActivity extends BaseActivity {
     @Inject
     DataService dataService;
 
-    @InjectView(R.id.tradeRequestToolbar)
+    @BindView(R.id.tradeRequestToolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.editAmountText)
+    @BindView(R.id.editAmountText)
     EditText editAmountText;
 
-    @InjectView(R.id.editBitcoinText)
+    @BindView(R.id.editBitcoinText)
     EditText editBitcoinText;
 
-    @InjectView(R.id.tradeAmountTitle)
+    @BindView(R.id.tradeAmountTitle)
     TextView tradeAmountTitle;
 
-    @InjectView(R.id.tradeLimit)
+    @BindView(R.id.tradeLimit)
     TextView tradeLimit;
 
-    @InjectView(R.id.tradeCurrency)
+    @BindView(R.id.tradeCurrency)
     TextView tradeCurrency;
 
-    @InjectView(R.id.detailsEthereumAddress)
+    @BindView(R.id.detailsEthereumAddress)
     EditText detailsEthereumAddress;
 
-    @InjectView(R.id.detailsSortCode)
+    @BindView(R.id.detailsSortCode)
     EditText detailsSortCode;
 
-    @InjectView(R.id.detailsBSB)
+    @BindView(R.id.detailsBSB)
     EditText detailsBSB;
 
-    @InjectView(R.id.detailsAccountNumber)
+    @BindView(R.id.detailsAccountNumber)
     EditText detailsAccountNumber;
 
-    @InjectView(R.id.detailsBillerCode)
+    @BindView(R.id.detailsBillerCode)
     EditText detailsBillerCode;
 
-    @InjectView(R.id.detailsEthereumAddressLayout)
+    @BindView(R.id.detailsEthereumAddressLayout)
     TextInputLayout detailsEthereumAddressLayout;
 
-    @InjectView(R.id.detailsSortCodeLayout)
+    @BindView(R.id.detailsSortCodeLayout)
     TextInputLayout detailsSortCodeLayout;
 
-    @InjectView(R.id.detailsBSBLayout)
+    @BindView(R.id.detailsBSBLayout)
     TextInputLayout detailsBSBLayout;
 
-    @InjectView(R.id.detailsAccountNumberLayout)
+    @BindView(R.id.detailsAccountNumberLayout)
     TextInputLayout detailsAccountNumberLayout;
 
-    @InjectView(R.id.detailsBillerCodeLayout)
+    @BindView(R.id.detailsBillerCodeLayout)
     TextInputLayout detailsBillerCodeLayout;
 
-    @InjectView(R.id.detailsPhoneNumberLayout)
+    @BindView(R.id.detailsPhoneNumberLayout)
     TextInputLayout detailsPhoneNumberLayout;
 
-    @InjectView(R.id.detailsPhoneNumber)
+    @BindView(R.id.detailsPhoneNumber)
     EditText detailsPhoneNumber;
 
-    @InjectView(R.id.detailsReceiverEmailLayout)
+    @BindView(R.id.detailsReceiverEmailLayout)
     TextInputLayout detailsReceiverEmailLayout;
 
-    @InjectView(R.id.detailsReceiverEmail)
+    @BindView(R.id.detailsReceiverEmail)
     EditText detailsReceiverEmail;
 
-    @InjectView(R.id.detailsReceiverNameLayout)
+    @BindView(R.id.detailsReceiverNameLayout)
     TextInputLayout detailsReceiverNameLayout;
 
-    @InjectView(R.id.detailsReceiverName)
+    @BindView(R.id.detailsReceiverName)
     EditText detailsReceiverName;
 
-    @InjectView(R.id.detailsIbanLayout)
+    @BindView(R.id.detailsIbanLayout)
     TextInputLayout detailsIbanLayout;
 
-    @InjectView(R.id.detailsIbanName)
+    @BindView(R.id.detailsIbanName)
     EditText detailsIbanName;
 
-    @InjectView(R.id.detailsSwiftBicLayout)
+    @BindView(R.id.detailsSwiftBicLayout)
     View detailsSwiftBicLayout;
 
-    @InjectView(R.id.detailsSwiftBic)
+    @BindView(R.id.detailsSwiftBic)
     EditText detailsSwiftBic;
 
-    @InjectView(R.id.detailsReferenceLayout)
+    @BindView(R.id.detailsReferenceLayout)
     View detailsReferenceLayout;
 
-    @InjectView(R.id.detailsReference)
+    @BindView(R.id.detailsReference)
     EditText detailsReference;
     
-    @InjectView(R.id.tradeMessage)
+    @BindView(R.id.tradeMessage)
     EditText tradeMessage;
     
-    @InjectView(R.id.tradeMessageLayout)
+    @BindView(R.id.tradeMessageLayout)
     TextInputLayout tradeMessageLayout;
 
-    @InjectView(R.id.ethereumAmountText)
+    @BindView(R.id.ethereumAmountText)
     EditText editEtherAmountText;
     
-    @InjectView(R.id.bitcoinLayout)
+    @BindView(R.id.bitcoinLayout)
     LinearLayout bitcoinLayout;
 
-    @InjectView(R.id.ethereumLayout)
+    @BindView(R.id.ethereumLayout)
     LinearLayout ethereumLayout;
 
-    @InjectView(R.id.fiatLayout)
+    @BindView(R.id.fiatLayout)
     LinearLayout fiatLayout;
 
     @OnClick(R.id.sendButton)
@@ -215,7 +215,7 @@ public class TradeRequestActivity extends BaseActivity {
 
         setContentView(R.layout.view_trade_request);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);

@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 // TODO make a base calss
@@ -171,27 +171,27 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.inject(this, itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
     public class AdvertisementViewHolder extends ViewHolder {
-        @InjectView(android.R.id.background)
+        @BindView(android.R.id.background)
         public View row;
 
-        @InjectView(R.id.advertisementType)
+        @BindView(R.id.advertisementType)
         public TextView advertisementType;
 
-        @InjectView(R.id.itemIcon)
+        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @InjectView(R.id.advertisementDetails)
+        @BindView(R.id.advertisementDetails)
         public TextView advertisementDetails;
 
-        @InjectView(R.id.advertisementId)
+        @BindView(R.id.advertisementId)
         public TextView advertisementId;
 
-        @InjectView(R.id.advertisementDate)
+        @BindView(R.id.advertisementDate)
         public TextView advertisementDate;
 
         public AdvertisementViewHolder(View itemView) {

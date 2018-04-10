@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -30,8 +31,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
@@ -54,7 +57,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import dpreference.DPreference;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -74,7 +77,7 @@ public class DashboardFragment extends BaseFragment {
     @Inject
     DbManager dbManager;
     
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
     @Inject
@@ -147,7 +150,7 @@ public class DashboardFragment extends BaseFragment {
     
     private void setupToolbar() {
         
-        if (!isAdded()) {
+        if (!isAdded() || getActivity() == null) {
             return;
         }
 
@@ -173,8 +176,9 @@ public class DashboardFragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Timber.d("onCreateView");
-        return inflater.inflate(R.layout.view_dashboard, container, false);
+        View view = inflater.inflate(R.layout.view_dashboard, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -237,9 +241,6 @@ public class DashboardFragment extends BaseFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-
-        ButterKnife.reset(this);
-
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
             Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
@@ -264,19 +265,19 @@ public class DashboardFragment extends BaseFragment {
     }
 
     private void showSendScreen() {
-        if (isAdded()) {
+        if (isAdded() && getActivity() != null) {
             ((MainActivity) getActivity()).navigateSendView();
         }
     }
 
     private void launchScanner() {
-        if (isAdded()) {
+        if (isAdded() && getActivity() != null) {
             ((MainActivity) getActivity()).launchScanner();
         }
     }
 
     private void showSearchScreen() {
-        if (isAdded()) {
+        if (isAdded() && getActivity() != null) {
             ((MainActivity) getActivity()).navigateSearchView();
         }
     }
@@ -287,8 +288,21 @@ public class DashboardFragment extends BaseFragment {
     }
 
     private void createAdvertisementScreen() {
-        Intent intent = EditAdvertisementActivity.createStartIntent(getActivity(), null, true);
-        startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
+        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0 () {
+            @Override
+            public void call() {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, new Action0() {
+            @Override
+            public void call() {
+                // na-da
+            }
+        });
     }
 
     private void getUnreadNotifications() {

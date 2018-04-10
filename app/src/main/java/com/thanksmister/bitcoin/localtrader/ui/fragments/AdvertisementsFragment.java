@@ -52,14 +52,14 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 public class AdvertisementsFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int ADVERTISEMENT_LOADER_ID = 1;
     private static final int METHOD_LOADER_ID = 2;
     
-    @InjectView(R.id.recycleView)
+    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
     @Inject
@@ -129,7 +129,9 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_dashboard_items, container, false);
+        View view = inflater.inflate(R.layout.view_dashboard_items, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -160,8 +162,6 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     public void onDetach() {
         
         super.onDetach();
-
-        ButterKnife.reset(this);
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {

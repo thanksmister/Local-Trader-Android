@@ -64,7 +64,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -101,22 +101,22 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     @Inject
     ExchangeService exchangeService;
 
-    @InjectView(R.id.drawer_layout)
+    @BindView(R.id.drawer_layout)
     DrawerLayout drawerLayout;
 
-    @InjectView(R.id.navigation)
+    @BindView(R.id.navigation)
     NavigationView navigationView;
 
-    @InjectView(R.id.bitcoinTitle)
+    @BindView(R.id.bitcoinTitle)
     TextView bitcoinTitle;
 
-    @InjectView(R.id.bitcoinPrice)
+    @BindView(R.id.bitcoinPrice)
     TextView bitcoinPrice;
 
-    @InjectView(R.id.bitcoinValue)
+    @BindView(R.id.bitcoinValue)
     TextView bitcoinValue;
 
-    @InjectView(R.id.swipeLayout)
+    @BindView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
     private Fragment fragment;
@@ -148,7 +148,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             return;
         }
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (savedInstanceState != null) {
             position = savedInstanceState.getInt(EXTRA_FRAGMENT);
@@ -543,10 +543,6 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 startSendFragment(bitcoinAddress, bitcoinAmount);
             } else {
                 toast(getString(R.string.toast_scan_canceled));
-            }
-        } else if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
-            if (resultCode == EditAdvertisementActivity.RESULT_CREATED || resultCode == EditActivity.RESULT_UPDATED) {
-                onRefresh();
             }
         } else if (requestCode == AdvertisementActivity.REQUEST_CODE) {
             if (resultCode == AdvertisementActivity.RESULT_DELETED) {

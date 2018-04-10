@@ -32,7 +32,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHolder>
@@ -143,25 +143,25 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         public ViewHolder(View itemView)
         {
             super(itemView);
-            ButterKnife.inject(this, itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
     public class ItemViewHolder extends ViewHolder
     {
-        @InjectView(R.id.tradeType)
+        @BindView(R.id.tradeType)
         public TextView tradeType;
 
-        @InjectView(R.id.itemIcon)
+        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @InjectView(R.id.tradeDetails)
+        @BindView(R.id.tradeDetails)
         public TextView tradeDetails;
 
-        @InjectView(R.id.contactId)
+        @BindView(R.id.contactId)
         public TextView contactId;
 
-        @InjectView(R.id.contactDate)
+        @BindView(R.id.contactDate)
         public TextView contactDate;
 
         public ItemViewHolder(View itemView)

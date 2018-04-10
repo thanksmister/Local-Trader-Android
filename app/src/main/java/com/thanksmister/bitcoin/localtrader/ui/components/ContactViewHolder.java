@@ -32,7 +32,7 @@ public class ContactViewHolder extends MainViewHolder {
 
         super ( itemView );
         
-        ButterKnife.inject(this, itemView);
+        ButterKnife.bind(this, itemView);
 
     }
 

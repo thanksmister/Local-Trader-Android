@@ -56,7 +56,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -74,31 +74,31 @@ public class WalletFragment extends BaseFragment {
     @Inject
     DbManager dbManager;
 
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.recycleView)
+    @BindView(R.id.recycleView)
     RecyclerView recycleView;
     
-    @InjectView(R.id.bitcoinTitle)
+    @BindView(R.id.bitcoinTitle)
     TextView bitcoinTitle;
 
-    @InjectView(R.id.bitcoinPrice)
+    @BindView(R.id.bitcoinPrice)
     TextView bitcoinPrice;
 
-    @InjectView(R.id.bitcoinValue)
+    @BindView(R.id.bitcoinValue)
     TextView bitcoinValue;
 
-    @InjectView(R.id.bitcoinLayout)
+    @BindView(R.id.bitcoinLayout)
     View bitcoinLayout;
     
-    @InjectView(R.id.emptyText)
+    @BindView(R.id.emptyText)
     TextView emptyText;
 
-    @InjectView(R.id.emptyLayout)
+    @BindView(R.id.emptyLayout)
     View emptyLayout;
 
-    @InjectView(R.id.resultsProgress)
+    @BindView(R.id.resultsProgress)
     View progress;
 
     private TransactionsAdapter transactionsAdapter;
@@ -132,7 +132,9 @@ public class WalletFragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_wallet, container, false);
+        View view = inflater.inflate(R.layout.view_wallet, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -176,8 +178,6 @@ public class WalletFragment extends BaseFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-
-        ButterKnife.reset(this);
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {

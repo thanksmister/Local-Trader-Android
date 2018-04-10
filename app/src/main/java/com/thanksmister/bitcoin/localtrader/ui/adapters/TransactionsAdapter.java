@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapter.ViewHolder> {
     
@@ -137,21 +137,21 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.inject(this, itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
     class TransactionViewHolder extends ViewHolder {
-        @InjectView(R.id.descriptionText)
+        @BindView(R.id.descriptionText)
         TextView descriptionText;
 
-        @InjectView(R.id.btcText)
+        @BindView(R.id.btcText)
         TextView btcText;
 
-        @InjectView(R.id.dateText)
+        @BindView(R.id.dateText)
         TextView dateText;
 
-        @InjectView(R.id.transactionIcon)
+        @BindView(R.id.transactionIcon)
         ImageView transactionIcon;
 
         TransactionViewHolder(View itemView) {

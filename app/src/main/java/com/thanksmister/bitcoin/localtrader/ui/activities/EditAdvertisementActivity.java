@@ -58,7 +58,7 @@ import org.json.JSONObject;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -86,10 +86,10 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
     public static final int RESULT_UPDATED = 72322;
     public static final int RESULT_CREATED = 72323;
 
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.nextButton)
+    @BindView(R.id.nextButton)
     Button nextButton;
 
     @Inject
@@ -100,7 +100,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
         validateChangesAndNavigateNext();
     }
 
-    @InjectView(R.id.previousButton)
+    @BindView(R.id.previousButton)
     Button previousButton;
 
     @OnClick(R.id.previousButton)
@@ -128,7 +128,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
 
         setContentView(R.layout.activity_edit_advertisement);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             create = getIntent().getBooleanExtra(EXTRA_CREATE, false);

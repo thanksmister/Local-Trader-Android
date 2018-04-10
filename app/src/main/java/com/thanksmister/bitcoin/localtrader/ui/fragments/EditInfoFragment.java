@@ -55,56 +55,57 @@ import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.InjectView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 import static android.view.View.GONE;
 
 public class EditInfoFragment extends BaseEditFragment {
 
-    @InjectView(R.id.currencySpinner)
+    @BindView(R.id.currencySpinner)
     Spinner currencySpinner;
     
-    @InjectView(R.id.locationText)
+    @BindView(R.id.locationText)
     TextView locationText;
     
-    @InjectView(R.id.locationDescriptionText)
+    @BindView(R.id.locationDescriptionText)
     TextView locationDescriptionText;
 
-    @InjectView(R.id.bankNameTitle)
+    @BindView(R.id.bankNameTitle)
     TextView bankNameTitle;
     
-    @InjectView(R.id.bankNameLayout)
+    @BindView(R.id.bankNameLayout)
     View bankNameLayout;
     
-    @InjectView(R.id.currencyLayout)
+    @BindView(R.id.currencyLayout)
     View currencyLayout;
 
-    @InjectView(R.id.editBankName)
+    @BindView(R.id.editBankName)
     EditText editBankName;
 
-    @InjectView(R.id.editMaximumAmountCurrency)
+    @BindView(R.id.editMaximumAmountCurrency)
     TextView editMaximumAmountCurrency;
 
-    @InjectView(R.id.editMinimumAmountCurrency)
+    @BindView(R.id.editMinimumAmountCurrency)
     TextView editMinimumAmountCurrency;
 
-    @InjectView(R.id.editMaximumAmount)
+    @BindView(R.id.editMaximumAmount)
     EditText editMaximumAmount;
 
-    @InjectView(R.id.editMinimumAmount)
+    @BindView(R.id.editMinimumAmount)
     EditText editMinimumAmount;
 
-    @InjectView(R.id.editPriceEquation)
+    @BindView(R.id.editPriceEquation)
     EditText editPriceEquation; 
     
-    @InjectView(R.id.editMessageText)
+    @BindView(R.id.editMessageText)
     EditText editMessageText;
 
-    @InjectView(R.id.activeCheckBox)
+    @BindView(R.id.activeCheckBox)
     CheckBox activeCheckBox;
 
-    @InjectView(R.id.autoCompleteTextView)
+    @BindView(R.id.autoCompleteTextView)
     AutoCompleteTextView editLocationText;
     
     @OnClick(R.id.clearButton)
@@ -167,7 +168,9 @@ public class EditInfoFragment extends BaseEditFragment {
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_ad_info, container, false);
+        View view = inflater.inflate(R.layout.fragment_ad_info, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override

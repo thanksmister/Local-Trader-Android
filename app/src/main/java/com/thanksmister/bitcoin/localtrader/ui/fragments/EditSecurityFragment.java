@@ -35,20 +35,21 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
 import java.util.List;
 
-import butterknife.InjectView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class EditSecurityFragment extends BaseEditFragment {
 
-    @InjectView(R.id.liquidityCheckBox)
+    @BindView(R.id.liquidityCheckBox)
     CheckBox liquidityCheckBox;
 
-    @InjectView(R.id.trustedCheckBox)
+    @BindView(R.id.trustedCheckBox)
     CheckBox trustedCheckBox;
 
-    @InjectView(R.id.smsVerifiedCheckBox)
+    @BindView(R.id.smsVerifiedCheckBox)
     CheckBox smsVerifiedCheckBox;
 
-    @InjectView(R.id.identifiedCheckBox)
+    @BindView(R.id.identifiedCheckBox)
     CheckBox identifiedCheckBox;
     
     public EditSecurityFragment() {
@@ -84,7 +85,9 @@ public class EditSecurityFragment extends BaseEditFragment {
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_ad_security_options, container, false);
+        View view = inflater.inflate(R.layout.fragment_ad_security_options, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override

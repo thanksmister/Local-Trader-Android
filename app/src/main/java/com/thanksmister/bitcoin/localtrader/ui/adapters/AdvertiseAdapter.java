@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 public class AdvertiseAdapter extends BaseAdapter
 {
@@ -161,17 +161,17 @@ public class AdvertiseAdapter extends BaseAdapter
 
     static class ViewHolder
     {
-        @InjectView(android.R.id.background) View row;   
-        @InjectView(R.id.tradePrice) TextView tradePrice;
-        @InjectView(R.id.traderName) TextView traderName;
-        @InjectView(R.id.tradeLimit) TextView tradeLimit;
-        @InjectView(R.id.tradeFeedback) TextView tradeFeedback;
-        @InjectView(R.id.tradeCount) TextView tradeCount;
-        @InjectView(R.id.tradLocation) TextView tradLocation;
-        @InjectView(R.id.lastSeenIcon) View lastSeenIcon;
+        @BindView(android.R.id.background) View row;   
+        @BindView(R.id.tradePrice) TextView tradePrice;
+        @BindView(R.id.traderName) TextView traderName;
+        @BindView(R.id.tradeLimit) TextView tradeLimit;
+        @BindView(R.id.tradeFeedback) TextView tradeFeedback;
+        @BindView(R.id.tradeCount) TextView tradeCount;
+        @BindView(R.id.tradLocation) TextView tradLocation;
+        @BindView(R.id.lastSeenIcon) View lastSeenIcon;
 
         public ViewHolder(View view) {
-            ButterKnife.inject(this, view);
+            ButterKnife.bind(this, view);
         }
     }
 }

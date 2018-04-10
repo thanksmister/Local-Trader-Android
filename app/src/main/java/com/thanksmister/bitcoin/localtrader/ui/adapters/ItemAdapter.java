@@ -42,7 +42,7 @@ import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
@@ -257,20 +257,20 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         {
             super(itemView);
 
-            ButterKnife.inject(this, itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
     // inner class to hold a reference to each item of RecyclerView 
     public class ContactViewHolder extends ViewHolder
     {
-        @InjectView(R.id.tradeType)
+        @BindView(R.id.tradeType)
         public TextView tradeType;
 
-        @InjectView(R.id.itemIcon)
+        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @InjectView(R.id.tradeDetails)
+        @BindView(R.id.tradeDetails)
         public TextView tradeDetails;
 
         public ContactViewHolder(View itemView)
@@ -281,16 +281,16 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
     public class MessageViewHolder extends ViewHolder
     {
-        @InjectView(R.id.messageBody)
+        @BindView(R.id.messageBody)
         public TextView messageBody;
 
-        @InjectView(R.id.itemIcon)
+        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @InjectView(R.id.contactId)
+        @BindView(R.id.contactId)
         public TextView contactId;
 
-        @InjectView(R.id.createdAt)
+        @BindView(R.id.createdAt)
         public TextView createdAt;
 
         public MessageViewHolder(View itemView)
@@ -301,16 +301,16 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
     public class AdvertisementViewHolder extends ViewHolder
     {
-        @InjectView(android.R.id.background)
+        @BindView(android.R.id.background)
         public View row;
 
-        @InjectView(R.id.advertisementType)
+        @BindView(R.id.advertisementType)
         public TextView advertisementType;
 
-        @InjectView(R.id.itemIcon)
+        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @InjectView(R.id.advertisementDetails)
+        @BindView(R.id.advertisementDetails)
         public TextView advertisementDetails;
 
         public AdvertisementViewHolder(View itemView)
@@ -321,13 +321,13 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
     public class ExchangeViewHolder extends ViewHolder
     {
-        @InjectView(R.id.bitcoinTitle)
+        @BindView(R.id.bitcoinTitle)
         TextView bitcoinTitle;
 
-        @InjectView(R.id.bitcoinPrice)
+        @BindView(R.id.bitcoinPrice)
         TextView bitcoinPrice;
 
-        @InjectView(R.id.bitcoinValue)
+        @BindView(R.id.bitcoinValue)
         TextView bitcoinValue;
 
         public ExchangeViewHolder(View itemView)

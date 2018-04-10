@@ -170,9 +170,8 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        ButterKnife.bind(this, view);
         super.onViewCreated(view, savedInstanceState);
-
-        ButterKnife.inject(this, view);
     }
 
     @Override

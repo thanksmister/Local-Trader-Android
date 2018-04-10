@@ -29,7 +29,7 @@ import android.widget.TextView;
 import com.thanksmister.bitcoin.localtrader.R;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 public class ScreenPagerAdapter extends PagerAdapter
 {
@@ -106,23 +106,23 @@ public class ScreenPagerAdapter extends PagerAdapter
 
     static class ViewHolder
     {
-        @InjectView(R.id.screenBackground) 
+        @BindView(R.id.screenBackground) 
         View background;   
         
-        @InjectView(R.id.screenImage)
+        @BindView(R.id.screenImage)
         ImageView screenImage;
 
-        /*@InjectView(R.id.headerText)
+        /*@BindView(R.id.headerText)
         TextView headerText;*/
         
-        /*@InjectView(R.id.summaryText) 
+        /*@BindView(R.id.summaryText) 
         TextView summaryText;*/
 
-        @InjectView(R.id.descriptionText)
+        @BindView(R.id.descriptionText)
         TextView descriptionText;
 
         public ViewHolder(View view) {
-            ButterKnife.inject(this, view);
+            ButterKnife.bind(this, view);
         }
     }
 }

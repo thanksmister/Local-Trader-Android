@@ -108,7 +108,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        ButterKnife.reset(this);
 
         if (alertDialog != null && alertDialog.isShowing()) {
             alertDialog.dismiss();

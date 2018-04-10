@@ -548,7 +548,12 @@ public class DataService {
                 .flatMap(new Func1<JSONObject, Observable<JSONObject>>() {
                     @Override
                     public Observable<JSONObject> call(JSONObject jsonObject) {
-                        return Observable.just(jsonObject);
+                        if (Parser.containsError(jsonObject)) {
+                            RetroError retroError = Parser.parseError(jsonObject);
+                            throw new Error(retroError);
+                        } else {
+                            return Observable.just(jsonObject);
+                        }
                     }
                 });
     }
@@ -561,7 +566,8 @@ public class DataService {
                     @Override
                     public Observable<Boolean> call(JSONObject jsonObject) {
                         if (Parser.containsError(jsonObject)) {
-                            throw new Error("Error deleting editAdvertisement");
+                            RetroError retroError = Parser.parseError(jsonObject);
+                            throw new Error(retroError);
                         }
                         return Observable.just(true);
                     }

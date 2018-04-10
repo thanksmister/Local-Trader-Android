@@ -46,7 +46,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -60,19 +60,19 @@ public class ContactsActivity extends BaseActivity {
     @Inject
     DataService dataService;
 
-    @InjectView(R.id.recycleView)
+    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
-    @InjectView(R.id.contactsToolBar)
+    @BindView(R.id.contactsToolBar)
     Toolbar toolbar;
 
-    @InjectView(R.id.emptyLayout)
+    @BindView(R.id.emptyLayout)
     View emptyLayout;
 
-    @InjectView(R.id.resultsProgress)
+    @BindView(R.id.resultsProgress)
     View progress;
 
-    @InjectView(R.id.emptyText)
+    @BindView(R.id.emptyText)
     TextView emptyText;
 
     private ContactAdapter itemAdapter;
@@ -94,7 +94,7 @@ public class ContactsActivity extends BaseActivity {
 
         setContentView(R.layout.view_contacts);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         
         if (savedInstanceState == null) {
             dashboardType = (DashboardType) getIntent().getSerializableExtra(EXTRA_TYPE);

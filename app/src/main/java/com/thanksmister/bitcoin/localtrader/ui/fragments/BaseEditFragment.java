@@ -62,7 +62,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import dpreference.DPreference;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import rx.Subscription;
@@ -158,7 +157,6 @@ public abstract class BaseEditFragment extends BaseFragment implements LoaderMan
     @Override
     public void onDetach() {
         super.onDetach();
-        ButterKnife.reset(this);
         mListener = null;
 
         if (geoLocationSubscription != null) {

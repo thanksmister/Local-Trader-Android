@@ -38,31 +38,32 @@ import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.List;
 
-import butterknife.InjectView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import static android.view.View.GONE;
 
 public class EditOnlineFragment extends BaseEditFragment {
     
-    @InjectView(R.id.editPaymentDetails)
+    @BindView(R.id.editPaymentDetails)
     EditText editPaymentDetails;
     
-    @InjectView(R.id.paymentDetailsLayout)
+    @BindView(R.id.paymentDetailsLayout)
     View paymentDetailsLayout;
 
-    @InjectView(R.id.detailsPhoneNumberLayout)
+    @BindView(R.id.detailsPhoneNumberLayout)
     View detailsPhoneNumberLayout;
 
-    @InjectView(R.id.detailsPhoneNumber)
+    @BindView(R.id.detailsPhoneNumber)
     EditText detailsPhoneNumber;
     
-    @InjectView(R.id.minimumVolumeText)
+    @BindView(R.id.minimumVolumeText)
     EditText minimumVolumeText;
     
-    @InjectView(R.id.minimumFeedbackText)
+    @BindView(R.id.minimumFeedbackText)
     EditText minimumFeedbackText;
     
-    @InjectView(R.id.newBuyerLimitText)
+    @BindView(R.id.newBuyerLimitText)
     EditText newBuyerLimitText;
     
     public EditOnlineFragment() {
@@ -99,7 +100,9 @@ public class EditOnlineFragment extends BaseEditFragment {
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_ad_online_options, container, false);
+        View view = inflater.inflate(R.layout.fragment_ad_online_options, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override

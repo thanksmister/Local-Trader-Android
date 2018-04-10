@@ -44,7 +44,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -58,19 +58,19 @@ public class SearchResultsActivity extends BaseActivity {
     @Inject
     GeoLocationService geoLocationService;
 
-    @InjectView(R.id.resultsList)
+    @BindView(R.id.resultsList)
     ListView content;
 
-    @InjectView(R.id.resultsProgress)
+    @BindView(R.id.resultsProgress)
     View progress;
 
-    @InjectView(R.id.emptyLayout)
+    @BindView(R.id.emptyLayout)
     View emptyLayout;
 
-    @InjectView(R.id.emptyText)
+    @BindView(R.id.emptyText)
     TextView emptyText;
     
-    @InjectView(R.id.searchResultsToolBar)
+    @BindView(R.id.searchResultsToolBar)
     Toolbar toolbar;
     
     private AdvertiseAdapter adapter;
@@ -87,7 +87,7 @@ public class SearchResultsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_search_results);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         
         tradeType = TradeType.valueOf(SearchUtils.getSearchTradeType(sharedPreferences));
         

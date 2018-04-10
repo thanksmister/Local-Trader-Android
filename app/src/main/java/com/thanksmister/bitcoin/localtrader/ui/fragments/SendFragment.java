@@ -65,7 +65,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import dpreference.DPreference;
 import rx.Observable;
@@ -97,25 +97,25 @@ public class SendFragment extends BaseFragment {
     @Inject
     DbManager dbManager;
     
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.amountText)
+    @BindView(R.id.amountText)
     TextView amountText;
 
-    @InjectView(R.id.fiatEditText)
+    @BindView(R.id.fiatEditText)
     TextView fiatEditText;
 
-    @InjectView(R.id.balanceText)
+    @BindView(R.id.balanceText)
     TextView balance;
 
-    @InjectView(R.id.address)
+    @BindView(R.id.address)
     TextView addressText;
 
-    @InjectView(R.id.currencyText)
+    @BindView(R.id.currencyText)
     TextView currencyText;
 
-    @InjectView(R.id.sendDescription)
+    @BindView(R.id.sendDescription)
     TextView sendDescription;
 
     @OnClick(R.id.sendButton)
@@ -208,7 +208,9 @@ public class SendFragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_send, container, false);
+        View view = inflater.inflate(R.layout.view_send, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -307,8 +309,6 @@ public class SendFragment extends BaseFragment {
 
         dPreference.removePreference("send_amount");
         dPreference.removePreference("send_address");
-
-        ButterKnife.reset(this);
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {

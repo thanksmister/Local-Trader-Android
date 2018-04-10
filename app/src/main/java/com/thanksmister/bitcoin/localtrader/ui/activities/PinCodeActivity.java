@@ -41,7 +41,7 @@ import org.json.JSONObject;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -65,22 +65,22 @@ public class PinCodeActivity extends BaseActivity
     @Inject
     DataService dataService;
 
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.pinCode1)
+    @BindView(R.id.pinCode1)
     ImageView pinCode1;
 
-    @InjectView(R.id.pinCode2)
+    @BindView(R.id.pinCode2)
     ImageView pinCode2;
 
-    @InjectView(R.id.pinCode3)
+    @BindView(R.id.pinCode3)
     ImageView pinCode3;
 
-    @InjectView(R.id.pinCode4)
+    @BindView(R.id.pinCode4)
     ImageView pinCode4;
     
-    @InjectView(R.id.descriptionText)
+    @BindView(R.id.descriptionText)
     TextView description;
 
     @OnClick(R.id.button0)
@@ -175,7 +175,7 @@ public class PinCodeActivity extends BaseActivity
 
         setContentView(R.layout.view_release);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); // show keyboard
 

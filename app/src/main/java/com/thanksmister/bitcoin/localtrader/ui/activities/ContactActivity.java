@@ -82,7 +82,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -105,22 +105,22 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     @Inject
     DbManager dbManager;
 
-    @InjectView(R.id.contactList)
+    @BindView(R.id.contactList)
     ListView content;
 
-    @InjectView(R.id.contactToolBar)
+    @BindView(R.id.contactToolBar)
     Toolbar toolbar;
 
-    @InjectView(R.id.swipeLayout)
+    @BindView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
-    @InjectView(R.id.view_progress)
+    @BindView(R.id.view_progress)
     View progress;
 
-    @InjectView(R.id.emptyLayout)
+    @BindView(R.id.emptyLayout)
     View emptyLayout;
 
-    @InjectView(R.id.emptyText)
+    @BindView(R.id.emptyText)
     TextView emptyText;
     
     private TextView detailsEthereumAddress;
@@ -184,7 +184,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
         setContentView(R.layout.view_contact);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         handler = new Handler();
 

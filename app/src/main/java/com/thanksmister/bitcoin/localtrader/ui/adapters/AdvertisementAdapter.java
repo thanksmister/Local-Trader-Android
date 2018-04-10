@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 public class AdvertisementAdapter extends BaseAdapter implements Filterable
 {
@@ -222,18 +222,18 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
 
     protected static class ViewHolder
     {
-        @InjectView(android.R.id.background)
+        @BindView(android.R.id.background)
         public View row;
-        @InjectView(R.id.advertisementType)
+        @BindView(R.id.advertisementType)
         public TextView advertisementType;
-        @InjectView(android.R.id.icon)
+        @BindView(android.R.id.icon)
         public ImageView icon;
-        @InjectView(R.id.advertisementDetails)
+        @BindView(R.id.advertisementDetails)
         public TextView advertisementDetails;
         
         public ViewHolder(View view)
         {
-            ButterKnife.inject(this, view);
+            ButterKnife.bind(this, view);
         }
     }
 
@@ -321,13 +321,13 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
     
         static class ViewHolder
         {   
-            @InjectView(R.id.tradeType) TextView tradeType;
-            @InjectView(android.R.id.icon) ImageView icon;
-            @InjectView(R.id.tradeDetails) TextView tradeDetails;
-            @InjectView(R.id.contactMessageCount) TextView contactMessageCount;
+            @BindView(R.id.tradeType) TextView tradeType;
+            @BindView(android.R.id.icon) ImageView icon;
+            @BindView(R.id.tradeDetails) TextView tradeDetails;
+            @BindView(R.id.contactMessageCount) TextView contactMessageCount;
             
             public ViewHolder(View view) {
-                ButterKnife.inject(this, view);
+                ButterKnife.bind(this, view);
             }
         }
     }

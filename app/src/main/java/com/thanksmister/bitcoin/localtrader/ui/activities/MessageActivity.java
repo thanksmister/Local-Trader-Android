@@ -27,6 +27,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -54,7 +55,7 @@ import java.io.InputStream;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import butterknife.Optional;
 import rx.Subscription;
@@ -82,10 +83,10 @@ public class MessageActivity extends BaseActivity
     @Inject
     DataService dataService;
 
-    @InjectView((R.id.messageTitle))
+    @BindView((R.id.messageTitle))
     TextView messageTitle;
     
-    @InjectView((R.id.editMessageText))
+    @BindView((R.id.editMessageText))
     EditText messageText;
     
     private String contactId;
@@ -97,17 +98,17 @@ public class MessageActivity extends BaseActivity
         validateMessage();
     }
 
-    @InjectView((R.id.attachmentLayout))
+    @BindView((R.id.attachmentLayout))
     View attachmentLayout;
     
-    @InjectView((R.id.attachButton))
+    @BindView((R.id.attachButton))
     View attachButton;
     
-    @Optional
-    @InjectView((R.id.attachmentName))
+    @Nullable
+    @BindView((R.id.attachmentName))
     TextView attachmentName;
     
-    @InjectView((R.id.removeAttachmentButton))
+    @BindView((R.id.removeAttachmentButton))
     ImageButton removeAttachmentButton;
     
     @OnClick(R.id.attachButton)
@@ -142,7 +143,7 @@ public class MessageActivity extends BaseActivity
 
         setContentView(R.layout.view_message);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         
         if (savedInstanceState == null) {
             contactId = getIntent().getStringExtra(EXTRA_ID);
@@ -158,7 +159,7 @@ public class MessageActivity extends BaseActivity
             messageText.setText(message);
         }
         
-        messageTitle.setText("Message to " + contactName);
+        messageTitle.setText(getString(R.string.title_message_to, contactName));
     }
 
     @Override

@@ -38,6 +38,8 @@ public class Constants
     public static final String REGISTRATION_URL = "https://localbitcoins.com/register/?ch=2hbo";
     public static final String SUPPORT_URL = "https://localbitcoins.com/support/request/?ch=2hbo";
     public static final String GUIDES_URL = "https://localbitcoins.com/guides/?ch=2hbo";
+    public static final String ADS_URL = "https://localbitcoins.com/ads?ch=2hbo";
+    public static final String ADS_EDIT_URL = "https://localbitcoins.com/ads_edit/";
 
     public static final int LOCATION_SETTINGS_REQUEST = 5;
     public static final int REQUEST_PERMISSIONS = 6;

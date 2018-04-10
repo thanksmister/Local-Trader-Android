@@ -61,7 +61,7 @@ import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -83,16 +83,16 @@ public class LoginActivity extends BaseActivity {
     @Inject
     SharedPreferences sharedPreferences;
 
-    @InjectView(R.id.content)
+    @BindView(R.id.content)
     View content;
 
-    @InjectView(R.id.authenticateButton)
+    @BindView(R.id.authenticateButton)
     Button authenticateButton;
 
-    @InjectView(R.id.urlTextDescription)
+    @BindView(R.id.urlTextDescription)
     TextView editTextDescription;
 
-    @InjectView(R.id.apiEndpoint)
+    @BindView(R.id.apiEndpoint)
     TextView apiEndpoint;
 
     private Subscription subscription = Subscriptions.unsubscribed();
@@ -114,7 +114,7 @@ public class LoginActivity extends BaseActivity {
 
         setContentView(R.layout.view_login);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (savedInstanceState != null) {
             whatsNewShown = savedInstanceState.getBoolean(EXTRA_WHATS_NEW);

@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.TextUtils;
@@ -50,8 +51,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.Optional;
 import rx.Observable;
@@ -72,71 +73,71 @@ public class AdvertiserActivity extends BaseActivity {
     @Inject
     DbManager dbManager;
 
-    @InjectView(R.id.advertiserProgress)
+    @BindView(R.id.advertiserProgress)
     View progress;
 
-    @InjectView(R.id.advertiserContent)
+    @BindView(R.id.advertiserContent)
     ScrollView content;
 
-    @InjectView(R.id.priceLayout)
+    @BindView(R.id.priceLayout)
     View priceLayout;
 
-    @InjectView(R.id.priceLayoutDivider)
+    @BindView(R.id.priceLayoutDivider)
     View priceLayoutDivider;
 
-    @InjectView(R.id.advertiserToolbar)
+    @BindView(R.id.advertiserToolbar)
     Toolbar toolbar;
 
-    @InjectView(R.id.tradePrice)
+    @BindView(R.id.tradePrice)
     TextView tradePrice;
 
-    @InjectView(R.id.traderName)
+    @BindView(R.id.traderName)
     TextView traderName;
 
-    @InjectView(R.id.tradeLimit)
+    @BindView(R.id.tradeLimit)
     TextView tradeLimit;
 
-    @InjectView(R.id.tradeTerms)
+    @BindView(R.id.tradeTerms)
     TextView tradeTerms;
 
-    @InjectView(R.id.tradeFeedback)
+    @BindView(R.id.tradeFeedback)
     TextView tradeFeedback;
 
-    @InjectView(R.id.tradeCount)
+    @BindView(R.id.tradeCount)
     TextView tradeCount;
 
-    @Optional
-    @InjectView(R.id.dateText)
+    @Nullable
+    @BindView(R.id.dateText)
     TextView dateText;
 
-    @InjectView(R.id.noteTextAdvertiser)
+    @BindView(R.id.noteTextAdvertiser)
     TextView noteTextAdvertiser;
 
-    @InjectView(R.id.lastSeenIcon)
+    @BindView(R.id.lastSeenIcon)
     View lastSeenIcon;
 
-    @InjectView(R.id.requirementsLayout)
+    @BindView(R.id.requirementsLayout)
     View requirementsLayout;
 
-    @InjectView(R.id.trustedTextView)
+    @BindView(R.id.trustedTextView)
     TextView trustedTextView;
 
-    @InjectView(R.id.identifiedTextView)
+    @BindView(R.id.identifiedTextView)
     TextView identifiedTextView;
 
-    @InjectView(R.id.smsTextView)
+    @BindView(R.id.smsTextView)
     TextView smsTextView;
 
-    @InjectView(R.id.feedbackText)
+    @BindView(R.id.feedbackText)
     TextView feedbackText;
 
-    @InjectView(R.id.limitText)
+    @BindView(R.id.limitText)
     TextView limitText;
 
-    @InjectView(R.id.volumeText)
+    @BindView(R.id.volumeText)
     TextView volumeText;
 
-    @InjectView(R.id.requestButton)
+    @BindView(R.id.requestButton)
     Button requestButton;
 
     @OnClick(R.id.requestButton)
@@ -165,7 +166,7 @@ public class AdvertiserActivity extends BaseActivity {
 
         setContentView(R.layout.view_advertiser);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);

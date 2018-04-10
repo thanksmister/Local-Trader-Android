@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
@@ -132,21 +132,21 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.inject(this, itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
     public class ItemViewHolder extends ViewHolder {
-        @InjectView(R.id.messageBody)
+        @BindView(R.id.messageBody)
         public TextView messageBody;
 
-        @InjectView(R.id.itemIcon)
+        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @InjectView(R.id.contactId)
+        @BindView(R.id.contactId)
         public TextView contactId;
 
-        @InjectView(R.id.createdAt)
+        @BindView(R.id.createdAt)
         public TextView createdAt;
 
         public ItemViewHolder(View itemView) {

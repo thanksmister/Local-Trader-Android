@@ -54,7 +54,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import butterknife.InjectView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.functions.Action0;
 import timber.log.Timber;
@@ -63,19 +64,19 @@ import static android.view.View.GONE;
 
 public class EditTypeFragment extends BaseEditFragment {
     
-    @InjectView(R.id.paymentMethodLayout)
+    @BindView(R.id.paymentMethodLayout)
     View paymentMethodLayout;
 
-    @InjectView(R.id.paymentMethodSpinner)
+    @BindView(R.id.paymentMethodSpinner)
     Spinner paymentMethodSpinner;
     
-    @InjectView(R.id.typeSpinner)
+    @BindView(R.id.typeSpinner)
     Spinner typeSpinner;
 
-    @InjectView(R.id.autoCompleteTextView)
+    @BindView(R.id.autoCompleteTextView)
     AutoCompleteTextView editLocationText;
 
-    @InjectView(R.id.locationText)
+    @BindView(R.id.locationText)
     TextView locationText;
     
     @OnClick(R.id.clearButton)
@@ -118,7 +119,9 @@ public class EditTypeFragment extends BaseEditFragment {
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_ad_type, container, false);
+        View view = inflater.inflate(R.layout.fragment_ad_type, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override

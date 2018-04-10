@@ -48,14 +48,14 @@ import java.lang.reflect.Field;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import timber.log.Timber;
 
 import static com.thanksmister.bitcoin.localtrader.constants.Constants.BITCOIN_ADDRESS;
 
 public class AboutFragment extends BaseFragment {
-    @InjectView(R.id.toolbar)
+    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
     @Inject
@@ -113,7 +113,7 @@ public class AboutFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.view_about, container, false);
-        ButterKnife.inject(this, fragmentView);
+        ButterKnife.bind(this, fragmentView);
         return fragmentView;
     }
 
@@ -139,8 +139,6 @@ public class AboutFragment extends BaseFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-
-        ButterKnife.reset(this);
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {

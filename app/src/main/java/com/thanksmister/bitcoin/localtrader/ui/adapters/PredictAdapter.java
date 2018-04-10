@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 public class PredictAdapter extends ArrayAdapter<Address> implements Filterable
 {
@@ -101,9 +101,9 @@ public class PredictAdapter extends ArrayAdapter<Address> implements Filterable
 
     static class ViewHolder
     {
-        @InjectView(R.id.addressText) TextView addressText;
+        @BindView(R.id.addressText) TextView addressText;
         public ViewHolder(View view) {
-            ButterKnife.inject(this, view);
+            ButterKnife.bind(this, view);
         }
     }
 }

@@ -48,7 +48,7 @@ public class SplashActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_splash);
         
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if(!AuthUtils.hasCredentials(preference, sharedPreferences)) {
             Intent intent = new Intent(this, PromoActivity.class);

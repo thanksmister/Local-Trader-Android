@@ -34,14 +34,14 @@ import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.viewpagerindicator.CirclePageIndicator;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class PromoActivity extends BaseActivity {
-    @InjectView(R.id.pager)
+    @BindView(R.id.pager)
     ViewPager viewPager;
 
-    @InjectView(R.id.indicator)
+    @BindView(R.id.indicator)
     CirclePageIndicator circlePageIndicator;
 
     @OnClick(R.id.registerButton)
@@ -69,7 +69,7 @@ public class PromoActivity extends BaseActivity {
 
         setContentView(R.layout.view_promo);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         pagerAdapter = new ScreenPagerAdapter(getContext());
         viewPager.setAdapter(pagerAdapter);

@@ -34,6 +34,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -93,7 +94,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import butterknife.OnClick;
 import butterknife.Optional;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
@@ -142,125 +143,125 @@ public class EditActivity extends BaseActivity {
     @Inject
     BriteDatabase db;
 
-    @Optional
-    @InjectView(R.id.editToolBar)
+    @Nullable
+    @BindView(R.id.editToolBar)
     Toolbar toolbar;
 
-    @InjectView(R.id.liquidityCheckBox)
+    @BindView(R.id.liquidityCheckBox)
     CheckBox liquidityCheckBox;
 
-    @InjectView(R.id.trustedCheckBox)
+    @BindView(R.id.trustedCheckBox)
     CheckBox trustedCheckBox;
 
-    @InjectView(R.id.smsVerifiedCheckBox)
+    @BindView(R.id.smsVerifiedCheckBox)
     CheckBox smsVerifiedCheckBox;
 
-    @InjectView(R.id.identifiedCheckBox)
+    @BindView(R.id.identifiedCheckBox)
     CheckBox identifiedCheckBox;
 
-    @InjectView(R.id.activeCheckBox)
+    @BindView(R.id.activeCheckBox)
     CheckBox activeCheckBox;
 
-    @InjectView(R.id.currencyLayout)
+    @BindView(R.id.currencyLayout)
     View currencyLayout;
 
-    @InjectView(R.id.editLocationTextAutoComplete)
+    @BindView(R.id.editLocationTextAutoComplete)
     AutoCompleteTextView editLocation;
 
-    @InjectView(R.id.locationText)
+    @BindView(R.id.locationText)
     TextView locationText;
     
-    @InjectView(R.id.bankNameTitle)
+    @BindView(R.id.bankNameTitle)
     TextView bankNameTitle;
 
-    @InjectView(R.id.editPriceEquation)
+    @BindView(R.id.editPriceEquation)
     EditText editPriceEquation;
 
-    @InjectView(R.id.editMinimumAmount)
+    @BindView(R.id.editMinimumAmount)
     EditText editMinimumAmount;
 
-    @InjectView(R.id.editMaximumAmount)
+    @BindView(R.id.editMaximumAmount)
     EditText editMaximumAmount;
 
-    @InjectView(R.id.editPaymentDetails)
+    @BindView(R.id.editPaymentDetails)
     EditText editPaymentDetails;
 
-    @InjectView(R.id.editBankName)
+    @BindView(R.id.editBankName)
     EditText editBankNameText;
 
-    @InjectView(R.id.paymentMethodLayout)
+    @BindView(R.id.paymentMethodLayout)
     View paymentMethodLayout;
 
-    @InjectView(R.id.editPaymentDetailsLayout)
+    @BindView(R.id.editPaymentDetailsLayout)
     View editPaymentDetailsLayout;
 
-    @InjectView(R.id.newBuyerLimitLayout)
+    @BindView(R.id.newBuyerLimitLayout)
     View newBuyerLimitLayout;
 
-    @InjectView(R.id.newBuyerLimitText)
+    @BindView(R.id.newBuyerLimitText)
     EditText newBuyerLimitText;
 
-    @InjectView(R.id.minimumFeedbackLayout)
+    @BindView(R.id.minimumFeedbackLayout)
     View minimumFeedbackLayout;
 
-    @InjectView(R.id.minimumFeedbackText)
+    @BindView(R.id.minimumFeedbackText)
     EditText minimumFeedbackText;
 
-    @InjectView(R.id.minimumVolumeLayout)
+    @BindView(R.id.minimumVolumeLayout)
     View minimumVolumeLayout;
 
-    @InjectView(R.id.minimumVolumeText)
+    @BindView(R.id.minimumVolumeText)
     EditText minimumVolumeText;
 
-    @InjectView(R.id.editMinimumAmountCurrency)
+    @BindView(R.id.editMinimumAmountCurrency)
     TextView editMinimumAmountCurrency;
 
-    @InjectView(R.id.editMaximumAmountCurrency)
+    @BindView(R.id.editMaximumAmountCurrency)
     TextView editMaximumAmountCurrency;
 
-    @InjectView(R.id.bankNameLayout)
+    @BindView(R.id.bankNameLayout)
     View bankNameLayout;
 
-    @InjectView(R.id.marginLayout)
+    @BindView(R.id.marginLayout)
     View marginLayout;
 
-    @InjectView(R.id.advertisementTypeLayout)
+    @BindView(R.id.advertisementTypeLayout)
     View advertisementTypeLayout;
 
-    @InjectView(R.id.activeLayout)
+    @BindView(R.id.activeLayout)
     View activeLayout;
 
-    @InjectView(R.id.currencySpinner)
+    @BindView(R.id.currencySpinner)
     Spinner currencySpinner;
 
-    @InjectView(R.id.marginText)
+    @BindView(R.id.marginText)
     EditText marginText;
 
-    @InjectView(R.id.editMessageText)
+    @BindView(R.id.editMessageText)
     EditText messageText;
 
-    @InjectView(R.id.detailsPhoneNumberLayout)
+    @BindView(R.id.detailsPhoneNumberLayout)
     View detailsPhoneNumberLayout;
 
-    @InjectView(R.id.detailsPhoneNumberDescription)
+    @BindView(R.id.detailsPhoneNumberDescription)
     EditText detailsPhoneNumberDescription;
     
-    @InjectView(R.id.detailsPhoneNumber)
+    @BindView(R.id.detailsPhoneNumber)
     EditText detailsPhoneNumber;
 
-    @InjectView(R.id.paymentMethodSpinner)
+    @BindView(R.id.paymentMethodSpinner)
     Spinner paymentMethodSpinner;
 
-    @InjectView(R.id.typeSpinner)
+    @BindView(R.id.typeSpinner)
     Spinner typeSpinner;
 
-    @InjectView(R.id.editProgress)
+    @BindView(R.id.editProgress)
     View progress;
 
-    @InjectView(R.id.editContent)
+    @BindView(R.id.editContent)
     View content;
 
-    @InjectView(R.id.saveButton)
+    @BindView(R.id.saveButton)
     Button saveButton;
 
     @OnClick(R.id.clearButton)
@@ -308,7 +309,7 @@ public class EditActivity extends BaseActivity {
 
         setContentView(R.layout.view_edit);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);

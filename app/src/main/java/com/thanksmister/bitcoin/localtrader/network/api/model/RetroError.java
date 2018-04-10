@@ -16,6 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
+import java.lang.Error;
+
 public class RetroError extends Error
 {
     private String message;

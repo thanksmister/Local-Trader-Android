@@ -30,10 +30,13 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
@@ -56,7 +59,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 import dpreference.DPreference;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -72,7 +75,7 @@ public class NotificationsFragment extends BaseFragment {
     @Inject
     DbManager dbManager;
 
-    @InjectView(R.id.recycleView)
+    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
     @Inject
@@ -153,7 +156,9 @@ public class NotificationsFragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.view_dashboard_items, container, false);
+        View view = inflater.inflate(R.layout.view_dashboard_items, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
@@ -175,9 +180,6 @@ public class NotificationsFragment extends BaseFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-
-        ButterKnife.reset(this);
-
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
             Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
@@ -205,13 +207,15 @@ public class NotificationsFragment extends BaseFragment {
                 .subscribe(new Action1<List<NotificationItem>>() {
                     @Override
                     public void call(final List<NotificationItem> items) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                notifications = items;
-                                setupList(notifications);
-                            }
-                        });
+                        if(isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifications = items;
+                                    setupList(notifications);
+                                }
+                            });
+                        }
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -238,9 +242,25 @@ public class NotificationsFragment extends BaseFragment {
         return itemAdapter;
     }
 
+    /**
+     * Creating or editing advertisements takes users to the LBC website
+     */
     private void createAdvertisementScreen() {
-        Intent intent = EditAdvertisementActivity.createStartIntent(getActivity(), null, true);
-        startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
+        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
+            @Override
+            public void call() {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, new Action0() {
+            @Override
+            public void call() {
+                // na-da
+            }
+        });
     }
 
     protected void showSearchScreen() {

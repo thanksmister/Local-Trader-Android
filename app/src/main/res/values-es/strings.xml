@@ -709,5 +709,8 @@
     <string name="toast_authentication_canceled">Authentication canceled...</string>
     <string name="error_update_exchange_rate">Unable to update exchange rate.</string>
     <string name="text_donate_button">Buy me a coffee</string>
+    <string name="title_message_to">Message to %1$s</string>
+    <string name="dialog_edit_advertisements">To create or edit advertisements you must use the LocalBitcoins website. Do you want to continue to the LocalBitcoins website?</string>
+    <string name="error_deleting_advertisement">Error deleting Advertisement</string>
 
 </resources>

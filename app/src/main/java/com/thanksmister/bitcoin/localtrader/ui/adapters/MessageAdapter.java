@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 public class MessageAdapter extends BaseAdapter
 {
@@ -121,15 +121,15 @@ public class MessageAdapter extends BaseAdapter
 
     static class ViewHolder
     {
-        @InjectView(R.id.row) View row;   
-        @InjectView(R.id.senderName) TextView senderName;   
-        @InjectView(R.id.createdAt) TextView createdAt;
-        @InjectView(R.id.messageBody) TextView messageBody;
-        @InjectView(R.id.attachmentLayout) View attachmentLayout;
-        @InjectView(R.id.attachmentName) TextView attachmentName;
+        @BindView(R.id.row) View row;   
+        @BindView(R.id.senderName) TextView senderName;   
+        @BindView(R.id.createdAt) TextView createdAt;
+        @BindView(R.id.messageBody) TextView messageBody;
+        @BindView(R.id.attachmentLayout) View attachmentLayout;
+        @BindView(R.id.attachmentName) TextView attachmentName;
 
         public ViewHolder(View view) {
-            ButterKnife.inject(this, view);
+            ButterKnife.bind(this, view);
         }
     }
 }

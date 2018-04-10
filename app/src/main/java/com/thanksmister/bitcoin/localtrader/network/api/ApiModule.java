@@ -16,9 +16,12 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api;
 
+import android.app.Application;
 import android.content.SharedPreferences;
 
 import com.squareup.okhttp.OkHttpClient;
+import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.network.CustomErrorHandler;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 
 import javax.inject.Singleton;
@@ -47,12 +50,13 @@ public final class ApiModule {
 
     @Provides
     @Singleton
-    LocalBitcoins provideLocalBitcoins(Client client, DPreference preference, SharedPreferences sharedPreferences) {
+    LocalBitcoins provideLocalBitcoins(BaseApplication app, Client client, DPreference preference, SharedPreferences sharedPreferences) {
         String baseUrl = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
                 .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setEndpoint(baseUrl)
+                .setErrorHandler(new CustomErrorHandler(app))  // use error handler..
                 .build();
         return restAdapter.create(LocalBitcoins.class);
     }

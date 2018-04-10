@@ -158,11 +158,11 @@ public class DataServiceUtils {
         String json = null;
         try {
             json = Parser.parseRetrofitResponse(response);
-        } catch (RetroError error) {
-            return error;
+            Timber.d("JSON: " + json);
+        } catch (Throwable e) {
+            return new RetroError(e.getMessage());
         }
 
-        Timber.e("JSON: " + json);
         RetroError err = Parser.parseError(json);
         Timber.e("Error: " + err.getMessage());
         Timber.e("Code: " + err.getCode());

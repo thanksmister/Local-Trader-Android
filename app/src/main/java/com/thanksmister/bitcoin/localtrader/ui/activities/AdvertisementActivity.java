@@ -35,9 +35,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
@@ -60,8 +62,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import retrofit.ErrorHandler;
+import retrofit.RetrofitError;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -88,79 +92,79 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     @Inject
     BriteDatabase db;
 
-    @InjectView(R.id.tradePrice)
+    @BindView(R.id.tradePrice)
     TextView tradePrice;
 
-    @InjectView(R.id.noteTextAdvertisement)
+    @BindView(R.id.noteTextAdvertisement)
     TextView noteTextAdvertisement;
 
-    @InjectView(R.id.tradeLimit)
+    @BindView(R.id.tradeLimit)
     TextView tradeLimit;
 
-    @InjectView(R.id.tradeTerms)
+    @BindView(R.id.tradeTerms)
     TextView tradeTerms;
 
-    @InjectView(R.id.priceEquation)
+    @BindView(R.id.priceEquation)
     TextView priceEquation;
 
-    @InjectView(R.id.onlineProvider)
+    @BindView(R.id.onlineProvider)
     TextView onlineProvider;
 
-    @InjectView(R.id.bankName)
+    @BindView(R.id.bankName)
     TextView bankName;
 
-    @InjectView(R.id.paymentDetails)
+    @BindView(R.id.paymentDetails)
     TextView paymentDetails;
 
-    @InjectView(R.id.noteText)
+    @BindView(R.id.noteText)
     TextView noteText;
 
-    @InjectView(R.id.advertisementId)
+    @BindView(R.id.advertisementId)
     TextView advertisementId;
 
-    @InjectView(R.id.noteLayout)
+    @BindView(R.id.noteLayout)
     View noteLayout;
 
-    @InjectView(R.id.bankNameLayout)
+    @BindView(R.id.bankNameLayout)
     View bankNameLayout;
     
-    @InjectView(R.id.termsLayout)
+    @BindView(R.id.termsLayout)
     View termsLayout;
 
-    @InjectView(R.id.paymentDetailsLayout)
+    @BindView(R.id.paymentDetailsLayout)
     View paymentDetailsLayout;
     
-    @InjectView(R.id.onlinePaymentLayout)
+    @BindView(R.id.onlinePaymentLayout)
     View onlinePaymentLayout;
 
-    @InjectView(R.id.advertisementContent)
+    @BindView(R.id.advertisementContent)
     View content;
 
-    @InjectView(R.id.advertisementToolBar)
+    @BindView(R.id.advertisementToolBar)
     Toolbar toolbar;
 
-    @InjectView(R.id.requirementsLayout)
+    @BindView(R.id.requirementsLayout)
     View requirementsLayout;
 
-    @InjectView(R.id.trustedTextView)
+    @BindView(R.id.trustedTextView)
     TextView trustedTextView;
 
-    @InjectView(R.id.identifiedTextView)
+    @BindView(R.id.identifiedTextView)
     TextView identifiedTextView;
 
-    @InjectView(R.id.smsTextView)
+    @BindView(R.id.smsTextView)
     TextView smsTextView;
 
-    @InjectView(R.id.feedbackText)
+    @BindView(R.id.feedbackText)
     TextView feedbackText;
 
-    @InjectView(R.id.limitText)
+    @BindView(R.id.limitText)
     TextView limitText;
 
-    @InjectView(R.id.volumeText)
+    @BindView(R.id.volumeText)
     TextView volumeText;
 
-    @InjectView(R.id.swipeLayout)
+    @BindView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
     private String adId;
@@ -181,7 +185,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
 
         setContentView(R.layout.view_advertisement);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         handler = new Handler();
 
@@ -221,13 +225,13 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         super.onSaveInstanceState(outState);
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+   /* public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
             if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
                 updateAdvertisement(); // update the new editAdvertisement
             }
         }
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -598,18 +602,14 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                     @Override
                     public void call(JSONObject jsonObject) {
                         hideProgressDialog();
-                        if (Parser.containsError(jsonObject)) {
-                            showAlertDialog(getString(R.string.toast_error_visibility_update));
-                        } else {
-                            dbManager.updateAdvertisementVisibility(adId, visible);
-                            toast(getString(R.string.toast_update_visibility));
-                        }
+                        dbManager.updateAdvertisementVisibility(adId, visible);
+                        toast(getString(R.string.toast_update_visibility));
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
                         hideProgressDialog();
-                        showAlertDialog(getString(R.string.toast_error_visibility_update));
+                        showAlertDialog(throwable.getMessage());
                     }
                 });
     }
@@ -651,9 +651,22 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         startActivity(Intent.createChooser(shareIntent, getString(R.string.text_chooser_share_to)));
     }
 
-    private void editAdvertisement(AdvertisementItem advertisement) {
-        Intent intent = EditAdvertisementActivity.createStartIntent(AdvertisementActivity.this, advertisement.ad_id(), false);
-        startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
+    private void editAdvertisement(final AdvertisementItem advertisement) {
+        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0 () {
+            @Override
+            public void call() {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_EDIT_URL + advertisement.ad_id())));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(AdvertisementActivity.this, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, new Action0() {
+            @Override
+            public void call() {
+                // na-da
+            }
+        });
     }
     
     @Override

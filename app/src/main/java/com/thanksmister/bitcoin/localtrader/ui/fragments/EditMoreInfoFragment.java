@@ -46,7 +46,8 @@ import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.List;
 
-import butterknife.InjectView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import static android.view.View.GONE;
 
@@ -54,40 +55,40 @@ public class EditMoreInfoFragment extends BaseEditFragment {
 
     private static String MARGIN = "1";
     
-    @InjectView(R.id.currencyLayout)
+    @BindView(R.id.currencyLayout)
     View currencyLayout;
     
-    @InjectView(R.id.currencySpinner)
+    @BindView(R.id.currencySpinner)
     Spinner currencySpinner;
     
-    @InjectView(R.id.marginText)
+    @BindView(R.id.marginText)
     EditText marginText;
     
-    @InjectView(R.id.editBankName)
+    @BindView(R.id.editBankName)
     EditText editBankName;
     
-    @InjectView(R.id.bankNameTitle)
+    @BindView(R.id.bankNameTitle)
     TextView bankNameTitle;
     
-    @InjectView(R.id.bankNameLayout)
+    @BindView(R.id.bankNameLayout)
     View bankNameLayout;
     
-    @InjectView(R.id.editPriceEquation)
+    @BindView(R.id.editPriceEquation)
     EditText editPriceEquation;
     
-    @InjectView(R.id.editMaximumAmount)
+    @BindView(R.id.editMaximumAmount)
     EditText editMaximumAmount;
     
-    @InjectView(R.id.editMinimumAmount)
+    @BindView(R.id.editMinimumAmount)
     EditText editMinimumAmount;
 
-    @InjectView(R.id.editMinimumAmountCurrency)
+    @BindView(R.id.editMinimumAmountCurrency)
     TextView editMinimumAmountCurrency;
 
-    @InjectView(R.id.editMaximumAmountCurrency)
+    @BindView(R.id.editMaximumAmountCurrency)
     TextView editMaximumAmountCurrency;
     
-    @InjectView(R.id.editMessageText)
+    @BindView(R.id.editMessageText)
     EditText editMessageText;
     
     public EditMoreInfoFragment() {
@@ -118,7 +119,9 @@ public class EditMoreInfoFragment extends BaseEditFragment {
     
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_ad_more_info, container, false);
+        View view = inflater.inflate(R.layout.fragment_ad_more_info, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
     @Override
