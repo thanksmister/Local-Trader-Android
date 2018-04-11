@@ -6,6 +6,18 @@ def versionMinor = 4
 def versionPatch = 1
 def versionBuild = 0 // bump for dog food builds, public betas, etc.
 
+def LBC_KEY() {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return properties.getProperty("lbcAccessKey");
+}
+
+def LBC_SECRET() {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return properties.getProperty("lbcAccessSecret");
+}
+
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
@@ -30,17 +42,26 @@ android {
     flavorDimensions "default"
     productFlavors {
         dev {
+            dimension "default"
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
             versionName "${versionMajor}.${versionMinor}.${versionPatch}"
+            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() +"\""
+            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() +"\""
         }
         qa {
+            dimension "default"
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}-QA"
+            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() +"\""
+            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() +"\""
         }
         prod {
+            dimension "default"
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionName "${versionMajor}.${versionMinor}.${versionPatch}"
+            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() +"\""
+            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() +"\""
         }
     }
 }

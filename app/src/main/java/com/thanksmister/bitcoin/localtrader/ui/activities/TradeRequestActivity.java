@@ -654,7 +654,7 @@ public class TradeRequestActivity extends BaseActivity {
 
     private void calculateBitcoinAmount(String amount) {
         try {
-            if (Strings.isBlank(amount) || amount.equals("0")) {
+            if (TextUtils.isEmpty(amount) || amount.equals("0")) {
                 editBitcoinText.setText("");
                 return;
             }

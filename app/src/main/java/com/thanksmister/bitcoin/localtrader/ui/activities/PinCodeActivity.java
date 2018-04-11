@@ -234,7 +234,7 @@ public class PinCodeActivity extends BaseActivity
         setSupportActionBar(toolbar);
         final ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
-        ab.setTitle("Enter PIN Code");
+        ab.setTitle(R.string.title_enter_pincode);
     }
 
     @Override
@@ -333,7 +333,7 @@ public class PinCodeActivity extends BaseActivity
 
     private void validatePinCode(final String pinCode, final String address, final String amount)
     {
-        showProgressDialog(new ProgressDialogEvent("Verifying PIN..."), true);
+        showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_pin_verify)), true);
         
         subscription = dataService.validatePinCode(pinCode)
                 .subscribeOn(Schedulers.newThread())

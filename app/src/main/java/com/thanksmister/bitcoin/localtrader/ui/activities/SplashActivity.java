@@ -98,7 +98,7 @@ public class SplashActivity extends BaseActivity {
                 break;
             case SyncAdapter.ACTION_TYPE_ERROR:
                 Timber.e("Sync error: " + extraErrorMessage + "code: " + extraErrorCode);
-                showAlertDialog(new AlertDialogEvent(getString(R.string.error_generic_error), "There was an error syncing your account data, please try again later."), new Action0() {
+                showAlertDialog(new AlertDialogEvent(getString(R.string.error_generic_error), getString(R.string.error_sync)), new Action0() {
                     @Override
                     public void call() {
                         finish();

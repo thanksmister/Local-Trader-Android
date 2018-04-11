@@ -218,7 +218,7 @@ public class MessageActivity extends BaseActivity
         message = messageText.getText().toString();
         
         if (Strings.isBlank(message) && mUri == null) {
-            toast("Message is blank...");
+            toast(getString(R.string.toast_message_blank));
             return;
         }
 
@@ -358,18 +358,18 @@ public class MessageActivity extends BaseActivity
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("image/*");
             try {
-                startActivityForResult(Intent.createChooser(intent, "Select image"), GALLERY_INTENT_CALLED);
+                startActivityForResult(Intent.createChooser(intent, getString(R.string.chooser_select_image)), GALLERY_INTENT_CALLED);
             } catch (android.content.ActivityNotFoundException ex) {
-                toast("Please install a file manager to handle file selection.");
+                toast(getString(R.string.toast_no_file_manager));
             }
         } else {
             intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("image/*");
             try {
-                startActivityForResult(Intent.createChooser(intent, "Select image"), GALLERY_INTENT_CALLED);
+                startActivityForResult(Intent.createChooser(intent, getString(R.string.chooser_select_image)), GALLERY_INTENT_CALLED);
             } catch (android.content.ActivityNotFoundException ex) {
-                toast("Please install a file manager to handle file selection.");
+                toast(getString(R.string.toast_no_file_manager));
             }
         }
     }
@@ -416,7 +416,7 @@ public class MessageActivity extends BaseActivity
             public void onException(Exception exception)
             {
                 hideProgressDialog();
-                showAlertDialog(new AlertDialogEvent("File Error", "The file could not be uploaded"));
+                toast(getString(R.string.toast_file_no_upload));
             }
         });
         

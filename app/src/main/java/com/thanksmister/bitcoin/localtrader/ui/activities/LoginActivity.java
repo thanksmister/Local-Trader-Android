@@ -129,7 +129,7 @@ public class LoginActivity extends BaseActivity {
         Timber.d("currentEndpoint: " + currentEndpoint);
         apiEndpoint.setText(currentEndpoint);
         OAUTH_URL = currentEndpoint + "/oauth2/authorize/?ch=2hbo&client_id="
-                + getString(R.string.lbc_access_key) + "&response_type=code&scope=read+write+money_pin";
+                + BuildConfig.LBC_KEY + "&response_type=code&scope=read+write+money_pin";
 
         editTextDescription.setText(Html.fromHtml(getString(R.string.setup_description)));
         editTextDescription.setMovementMethod(LinkMovementMethod.getInstance());
@@ -170,18 +170,15 @@ public class LoginActivity extends BaseActivity {
         endpoint = apiEndpoint.getText().toString();
         final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
 
-        Timber.d("endpoint: " + endpoint);
-        Timber.d("currentEndpoint: " + currentEndpoint);
-        
         if (TextUtils.isEmpty(endpoint)) {
             hideProgressDialog();
-            showAlertDialog(new AlertDialogEvent(null, "The service end point should not be a valid URL."));
+            toast(getString(R.string.alert_valid_endpoint));
         } else if (!Patterns.WEB_URL.matcher(endpoint).matches()) {
             hideProgressDialog();
-            showAlertDialog(new AlertDialogEvent(null, "The service end point should not be a valid URL."));
+            toast(getString(R.string.alert_valid_endpoint));
         } else if (!currentEndpoint.equals(endpoint)) {
             hideProgressDialog();
-            showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), 
+            showAlertDialog(getString(R.string.alert_change_endpoint),
                     new Action0() {
                         @Override
                         public void call() {
@@ -189,12 +186,8 @@ public class LoginActivity extends BaseActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    showProgressDialog(new ProgressDialogEvent("Restarting...."), true);
                                     apiEndpoint.setText(endpoint);
-                                    Timber.d("endpoint: " + endpoint);
-                                    Timber.d("currentEndpoint: " + currentEndpoint);
                                     AuthUtils.setServiceEndPoint(preference, endpoint);
-                                    Timber.d("savedendpoint: " +  AuthUtils.getServiceEndpoint(preference, sharedPreferences));
                                     handler = new Handler();
                                     handler.postDelayed(refreshRunnable, 100);
                                 }
@@ -400,7 +393,7 @@ public class LoginActivity extends BaseActivity {
                 } else {
                     content.setVisibility(View.VISIBLE);
                     webView.setVisibility(View.GONE);
-                    showAlertDialog(new AlertDialogEvent("Authentication Error", getString(R.string.error_invalid_credentials)));
+                    showAlertDialog(new AlertDialogEvent(getString(R.string.alert_authentication_error_title), getString(R.string.error_invalid_credentials)));
                     return false;
                 }
 
@@ -435,7 +428,7 @@ public class LoginActivity extends BaseActivity {
                     final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://localbitcoins.com/register/?ch=2hbo"));
                     startActivity(intent);
                 } catch (ActivityNotFoundException e) {
-                    toast("Can't open external links from authentication flow.");
+                    toast(getString(R.string.error_cannot_open_links));
                 }
 
                 return true;
@@ -444,7 +437,7 @@ public class LoginActivity extends BaseActivity {
 
                 content.setVisibility(View.VISIBLE);
                 webView.setVisibility(View.GONE);
-                showAlertDialog(new AlertDialogEvent("Authentication Error", getString(R.string.error_invalid_credentials)));
+                showAlertDialog(new AlertDialogEvent(getString(R.string.alert_authentication_error_title), getString(R.string.error_invalid_credentials)));
                 return false;
 
             } else if (path.contains("cdn-cgi/l/chk_jschl")) {
@@ -459,9 +452,9 @@ public class LoginActivity extends BaseActivity {
                     final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                     startActivity(intent);
                 } catch (SecurityException e) {
-                    showAlertDialog(new AlertDialogEvent("Security Error", "It appears your traffic is being rerouted, you may want to try LocalBitcions.net. Here is the information: " + e.getMessage()));
+                    showAlertDialog(new AlertDialogEvent(getString(R.string.error_security_error_title), getString(R.string.error_traffic_rerouted) + e.getMessage()));
                 } catch (ActivityNotFoundException e) {
-                    toast("Can't open external links from authentication flow.");
+                    toast(getString(R.string.error_cannot_open_links));
                 }
 
                 return true;

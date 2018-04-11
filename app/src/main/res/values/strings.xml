@@ -656,7 +656,7 @@
     <string name="text_title_current_price">Current price</string>
     <string name="text_title_market_price">MARKET PRICE</string>
     <string name="toast_unable_update_currency_rate">Unable to update currency rate…</string>
-    <string name="toast_no_valid_address_bitcoin">No valid address to receive bitcoin…</string>
+    <string name="toast_no_valid_address_bitcoin">No valid address to receive Bitcoin…</string>
     <string name="text_title_request_specific_amount">Request Specific Amount</string>
     <string name="text_title_getting_started">Getting Started</string>
     <string name="text_description_getting_started">You can buy or sell Bitcoin by searching for traders or creating your own trade.</string>
@@ -737,10 +737,10 @@
     <string name="text_getting_started_guides">Getting Started Guides</string>
     <string name="text_buying_locally">Buying Locally</string>
     <string name="text_selling_locally">Selling Locally</string>
-    <string name="text_buying_onling">Buying Online</string>
+    <string name="text_buying_online">Buying Online</string>
     <string name="text_selling_online">Selling Online</string>
     <string name="text_trade">Trade</string>
-    <string name="error_hijack_link">Your phone is was trying to hijack the link:</string>
+    <string name="error_hijack_link">Your device was trying to hijack the link:</string>
 
 
     <string name="pref_market_currency">Market currency (%1$s)</string>
@@ -765,8 +765,29 @@
     <string name="title_message_to">Message to %1$s</string>
     <string name="dialog_edit_advertisements">To create advertisements you must use the LocalBitcoins website. Do you want to continue to the LocalBitcoins website?</string>
     <string name="error_deleting_advertisement">Error deleting Advertisement</string>
-    <string name="note_advanced_editing">For editing advanced advertisement features, use the LocalBitcoins website by clicking the globe icon.</string>
+    <string name="note_advanced_editing">For editing advanced advertisement features, use the LocalBitcoins website by clicking the planet icon.</string>
     <string name="pref_market_currency_title">Market currency</string>
+    <string name="alert_token_expired_title">Token Expired</string>
+    <string name="alert_change_endpoint">Changing the service end point requires an application restart. Do you want to update the end point and restart now?</string>
+    <string name="alert_valid_endpoint">The service end point should not be a valid URL.</string>
+    <string name="alert_authentication_error_title">Authentication Error</string>
+    <string name="error_cannot_open_links">Can\'t open external links from authentication flow.</string>
+    <string name="error_security_error_title">Security Error</string>
+    <string name="error_traffic_rerouted">It appears your traffic is being rerouted, you may want to try LocalBitcions.net. Here is the information:</string>
+    <string name="toast_message_blank">Message is blank...</string>
+    <string name="toast_no_file_manager">Please install a file manager to handle file selection.</string>
+    <string name="toast_file_no_upload">The file could not be uploaded.</string>
+    <string name="chooser_select_image">Select image</string>
+    <string name="title_enter_pincode">Enter PIN Code</string>
+    <string name="progress_pin_verify">Verifying PIN...</string>
+    <string name="text_share_using">Share using:</string>
+    <string name="toast_error_qrcode">Error generating QR code</string>
+    <string name="error_sync">There was an error syncing your account data, please try again later.</string>
+    <string name="text_with">With %1$s</string>
+    <string name="text_atm">ATM</string>
+    <string name="text_in">in %1$s</string>
+    <string name="text_in_caps">In %1$s</string>
+    <string name="text_with_in">With %1$s in %2$s</string>
 
 
 </resources>

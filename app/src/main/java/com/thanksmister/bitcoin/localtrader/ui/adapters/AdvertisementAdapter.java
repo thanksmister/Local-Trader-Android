@@ -16,6 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -89,6 +90,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
         notifyDataSetChanged();
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public View getView(final int position, View view, ViewGroup parent)
     {
@@ -112,45 +114,35 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
         String type = "";
         switch (tradeType) {
             case LOCAL_BUY:
-                type = "Local Buy - ";
+                type = context.getString(R.string.text_advertisement_item_local_buy);
                 break;
             case LOCAL_SELL:
-                type = "Local Sale -";
+                type = context.getString(R.string.text_advertisement_item_local_sale);
                 break;
             case ONLINE_BUY:
-                type = "Online Buy - ";
+                type = context.getString(R.string.text_advertisement_item_online_buy);
                 break;
             case ONLINE_SELL:
-                type = "Online Sale - ";
+                type = context.getString(R.string.text_advertisement_item_local_sale);
                 break;
         }
-        
-        /*holder.tradePrice.setText(editAdvertisement.temp_price + " " + editAdvertisement.currency);
-        if(editAdvertisement.max_amount == null) {
-            holder.tradeLimit.setText(context.getString(R.string.trade_limit_min, editAdvertisement.min_amount, editAdvertisement.currency));
-        } else { // no maximum set
-            holder.tradeLimit.setText(context.getString(R.string.trade_limit, editAdvertisement.min_amount, editAdvertisement.max_amount));
-        }*/
 
         String price = advertisement.temp_price() + " " + advertisement.currency();
         String location = advertisement.location_string();
 
         if (TradeUtils.isLocalTrade(advertisement)) {
-            //holder.tradeType.setText(Html.fromHtml(context.getString(R.string.advertisement_list_text_local, type, temp_price, location)));
-
             if(TradeUtils.isAtm(advertisement)) {
-                holder.advertisementType.setText("ATM");
-                holder.advertisementDetails.setText("ATM" + " in " + advertisement.city());
+                holder.advertisementType.setText(R.string.text_atm);
+                holder.advertisementDetails.setText(context.getText(R.string.text_atm) + " " + context.getString(R.string.text_in, advertisement.city()));
             } else {
                 holder.advertisementType.setText(type + " " + price);
-                holder.advertisementDetails.setText("In " + location);
+                holder.advertisementDetails.setText(context.getString(R.string.text_in_caps, location));
             }
 
         } else {
             String paymentMethod = TradeUtils.getPaymentMethodFromItems(advertisement, methods);
-            //String bank = editAdvertisement.bank_name;
-            holder.advertisementType.setText(type + " " + price);
-            holder.advertisementDetails.setText("With " + paymentMethod + " in " + advertisement.city());
+            holder.advertisementType.setText(type + price);
+            holder.advertisementDetails.setText(context.getString(R.string.text_with_in, paymentMethod, advertisement.city()));
         }
 
         if (advertisement.visible()) {
@@ -297,14 +289,14 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
             switch (contact.advertisement.trade_type) {
                 case LOCAL_BUY:
                 case LOCAL_SELL:
-                    type = (contact.is_buying)? "Buying Locally":"Selling Locally";
+                    type = (contact.is_buying)? context.getString(R.string.text_buying_locally) : context.getString(R.string.text_selling_locally);
                     break;
                 case ONLINE_BUY:
                 case ONLINE_SELL:
-                    type = (contact.is_buying)? "Buying Online":"Selling Online";
+                    type = (contact.is_buying)? context.getString(R.string.text_buying_online) : context.getString(R.string.text_selling_online);
                     break;
                 default:
-                    type = "Trade";
+                    type = context.getString(R.string.text_trade);
                     break;
             }
     
@@ -313,7 +305,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable
             String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at);
     
             holder.tradeType.setText(type + " - " + amount);
-            holder.tradeDetails.setText("With " + person + " (" + date + ")");
+            holder.tradeDetails.setText(context.getString(R.string.text_with, person + " (" + date + ")"));
             holder.contactMessageCount.setText(String.valueOf(contact.messages.size()));
             
             return view;

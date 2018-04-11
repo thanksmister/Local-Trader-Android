@@ -20,6 +20,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
@@ -113,8 +114,9 @@ public class DataService {
     }
 
     public Observable<Authorization> getAuthorization(String code) {
-        return localBitcoins.getAuthorization("authorization_code", code, baseApplication.getString(R.string.lbc_access_key), baseApplication.getString(R.string.lbc_access_secret))
+        return localBitcoins.getAuthorization("authorization_code", code, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .map(new ResponseToAuthorize());
+
     }
 
     private <T> Func1<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
@@ -151,7 +153,7 @@ public class DataService {
 
     private Observable<String> refreshTokens() {
         final String refreshToken = AuthUtils.getRefreshToken(preference, sharedPreferences);
-        return localBitcoins.refreshToken("refresh_token", refreshToken, baseApplication.getString(R.string.lbc_access_key), baseApplication.getString(R.string.lbc_access_secret))
+        return localBitcoins.refreshToken("refresh_token", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .map(new ResponseToAuthorize())
                 .flatMap(new Func1<Authorization, Observable<? extends String>>() {
                     @Override

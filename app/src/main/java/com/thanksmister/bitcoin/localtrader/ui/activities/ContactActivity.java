@@ -905,7 +905,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 break;
             case ONLINE_BUY:
             case ONLINE_SELL:
-                title = (contact.is_buying) ? getString(R.string.text_buying_onling) : getString(R.string.text_selling_online);
+                title = (contact.is_buying) ? getString(R.string.text_buying_online) : getString(R.string.text_selling_online);
                 break;
             default:
                 title = getString(R.string.text_trade);

@@ -397,7 +397,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
             noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_locally, title, price, location)));
         } else {
             String paymentMethod = TradeUtils.getPaymentMethod(advertisement, method);
-            if (Strings.isBlank(paymentMethod)) {
+            if (TextUtils.isEmpty(paymentMethod)) {
                 noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location)));
             } else {
                 noteTextAdvertisement.setText(Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location)));

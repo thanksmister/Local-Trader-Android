@@ -182,8 +182,6 @@ public class SearchResultsActivity extends BaseActivity {
     }
 
     protected void updateData() {
-        
-        Timber.d("Update Data");
 
         final String currency = SearchUtils.getSearchCurrency(sharedPreferences);
         final String paymentMethod = SearchUtils.getSearchPaymentMethod(sharedPreferences);
@@ -191,14 +189,6 @@ public class SearchResultsActivity extends BaseActivity {
         final String code = SearchUtils.getSearchCountryCode(sharedPreferences);
         final double latitude = SearchUtils.getSearchLatitude(sharedPreferences);
         final double longitude = SearchUtils.getSearchLongitude(sharedPreferences);
-
-        Timber.d("tradeType: " + tradeType.name());
-        Timber.d("currency: " + currency);
-        Timber.d("method: " + paymentMethod);
-        Timber.d("country: " + country);
-        Timber.d("code: " + code);
-        Timber.d("latitude: " + latitude);
-        Timber.d("longitude: " + longitude);
 
         toast(getString(R.string.toast_searching));
         showProgress();
@@ -238,7 +228,6 @@ public class SearchResultsActivity extends BaseActivity {
                         @Override
                         public void call(final List<MethodItem> methodItems) {
                             String method = TradeUtils.getPaymentMethod(paymentMethod, methodItems);
-                            Timber.i("Payment Method Util: " + method);
                             geoLocationService.getOnlineAdvertisements(tradeType, country, code, currency, method)
                                     .subscribe(new Action1<List<Advertisement>>() {
                                         @Override

@@ -105,9 +105,9 @@ public class PromoActivity extends BaseActivity {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             getContext().startActivity(browserIntent);
         } catch (SecurityException e) {
-            showAlertDialogLinks(new AlertDialogEvent("Security Error", "It appears that your connection is being rerouted, you may want to try LocalBitcoins.net. Here is the information: " + e.getMessage()));
+            showAlertDialogLinks(getString(R.string.error_traffic_rerouted));
         } catch (ActivityNotFoundException e) {
-            showAlertDialogLinks(new AlertDialogEvent("Link Error", getString(R.string.toast_error_no_installed_ativity)));
+            showAlertDialogLinks(getString(R.string.toast_error_no_installed_ativity));
         }
 
     }

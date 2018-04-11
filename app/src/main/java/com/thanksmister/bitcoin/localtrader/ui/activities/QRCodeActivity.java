@@ -28,13 +28,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.AndroidRuntimeException;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import butterknife.ButterKnife;
@@ -121,7 +121,7 @@ public class QRCodeActivity extends Activity {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     @SuppressWarnings("deprecation")
     public void setRequestOnClipboard() {
-        String bitcoinUrl = (Strings.isBlank(amount)) ? WalletUtils.generateBitCoinURI(address, amount) : WalletUtils.generateBitCoinURI(address, amount);
+        String bitcoinUrl = (TextUtils.isEmpty(amount)) ? WalletUtils.generateBitCoinURI(address, amount) : WalletUtils.generateBitCoinURI(address, amount);
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText(getString(R.string.bitcoin_request_clipboard_title), bitcoinUrl);
         clipboard.setPrimaryClip(clip);
@@ -129,7 +129,7 @@ public class QRCodeActivity extends Activity {
     }
 
     private void shareBitcoinRequest() {
-        String bitcoinUrl = (Strings.isBlank(amount)) ? WalletUtils.generateBitCoinURI(address, amount) : WalletUtils.generateBitCoinURI(address, amount);
+        String bitcoinUrl = (TextUtils.isEmpty(amount)) ? WalletUtils.generateBitCoinURI(address, amount) : WalletUtils.generateBitCoinURI(address, amount);
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(bitcoinUrl)));
         } catch (ActivityNotFoundException ex) {
@@ -139,7 +139,7 @@ public class QRCodeActivity extends Activity {
                 sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 sendIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.bitcoin_request_clipboard_title));
                 sendIntent.putExtra(Intent.EXTRA_TEXT, bitcoinUrl);
-                startActivity(Intent.createChooser(sendIntent, "Share using:"));
+                startActivity(Intent.createChooser(sendIntent, getString(R.string.text_share_using)));
             } catch (AndroidRuntimeException e) {
                 Timber.e(e.getMessage());
             }
@@ -159,7 +159,7 @@ public class QRCodeActivity extends Activity {
                     @Override
                     public void onError(Throwable e) {
                         Timber.e(e.getMessage());
-                        Toast.makeText(getApplicationContext(), "Error generating QR code", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), R.string.toast_error_qrcode, Toast.LENGTH_LONG).show();
                     }
 
                     @Override

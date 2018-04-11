@@ -100,9 +100,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Injector.inject(this);
-
-        // TODO allow for multiple locale support
-        setLocale("en", "US");
     }
 
     @Override
@@ -222,7 +219,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                 .show();
     }
 
-    public void showAlertDialogLinks(AlertDialogEvent event) {
+    public void showAlertDialogLinks(String message) {
 
         if (alertDialog != null) {
             alertDialog.dismiss();
@@ -231,13 +228,11 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         
         View view = View.inflate(BaseActivity.this, R.layout.dialog_about, null);
         TextView textView = (TextView) view.findViewById(R.id.message);
-        textView.setText(Html.fromHtml(event.message));
+        textView.setText(Html.fromHtml(message));
         textView.setMovementMethod(LinkMovementMethod.getInstance());
         alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
-                .setTitle(event.title)
                 .setView(view)
                 .setPositiveButton(android.R.string.ok, null)
-                .setCancelable(event.cancelable)
                 .show();
     }
 
@@ -252,6 +247,48 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setCancelable(event.cancelable)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        actionToTake.call();
+                    }
+                })
+                .show();
+    }
+
+    public void showAlertDialog(String message, final Action0 actionToTake) {
+
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+        }
+
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+                .setMessage(Html.fromHtml(message))
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        actionToTake.call();
+                    }
+                })
+                .show();
+    }
+
+    public void showAlertDialog(String message, final Action0 actionToTake, final Action0 cancelActionToTake) {
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+            alertDialog = null;
+        }
+
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+                .setCancelable(false)
+                .setMessage(Html.fromHtml(message))
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        cancelActionToTake.call();
+                    }
+                })
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -452,12 +489,13 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             RetroError error = DataServiceUtils.createRetroError(throwable);
             if (error.getCode() == 403) {
                 toast(getString(R.string.error_bad_token));
-                showAlertDialog(new AlertDialogEvent("Token Expired", getString(R.string.error_bad_token)), new Action0() {
+                showAlertDialog(new AlertDialogEvent(getString(R.string.alert_token_expired_title), getString(R.string.error_bad_token)), new Action0() {
                     @Override
                     public void call() {
                         logOut();
                     }
                 });
+
             } else {
                 Timber.e("Data Error Message: " + error.getMessage());
                 snack(error.getMessage(), retry);
@@ -538,24 +576,5 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         } else {
             toast(messageId);
         }
-    }
-
-    // TODO move to util to begin i18N process and unit test
-    protected void setLocale(String language, String country) {
-
-        // create new local
-        Locale locale = new Locale(language, country);
-
-        // here we update locale for date formatters
-        Locale.setDefault(locale);
-
-        // here we update locale for app resources
-
-        Resources res = getResources();
-
-        Configuration config = res.getConfiguration();
-        config.locale = locale;
-
-        res.updateConfiguration(config, res.getDisplayMetrics());
     }
 }

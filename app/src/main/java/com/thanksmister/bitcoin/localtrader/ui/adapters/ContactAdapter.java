@@ -85,11 +85,11 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
             switch (tradeType) {
                 case LOCAL_BUY:
                 case LOCAL_SELL:
-                    type = (contact.is_buying()) ? "Buying Locally" : "Selling Locally";
+                    type = (contact.is_buying()) ? context.getString(R.string.text_buying_locally) : context.getString(R.string.text_selling_locally);
                     break;
                 case ONLINE_BUY:
                 case ONLINE_SELL:
-                    type = (contact.is_buying()) ? "Buying Online" : "Selling Online";
+                    type = (contact.is_buying()) ? context.getString(R.string.text_buying_online) : context.getString(R.string.text_selling_online);
                     break;
             }
 
@@ -98,7 +98,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
             String date = Dates.parseLocaleDateTime(contact.created_at());
             
             ((ItemViewHolder) viewHolder).tradeType.setText(type + " - " + amount);
-            ((ItemViewHolder) viewHolder).tradeDetails.setText("With " + person);
+            ((ItemViewHolder) viewHolder).tradeDetails.setText(context.getString(R.string.text_with, person));
             ((ItemViewHolder) viewHolder).contactId.setText(contact.contact_id());
             ((ItemViewHolder) viewHolder).contactDate.setText(date);
         }
