@@ -163,14 +163,16 @@
     <string name="toast_missing_phone_number">El número de teléfono no debe estar en blanco.</string>
     <string name="toast_price_equation_blank">La ecuación de precios no puede estar en blanco.</string>
     <string name="toast_minimum_amount">Ingrese un monto mínimo válido.</string>
-    <string name="toast_maximum_amount">Ingrese una cantidad máxima válida.</string>
-    <string name="toast_error_visibility_update">Error al actualizar la visibilidad!</string>
-    <string name="toast_update_visibility">Visibilidad actualizada!</string>
+    <string name="toast_maximum_amount">Ingrese una cantidad máxima válida.</string><![CDATA[
+    
+    ]]>
+    <string name="toast_update_visibility">Visibilidad actualizada!</string>
     <string name="toast_error_updat_advertisement">Error al actualizar el anuncio…</string>
     <string name="toast_error_contact_data">Error al recuperar datos de contacto…</string>
-    <string name="toast_message_canceled">Mensaje cancelado…</string>
-    <string name="toast_error_advertisement_data">No se pueden recuperar los datos del anuncio.</string>
-    <string name="toast_no_activity_for_maps">No hay actividad para manejar esta acción (no mapas).</string>
+    <string name="toast_message_canceled">Mensaje cancelado…</string><![CDATA[
+    
+    ]]>
+    <string name="toast_no_activity_for_maps">No hay actividad para manejar esta acción (no mapas).</string>
     <string name="toast_advertisement_deleted">Anuncio eliminado!</string>
 
     <!-- Search -->
@@ -213,9 +215,10 @@
     <string name="wallet_my_address_share">Mi dirección de Bitcoin</string>
     <string name="share_using">Compartir usando:</string>
     <string name="error_invalid_credentials">La autenticación falló, compruebe que tiene las credenciales correctas.</string>
-    <string name="message_advertisement_changed">Anuncio cambiado con éxito!</string>
-    <string name="message_advertisement_created">Anuncio creado con éxito!</string>
-    <string name="button_search_trades">Búsqueda</string>
+    <string name="message_advertisement_changed">Anuncio cambiado con éxito!</string><![CDATA[
+    
+    ]]>
+    <string name="button_search_trades">Búsqueda</string>
     <string name="dialog_send_message">Enviar mensaje…</string>
 
     <!-- SETTINGS -->
@@ -517,18 +520,21 @@
     </string-array>
     
     <string name="hint_enter_county_city_or_address">Ingrese el condado, la ciudad o la dirección</string>
-    <string name="text_payment_method">Método de pago</string>
-    <string name="text_new_post_canceled">Nuevo anuncio cancelado</string>
-    <string name="text_post_update_canceled">Actualización del anuncio cancelada</string>
+    <string name="text_payment_method">Método de pago</string><![CDATA[
+    
+    ]]>
+    <string name="text_post_update_canceled">Actualización del anuncio cancelada</string>
     <string name="error_address_title">Error de dirección</string>
     <string name="error_location_title">Error de ubicación</string>
-    <string name="error_location_message">El administrador de ubicaciones no pudo usar el proveedor disponible, su ubicación no se pudo determinar</string>
-    <string name="menu_get_location">Obtener ubicación del dispositivo</string>
-    <string name="text_advertisement_status">Estado</string>
-    <string name="dialog_loading">Cargando…</string>
-    <string name="button_previous">Anterior</string>
-    <string name="button_next">Siguiente</string>
-    <string name="text_i_want_to">Quiero…</string>
+    <string name="error_location_message">El administrador de ubicaciones no pudo usar el proveedor disponible, su ubicación no se pudo determinar</string><![CDATA[
+    
+    ]]>
+    <string name="text_advertisement_status">Estado</string>
+    <string name="dialog_loading">Cargando…</string><![CDATA[
+    
+    
+    ]]>
+    <string name="text_i_want_to">Quiero…</string>
     <string name="text_method_name_all">Todos</string>
     <string name="text_currency">Moneda</string>
     <string name="text_currency_description">Cambia el precio del anuncio a la moneda seleccionada y actualiza la ecuación del precio.</string>
@@ -593,7 +599,6 @@
     <string name="text_title_deal_amount">Cantidad de oferta</string>
     <string name="text_title_current_price">Precio actual</string>
     <string name="text_title_market_price">PRECIO DE MERCADO</string>
-    <string name="toast_unable_update_currency_rate">No se puede actualizar la tasa de cambio ...</string>
     <string name="toast_no_valid_address_bitcoin">No hay una dirección válida para recibir Bitcoin ...</string>
     <string name="text_title_request_specific_amount">Monto específico de solicitud</string>
     <string name="text_title_getting_started">Empezando</string>
@@ -701,7 +706,6 @@
     <string name="text_donate_button">Cómprame un café</string>
     <string name="title_message_to">Mensaje para %1$s</string>
     <string name="dialog_edit_advertisements">Para crear anuncios, debe usar el sitio web de LocalBitcoins. ¿Desea continuar con el sitio web de LocalBitcoins?</string>
-    <string name="error_deleting_advertisement">Error al eliminar Publicidad</string>
     <string name="note_advanced_editing">Para editar características avanzadas de publicidad, use el sitio web de LocalBitcoins haciendo clic en el ícono de planeta.</string>
     <string name="pref_market_currency_title">Moneda del mercado</string>
     <string name="alert_token_expired_title">Token caducado</string>
@@ -725,5 +729,7 @@
     <string name="text_in">en %1$s</string>
     <string name="text_in_caps">En %1$s</string>
     <string name="text_with_in">Con %1$s en %2$s</string>
+    <string name="hint_enter_message">Ingrese el mensaje</string>
+    <string name="text_attach_file">Adjuntar archivo</string>
 
 </resources>

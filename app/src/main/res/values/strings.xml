@@ -20,7 +20,6 @@
     <string name="app_name" translatable="false">Local Trader</string>
     <string name="desc" translatable="false">""</string>
     <string name="btc" translatable="false">BTC</string>
-    <string name="btc_symbol" translatable="false">฿</string>
     <string name="usd" translatable="false">USD</string>
     <string name="eth" translatable="false">ETH</string>
     <string name="error_title" translatable="false">Error</string>
@@ -197,12 +196,10 @@
     <string name="toast_price_equation_blank">Price equation can\'t be blank.</string>
     <string name="toast_minimum_amount">Enter a valid minimum amount.</string>
     <string name="toast_maximum_amount">Enter a valid maximum amount.</string>
-    <string name="toast_error_visibility_update">Error updating visibility!</string>
     <string name="toast_update_visibility">Visibility updated!</string>
     <string name="toast_error_updat_advertisement">Error updating Advertisement…</string>
     <string name="toast_error_contact_data">Error retrieving contact data…</string>
     <string name="toast_message_canceled">Message canceled…</string>
-    <string name="toast_error_advertisement_data">Unable to retrieve Advertisement data.</string>
     <string name="toast_no_activity_for_maps">There is no activity to handle this action (no maps).</string>
     <string name="toast_advertisement_deleted">Advertisement deleted!</string>
 
@@ -271,7 +268,6 @@
     <string name="share_using">Share using:</string>
     <string name="error_invalid_credentials">The authentication failed, please check that you have the correct credentials.</string>
     <string name="message_advertisement_changed">Advertisement changed successfully!</string>
-    <string name="message_advertisement_created">Advertisement created successfully!</string>
     <string name="button_search_trades">Search</string>
     <string name="dialog_send_message">Sending message…</string>
 
@@ -580,16 +576,12 @@
     
     <string name="hint_enter_county_city_or_address">Enter County, City or Address</string>
     <string name="text_payment_method">Payment method</string>
-    <string name="text_new_post_canceled">New Advertisement canceled</string>
     <string name="text_post_update_canceled">Advertisement update canceled</string>
     <string name="error_address_title">Address Error</string>
     <string name="error_location_title">Location Error</string>
     <string name="error_location_message">Location manager could not use the available provider, your location could not be determined</string>
-    <string name="menu_get_location">Get Device Location</string>
     <string name="text_advertisement_status">Status</string>
     <string name="dialog_loading">Loading…</string>
-    <string name="button_previous">Previous</string>
-    <string name="button_next">Next</string>
     <string name="text_i_want_to">I want to…</string>
     <string name="text_method_name_all">All</string>
     <string name="text_currency">Currency</string>
@@ -655,7 +647,6 @@
     <string name="text_title_deal_amount">Deal amount</string>
     <string name="text_title_current_price">Current price</string>
     <string name="text_title_market_price">MARKET PRICE</string>
-    <string name="toast_unable_update_currency_rate">Unable to update currency rate…</string>
     <string name="toast_no_valid_address_bitcoin">No valid address to receive Bitcoin…</string>
     <string name="text_title_request_specific_amount">Request Specific Amount</string>
     <string name="text_title_getting_started">Getting Started</string>
@@ -764,7 +755,6 @@
     <string name="text_donate_button">Buy me a coffee</string>
     <string name="title_message_to">Message to %1$s</string>
     <string name="dialog_edit_advertisements">To create advertisements you must use the LocalBitcoins website. Do you want to continue to the LocalBitcoins website?</string>
-    <string name="error_deleting_advertisement">Error deleting Advertisement</string>
     <string name="note_advanced_editing">For editing advanced advertisement features, use the LocalBitcoins website by clicking the planet icon.</string>
     <string name="pref_market_currency_title">Market currency</string>
     <string name="alert_token_expired_title">Token Expired</string>
@@ -788,6 +778,8 @@
     <string name="text_in">in %1$s</string>
     <string name="text_in_caps">In %1$s</string>
     <string name="text_with_in">With %1$s in %2$s</string>
+    <string name="hint_enter_message">Enter message</string>
+    <string name="text_attach_file">Attach file</string>
 
 
 </resources>

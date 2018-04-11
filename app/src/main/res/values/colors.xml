@@ -25,8 +25,6 @@
 
     <color name="window_background">@color/white</color>
 
-    <color name="transparent">#00000000</color>
-
     <color name="body_text_1">#8a000000</color>
     <color name="body_text_2">#64000000</color>
     <color name="body_text_3">#4d000000</color>
@@ -45,7 +43,6 @@
 
     <color name="promo_background_red">#f6a598</color>
 
-    <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="light_gray">#efefef</color>
     <color name="red">#d7523e</color>

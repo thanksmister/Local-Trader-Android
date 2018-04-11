@@ -85,11 +85,7 @@
     </style>
 
     <!-- Edit theme. -->
-    <style name="FabTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-        <item name="colorAccent">@color/white</item>
-    </style>
-    
+
     <!--
       Base application theme, dependent on API level. This theme is replaced
       by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
@@ -125,35 +121,12 @@
         <item name="android:textColor">@color/dark_gray_color</item>
     </style>
 
-    <style name="BorderlessButtonStyle.Active" parent="BorderlessButtonStyle">
-        <item name="android:textColor">@color/blue</item>
-    </style>
-
-    <style name="BorderlessButtonStyle.Blue" parent="BorderlessButtonStyle">
-        <item name="android:layout_margin">0dp</item>
-        <item name="android:padding">0dp</item>
-        <item name="android:textSize">@dimen/text_size_medium</item>
-        <item name="android:textColor">@color/blue</item>
-    </style>
-
-    <style name="BottomButtonStyle" parent="BorderlessButtonStyle">
-        <item name="android:layout_margin">0dp</item>
-        <item name="android:padding">0dp</item>
-        <item name="android:height">48dp</item>
-        <item name="android:textSize">@dimen/text_size_large_small_action</item>
-        <item name="android:textColor">@color/dark_gray_color</item>
-    </style>
-
     <style name="DividerVertical">
         <item name="android:layout_width"> 1px</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_marginLeft">0dip</item>
         <item name="android:layout_marginRight">0dip</item>
         <item name="android:background">#ffe1e1e1</item>
-    </style>
-
-    <style name="DividerVertical.Dark" parent="DividerVertical">>
-        <item name="android:background">#ffc0c0c0</item>
     </style>
 
     <style name="DividerHorizontal" parent="DividerVertical">
@@ -166,50 +139,8 @@
         <item name="android:ellipsize">end</item>
     </style>
 
-    <style name="Text.Headline">
-        <item name="android:textSize">@dimen/text_size_login</item>
-        <item name="android:textColor">@color/body_text_2</item>
-    </style>
-
-    <style name="Text.Headline.Black" >
-        <item name="android:textSize">@dimen/text_size_login</item>
-        <item name="android:textColor">@color/body_text_1</item>
-    </style>
-
-    <style name="Text.Headline.White" parent="Text.Headline">
-        <item name="android:textColor">@color/white</item>
-    </style>
-
     <style name="SmallText" parent="Text">
         <item name="android:textSize">@dimen/text_size_small</item>
-    </style>
-
-    <style name="SmallText.White" parent="SmallText">
-        <item name="android:textColor">@color/white</item>
-    </style>
-
-    <style name="SmallText.Black" parent="SmallText">
-        <item name="android:textColor">@color/black</item>
-    </style>
-
-    <style name="SmallText.Italic" parent="SmallText">
-        <item name="android:textStyle">italic</item>
-    </style>
-
-    <style name="SmallText.Light" parent="SmallText">
-        <item name="android:textColor">@color/body_text_3</item>
-    </style>
-
-    <style name="SmallText.Red" parent="SmallText">
-        <item name="android:textColor">@color/red</item>
-    </style>
-
-    <style name="SmallText.Green" parent="SmallText">
-        <item name="android:textColor">@color/text_green</item>
-    </style>
-
-    <style name="SmallText.Blue" parent="SmallText">
-        <item name="android:textColor">@color/blue</item>
     </style>
 
     <style name="SmallText.ExtraSmall">
@@ -219,10 +150,6 @@
     <style name="SmallText.ExtraSmall.Light">
         <item name="android:textSize">@dimen/extra_small_text</item>
         <item name="android:textColor">@color/body_text_3</item>
-    </style>
-
-    <style name="SmallText.SmallAction">
-        <item name="android:textSize">@dimen/action_small_text</item>
     </style>
 
     <style name="SmallText.ExtraSmall.White">
@@ -238,20 +165,8 @@
         <item name="android:textSize">@dimen/text_size_medium</item>
     </style>
 
-    <style name="TextMedium.White" parent="Text">
-        <item name="android:textColor">@color/white</item>
-    </style>
-
-    <style name="TextMedium.Secondary.Dark">
-        <item name="android:textColor">@color/body_text_1</item>
-    </style>
-
     <style name="TextMedium.Secondary">
         <item name="android:textColor">@color/body_text_2</item>
-    </style>
-
-    <style name="TextMedium.Light">
-        <item name="android:textColor">@color/body_text_3</item>
     </style>
 
     <style name="TextMedium.Blue">
@@ -263,22 +178,6 @@
         <item name="android:textSize">@dimen/text_size_medium</item>
     </style>
 
-    <style name="TextMedium.SmallAction.Bold">
-        <item name="android:textSize">@dimen/text_size_medium</item>
-    </style>
-
-    <style name="TextMedium.SmallAction.Red" >
-        <item name="android:textColor">@color/red</item>
-    </style>
-
-    <style name="TextMedium.SmallAction.Blue" >
-        <item name="android:textColor">@color/blue</item>
-    </style>
-
-    <style name="TextMedium.SmallAction.Green" parent="TextMedium.SmallAction">
-        <item name="android:textColor">@color/text_green</item>
-    </style>
-
     <style name="TextMedium.SmallAction.White" parent="TextMedium.SmallAction">
         <item name="android:textColor">@color/white</item>
     </style>
@@ -287,28 +186,8 @@
         <item name="android:textColor">@color/body_text_2</item>
     </style>
 
-    <style name="TextMedium.Red" parent="TextMedium">
-        <item name="android:textColor">@color/red</item>
-    </style>
-
-    <style name="TextMedium.Green" parent="TextMedium">
-        <item name="android:textColor">@color/text_green</item>
-    </style>
-
-    <style name="TextMedium.Bold" parent="TextMedium">
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="TextMedium.Bold.Blue" parent="TextMedium.Bold">
-        <item name="android:textColor">@color/blue</item>
-    </style>
-
     <style name="TextLarge" parent="Text">
         <item name="android:textSize">@dimen/text_size_large</item>
-    </style>
-
-    <style name="TextLarge.Blue">
-        <item name="android:textColor">@color/blue</item>
     </style>
 
     <style name="TextLarge.White">
@@ -323,59 +202,12 @@
         <item name="android:textColor">@color/body_text_1_inverse</item>
     </style>
 
-    <style name="TextLarge.Light">
-        <item name="android:textColor">@color/body_text_3</item>
-    </style>
-
-    <style name="TextLarge.SmallAction.Light">
-        <item name="android:textColor">@color/body_text_3</item>
-    </style>
-
-    <style name="TextLarge.SmallAction.Dark">
-        <item name="android:textColor">@color/dark_gray_color</item>
-    </style>
-
-    <style name="TextLarge.SmallAction.Blue">
-        <item name="android:textSize">20sp</item>
-        <item name="android:textColor">@color/blue</item>
-    </style>
-
     <style name="TextLarge.SmallAction.Green">
         <item name="android:textColor">@color/text_green</item>
     </style>
 
-    <style name="TextLarge.SmallAction.Green.Bold">
-        <item name="android:textColor">@color/text_green</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="TextLarge.SmallAction.Bold">
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="TextLarge.SmallAction.Red">
-        <item name="android:textColor">@color/red</item>
-    </style>
-
     <style name="TextExtraLarge" parent="Text">
         <item name="android:textSize">@dimen/text_size_headline</item>
-    </style>
-
-    <style name="TextExtraLarge.Bold" >
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="TextExtraLarge.Green" >
-        <item name="android:textColor">@color/text_green</item>
-    </style>
-
-    <style name="TextExtraLarge.Blue">
-        <item name="android:textColor">@color/blue</item>
-    </style>
-
-    <style name="TextExtraLarge.Blue.Bold">
-        <item name="android:textColor">@color/blue</item>
-        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="TextExtraLarge.White">
@@ -387,45 +219,16 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="TextExtraLarge.Green.Bold">
-        <item name="android:textColor">@color/blue</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="TextExtraLarge.Light">
-        <item name="android:textColor">@color/body_text_3</item>
-    </style>
-
     <style name="TextSmall" parent="Text">
         <item name="android:textSize">@dimen/text_size_small</item>
-    </style>
-
-    <style name="TextSmall.Secondary">
-        <item name="android:textColor">@color/body_text_2</item>
     </style>
 
     <style name="TextSmall.Light" >
         <item name="android:textColor">@color/body_text_3</item>
     </style>
 
-    <style name="TextSmall.Red">
-        <item name="android:textColor">@color/red</item>
-    </style>
-
-    <style name="TextSmall.Green">
-        <item name="android:textColor">@color/text_green</item>
-    </style>
-
     <style name="TextSmall.White">
         <item name="android:textColor">@color/white</item>
-    </style>
-
-    <style name="TextSmall.Blue">
-        <item name="android:textColor">@color/blue</item>
-    </style>
-
-    <style name="TextSmall.Blue.Bold">
-        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="ButtonStyle" parent="@android:style/Widget.Button">
@@ -449,86 +252,5 @@
         <item name="android:background">@drawable/button_green_small_selector</item>
     </style>
 
-    <style name="ButtonWhite.Small" parent="ButtonStyle">
-        <item name="android:maxHeight">36dp</item>
-        <item name="android:textSize">@dimen/text_size_medium</item>
-        <item name="android:textColor">@color/body_text_2</item>
-        <item name="android:background">@drawable/button_white_small_selector</item>
-    </style>
-
-    <style name="ButtonGray" parent="ButtonStyle">
-        <item name="android:textColor">@color/body_text_2</item>
-        <item name="android:background">@drawable/button_gray_selector</item>
-    </style>
-
-    <style name="ButtonWhite" parent="ButtonStyle">
-        <item name="android:textColor">@color/body_text_2</item>
-        <item name="android:background">@drawable/button_white_small_selector</item>
-    </style>
-
-    <style name="ButtonClear" parent="ButtonStyle">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:background">@drawable/button_transparent</item>
-    </style>
-
-    <style name="ButtonBlue" parent="ButtonStyle">
-        <item name="android:textSize">22sp</item>
-        <item name="android:textColor">#fff</item>
-        <item name="android:background">@drawable/button_blue_selector</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="ButtonRed" parent="ButtonStyle">
-        <item name="android:textSize">20sp</item>
-        <item name="android:textColor">#fff</item>
-        <item name="android:background">@drawable/button_red_selector</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
-    <style name="ButtonRed.Small" parent="ButtonRed">
-        <item name="android:maxHeight">36dp</item>
-        <item name="android:textSize">@dimen/text_size_large_small_action</item>
-        <item name="android:textColor">#fff</item>
-        <item name="android:background">@drawable/button_red_small_selector</item>
-    </style>
-
-    <style name="ButtonBlue.Small" parent="ButtonBlue">
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">#fff</item>
-        <item name="android:background">@drawable/button_blue_selector</item>
-    </style>
-
-
-    <style name="TextButtonStyle" parent="BorderlessButtonStyle">
-        <item name="android:textSize">@dimen/text_size_small</item>
-        <item name="android:textColor">@color/dark_gray_color</item>
-        <item name="android:paddingLeft">@dimen/view_padding</item>
-        <item name="android:paddingRight">@dimen/view_padding</item>
-        <item name="android:paddingTop">@dimen/view_padding_xlarge</item>
-        <item name="android:paddingBottom">@dimen/view_padding_xlarge</item>
-        <item name="android:gravity">left|center_vertical</item>
-    </style>
-
-    <style name="TextButtonStyle.Gray" parent="TextButtonStyle">
-        <item name="android:background">@drawable/button_text_selector</item>
-    </style>
-
-    <style name="SmallTextButtonStyle" parent="ButtonStyle">
-        <item name="android:textSize">@dimen/text_size_xsmall</item>
-        <item name="android:textColor">@color/dark_gray_color</item>
-        <item name="android:background">@drawable/button_text_selector</item>
-        <item name="android:paddingLeft">@dimen/view_padding</item>
-        <item name="android:paddingRight">@dimen/view_padding</item>
-        <item name="android:paddingTop">@dimen/view_padding_large</item>
-        <item name="android:paddingBottom">@dimen/view_padding_large</item>
-        <item name="android:layout_gravity">left</item>
-    </style>
-
-    <style name="WalletButtonStyle" parent="BorderlessButtonStyle">
-        <item name="android:textSize">@dimen/text_size_large_small_action</item>
-
-        <item name="android:background">@drawable/button_text_selector</item>
-    </style>
 
 </resources>
