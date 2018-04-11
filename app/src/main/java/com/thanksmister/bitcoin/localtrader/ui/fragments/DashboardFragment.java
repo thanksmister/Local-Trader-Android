@@ -252,23 +252,6 @@ public class DashboardFragment extends BaseFragment {
             throw new RuntimeException(e);
         }
     }
-    
-    public void onRefresh() {
-        /*if(!isAdded() || fragment == null) {
-            return;
-        }
-        if (fragment.getTag().equals(ADVERTISEMENTS_FRAGMENT)) {
-            ((AdvertisementsFragment) fragment).handleUpdate();
-        } else if (fragment.getTag().equals(CONTACTS_FRAGMENT)) {
-            ((ContactsFragment) fragment).handleUpdate();
-        }*/
-    }
-
-    private void showSendScreen() {
-        if (isAdded() && getActivity() != null) {
-            ((MainActivity) getActivity()).navigateSendView();
-        }
-    }
 
     private void launchScanner() {
         if (isAdded() && getActivity() != null) {

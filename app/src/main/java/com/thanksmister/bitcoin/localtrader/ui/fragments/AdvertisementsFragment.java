@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -33,10 +34,13 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
@@ -53,6 +57,7 @@ import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.BindView;
+import rx.functions.Action0;
 
 public class AdvertisementsFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -135,25 +140,23 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        
-        super.onActivityCreated(savedInstanceState);
-
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         advertisementObserver = new AdvertisementObserver(new Handler());
-        getActivity().getContentResolver().registerContentObserver(SyncProvider.ADVERTISEMENT_TABLE_URI, true, advertisementObserver);
+        if (getActivity() != null) {
+            getActivity().getContentResolver().registerContentObserver(SyncProvider.ADVERTISEMENT_TABLE_URI, true, advertisementObserver);
+        }
         getLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, this);
         getLoaderManager().restartLoader(METHOD_LOADER_ID, null, this);
+
     }
     
     @Override
     public void onPause() {
         super.onPause();
-        getActivity().getContentResolver().unregisterContentObserver(advertisementObserver);
+        if (getActivity() != null) {
+            getActivity().getContentResolver().unregisterContentObserver(advertisementObserver);
+        }
         getLoaderManager().destroyLoader(ADVERTISEMENT_LOADER_ID);
         getLoaderManager().destroyLoader(METHOD_LOADER_ID);
     }
@@ -185,21 +188,35 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     }
 
     private void createAdvertisementScreen() {
-        Intent intent = EditAdvertisementActivity.createStartIntent(getActivity(), null, true);
-        startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
+        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
+            @Override
+            public void call() {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, new Action0() {
+            @Override
+            public void call() {
+                // na-da
+            }
+        });
     }
 
     protected void showSearchScreen() {
-        if (isAdded()) {
+        if (isAdded() && getActivity() != null) {
             ((MainActivity) getActivity()).navigateSearchView();
         }
     }
 
+    @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == ADVERTISEMENT_LOADER_ID) {
+        if (id == ADVERTISEMENT_LOADER_ID && getActivity() != null) {
             return new CursorLoader(getActivity(), SyncProvider.ADVERTISEMENT_TABLE_URI, null, null, null, null);
-        } else if (id == METHOD_LOADER_ID) {
+        } else if (id == METHOD_LOADER_ID && getActivity() != null) {
             return new CursorLoader(getActivity(), SyncProvider.METHOD_TABLE_URI, null, null, null, null);
         }
         return null;
@@ -235,7 +252,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         }
         @Override
         public void onChange(boolean selfChange) {
-            if(selfChange) {
+            if(selfChange && getActivity() != null) {
                 getActivity().getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, AdvertisementsFragment.this);
             }
         }

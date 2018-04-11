@@ -31,20 +31,100 @@
             android:background="@color/colorPrimary"
             app:popupTheme="@style/Theme.AppCompat.Light"/>
     
-    <ScrollView
+    <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
             android:layout_weight="1"
             android:fillViewport="true">
-    
-        <FrameLayout
-                android:id="@+id/contentFrame"
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+            <FrameLayout
+                android:id="@+id/noteLayout"
                 android:layout_width="match_parent"
-                tools:background="@color/orange"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/view_padding_small"
+                android:paddingBottom="@dimen/view_padding_small"
+                android:paddingLeft="12dp"
+                android:paddingRight="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/yellow"
+                tools:visibility="visible"
+                android:visibility="visible">
+
+                <TextView
+                    style="@style/TextMedium"
+                    android:id="@+id/noteText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|top"
+                    android:layout_gravity="center_vertical"
+                    android:drawableLeft="@drawable/ic_action_bulb_dark"
+                    android:drawablePadding="4dp"
+                    android:text="@string/note_advanced_editing"/>
+
+            </FrameLayout>
+
+
+            <LinearLayout
+                android:id="@+id/activeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:visibility="visible"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="@dimen/activity_padding"
+                    android:paddingRight="@dimen/activity_padding"
+                    android:text="@string/text_advertisement_status"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/view_padding_small"/>
+
+                <CheckBox
+                    style="@style/TextMedium.SmallAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/activeCheckBox"
+                    android:gravity="center_vertical"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="@dimen/activity_padding"
+                    android:layout_marginRight="@dimen/activity_padding"
+                    android:theme="@style/EditTextTheme"
+                    android:text="@string/ad_status_edit_description"/>
+
+                <View
+                    android:background="?android:attr/dividerHorizontal"
+                    android:layout_marginTop="8dp"
+                    android:layout_height="1dp"
+                    android:layout_width="match_parent"/>
+
+            </LinearLayout>
+
+            <!-- Minimum Maximum Amount -->
+
+            <include layout="@layout/view_min_max"/>
+
+            <!-- Price Equation -->
+
+            <include layout="@layout/view_price_equation"/>
+
+            <!-- Terms -->
+
+            <include layout="@layout/view_terms"/>
+
+        </LinearLayout>
     
-    </ScrollView>
+    </android.support.v4.widget.NestedScrollView>
 
     <LinearLayout
             android:id="@+id/buttonLayout"
@@ -56,26 +136,13 @@
             android:layout_gravity="bottom">
 
         <Button
-                android:id="@+id/previousButton"
-                style="@style/ButtonGreen.Small"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:enabled="false"
-                android:text="@string/button_previous"/>
-
-        <View
-                android:layout_width="8dp"
-                android:layout_height="match_parent"/>
-
-        <Button
                 android:id="@+id/nextButton"
                 style="@style/ButtonGreen.Small"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_weight="1"
                 android:enabled="true"
-                android:text="@string/button_next"/>
+                android:text="@string/button_save_changes"/>
 
     </LinearLayout>
 

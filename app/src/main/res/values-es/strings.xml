@@ -1,8 +1,8 @@
 <resources>
 
-    <!-- What's New --><![CDATA[
-    
-    ]]><!-- ERRORS & WARNINGS -->
+    <!-- What's New -->
+
+    <!-- ERRORS & WARNINGS -->
     <string name="warning_no_location_active">Los servicios de ubicación son necesarios para usar la función de búsqueda, por favor, habilite los servicios de ubicación para continuar.</string>
     <string name="warning_no_google_play_services">Los servicios de Google Play son necesarios, instale o actualice los servicios.</string>
     <string name="warning_update_google_play_services">Los servicios de Google Play están desactualizados, actualice los servicios.</string>
@@ -44,11 +44,8 @@
     <string name="menu_action_filter">Filtro</string>
     <string name="menu_action_map">Ver mapa</string>
     <string name="menu_action_visibility">Visibilidad</string>
-    <string name="menu_action_scan">Escanear</string><![CDATA[
-    
-    ]]><string name="menu_action_send_message">Mensaje</string><![CDATA[
-    
-    ]]>
+    <string name="menu_action_scan">Escanear</string>
+    <string name="menu_action_send_message">Mensaje</string>
     <string name="menu_action_delete">Eliminar</string>
     <string name="menu_action_edit">Editar</string>
     <string name="menu_action_web">Ver en línea</string>
@@ -61,10 +58,9 @@
     <string name="menu_action_profile">Perfil</string>
     <string name="menu_action_cancel">Cancelar</string>
     <string name="menu_action_dispute">Dispute</string>
-    <string name="menu_action_blockchain">Ver Blockchain</string><![CDATA[
-    
+    <string name="menu_action_blockchain">Ver Blockchain</string>
 
-    ]]><!-- LOGIN/REGISTER -->
+    <!-- LOGIN/REGISTER -->
 
     <string-array name="login_registration_screens_description">
         <item><![CDATA[Local Trader trabaja con tu cuenta <b>LocalBitcoins </ b>para administrar los oficios, anuncios, enviar mensajes o manejar los pagos.]]></item>
@@ -161,9 +157,7 @@
 
     <!-- TOASTS -->
     <string name="toast_invalid_btc_amount">Cantidad de bitcoin no válida.</string>
-    <string name="toast_invalid_address">No es una dirección bitcoin válida.</string><![CDATA[
-    
-    ]]>
+    <string name="toast_invalid_address">No es una dirección bitcoin válida.</string>
     <string name="toast_clipboard_empty">El contenido del portapapeles está vacío.</string>
     <string name="toast_error_message">Error al enviar el mensaje.</string>
     <string name="toast_refreshing_data">Actualizando datos…</string>
@@ -251,9 +245,7 @@
     <string name="require_location_permission">Crear, actualizar o buscar anuncios requiere permiso para comprobar su ubicación.</string>
     <string name="setup_description"><![CDATA[Para las regiones que pueden estar bloqueadas, cambie el punto final predeterminado al sitio de espejo de LocalBitcoins \"https://localbitcoins.net\".]]></string>
     <string name="setup_credentials">Configuración de autenticación</string>
-    <string name="authentication_success">Autenticación satisfactoria para %1$s</string><![CDATA[
-    
-    ]]>
+    <string name="authentication_success">Autenticación satisfactoria para %1$s</string>
     <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
     <string name="button_authenticate">Authenticate</string>
     <string name="trade_request_description"><![CDATA[Todos los campos son obligatorios a menos que se indique lo contrario como opcional. Consulte <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">la guía de compras en línea </a> para conocer los requisitos por tipo de pago.]]></string>
@@ -706,11 +698,13 @@
     <string name="pref_logout_summary">Logout and reset the application</string>
     <string name="pref_distance_km">Kilometers (km)</string>
     <string name="pref_distance_mi">Miles (mi)</string>
-    <string name="toast_authentication_canceled">Authentication canceled...</string>
+    <string name="toast_authentication_canceled">Authentication canceled…</string>
     <string name="error_update_exchange_rate">Unable to update exchange rate.</string>
     <string name="text_donate_button">Buy me a coffee</string>
     <string name="title_message_to">Message to %1$s</string>
-    <string name="dialog_edit_advertisements">To create or edit advertisements you must use the LocalBitcoins website. Do you want to continue to the LocalBitcoins website?</string>
+    <string name="dialog_edit_advertisements">To create advertisements you must use the LocalBitcoins website. Do you want to continue to the LocalBitcoins website?</string>
     <string name="error_deleting_advertisement">Error deleting Advertisement</string>
+    <string name="note_advanced_editing">For editing advanced advertisement features, use the LocalBitcoins website by clicking the globe icon.</string>
+    <string name="pref_market_currency_title">Market currency</string>
 
 </resources>

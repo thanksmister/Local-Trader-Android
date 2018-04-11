@@ -87,8 +87,8 @@ public final class ActivityModule
 
     @Provides
     @Singleton
-    NotificationService provideNotificationService(BaseApplication app, DPreference preferences, SharedPreferences sharedPreferences) {
-        return new NotificationService(app, preferences, sharedPreferences);
+    NotificationService provideNotificationService(BaseApplication app) {
+        return new NotificationService(app);
     }
 
     @Provides

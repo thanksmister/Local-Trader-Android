@@ -116,7 +116,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         preference = new DPreference(getContext().getApplicationContext(), "LocalTraderPref");
         sharedPreferences = getContext().getApplicationContext().getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
-        notificationService = new NotificationService(context, preference, sharedPreferences);
+        notificationService = new NotificationService(context);
         DbOpenHelper dbOpenHelper = new DbOpenHelper(context.getApplicationContext());
         SqlBrite sqlBrite = SqlBrite.create();
         BriteDatabase db = sqlBrite.wrapDatabaseHelper(dbOpenHelper);

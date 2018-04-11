@@ -31,7 +31,7 @@
 
         <ListPreference
                 android:key="exchange_currency"
-                android:title="@string/pref_market_currency"
+                android:title="@string/pref_market_currency_title"
                 android:summary="@string/pref_market_currency_summary"
                 android:defaultValue="0"
                 android:negativeButtonText="@null"

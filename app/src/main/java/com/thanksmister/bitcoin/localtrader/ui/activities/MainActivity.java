@@ -487,10 +487,12 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     public void handleRefresh() {
-        switch (fragment.getTag()) {
-            case WALLET_FRAGMENT:
-                ((WalletFragment) fragment).onRefresh();
-                break;
+        if(fragment != null && fragment.getTag() != null) {
+            switch (fragment.getTag()) {
+                case WALLET_FRAGMENT:
+                    ((WalletFragment) fragment).onRefresh();
+                    break;
+            }
         }
     }
     

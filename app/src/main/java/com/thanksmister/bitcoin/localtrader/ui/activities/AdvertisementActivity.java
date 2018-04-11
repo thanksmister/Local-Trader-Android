@@ -225,13 +225,13 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         super.onSaveInstanceState(outState);
     }
 
-   /* public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
             if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
                 updateAdvertisement(); // update the new editAdvertisement
             }
         }
-    }*/
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -651,22 +651,9 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         startActivity(Intent.createChooser(shareIntent, getString(R.string.text_chooser_share_to)));
     }
 
-    private void editAdvertisement(final AdvertisementItem advertisement) {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0 () {
-            @Override
-            public void call() {
-                try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_EDIT_URL + advertisement.ad_id())));
-                } catch (android.content.ActivityNotFoundException ex) {
-                    Toast.makeText(AdvertisementActivity.this, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
-                }
-            }
-        }, new Action0() {
-            @Override
-            public void call() {
-                // na-da
-            }
-        });
+    private void editAdvertisement(AdvertisementItem advertisement) {
+        Intent intent = EditAdvertisementActivity.createStartIntent(AdvertisementActivity.this, advertisement.ad_id());
+        startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
     }
     
     @Override
