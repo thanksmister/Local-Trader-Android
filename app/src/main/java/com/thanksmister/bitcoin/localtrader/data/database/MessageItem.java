@@ -109,30 +109,26 @@ public abstract class MessageItem {
         @Override
         public List<MessageItem> call(Query query) {
             Cursor cursor = query.run();
-            try {
-                List<MessageItem> values = new ArrayList<>(cursor.getCount());
-                while (cursor.moveToNext()) {
-                    long id = Db.getLong(cursor, ID);
-                    String created_at = Db.getString(cursor, CREATED_AT);
-                    long contact_id = Db.getLong(cursor, CONTACT_ID);
-                    String message = Db.getString(cursor, MESSAGE);
-                    boolean seen = Db.getBoolean(cursor, SEEN);
-                    String sender_id = Db.getString(cursor, SENDER_ID);
-                    String sender_name = Db.getString(cursor, SENDER_NAME);
-                    String sender_username = Db.getString(cursor, SENDER_USERNAME);
-                    String sender_last_online = Db.getString(cursor, SENDER_LAST_ONLINE);
-                    String sender_last_trade_count = Db.getString(cursor, SENDER_TRADE_COUNT);
-                    boolean is_admin = Db.getBoolean(cursor, IS_ADMIN);
-                    String attachment_name = Db.getString(cursor, ATTACHMENT_NAME);
-                    String attachment_type = Db.getString(cursor, ATTACHMENT_TYPE);
-                    String attachment_url = Db.getString(cursor, ATTACHMENT_URL);
-                    values.add(new AutoParcel_MessageItem(id, created_at, contact_id, message, seen, sender_id, sender_name, sender_username,
-                            sender_last_online, sender_last_trade_count, is_admin, attachment_name, attachment_type, attachment_url));
-                }
-                return values;
-            } finally {
-                cursor.close();
+            List<MessageItem> values = new ArrayList<>(cursor.getCount());
+            while (cursor.moveToNext()) {
+                long id = Db.getLong(cursor, ID);
+                String created_at = Db.getString(cursor, CREATED_AT);
+                long contact_id = Db.getLong(cursor, CONTACT_ID);
+                String message = Db.getString(cursor, MESSAGE);
+                boolean seen = Db.getBoolean(cursor, SEEN);
+                String sender_id = Db.getString(cursor, SENDER_ID);
+                String sender_name = Db.getString(cursor, SENDER_NAME);
+                String sender_username = Db.getString(cursor, SENDER_USERNAME);
+                String sender_last_online = Db.getString(cursor, SENDER_LAST_ONLINE);
+                String sender_last_trade_count = Db.getString(cursor, SENDER_TRADE_COUNT);
+                boolean is_admin = Db.getBoolean(cursor, IS_ADMIN);
+                String attachment_name = Db.getString(cursor, ATTACHMENT_NAME);
+                String attachment_type = Db.getString(cursor, ATTACHMENT_TYPE);
+                String attachment_url = Db.getString(cursor, ATTACHMENT_URL);
+                values.add(new AutoParcel_MessageItem(id, created_at, contact_id, message, seen, sender_id, sender_name, sender_username,
+                        sender_last_online, sender_last_trade_count, is_admin, attachment_name, attachment_type, attachment_url));
             }
+            return values;
         }
     };
 

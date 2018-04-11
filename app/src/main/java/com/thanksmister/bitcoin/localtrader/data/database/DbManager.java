@@ -283,30 +283,6 @@ public class DbManager {
         }
     }
 
-    /**
-     * Returns a single message item based on contact Id and created date.
-     * @param contactId Contact Id associated with the message.
-     * @param createdAt The date the message was created.
-     * @return MessageItem
-     */
-    private MessageItem getMessage(@NonNull String contactId, @NonNull String createdAt) {
-        MessageItem model = null;
-        if(!TextUtils.isEmpty(contactId)) {
-            Cursor cursor = contentResolver.query(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ? AND " + MessageItem.CREATED_AT + " = ? ", new String[]{contactId, createdAt}, null);
-            if (cursor != null && cursor.getCount() > 0) {
-                while (cursor.moveToNext()) {
-                    model = MessageItem.getModel(cursor);
-                    cursor.close();
-                }
-            }
-        } else {
-            if(!BuildConfig.DEBUG) {
-                Crashlytics.logException(new Throwable("getMessage Id is null: " + contactId));
-            }
-        }
-        return model;
-    }
-    
     public Observable<List<MethodItem>> methodQuery() {
         return db.createQuery(MethodItem.TABLE, MethodItem.QUERY)
                 .distinct()

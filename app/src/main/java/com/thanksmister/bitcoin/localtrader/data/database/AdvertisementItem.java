@@ -193,7 +193,6 @@ public abstract class AdvertisementItem implements Parcelable {
         @Override
         public List<AdvertisementItem> call(Query query) {
             Cursor cursor = query.run();
-
             List<AdvertisementItem> values = new ArrayList<>(cursor.getCount());
             while (cursor.moveToNext()) {
                 long id = Db.getLong(cursor, ID);

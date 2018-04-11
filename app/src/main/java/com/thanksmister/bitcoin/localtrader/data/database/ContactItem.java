@@ -290,104 +290,93 @@ public abstract class ContactItem {
     };
 
     public static final Func1<SqlBrite.Query, List<ContactItem>> MAP = new Func1<SqlBrite.Query, List<ContactItem>>() {
-
         @Override
         public List<ContactItem> call(SqlBrite.Query query) {
-
             Cursor cursor = query.run();
+            List<ContactItem> values = new ArrayList<>(cursor.getCount());
+            while (cursor.moveToNext()) {
+                Timber.d("SyncAdapter Cursor Count: " + cursor.getCount());
+                long id = Db.getLong(cursor, _ID);
+                String contact_id = Db.getString(cursor, CONTACT_ID);
+                String reference_code = Db.getString(cursor, REFERENCE_CODE);
+                String currency = Db.getString(cursor, CURRENCY);
+                String amount = Db.getString(cursor, AMOUNT);
+                String amount_btc = Db.getString(cursor, AMOUNT_BTC);
 
-            try {
-                List<ContactItem> values = new ArrayList<>(cursor.getCount());
+                boolean is_funded = Db.getBoolean(cursor, IS_FUNDED);
+                boolean is_selling = Db.getBoolean(cursor, IS_SELLING);
+                boolean is_buying = Db.getBoolean(cursor, IS_BUYING);
 
-                while (cursor.moveToNext()) {
+                String created_at = Db.getString(cursor, CREATED_AT);
+                String closed_at = Db.getString(cursor, CLOSED_AT);
+                String disputed_at = Db.getString(cursor, DISPUTED_AT);
+                String funded_at = Db.getString(cursor, FUNDED_AT);
+                String escrowed_at = Db.getString(cursor, ESCROWED_AT);
+                String canceled_at = Db.getString(cursor, CANCELED_AT);
+                String released_at = Db.getString(cursor, RELEASED_AT);
+                String payment_completed_at = Db.getString(cursor, PAYMENT_COMPLETED_AT);
+                String exchange_rate_updated_at = Db.getString(cursor, EXCHANGE_RATE_UPDATED_AT);
 
-                    Timber.d("SyncAdapter Cursor Count: " + cursor.getCount());
+                String seller_username = Db.getString(cursor, SELLER_USERNAME);
+                String seller_feedback_score = Db.getString(cursor, SELLER_FEEDBACK);
+                String seller_trade_count = Db.getString(cursor, SELLER_TRADES);
+                String seller_last_online = Db.getString(cursor, SELLER_LAST_SEEN);
+                String seller_name = Db.getString(cursor, SELLER_NAME);
 
-                    long id = Db.getLong(cursor, _ID);
-                    String contact_id = Db.getString(cursor, CONTACT_ID);
-                    String reference_code = Db.getString(cursor, REFERENCE_CODE);
-                    String currency = Db.getString(cursor, CURRENCY);
-                    String amount = Db.getString(cursor, AMOUNT);
-                    String amount_btc = Db.getString(cursor, AMOUNT_BTC);
+                String buyer_username = Db.getString(cursor, BUYER_USERNAME);
+                String buyer_feedback_score = Db.getString(cursor, BUYER_FEEDBACK);
+                String buyer_trade_count = Db.getString(cursor, BUYER_TRADES);
+                String buyer_last_online = Db.getString(cursor, BUYER_LAST_SEEN);
+                String buyer_name = Db.getString(cursor, BUYER_NAME);
 
-                    boolean is_funded = Db.getBoolean(cursor, IS_FUNDED);
-                    boolean is_selling = Db.getBoolean(cursor, IS_SELLING);
-                    boolean is_buying = Db.getBoolean(cursor, IS_BUYING);
+                String release_url = Db.getString(cursor, RELEASE_URL);
+                String advertisement_public_view = Db.getString(cursor, ADVERTISEMENT_URL);
+                String message_url = Db.getString(cursor, MESSAGE_URL);
+                String message_post_url = Db.getString(cursor, MESSAGE_POST_URL);
+                String mark_as_paid_url = Db.getString(cursor, MARK_PAID_URL);
+                String dispute_url = Db.getString(cursor, DISPUTE_URL);
+                String cancel_url = Db.getString(cursor, CANCEL_URL);
+                String fund_url = Db.getString(cursor, FUND_URL);
 
-                    String created_at = Db.getString(cursor, CREATED_AT);
-                    String closed_at = Db.getString(cursor, CLOSED_AT);
-                    String disputed_at = Db.getString(cursor, DISPUTED_AT);
-                    String funded_at = Db.getString(cursor, FUNDED_AT);
-                    String escrowed_at = Db.getString(cursor, ESCROWED_AT);
-                    String canceled_at = Db.getString(cursor, CANCELED_AT);
-                    String released_at = Db.getString(cursor, RELEASED_AT);
-                    String payment_completed_at = Db.getString(cursor, PAYMENT_COMPLETED_AT);
-                    String exchange_rate_updated_at = Db.getString(cursor, EXCHANGE_RATE_UPDATED_AT);
+                String details_receiver_name = Db.getString(cursor, RECEIVER_NAME);
+                String details_receiver_email = Db.getString(cursor, RECEIVER_EMAIL);
+                String details_iban = Db.getString(cursor, IBAN);
+                String details_swift_bic = Db.getString(cursor, SWIFT_BIC);
+                String details_reference = Db.getString(cursor, REFERENCE);
+                String details_ethereum_address = Db.getString(cursor, ETHEREUM_ADDRESS);
+                String details_bsb = Db.getString(cursor, BSB);
+                String details_phone_number = Db.getString(cursor, PHONE_NUMBER);
+                String details_biller_code = Db.getString(cursor, BILLER_CODE);
+                String details_account_number = Db.getString(cursor, ACCOUNT_NUMBER);
+                String details_message = Db.getString(cursor, MESSAGE);
+                String details_sort_code = Db.getString(cursor, SORT_CODE);
 
-                    String seller_username = Db.getString(cursor, SELLER_USERNAME);
-                    String seller_feedback_score = Db.getString(cursor, SELLER_FEEDBACK);
-                    String seller_trade_count = Db.getString(cursor, SELLER_TRADES);
-                    String seller_last_online = Db.getString(cursor, SELLER_LAST_SEEN);
-                    String seller_name = Db.getString(cursor, SELLER_NAME);
+                String advertisement_id = Db.getString(cursor, ADVERTISEMENT_ID);
+                String advertisement_payment_method = Db.getString(cursor, ADVERTISEMENT_PAYMENT_METHOD);
+                String advertisement_trade_type = Db.getString(cursor, ADVERTISEMENT_TRADE_TYPE);
+                String advertiser_username = Db.getString(cursor, ADVERTISER_USERNAME);
+                String advertiser_feedback_score = Db.getString(cursor, ADVERTISER_FEEDBACK);
+                String advertiser_trade_count = Db.getString(cursor, ADVERTISER_TRADES);
+                String advertiser_last_online = Db.getString(cursor, ADVERTISER_LAST_SEEN);
+                String advertiser_name = Db.getString(cursor, ADVERTISER_NAME);
 
-                    String buyer_username = Db.getString(cursor, BUYER_USERNAME);
-                    String buyer_feedback_score = Db.getString(cursor, BUYER_FEEDBACK);
-                    String buyer_trade_count = Db.getString(cursor, BUYER_TRADES);
-                    String buyer_last_online = Db.getString(cursor, BUYER_LAST_SEEN);
-                    String buyer_name = Db.getString(cursor, BUYER_NAME);
+                boolean hasUnseenMessages = Db.getBoolean(cursor, UNSEEN_MESSAGES);
+                int messageCount = Db.getInt(cursor, MESSAGE_COUNT);
 
-                    String release_url = Db.getString(cursor, RELEASE_URL);
-                    String advertisement_public_view = Db.getString(cursor, ADVERTISEMENT_URL);
-                    String message_url = Db.getString(cursor, MESSAGE_URL);
-                    String message_post_url = Db.getString(cursor, MESSAGE_POST_URL);
-                    String mark_as_paid_url = Db.getString(cursor, MARK_PAID_URL);
-                    String dispute_url = Db.getString(cursor, DISPUTE_URL);
-                    String cancel_url = Db.getString(cursor, CANCEL_URL);
-                    String fund_url = Db.getString(cursor, FUND_URL);
-
-                    String details_receiver_name = Db.getString(cursor, RECEIVER_NAME);
-                    String details_receiver_email = Db.getString(cursor, RECEIVER_EMAIL);
-                    String details_iban = Db.getString(cursor, IBAN);
-                    String details_swift_bic = Db.getString(cursor, SWIFT_BIC);
-                    String details_reference = Db.getString(cursor, REFERENCE);
-                    String details_ethereum_address = Db.getString(cursor, ETHEREUM_ADDRESS);
-                    String details_bsb = Db.getString(cursor, BSB);
-                    String details_phone_number = Db.getString(cursor, PHONE_NUMBER);
-                    String details_biller_code = Db.getString(cursor, BILLER_CODE);
-                    String details_account_number = Db.getString(cursor, ACCOUNT_NUMBER);
-                    String details_message = Db.getString(cursor, MESSAGE);
-                    String details_sort_code = Db.getString(cursor, SORT_CODE);
-
-                    String advertisement_id = Db.getString(cursor, ADVERTISEMENT_ID);
-                    String advertisement_payment_method = Db.getString(cursor, ADVERTISEMENT_PAYMENT_METHOD);
-                    String advertisement_trade_type = Db.getString(cursor, ADVERTISEMENT_TRADE_TYPE);
-                    String advertiser_username = Db.getString(cursor, ADVERTISER_USERNAME);
-                    String advertiser_feedback_score = Db.getString(cursor, ADVERTISER_FEEDBACK);
-                    String advertiser_trade_count = Db.getString(cursor, ADVERTISER_TRADES);
-                    String advertiser_last_online = Db.getString(cursor, ADVERTISER_LAST_SEEN);
-                    String advertiser_name = Db.getString(cursor, ADVERTISER_NAME);
-
-                    boolean hasUnseenMessages = Db.getBoolean(cursor, UNSEEN_MESSAGES);
-                    int messageCount = Db.getInt(cursor, MESSAGE_COUNT);
-
-                    values.add(new AutoParcel_ContactItem(id, contact_id, reference_code, currency, amount, amount_btc, is_funded, is_selling, is_buying,
-                            created_at, closed_at, disputed_at, funded_at, escrowed_at, canceled_at, released_at, payment_completed_at, exchange_rate_updated_at,
-                            seller_username, seller_feedback_score, seller_trade_count, seller_last_online, seller_name, buyer_username, buyer_feedback_score,
-                            buyer_trade_count, buyer_last_online, buyer_name, release_url, advertisement_public_view, message_url, message_post_url, mark_as_paid_url,
-                            dispute_url, cancel_url, fund_url, details_receiver_name, details_receiver_email, details_iban, details_swift_bic, details_reference,
-                            details_ethereum_address, details_bsb, details_phone_number, details_biller_code, details_account_number, details_message, details_sort_code,
-                            advertisement_id, advertisement_payment_method, advertisement_trade_type, advertiser_username, advertiser_feedback_score, advertiser_trade_count, advertiser_last_online,
-                            advertiser_name, hasUnseenMessages, messageCount));
-                }
-                return values;
-            } finally {
-                cursor.close();
+                values.add(new AutoParcel_ContactItem(id, contact_id, reference_code, currency, amount, amount_btc, is_funded, is_selling, is_buying,
+                        created_at, closed_at, disputed_at, funded_at, escrowed_at, canceled_at, released_at, payment_completed_at, exchange_rate_updated_at,
+                        seller_username, seller_feedback_score, seller_trade_count, seller_last_online, seller_name, buyer_username, buyer_feedback_score,
+                        buyer_trade_count, buyer_last_online, buyer_name, release_url, advertisement_public_view, message_url, message_post_url, mark_as_paid_url,
+                        dispute_url, cancel_url, fund_url, details_receiver_name, details_receiver_email, details_iban, details_swift_bic, details_reference,
+                        details_ethereum_address, details_bsb, details_phone_number, details_biller_code, details_account_number, details_message, details_sort_code,
+                        advertisement_id, advertisement_payment_method, advertisement_trade_type, advertiser_username, advertiser_feedback_score, advertiser_trade_count, advertiser_last_online,
+                        advertiser_name, hasUnseenMessages, messageCount));
             }
+            return values;
         }
     };
 
     public static ContactItem convertContact(Contact contact) {
-
         return new AutoParcel_ContactItem(0, contact.contact_id, contact.reference_code, contact.currency, contact.amount, contact.amount_btc, contact.is_funded, contact.is_selling, contact.is_buying,
                 contact.created_at, contact.closed_at, contact.disputed_at, contact.funded_at, contact.escrowed_at, contact.canceled_at, contact.released_at, contact.payment_completed_at, contact.exchange_rate_updated_at,
                 contact.seller.username, contact.seller.feedback_score, contact.seller.trade_count, contact.seller.last_online, contact.seller.name, contact.buyer.username, contact.buyer.feedback_score,
@@ -464,11 +453,8 @@ public abstract class ContactItem {
     }
 
     public static ContactItem getModel(Cursor cursor) {
-
         if (cursor != null && cursor.getCount() > 0) {
-
-            cursor.moveToNext();
-
+            cursor.moveToFirst();
             long id = Db.getLong(cursor, _ID);
             String contact_id = Db.getString(cursor, CONTACT_ID);
             String reference_code = Db.getString(cursor, REFERENCE_CODE);

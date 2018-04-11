@@ -30,6 +30,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -925,6 +926,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         }
     };
     
+    @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if(id == CONTACT_LOADER_ID) {
@@ -937,7 +939,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         switch (loader.getId()) {
             case CONTACT_LOADER_ID:
                 ContactItem contactItem = ContactItem.getModel(cursor);
