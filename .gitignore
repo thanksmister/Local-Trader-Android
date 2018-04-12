@@ -1,6 +1,7 @@
 # IntelliJ IDEA
 .idea
 *.iml
+app.iml
 
 # Gradle
 .gradle
@@ -12,3 +13,8 @@ reports
 # Apple
 .DS_Store
 npm-debug.log
+
+#Fabric
+crashlytics.properties
+app-prod-release.apk
+fabric.properties
