@@ -41,9 +41,9 @@ Authenticate accounts - used for application authority for syncing data.
 ## ADDITIONAL INFORMATION
 Local Trader is not owned or operated by LocalBitcoins. Please contact LocalBitcoins support for any account issues or questions. 
 
-→ [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
-→ [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
-→ [Reddit Community](https://www.reddit.com/r/LocalTrader/)
+★ [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
+★  [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
+★ [Reddit Community](https://www.reddit.com/r/LocalTrader/)
 
 ## Contributers
-At this time I am looking for contributers to translate the application and Google Play listing into different languages. 
+At this time I am looking for contributers to translate the application and Google Play listing into different languages. Please contact me if you are interested. 
