@@ -20,7 +20,7 @@ If you are not familiar with LocalBitcoins, please visit their [about page](http
 - Search local or online trades to buy or sell Bitcoin or other cryptocurrencies
 
 
-## SECURITY
+## Security
 Local Trader uses secure <b>Oauth2 authentication</b> for the LocalBitcoins services. 
 
 For authentication you will be taken to the LocalBitcoins website where you will need to authenticate as you would when logging into LocalBitcoins. Upon successful authentication you will be returned to the Local Trader application.
@@ -32,18 +32,24 @@ You created a PIN code as part of the LocalBitcoins registration and it is requi
 View or manage your PIN code from your [profile page](https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo) or use the [mirror site profile page](https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo) for blocked regions.
 
 
-## PERMISSIONS EXPLAINED
+## Permissions Explained
 Location - used for searching advertisers and creating new advertisement, but only if user requests it and gives the application permission.
 Write sync settings - used for background syncing data for notifications.
 Authenticate accounts - used for application authority for syncing data.
 
 
-## ADDITIONAL INFORMATION
+## Additional Information
 Local Trader is not owned or operated by LocalBitcoins. Please contact LocalBitcoins support for any account issues or questions. 
 
 - [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
 - [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
 - [Reddit Community](https://www.reddit.com/r/LocalTrader/)
+
+## Build Instrucitons
+To build Local Trader from code you need Android Studio 3.0 installed.  Check out the code from Github.  You need to modifiy your local.properties file to contain your own LocalBitcions API key and secret from [LocalBitcoins API page](https://localbitcoins.com/accounts/api/). Append your values to the end of the local.poperties file:
+
+lbcAccessKey=[your lbc key]
+lbcAccessSecret=[your lbc secret]
 
 ## Contributers
 At this time I am looking for contributers to translate the application and Google Play listing into different languages. Please contact me if you are interested. 
