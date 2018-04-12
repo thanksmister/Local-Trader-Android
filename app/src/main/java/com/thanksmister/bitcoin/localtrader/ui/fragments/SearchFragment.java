@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -58,18 +59,18 @@ import android.widget.TextView;
 import com.google.android.gms.location.LocationRequest;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.SearchResultsActivity;
@@ -92,8 +93,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
 import rx.Observable;
@@ -539,12 +540,12 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<CurrencyItem>>() {
                     @Override
                     public void call(List<CurrencyItem> currencyItems) {
-                        if(currencyItems == null || currencyItems.isEmpty()) {
+                        if (currencyItems == null || currencyItems.isEmpty()) {
                             fetchCurrencies();
                         } else {
                             List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
                             exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
-                            setCurrencies(exchangeCurrencies); 
+                            setCurrencies(exchangeCurrencies);
                         }
                     }
                 });
@@ -561,7 +562,7 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<MethodItem>>() {
                     @Override
                     public void call(List<MethodItem> methodItems) {
-                        if(methodItems == null || methodItems.isEmpty()) {
+                        if (methodItems == null || methodItems.isEmpty()) {
                             fetchMethods();
                         } else {
                             Method method = new Method();
@@ -595,7 +596,7 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<ExchangeCurrency>>() {
                     @Override
                     public void call(List<ExchangeCurrency> currencies) {
-                        if(currencies != null) {
+                        if (currencies != null) {
                             dbManager.insertCurrencies(currencies);
                             dataService.setCurrencyExpireTime();
                         }
@@ -610,9 +611,9 @@ public class SearchFragment extends BaseFragment {
     }
 
     private void fetchMethods() {
-        
+
         Timber.d("getMethods");
-        
+
         dataService.getMethods()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -626,7 +627,7 @@ public class SearchFragment extends BaseFragment {
                 .subscribe(new Action1<List<Method>>() {
                     @Override
                     public void call(List<Method> methods) {
-                        if(methods != null) {
+                        if (methods != null) {
                             dbManager.updateMethods(methods);
                             dataService.setMethodsExpireTime();
                         }
@@ -640,7 +641,7 @@ public class SearchFragment extends BaseFragment {
     }
 
     private void setMethods(@NonNull List<MethodItem> methods) {
-        
+
         MethodAdapter typeAdapter = new MethodAdapter(getActivity(), R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
 
@@ -676,10 +677,11 @@ public class SearchFragment extends BaseFragment {
 
     /**
      * Set the currencies to be used for a new editAdvertisement
+     *
      * @param currencies
      */
     private void setCurrencies(@NonNull List<ExchangeCurrency> currencies) {
-        
+
         currencies = CurrencyUtils.sortCurrencies(currencies);
         String searchCurrency = SearchUtils.getSearchCurrency(sharedPreferences);
         if (currencies.isEmpty()) {
@@ -721,9 +723,9 @@ public class SearchFragment extends BaseFragment {
      * @param address Address
      */
     public void saveAddress(Address address) {
-        
+
         Timber.d("SaveAddress: " + address.toString());
-        
+
         SearchUtils.setSearchLocationAddress(sharedPreferences, address);
         if (address.hasLatitude()) {
             SearchUtils.setSearchLatitude(sharedPreferences, address.getLatitude());
@@ -902,7 +904,7 @@ public class SearchFragment extends BaseFragment {
 
     /**
      * Using the ReactiveLocationProvider to do location lookup because its more convenient than using
-     * the LocationManager and seems to perform better. 
+     * the LocationManager and seems to perform better.
      */
     private void startLocationMonitoring() {
 
@@ -972,13 +974,14 @@ public class SearchFragment extends BaseFragment {
                     }
                 });
     }
-    
+
     // TODO move these to base fragment
+
     /**
-     * Used as a backup location service in case the first one fails, which 
-     * switch to using the LocationManager instead. 
+     * Used as a backup location service in case the first one fails, which
+     * switch to using the LocationManager instead.
      */
-    private void getLocationFromLocationManager () {
+    private void getLocationFromLocationManager() {
         Timber.d("getLocationFromLocationManager");
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -1021,11 +1024,12 @@ public class SearchFragment extends BaseFragment {
                 Timber.e("Location manager could not use network provider", e);
                 showAlertDialog(new AlertDialogEvent(getString(R.string.error_location_title), getString(R.string.error_location_message)));
             }
-        } 
+        }
     }
 
     /**
-     * Used from the location manager to do a reverse lookup of the address from the coordinates. 
+     * Used from the location manager to do a reverse lookup of the address from the coordinates.
+     *
      * @param location
      */
     private void reverseLocationLookup(Location location) {

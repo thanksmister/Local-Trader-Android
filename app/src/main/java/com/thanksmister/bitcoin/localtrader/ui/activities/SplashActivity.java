@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -22,11 +23,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 
 import butterknife.ButterKnife;
@@ -37,25 +38,25 @@ import timber.log.Timber;
 public class SplashActivity extends BaseActivity {
 
     private static IntentFilter syncIntentFilter = new IntentFilter(SyncAdapter.ACTION_SYNC);
-    
+
     public static Intent createStartIntent(Context context) {
         return new Intent(context, SplashActivity.class);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_splash);
-        
+
         ButterKnife.bind(this);
 
-        if(!AuthUtils.hasCredentials(preference, sharedPreferences)) {
+        if (!AuthUtils.hasCredentials(preference, sharedPreferences)) {
             Intent intent = new Intent(this, PromoActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
-        } else if(AuthUtils.isFirstTime(preference)) {
+        } else if (AuthUtils.isFirstTime(preference)) {
             AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(this);
         } else {
@@ -79,10 +80,10 @@ public class SplashActivity extends BaseActivity {
     }
 
     @Override
-    protected void handleNetworkDisconnect(){
+    protected void handleNetworkDisconnect() {
         showAlertDialog(new AlertDialogEvent(getString(R.string.error_generic_error), getString(R.string.error_no_internet)));
     }
-    
+
     protected void handleStartSync(String syncActionType, String extraErrorMessage, int extraErrorCode) {
         Timber.d("handleSyncEvent: " + syncActionType);
         switch (syncActionType) {
@@ -109,7 +110,7 @@ public class SplashActivity extends BaseActivity {
     }
 
     private BroadcastReceiver syncBroadcastReceiver = new BroadcastReceiver() {
-        
+
         @Override
         public void onReceive(Context context, Intent intent) {
 

@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
@@ -32,8 +33,8 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
@@ -48,9 +49,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     public static interface OnItemClickListener {
         public void onSearchButtonClicked();
+
         public void onAdvertiseButtonClicked();
     }
-    
+
     public NotificationAdapter(Context context, OnItemClickListener onItemClickListener) {
         this.context = context;
         this.onItemClickListener = onItemClickListener;
@@ -113,7 +115,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
             Date date = Dates.parseLocalDateISO(item.created_at());
             ((ItemViewHolder) viewHolder).createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
-            
+
             if (item.read()) {
                 ((ItemViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_action_notification);
             } else {

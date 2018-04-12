@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -28,10 +29,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertiseAdapter;
@@ -43,15 +44,14 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
-import timber.log.Timber;
 
 public class SearchResultsActivity extends BaseActivity {
-  
+
     @Inject
     DbManager dbManager;
 
@@ -69,13 +69,13 @@ public class SearchResultsActivity extends BaseActivity {
 
     @BindView(R.id.emptyText)
     TextView emptyText;
-    
+
     @BindView(R.id.searchResultsToolBar)
     Toolbar toolbar;
-    
+
     private AdvertiseAdapter adapter;
     private TradeType tradeType = TradeType.NONE;
-    
+
 
     public static Intent createStartIntent(Context context) {
         return new Intent(context, SearchResultsActivity.class);
@@ -83,22 +83,22 @@ public class SearchResultsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_search_results);
 
         ButterKnife.bind(this);
-        
+
         tradeType = TradeType.valueOf(SearchUtils.getSearchTradeType(sharedPreferences));
-        
+
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            if(getSupportActionBar() != null) {
+            if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                getSupportActionBar().setTitle(getHeader(tradeType)); 
+                getSupportActionBar().setTitle(getHeader(tradeType));
             }
         }
-        
+
         content.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -106,7 +106,7 @@ public class SearchResultsActivity extends BaseActivity {
                 showAdvertiser(advertisement);
             }
         });
-        
+
         adapter = new AdvertiseAdapter(this);
         setAdapter(adapter);
         updateData();
@@ -149,23 +149,23 @@ public class SearchResultsActivity extends BaseActivity {
     public void onDestroy() {
         super.onDestroy();
     }
-    
+
     @Override
     public void handleRefresh() {
         updateData();
     }
-    
+
 
     public void showContent() {
-        if(content != null && progress != null && emptyLayout != null) {
+        if (content != null && progress != null && emptyLayout != null) {
             content.setVisibility(View.VISIBLE);
             emptyLayout.setVisibility(View.GONE);
-            progress.setVisibility(View.GONE); 
+            progress.setVisibility(View.GONE);
         }
     }
 
     public void showEmpty() {
-        if(content != null && progress != null && emptyLayout != null) {
+        if (content != null && progress != null && emptyLayout != null) {
             content.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.VISIBLE);
             progress.setVisibility(View.GONE);
@@ -174,7 +174,7 @@ public class SearchResultsActivity extends BaseActivity {
     }
 
     public void showProgress() {
-        if(content != null && progress != null && emptyLayout != null) {
+        if (content != null && progress != null && emptyLayout != null) {
             content.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.GONE);
             progress.setVisibility(View.VISIBLE);
@@ -192,9 +192,9 @@ public class SearchResultsActivity extends BaseActivity {
 
         toast(getString(R.string.toast_searching));
         showProgress();
-        
+
         if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
-           geoLocationService.getLocalAdvertisements(latitude, longitude, tradeType)
+            geoLocationService.getLocalAdvertisements(latitude, longitude, tradeType)
                     .subscribeOn(Schedulers.newThread())
                     .compose(this.<List<Advertisement>>bindUntilEvent(ActivityEvent.PAUSE))
                     .observeOn(AndroidSchedulers.mainThread())

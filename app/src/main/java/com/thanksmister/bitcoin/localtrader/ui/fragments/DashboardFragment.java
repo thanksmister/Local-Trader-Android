@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -35,15 +36,14 @@ import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactsActivity;
-import com.thanksmister.bitcoin.localtrader.ui.activities.EditAdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.trello.rxlifecycle.FragmentEvent;
@@ -56,8 +56,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import dpreference.DPreference;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -70,13 +70,13 @@ public class DashboardFragment extends BaseFragment {
     private static final String ADVERTISEMENTS_FRAGMENT = "com.thanksmister.fragment.ADVERTISEMENTS_FRAGMENT";
     private static final String CONTACTS_FRAGMENT = "com.thanksmister.fragment.CONTACTS_FRAGMENT";
     private static final String NOTIFICATIONS_FRAGMENT = "com.thanksmister.fragment.NOTIFICATIONS_FRAGMENT";
-    
+
     @Inject
     DataService dataService;
-    
+
     @Inject
     DbManager dbManager;
-    
+
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
@@ -85,7 +85,7 @@ public class DashboardFragment extends BaseFragment {
 
     @Inject
     protected DPreference preference;
-    
+
     private int pagerPosition = 0;
     private Fragment fragment;
 
@@ -100,7 +100,7 @@ public class DashboardFragment extends BaseFragment {
         dashboardFragment.setArguments(args);
         return new DashboardFragment();
     }
-    
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,10 +109,10 @@ public class DashboardFragment extends BaseFragment {
         }
         setHasOptionsMenu(true);
     }
-    
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        
+
         super.onViewCreated(view, savedInstanceState);
 
         Timber.d("onViewCreated");
@@ -122,7 +122,7 @@ public class DashboardFragment extends BaseFragment {
 
         fragment = AdvertisementsFragment.newInstance();
         getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, ADVERTISEMENTS_FRAGMENT).commit();
-        
+
         setupToolbar();
     }
 
@@ -147,9 +147,9 @@ public class DashboardFragment extends BaseFragment {
         }
 
     };
-    
+
     private void setupToolbar() {
-        
+
         if (!isAdded() || getActivity() == null) {
             return;
         }
@@ -166,7 +166,7 @@ public class DashboardFragment extends BaseFragment {
             });
             return;
         }
-        
+
         // Show menu icon
         final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
         ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
@@ -183,9 +183,9 @@ public class DashboardFragment extends BaseFragment {
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        
+
         super.onActivityCreated(savedInstanceState);
-        
+
         if (savedInstanceState != null) {
             pagerPosition = savedInstanceState.getInt("pagePosition", 0);
         }
@@ -271,7 +271,7 @@ public class DashboardFragment extends BaseFragment {
     }
 
     private void createAdvertisementScreen() {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0 () {
+        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
             @Override
             public void call() {
                 try {

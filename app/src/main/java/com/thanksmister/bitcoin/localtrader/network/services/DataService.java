@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.network.services;
@@ -21,7 +22,6 @@ import android.support.annotation.NonNull;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
@@ -83,14 +83,14 @@ public class DataService {
     public static final String PREFS_WALLET_EXPIRE_TIME = "pref_wallet_expire";
     public static final String PREFS_WALLET_BALANCE_EXPIRE_TIME = "pref_wallet_balance_expire";
     public static final String PREFS_CONTACTS_EXPIRE_TIME = "pref_contacts_expire";
-   
+
     private static final int CHECK_CURRENCY_DATA = 604800000;// // 1 week 604800000
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
     public static final int CHECK_ADVERTISEMENT_DATA = 3600000;// 1 hour
     public static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
     public static final int CHECK_WALLET_DATA = 15 * 60 * 1000;// 15 minutes
     public static final int CHECK_WALLET_BALANCE_DATA = 15 * 60 * 1000;// 15 minutes
-    
+
     private final LocalBitcoins localBitcoins;
     private final SharedPreferences sharedPreferences;
     private final DPreference preference;
@@ -176,7 +176,7 @@ public class DataService {
                                                     final String reference, final String message, final String sortCode,
                                                     final String billerCode, final String accountNumber, final String bsb,
                                                     final String ethereumAddress) {
-        
+
         return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
                 name, phone, email, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
                 .onErrorResumeNext(refreshTokenAndRetry(createContactObservable(adId, tradeType, countryCode, onlineProvider, amount,
@@ -189,11 +189,11 @@ public class DataService {
                                                          final String onlineProvider, final String amount, final String name,
                                                          final String phone, final String email, final String iban, final String bic,
                                                          final String reference, final String message, final String sortCode,
-                                                         final String billerCode, final String accountNumber, final String bsb, 
+                                                         final String billerCode, final String accountNumber, final String bsb,
                                                          final String ethereumAddress) {
-        
+
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
-        
+
         if (tradeType == TradeType.ONLINE_BUY) {
             switch (onlineProvider) {
                 case TradeUtils.NATIONAL_BANK:
@@ -237,7 +237,7 @@ public class DataService {
                 case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
                 case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
                     return localBitcoins.createContactPhone(accessToken, adId, amount, phone, message);
-                
+
             }
         }
 
@@ -266,10 +266,10 @@ public class DataService {
     }
 
     public Observable<Wallet> getWalletBalance() {
-        if(!needToRefreshWalletBalance()) {
+        if (!needToRefreshWalletBalance()) {
             return Observable.just(null);
         }
-        
+
         return getWalletBalanceObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletBalanceObservable()))
                 .map(new ResponseToWalletBalance())
@@ -346,7 +346,7 @@ public class DataService {
                 String.valueOf(advertisement.lat), advertisement.location, String.valueOf(advertisement.lon), advertisement.max_amount, advertisement.min_amount,
                 advertisement.message, advertisement.price_equation, String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.sms_verification_required),
                 String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.visible), String.valueOf(advertisement.require_identification),
-                advertisement.require_feedback_score, advertisement.require_trade_volume, advertisement.first_time_limit_btc, 
+                advertisement.require_feedback_score, advertisement.require_trade_volume, advertisement.first_time_limit_btc,
                 advertisement.phone_number, advertisement.opening_hours);
     }
 
@@ -375,8 +375,7 @@ public class DataService {
                 advertisement.first_time_limit_btc, advertisement.message, advertisement.currency,
                 advertisement.phone_number, advertisement.opening_hours);
 
-        
-        
+
     }
 
     public Observable<JSONObject> postMessage(final String contact_id, final String message) {
@@ -422,8 +421,8 @@ public class DataService {
                                 .map(new Func1<List<Message>, Contact>() {
                                     @Override
                                     public Contact call(List<Message> messages) {
-                                        if(messages != null) {
-                                            contact.messages = messages; 
+                                        if (messages != null) {
+                                            contact.messages = messages;
                                         }
                                         return contact;
                                     }
@@ -436,7 +435,7 @@ public class DataService {
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getContactInfo(accessToken, contact_id);
     }
-    
+
     private Observable<Response> getRecentMessagesObservable() {
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.recentMessages(accessToken);
@@ -591,7 +590,7 @@ public class DataService {
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return localBitcoins.getWallet(accessToken);
     }
-    
+
     public Observable<List<Method>> getMethods() {
         return localBitcoins.getOnlineProviders()
                 .map(new ResponseToMethod());

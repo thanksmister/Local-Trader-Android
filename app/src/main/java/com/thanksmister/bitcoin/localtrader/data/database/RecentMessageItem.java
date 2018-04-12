@@ -1,5 +1,18 @@
 /*
- * Copyright (c) 2016. DusApp
+ * Copyright (c) 2018 ThanksMister LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 package com.thanksmister.bitcoin.localtrader.data.database;
 
@@ -21,8 +34,7 @@ import static com.squareup.sqlbrite.SqlBrite.Query;
  * https://github.com/square/sqlbrite/
  */
 @AutoParcel
-public abstract class RecentMessageItem
-{
+public abstract class RecentMessageItem {
     public static final String TABLE = "recent_message_item";
 
     public static final String ID = "_id";
@@ -36,25 +48,43 @@ public abstract class RecentMessageItem
     public static final String SENDER_TRADE_COUNT = "sender_trader_count";
     public static final String SENDER_LAST_ONLINE = "sender_last_online";
     public static final String IS_ADMIN = "is_admin";
-    public static final String ATTACHMENT_NAME  = "attachment_name";
-    public static final String ATTACHMENT_URL  = "attachment_url";
-    public static final String ATTACHMENT_TYPE  = "attachment_type";
-    
-    
+    public static final String ATTACHMENT_NAME = "attachment_name";
+    public static final String ATTACHMENT_URL = "attachment_url";
+    public static final String ATTACHMENT_TYPE = "attachment_type";
+
+
     public abstract long id();
+
     public abstract String create_at();
-    @Nullable public abstract String contact_id();
+
+    @Nullable
+    public abstract String contact_id();
+
     public abstract String message();
+
     public abstract boolean seen();
-    @Nullable public abstract String sender_id();
+
+    @Nullable
+    public abstract String sender_id();
+
     public abstract String sender_name();
+
     public abstract String sender_username();
+
     public abstract String sender_trade_count();
+
     public abstract String sender_last_online();
+
     public abstract boolean is_admin();
-    @Nullable public abstract String attachment_name();
-    @Nullable public abstract String attachment_type();
-    @Nullable public abstract String attachment_url();
+
+    @Nullable
+    public abstract String attachment_name();
+
+    @Nullable
+    public abstract String attachment_type();
+
+    @Nullable
+    public abstract String attachment_url();
 
     public static final Func1<Query, List<RecentMessageItem>> MAP = new Func1<Query, List<RecentMessageItem>>() {
         @Override
@@ -86,10 +116,9 @@ public abstract class RecentMessageItem
             }
         }
     };
-    
 
-    public static Builder createBuilder(Message item)
-    {
+
+    public static Builder createBuilder(Message item) {
         return new Builder()
                 .contact_id(item.contact_id)
                 .message(item.msg)
@@ -180,7 +209,7 @@ public abstract class RecentMessageItem
         }
 
         public ContentValues build() {
-            return values; 
+            return values;
         }
     }
 }

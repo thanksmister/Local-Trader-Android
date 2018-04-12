@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -33,11 +34,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
@@ -55,8 +56,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -79,7 +80,7 @@ public class WalletFragment extends BaseFragment {
 
     @BindView(R.id.recycleView)
     RecyclerView recycleView;
-    
+
     @BindView(R.id.bitcoinTitle)
     TextView bitcoinTitle;
 
@@ -91,7 +92,7 @@ public class WalletFragment extends BaseFragment {
 
     @BindView(R.id.bitcoinLayout)
     View bitcoinLayout;
-    
+
     @BindView(R.id.emptyText)
     TextView emptyText;
 
@@ -106,7 +107,7 @@ public class WalletFragment extends BaseFragment {
     private List<TransactionItem> transactionItems;
     private ExchangeRateItem exchangeItem;
     private WalletItem walletItem;
-    
+
     public static WalletFragment newInstance() {
         return new WalletFragment();
     }
@@ -144,25 +145,25 @@ public class WalletFragment extends BaseFragment {
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        
+
         super.onActivityCreated(savedInstanceState);
-        
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        
+
         recycleView.setLayoutManager(linearLayoutManager);
         recycleView.setHasFixedSize(true);
-        
+
         transactionsAdapter = new TransactionsAdapter(getActivity());
         sectionRecycleViewAdapter = createAdapter();
         recycleView.setAdapter(sectionRecycleViewAdapter);
 
         setupToolbar();
-        
+
         String currency = exchangeService.getExchangeCurrency();
         setAppBarText("0", "0", currency);
     }
-    
+
     @Override
     public void onResume() {
         super.onResume();
@@ -190,7 +191,7 @@ public class WalletFragment extends BaseFragment {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void showContent() {
         recycleView.setVisibility(View.VISIBLE);
         emptyLayout.setVisibility(View.GONE);
@@ -198,7 +199,7 @@ public class WalletFragment extends BaseFragment {
     }
 
     public void showEmpty() {
-        if(transactionItems == null || transactionItems.isEmpty()) {
+        if (transactionItems == null || transactionItems.isEmpty()) {
             recycleView.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.VISIBLE);
             progress.setVisibility(View.GONE);
@@ -207,21 +208,21 @@ public class WalletFragment extends BaseFragment {
     }
 
     public void showProgress() {
-        if(transactionItems == null || transactionItems.isEmpty()) {
+        if (transactionItems == null || transactionItems.isEmpty()) {
             recycleView.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.GONE);
             progress.setVisibility(View.VISIBLE);
         }
     }
-    
+
     public void onRefresh() {
         updateData(true);
     }
-    
+
     private void setupToolbar() {
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
-        if(ab != null) {
+        if (ab != null) {
             ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
             ab.setTitle(getString(R.string.view_title_wallet));
             ab.setDisplayHomeAsUpEnabled(true);
@@ -305,7 +306,7 @@ public class WalletFragment extends BaseFragment {
     }
 
     private void updateData(final boolean force) {
-        if(dataService.needToRefreshWallet() && !force) {
+        if (dataService.needToRefreshWallet() && !force) {
             showProgress();
             toast(getString(R.string.toast_refreshing_data));
             dataService.getWallet()

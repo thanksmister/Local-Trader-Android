@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -29,10 +30,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter;
@@ -45,8 +46,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -76,7 +77,7 @@ public class ContactsActivity extends BaseActivity {
     TextView emptyText;
 
     private ContactAdapter itemAdapter;
-   
+
     private DashboardType dashboardType = DashboardType.NONE;
 
     private Subscription updateSubscription = Subscriptions.empty();
@@ -95,16 +96,16 @@ public class ContactsActivity extends BaseActivity {
         setContentView(R.layout.view_contacts);
 
         ButterKnife.bind(this);
-        
+
         if (savedInstanceState == null) {
             dashboardType = (DashboardType) getIntent().getSerializableExtra(EXTRA_TYPE);
         } else {
             dashboardType = (DashboardType) savedInstanceState.getSerializable(EXTRA_TYPE);
         }
-        
+
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            if(getSupportActionBar() != null) {
+            if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             }
             setToolBarMenu(toolbar);
@@ -151,8 +152,8 @@ public class ContactsActivity extends BaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if(dashboardType != null) {
-            updateData(dashboardType); 
+        if (dashboardType != null) {
+            updateData(dashboardType);
         }
     }
 
@@ -169,15 +170,15 @@ public class ContactsActivity extends BaseActivity {
     }
 
     public void showContent() {
-        if(recycleView != null && emptyLayout != null && progress != null) {
+        if (recycleView != null && emptyLayout != null && progress != null) {
             recycleView.setVisibility(View.VISIBLE);
             emptyLayout.setVisibility(View.GONE);
-            progress.setVisibility(View.GONE); 
+            progress.setVisibility(View.GONE);
         }
     }
-    
+
     public void showEmpty() {
-        if(recycleView != null && emptyLayout != null && progress != null && emptyText != null) {
+        if (recycleView != null && emptyLayout != null && progress != null && emptyText != null) {
             recycleView.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.VISIBLE);
             progress.setVisibility(View.GONE);
@@ -186,7 +187,7 @@ public class ContactsActivity extends BaseActivity {
     }
 
     public void showProgress() {
-        if(recycleView != null && emptyLayout != null && progress != null) {
+        if (recycleView != null && emptyLayout != null && progress != null) {
             recycleView.setVisibility(View.GONE);
             emptyLayout.setVisibility(View.GONE);
             progress.setVisibility(View.VISIBLE);
@@ -217,8 +218,8 @@ public class ContactsActivity extends BaseActivity {
     }
 
     public void updateData(final DashboardType type) {
-        
-        if (!NetworkUtils.isNetworkConnected(ContactsActivity.this)) {
+
+        if (NetworkUtils.isNetworkConnected(ContactsActivity.this)) {
             handleError(new NetworkConnectionException());
             return;
         }
@@ -262,7 +263,7 @@ public class ContactsActivity extends BaseActivity {
     }
 
     private void setContacts(List<ContactItem> contacts) {
-        if(contacts.isEmpty()) {
+        if (contacts.isEmpty()) {
             showEmpty();
             return;
         }
@@ -293,8 +294,8 @@ public class ContactsActivity extends BaseActivity {
                 break;
         }
 
-        if(getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(title); 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
         }
     }
 }

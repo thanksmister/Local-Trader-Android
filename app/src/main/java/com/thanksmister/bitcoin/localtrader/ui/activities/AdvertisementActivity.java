@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -35,23 +36,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.trello.rxlifecycle.ActivityEvent;
@@ -64,8 +62,6 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import retrofit.ErrorHandler;
-import retrofit.RetrofitError;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -78,7 +74,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     // The loader's unique id. Loader ids are specific to the Activity or
     private static final int ADVERTISEMENT_LOADER_ID = 1;
     private static final int METHOD_LOADER_ID = 2;
-    
+
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
     public static final int REQUEST_CODE = 10939;
     public static final int RESULT_DELETED = 837373;
@@ -127,13 +123,13 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
 
     @BindView(R.id.bankNameLayout)
     View bankNameLayout;
-    
+
     @BindView(R.id.termsLayout)
     View termsLayout;
 
     @BindView(R.id.paymentDetailsLayout)
     View paymentDetailsLayout;
-    
+
     @BindView(R.id.onlinePaymentLayout)
     View onlinePaymentLayout;
 
@@ -172,7 +168,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     private List<MethodItem> methodItems;
     private AdvertisementItem advertisement;
     private Handler handler;
-    
+
     public static Intent createStartIntent(Context context, @NonNull String adId) {
         Intent intent = new Intent(context, AdvertisementActivity.class);
         intent.putExtra(EXTRA_AD_ID, adId);
@@ -194,10 +190,10 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         } else if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_AD_ID)) {
             adId = savedInstanceState.getString(EXTRA_AD_ID);
         }
-        
+
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            if(getSupportActionBar() != null) {
+            if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setTitle("");
                 setToolBarMenu(toolbar);
@@ -207,7 +203,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         swipeLayout.setOnRefreshListener(this);
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
-        if(TextUtils.isEmpty(adId)) {
+        if (TextUtils.isEmpty(adId)) {
             showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
                 @Override
                 public void call() {
@@ -355,7 +351,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                 .subscribe(new Action1<Advertisement>() {
                     @Override
                     public void call(Advertisement advertisement) {
-                        if(advertisement != null) {
+                        if (advertisement != null) {
                             dbManager.updateAdvertisement(advertisement);
                         }
                         onRefreshStop();
@@ -368,9 +364,9 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                     }
                 });
     }
-    
+
     public void setAdvertisement(AdvertisementItem advertisement, List<MethodItem> methods) {
-        
+
         MethodItem method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
         tradePrice.setText(getString(R.string.trade_price, advertisement.temp_price(), advertisement.currency()));
 
@@ -404,7 +400,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
             }
         }
 
-      
+
         if (advertisement.atm_model() != null) {
             tradeLimit.setText("");
         } else if (advertisement.min_amount() == null) {
@@ -424,17 +420,17 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         }
 
         if (TradeUtils.isOnlineTrade(advertisement)) {
-            
+
             String paymentMethod = TradeUtils.getPaymentMethodName(advertisement, method);
             onlineProvider.setText(paymentMethod);
-            
-            if(!TextUtils.isEmpty(advertisement.bank_name())) {
+
+            if (!TextUtils.isEmpty(advertisement.bank_name())) {
                 bankName.setText(advertisement.bank_name());
             } else {
                 bankNameLayout.setVisibility(View.GONE);
             }
-            
-            if(!TextUtils.isEmpty(advertisement.account_info())) {
+
+            if (!TextUtils.isEmpty(advertisement.account_info())) {
                 paymentDetails.setText(advertisement.account_info().trim());
             } else {
                 paymentDetailsLayout.setVisibility(View.GONE);
@@ -563,7 +559,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                                 if (deleted) {
                                     dbManager.deleteAdvertisement(adId);
                                     toast(getString(R.string.toast_advertisement_deleted));
-                                    setResult(RESULT_DELETED); 
+                                    setResult(RESULT_DELETED);
                                     finish();
                                 } else {
                                     showAlertDialog(getString(R.string.alert_error_deleting_advertisement));
@@ -588,7 +584,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     private void updateAdvertisementVisibility() {
 
         showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_updating_visibility)));
-        
+
         Advertisement editAdvertisement = new Advertisement();
         editAdvertisement = editAdvertisement.convertAdvertisementItemToAdvertisement(advertisement);
 
@@ -630,7 +626,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     }
 
     private void shareAdvertisement() {
-        
+
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
 
@@ -647,7 +643,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         }
 
         shareIntent.putExtra(Intent.EXTRA_TEXT, message);
-        shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,  getString(R.string.text_share_advertisement, buyOrSell, advertisement.location_string()));
+        shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.text_share_advertisement, buyOrSell, advertisement.location_string()));
         startActivity(Intent.createChooser(shareIntent, getString(R.string.text_chooser_share_to)));
     }
 
@@ -655,10 +651,10 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         Intent intent = EditAdvertisementActivity.createStartIntent(AdvertisementActivity.this, advertisement.ad_id());
         startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
     }
-    
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if(id == ADVERTISEMENT_LOADER_ID && !TextUtils.isEmpty(adId)) {
+        if (id == ADVERTISEMENT_LOADER_ID && !TextUtils.isEmpty(adId)) {
             return new CursorLoader(AdvertisementActivity.this, SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ?", new String[]{adId}, null);
         } else if (id == METHOD_LOADER_ID) {
             return new CursorLoader(AdvertisementActivity.this, SyncProvider.METHOD_TABLE_URI, null, null, null, MethodItem.KEY);
@@ -671,7 +667,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         switch (loader.getId()) {
             case ADVERTISEMENT_LOADER_ID:
                 advertisement = AdvertisementItem.getModel(cursor);
-                if(advertisement != null && methodItems != null) {
+                if (advertisement != null && methodItems != null) {
                     setAdvertisement(advertisement, methodItems);
                 } else if (advertisement == null) {
                     updateAdvertisement(); // TODO make sure this doesn't just randomly run
@@ -679,10 +675,12 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                 break;
             case METHOD_LOADER_ID:
                 methodItems = MethodItem.getModelList(cursor);
-                if(advertisement != null && !methodItems.isEmpty()) {
+                if (advertisement != null && !methodItems.isEmpty()) {
                     setAdvertisement(advertisement, methodItems);
                 }
                 break;
+            default:
+                throw new Error("Incorrect loader Id");
         }
     }
 

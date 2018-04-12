@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -41,7 +42,6 @@ import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactActivity;
-import com.thanksmister.bitcoin.localtrader.ui.activities.EditAdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.NotificationAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
@@ -58,8 +58,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import dpreference.DPreference;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -68,7 +68,7 @@ import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class NotificationsFragment extends BaseFragment {
-    
+
     @Inject
     DataService dataService;
 
@@ -100,21 +100,13 @@ public class NotificationsFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         // can't retain nested fragments
         setRetainInstance(false);
-        
+
         // clear all notification types
         String ns = Context.NOTIFICATION_SERVICE;
         NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(ns);
-        if(notificationManager != null) {
+        if (notificationManager != null) {
             notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION);
         }
-    }
-
-    @Override
-    public void handleUpdate(){
-        if(!isAdded()) {
-            return;
-        }
-        toast(getString(R.string.toast_refreshing_data));
     }
 
     @Override
@@ -193,7 +185,7 @@ public class NotificationsFragment extends BaseFragment {
     }
 
     protected void subscribeData() {
-        
+
         dbManager.notificationsQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -207,7 +199,7 @@ public class NotificationsFragment extends BaseFragment {
                 .subscribe(new Action1<List<NotificationItem>>() {
                     @Override
                     public void call(final List<NotificationItem> items) {
-                        if(isAdded() && getActivity() != null) {
+                        if (isAdded() && getActivity() != null) {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -233,6 +225,7 @@ public class NotificationsFragment extends BaseFragment {
                 public void onSearchButtonClicked() {
                     showSearchScreen();
                 }
+
                 @Override
                 public void onAdvertiseButtonClicked() {
                     createAdvertisementScreen();
@@ -264,11 +257,11 @@ public class NotificationsFragment extends BaseFragment {
     }
 
     protected void showSearchScreen() {
-        if (isAdded()) {
+        if (isAdded() && getActivity() != null) {
             ((MainActivity) getActivity()).navigateSearchView();
         }
     }
-    
+
     private void onNotificationLinkClicked(final NotificationItem notification) {
         dataService.markNotificationRead(notification.notification_id())
                 .doOnUnsubscribe(new Action0() {
@@ -285,14 +278,16 @@ public class NotificationsFragment extends BaseFragment {
                     public void call(JSONObject result) {
                         if (!Parser.containsError(result)) {
                             dbManager.markNotificationRead(notification.notification_id());
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if(!TextUtils.isEmpty(notification.url())) {
-                                        launchNotificationLink(notification.url());
+                            if(getActivity() != null) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (!TextUtils.isEmpty(notification.url())) {
+                                            launchNotificationLink(notification.url());
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -302,16 +297,16 @@ public class NotificationsFragment extends BaseFragment {
                     }
                 });
     }
-    
+
     private void launchNotificationLink(String url) {
         String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
         Intent intent;
         intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint + url));
         startActivity(intent);
     }
-    
+
     private void showAdvertisement(NotificationItem item) {
-        if (item != null) {
+        if (item != null && isAdded() && getActivity() != null) {
             Intent intent = AdvertisementActivity.createStartIntent(getActivity(), item.advertisement_id());
             intent.setClass(getActivity(), AdvertisementActivity.class);
             startActivity(intent);
@@ -321,7 +316,7 @@ public class NotificationsFragment extends BaseFragment {
     }
 
     private void showContact(NotificationItem item) {
-        if (item != null) {
+        if (item != null && isAdded() && getActivity() != null) {
             Intent intent = ContactActivity.createStartIntent(getActivity(), item.contact_id());
             intent.setClass(getActivity(), ContactActivity.class);
             startActivity(intent);

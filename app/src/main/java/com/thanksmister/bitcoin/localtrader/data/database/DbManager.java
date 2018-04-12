@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.data.database;
@@ -50,7 +51,7 @@ import rx.functions.Func1;
 import timber.log.Timber;
 
 public class DbManager {
-   
+
     private BriteDatabase db;
     private BriteContentResolver briteContentResolver;
     private ContentResolver contentResolver;
@@ -75,7 +76,7 @@ public class DbManager {
         db.delete(NotificationItem.TABLE, null);
         db.delete(ExchangeCurrencyItem.TABLE, null);
         db.delete(AdvertisementItem.TABLE, null);
-        
+
         // let's not clear these on reset as they require a lot of work to fetch
         //db.delete(CurrencyItem.TABLE, null);
         //db.delete(ExchangeItem.TABLE, null);
@@ -85,7 +86,7 @@ public class DbManager {
     public void clearTable(String tableName) {
         db.delete(tableName, null);
     }
-    
+
 
     public List<String> insertContacts(List<Contact> items) {
         HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
@@ -95,7 +96,7 @@ public class DbManager {
 
         // Get list of all items
         Cursor cursor = contentResolver.query(SyncProvider.CONTACT_TABLE_URI, null, null, null, null);
-        if(cursor != null && cursor.getCount() > 0)
+        if (cursor != null && cursor.getCount() > 0)
             while (cursor.moveToNext()) {
                 String contactId = Db.getString(cursor, ContactItem.CONTACT_ID);
                 Contact match = entryMap.get(contactId);
@@ -105,7 +106,7 @@ public class DbManager {
                 }
             }
         items = new ArrayList<Contact>(entryMap.values());
-        
+
         // update or insert new contact
         List<String> updatedContactIds = new ArrayList<>();
         for (Contact item : items) {
@@ -114,18 +115,19 @@ public class DbManager {
                 updatedContactIds.add(item.contact_id);
             }
         }
-        
+
         return updatedContactIds;
     }
 
     /**
      * Updates or inserts new contact with message count and unseen messages flag.
-     * @param contact Contact
+     *
+     * @param contact           Contact
      * @param messageCount
      * @param hasUnseenMessages
      */
     public long updateContact(@NonNull Contact contact, int messageCount, boolean hasUnseenMessages) {
-        if(!TextUtils.isEmpty(contact.contact_id)) {
+        if (!TextUtils.isEmpty(contact.contact_id)) {
             synchronized (this) {
                 Cursor cursor = contentResolver.query(SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contact.contact_id}, null);
                 if (cursor != null && cursor.getCount() > 0) {
@@ -143,33 +145,33 @@ public class DbManager {
                 }
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("updateContact Id is null: " + contact.contact_id));
             }
         }
         return -1;
     }
-    
+
     public void deleteContact(@NonNull String contactId, ContentResolverAsyncHandler.AsyncQueryListener listener) {
-        if(!TextUtils.isEmpty(contactId)) {
+        if (!TextUtils.isEmpty(contactId)) {
             ContentResolverAsyncHandler contentResolverAsyncHandler = new ContentResolverAsyncHandler(contentResolver, listener);
             contentResolverAsyncHandler.startDelete(1, null, SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{contactId});
             contentResolverAsyncHandler.startDelete(2, null, SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID + " = ?", new String[]{contactId});
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("deleteContact Id is null: " + contactId));
             }
         }
     }
 
     private void deleteContact(@NonNull String contactId) {
-        if(!TextUtils.isEmpty(contactId)) {
-            synchronized( this ) {
+        if (!TextUtils.isEmpty(contactId)) {
+            synchronized (this) {
                 contentResolver.delete(SyncProvider.CONTACT_TABLE_URI, ContactItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)});
-                contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID  + " = ?", new String[]{String.valueOf(contactId)});
+                contentResolver.delete(SyncProvider.MESSAGE_TABLE_URI, MessageItem.CONTACT_ID + " = ?", new String[]{String.valueOf(contactId)});
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("deleteContact Id is null: " + contactId));
             }
         }
@@ -179,14 +181,14 @@ public class DbManager {
         return briteContentResolver.createQuery(SyncProvider.CONTACT_TABLE_URI, null, null, null, ContactItem.CREATED_AT + " ASC", false)
                 .map(ContactItem.MAP);
     }
-    
+
     public Observable<List<NotificationItem>> notificationsQuery() {
         return briteContentResolver.createQuery(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, NotificationItem.CREATED_AT + " DESC", false)
                 .map(NotificationItem.MAP);
     }
 
-    public void markNotificationRead(@NonNull  String notificationId) {
-        if(!TextUtils.isEmpty(notificationId)) {
+    public void markNotificationRead(@NonNull String notificationId) {
+        if (!TextUtils.isEmpty(notificationId)) {
             synchronized (this) {
                 Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, NotificationItem.NOTIFICATION_ID + " = ?", new String[]{String.valueOf(notificationId)}, null);
                 if (cursor != null && cursor.getCount() > 0) {
@@ -197,7 +199,7 @@ public class DbManager {
                 }
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("markNotificationRead Id is null: " + notificationId));
             }
         }
@@ -244,27 +246,27 @@ public class DbManager {
 
     /**
      * Bulk inserts messages into the database after adding the contact id to each.
-     * There is no need to delete previous messages because they are not deleted, so 
-     * we only need to insert them. 
-     * 
+     * There is no need to delete previous messages because they are not deleted, so
+     * we only need to insert them.
+     *
      * @param contactId Contact Id associated with the message.
-     * @param messages List of Message items
+     * @param messages  List of Message items
      */
     public void updateMessages(@NonNull String contactId, List<Message> messages) {
-        if(!TextUtils.isEmpty(contactId)) {
+        if (!TextUtils.isEmpty(contactId)) {
             for (Message message : messages) {
                 message.contact_id = contactId;
                 updateMessage(message);
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("updateMessages Id is null: " + contactId));
             }
         }
     }
-    
-    private void updateMessage(Message message)  {
-        if(!TextUtils.isEmpty(message.contact_id) && !TextUtils.isEmpty(message.created_at)) {
+
+    private void updateMessage(Message message) {
+        if (!TextUtils.isEmpty(message.contact_id) && !TextUtils.isEmpty(message.created_at)) {
             synchronized (this) {
                 Cursor cursor = contentResolver.query(SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ? AND " + MessageItem.CREATED_AT + " = ? ", new String[]{message.contact_id, message.created_at}, null);
                 if (cursor != null && cursor.getCount() > 0) {
@@ -277,7 +279,7 @@ public class DbManager {
                 }
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("updateMessage Id is null: " + message.contact_id + " | createdAt " + message.created_at));
             }
         }
@@ -312,7 +314,7 @@ public class DbManager {
     }
 
     public Observable<AdvertisementItem> advertisementItemQuery(@NonNull String adId) {
-        if(!TextUtils.isEmpty(adId)) {
+        if (!TextUtils.isEmpty(adId)) {
             return db.createQuery(AdvertisementItem.TABLE, AdvertisementItem.QUERY_ITEM, adId)
                     .map(AdvertisementItem.MAP)
                     .flatMap(new Func1<List<AdvertisementItem>, Observable<AdvertisementItem>>() {
@@ -325,11 +327,11 @@ public class DbManager {
                         }
                     });
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("advertisementItemQuery Id is null: " + adId));
             }
         }
-        
+
         return Observable.just(null);
     }
 
@@ -364,6 +366,7 @@ public class DbManager {
 
     /**
      * Insert localbitcoins currencies
+     *
      * @param currencies
      */
     public void insertCurrencies(final List<ExchangeCurrency> currencies) {
@@ -376,7 +379,8 @@ public class DbManager {
 
     /**
      * Bulk inserting methods, removing any that don't exist and only inserting
-     * those that do not exist. 
+     * those that do not exist.
+     *
      * @param methods
      */
     public void updateMethods(final List<Method> methods) {
@@ -387,7 +391,7 @@ public class DbManager {
 
         // Get list of all items
         Cursor cursor = db.query(MethodItem.QUERY);
-        
+
         try {
             while (cursor.moveToNext()) {
                 long id = Db.getLong(cursor, MethodItem.ID);
@@ -437,7 +441,7 @@ public class DbManager {
      */
     private MethodItem getMethod(@NonNull String key) {
         MethodItem model = null;
-        if(!TextUtils.isEmpty(key)) {
+        if (!TextUtils.isEmpty(key)) {
             Cursor cursor = contentResolver.query(SyncProvider.METHOD_TABLE_URI, null, MethodItem.KEY + " = ?", new String[]{key}, null);
             if (cursor != null && cursor.getCount() > 0) {
                 while (cursor.moveToNext()) {
@@ -446,25 +450,25 @@ public class DbManager {
                 }
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("getMethod Key is null: " + key));
             }
         }
         return model;
     }
-    
+
     public void insertAdvertisements(List<Advertisement> items) {
-        
+
         Timber.d("insertAdvertisements");
-        
+
         HashMap<String, Advertisement> entryMap = new HashMap<String, Advertisement>();
         for (Advertisement item : items) {
             entryMap.put(item.ad_id, item);
         }
-        
+
         // Get list of all items
         Cursor cursor = contentResolver.query(SyncProvider.ADVERTISEMENT_TABLE_URI, null, null, null, null);
-        if(cursor != null && cursor.getCount() > 0)
+        if (cursor != null && cursor.getCount() > 0)
             while (cursor.moveToNext()) {
                 String adId = Db.getString(cursor, AdvertisementItem.AD_ID);
                 Advertisement match = entryMap.get(adId);
@@ -479,21 +483,21 @@ public class DbManager {
             updateAdvertisement(item);
         }
     }
-    
+
     public void deleteAdvertisement(@NonNull String adId) {
-        if(!TextUtils.isEmpty(adId)) {
+        if (!TextUtils.isEmpty(adId)) {
             synchronized (this) {
                 contentResolver.delete(SyncProvider.ADVERTISEMENT_TABLE_URI, AdvertisementItem.AD_ID + " = ?", new String[]{String.valueOf(adId)});
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("deleteAdvertisement Id is null: " + adId));
             }
         }
     }
-    
+
     public void updateAdvertisement(Advertisement item) {
-        if(!TextUtils.isEmpty(item.ad_id)) {
+        if (!TextUtils.isEmpty(item.ad_id)) {
             synchronized (this) {
                 Cursor cursor = contentResolver.query(SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ? ", new String[]{item.ad_id}, null);
                 if (cursor != null && cursor.getCount() > 0) {
@@ -508,19 +512,19 @@ public class DbManager {
                 }
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("updateAdvertisement Id is null: " + item.ad_id));
             }
         }
     }
-    
+
     public void updateAdvertisementVisibility(@NonNull String adId, final boolean visible) {
-        if(!TextUtils.isEmpty(adId)) {
+        if (!TextUtils.isEmpty(adId)) {
             synchronized (this) {
                 contentResolver.update(SyncProvider.ADVERTISEMENT_TABLE_URI, new AdvertisementItem.Builder().visible(visible).build(), AdvertisementItem.AD_ID + " = ?", new String[]{String.valueOf(adId)});
             }
         } else {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.logException(new Throwable("updateAdvertisementVisibility Id is null: " + adId));
             }
         }

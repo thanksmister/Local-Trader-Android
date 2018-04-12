@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui;
@@ -22,8 +23,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -42,15 +41,15 @@ import android.widget.Toast;
 import com.google.zxing.android.IntentIntegrator;
 import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
+import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.ui.activities.PromoActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
@@ -58,12 +57,10 @@ import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.UnknownHostException;
-import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.net.ssl.SSLHandshakeException;
 
-import butterknife.ButterKnife;
 import dpreference.DPreference;
 import retrofit.RetrofitError;
 import rx.functions.Action0;
@@ -198,20 +195,20 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             alertDialog.dismiss();
             alertDialog = null;
         }
-        alertDialog =  new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setMessage(Html.fromHtml(message))
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 
     public void showAlertDialog(AlertDialogEvent event) {
-        
+
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
         }
-        
-        alertDialog =  new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
+
+        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
                 .setTitle(event.title)
                 .setMessage(Html.fromHtml(event.message))
                 .setPositiveButton(android.R.string.ok, null)
@@ -225,7 +222,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             alertDialog.dismiss();
             alertDialog = null;
         }
-        
+
         View view = View.inflate(BaseActivity.this, R.layout.dialog_about, null);
         TextView textView = (TextView) view.findViewById(R.id.message);
         textView.setText(Html.fromHtml(message));

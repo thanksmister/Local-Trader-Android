@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2016 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.utils;
@@ -21,9 +22,9 @@ import android.location.Address;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.prefs.DoublePreference;
 import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,15 +37,13 @@ public class SearchUtils {
 
     private static final String PREFS_SEARCH_LOCATION_ADDRESS = "search_location_address";
     private static final String PREFS_SEARCH_CURRENCY = "search_currency";
-    
     private static final String PREFS_SEARCH_LONGITUDE = "search_longitude_double";
     private static final String PREFS_SEARCH_LATITUDE = "search_latitude_double";
     private static final String PREFS_SEARCH_COUNTRY_NAME = "search_country_name";
     private static final String PREFS_SEARCH_COUNTRY_CODE = "search_country_code";
-    
     private static final String PREFS_SEARCH_PAYMENT_METHOD = "searchPaymentMethod";
     private static final String PREFS_SEARCH_TRADE_TYPE = "searchTradeType";
-    
+
     public static boolean coordinatesValid(String latitude, String longitude) {
         double lat = parseDouble(latitude, 0);
         double lon = NumberUtils.parseDouble(longitude, 0);
@@ -54,7 +53,7 @@ public class SearchUtils {
     public static boolean coordinatesValid(double lat, double lon) {
         return (lat != 0 && lat >= -90 && lat <= 90 && lon != 0 && lon >= -180 && lon <= 180);
     }
-    
+
     public static Address coordinatesToAddress(String latitude, String longitude) {
         Address address = new Address(Locale.getDefault());
         address.setLatitude(parseDouble(latitude, 0));
@@ -63,9 +62,7 @@ public class SearchUtils {
     }
 
     public static String getDisplayAddress(@NonNull Address address) {
-        if(address == null) 
-            return "";
-        
+
         String addressText = "";
         String addressLine = null;
         String locality = null;
@@ -113,7 +110,6 @@ public class SearchUtils {
 
     /**
      * Returns true if we a stored search address
-     *
      * @param sharedPreferences
      */
     public static boolean hasSearchAddress(@NonNull SharedPreferences sharedPreferences) {
@@ -125,7 +121,7 @@ public class SearchUtils {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_PAYMENT_METHOD, "all");
         return stringPreference.get();
     }
-    
+
     public static void setSearchPaymentMethod(@NonNull SharedPreferences sharedPreferences, @NonNull String method) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_PAYMENT_METHOD);
         stringPreference.set(method);
@@ -135,7 +131,7 @@ public class SearchUtils {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_TRADE_TYPE, TradeType.LOCAL_BUY.name());
         return stringPreference.get();
     }
-    
+
     public static void setSearchTradeType(@NonNull SharedPreferences sharedPreferences, @NonNull String type) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_TRADE_TYPE);
         stringPreference.set(type);
@@ -145,7 +141,7 @@ public class SearchUtils {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_LOCATION_ADDRESS, null);
         String addressJson = stringPreference.get();
         Address address = new Address(Locale.US);
-        if(addressJson != null) {
+        if (addressJson != null) {
             try {
                 JSONObject jsonObject = new JSONObject(addressJson);
                 address.setAddressLine(0, jsonObject.getString("addressline"));
@@ -156,7 +152,7 @@ public class SearchUtils {
                 address.setLongitude(jsonObject.getDouble("longitude"));
             } catch (JSONException e) {
                 e.printStackTrace();
-            } 
+            }
         }
         return address;
     }
@@ -205,7 +201,7 @@ public class SearchUtils {
 
     public static String getSearchCountryName(@NonNull SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_COUNTRY_NAME, "Any");
-        if(stringPreference.get().equals("")) return "Any";
+        if (stringPreference.get().equals("")) return "Any";
         return stringPreference.get();
     }
 
@@ -213,17 +209,17 @@ public class SearchUtils {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_SEARCH_COUNTRY_NAME);
         stringPreference.set(value);
     }
-    
+
     public static double getSearchLatitude(@NonNull SharedPreferences sharedPreferences) {
         DoublePreference preference = new DoublePreference(sharedPreferences, PREFS_SEARCH_LATITUDE, 0);
         return preference.get();
     }
-    
+
     public static void setSearchLatitude(@NonNull SharedPreferences sharedPreferences, double latitude) {
         DoublePreference preference = new DoublePreference(sharedPreferences, PREFS_SEARCH_LATITUDE);
         preference.set(latitude);
     }
-    
+
     public static double getSearchLongitude(@NonNull SharedPreferences sharedPreferences) {
         DoublePreference preference = new DoublePreference(sharedPreferences, PREFS_SEARCH_LONGITUDE, 0);
         return preference.get();
@@ -232,16 +228,5 @@ public class SearchUtils {
     public static void setSearchLongitude(@NonNull SharedPreferences sharedPreferences, double longitude) {
         DoublePreference preference = new DoublePreference(sharedPreferences, PREFS_SEARCH_LONGITUDE);
         preference.set(longitude);
-    }
-
-    /**
-     * Reset the stored credentials
-     *
-     * @param sharedPreferences
-     */
-    public static void resetCredentials(@NonNull SharedPreferences sharedPreferences) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
     }
 }

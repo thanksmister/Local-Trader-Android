@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.network.services;
@@ -33,6 +34,13 @@ import com.squareup.sqlbrite.BriteContentResolver;
 import com.squareup.sqlbrite.BriteDatabase;
 import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
+import com.thanksmister.bitcoin.localtrader.data.database.Db;
+import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
+import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
+import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
@@ -41,13 +49,6 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
-import com.thanksmister.bitcoin.localtrader.data.database.Db;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -74,17 +75,17 @@ import static android.content.Context.MODE_PRIVATE;
 
 @Singleton
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
-    
+
     public static final String ACTION_SYNC = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC";
     public static final String ACTION_TYPE_START = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_START";
     public static final String ACTION_TYPE_COMPLETE = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_COMPLETE";
     public static final String ACTION_TYPE_CANCELED = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_CANCELED";
     public static final String ACTION_TYPE_ERROR = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_ERROR";
-    
+
     public static final String EXTRA_ACTION_TYPE = "com.thanksmister.bitcoin.localtrader.extra.EXTRA_ACTION";
     public static final String EXTRA_ERROR_CODE = "com.thanksmister.bitcoin.localtrader.extra.EXTRA_ERROR_CODE";
     public static final String EXTRA_ERROR_MESSAGE = "com.thanksmister.bitcoin.localtrader.extra.EXTRA_ERROR_MESSAGE";
-    
+
     private static final String SYNC_CURRENCIES = "com.thanksmister.bitcoin.localtrader.sync.SYNC_CURRENCIES";
     private static final String SYNC_WALLET = "com.thanksmister.bitcoin.localtrader.sync.SYNC_WALLET";
     private static final String SYNC_ADVERTISEMENTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_ADVERTISEMENTS";
@@ -92,9 +93,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String SYNC_CONTACTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_CONTACTS";
     private static final String SYNC_MESSAGES = "com.thanksmister.bitcoin.localtrader.sync.SYNC_MESSAGES";
     private static final String SYNC_NOTIFICATIONS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_NOTIFICATIONS";
-    
+
     public static final int SYNC_ERROR_CODE = 9;
-    
+
     private static final String BASE_URL = "https://localbitcoins.com/";
 
     private DataService dataService;
@@ -104,7 +105,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private DPreference preference;
     private ContentResolver contentResolver;
     private BriteContentResolver briteContentResolver;
-    
+
     // store all ongoing syncs
     private HashMap<String, Boolean> syncMap;
     private final AtomicBoolean canceled = new AtomicBoolean(false);
@@ -136,14 +137,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         this.canceled.set(false);
 
-        if(!isSyncing() && hasCredentials && !isCanceled()) {
+        if (!isSyncing() && hasCredentials && !isCanceled()) {
             getCurrencies();
             getMethods();
             getNotifications();
             getContacts();
             getAdvertisements();
             getWalletBalance();
-            if(!isSyncing() && !isCanceled()) {
+            if (!isSyncing() && !isCanceled()) {
                 resetSyncing();
                 onSyncComplete();
             } else if (isCanceled()) {
@@ -156,13 +157,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Keep a map of all syncing calls to update sync status and
      * broadcast when no more syncs running
+     *
      * @param key
      * @param value
      */
     private void updateSyncMap(String key, boolean value) {
         Timber.d("updateSyncMap: " + key + " value: " + value);
         syncMap.put(key, value);
-        if(isSyncing()) {
+        if (isSyncing()) {
             onSyncStart();
         } else {
             resetSyncing();
@@ -182,6 +184,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     /**
      * Checks if any active syncs are going one
+     *
      * @return
      */
     private boolean isSyncing() {
@@ -199,16 +202,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     /**
      * Check if the sync has been canceled due to error or network
+     *
      * @return
      */
     private boolean isCanceled() {
         return canceled.get();
     }
-    
+
     private void cancelSync() {
         this.canceled.set(true);
     }
-    
+
     @Override
     public void onSyncCanceled() {
         Timber.d("onSyncComplete");
@@ -261,14 +265,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 });
     }
-    
+
     private void fetchCurrencies() {
         updateSyncMap(SYNC_CURRENCIES, true);
         dataService.getCurrencies()
                 .subscribe(new Action1<List<ExchangeCurrency>>() {
                     @Override
                     public void call(List<ExchangeCurrency> currencies) {
-                        if(currencies != null) {
+                        if (currencies != null) {
                             dbManager.insertCurrencies(currencies);
                             dataService.setCurrencyExpireTime();
                         }
@@ -283,16 +287,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 });
     }
-    
+
     private void getMethods() {
         Timber.d("getMethods");
         dbManager.methodQuery().subscribe(new Action1<List<MethodItem>>() {
             @Override
             public void call(List<MethodItem> methodItems) {
-                if(methodItems == null || methodItems.isEmpty()) {
+                if (methodItems == null || methodItems.isEmpty()) {
                     fetchMethods();
                 } else {
-                    if(dataService.needToRefreshMethods()) {
+                    if (dataService.needToRefreshMethods()) {
                         fetchMethods();
                     }
                 }
@@ -307,7 +311,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .subscribe(new Action1<List<Method>>() {
                     @Override
                     public void call(List<Method> methods) {
-                        if(methods != null) {
+                        if (methods != null) {
                             dbManager.updateMethods(methods);
                             dataService.setMethodsExpireTime();
                         }
@@ -322,16 +326,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 });
     }
-    
+
     private void getAdvertisements() {
-        
+
         Timber.d("getAdvertisements");
-        
+
         updateSyncMap(SYNC_ADVERTISEMENTS, true);
-        
+
         boolean force = AuthUtils.getForceUpdate(preference);
         Timber.d("getAdvertisements force: " + force);
-        
+
         dataService.getAdvertisements(force)
                 .subscribe(new Action1<List<Advertisement>>() {
                     @Override
@@ -345,7 +349,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        if(throwable instanceof InterruptedIOException) {
+                        if (throwable instanceof InterruptedIOException) {
                             Timber.d("Advertisements Error: " + throwable.getMessage());
                         } else {
                             Timber.e("Advertisements Error: " + throwable.getMessage());
@@ -366,7 +370,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .subscribe(new Action1<List<Contact>>() {
                     @Override
                     public void call(List<Contact> contacts) {
-                        if(contacts != null) {
+                        if (contacts != null) {
                             dbManager.insertContacts(contacts);
                         }
                         updateSyncMap(SYNC_CONTACTS, false);
@@ -388,7 +392,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .subscribe(new Action1<List<Notification>>() {
                     @Override
                     public void call(List<Notification> notifications) {
-                        if(notifications != null) {
+                        if (notifications != null) {
                             updateNotifications(notifications);
                         }
                         updateSyncMap(SYNC_NOTIFICATIONS, false);
@@ -411,7 +415,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .subscribe(new Action1<Wallet>() {
                     @Override
                     public void call(Wallet wallet) {
-                        if(wallet != null) {
+                        if (wallet != null) {
                             updateWalletBalance(wallet);
                         }
                         updateSyncMap(SYNC_WALLET, false);
@@ -486,7 +490,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void updateWalletBalance(final Wallet wallet) {
-        
+
         Timber.d("updateWalletBalance");
 
         Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
@@ -534,7 +538,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             }
         });
     }
-    
+
     private LocalBitcoins initLocalBitcoins() {
         OkHttpClient okHttpClient = new OkHttpClient();
         OkClient client = new OkClient(okHttpClient);

@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 package com.thanksmister.bitcoin.localtrader.data.database;
 
@@ -110,7 +111,7 @@ public abstract class ContactItem {
     public static final String MESSAGE_COUNT = "message_count";
     public static final String UNSEEN_MESSAGES = "unseen_messages";
 
-  
+
     public static final String QUERY = "SELECT *"
             + " FROM "
             + ContactItem.TABLE
@@ -119,88 +120,145 @@ public abstract class ContactItem {
             + " = ?";
 
     public abstract long id();
+
     public abstract String contact_id();
+
     public abstract String reference_code();
+
     public abstract String currency();
+
     public abstract String amount();
+
     public abstract String amount_btc();
+
     public abstract boolean is_funded(); //contacts with escrow enabled and funded
+
     public abstract boolean is_selling(); // you are selling
+
     public abstract boolean is_buying(); // you are buying
+
     public abstract String created_at(); // TODO should never be null
+
     @Nullable
     public abstract String closed_at();
+
     @Nullable
     public abstract String disputed_at();
+
     @Nullable
     public abstract String funded_at();
+
     @Nullable
     public abstract String escrowed_at();
+
     @Nullable
     public abstract String canceled_at();
+
     @Nullable
     public abstract String released_at();
+
     @Nullable
     public abstract String payment_completed_at();
+
     @Nullable
     public abstract String exchange_rate_updated_at();
+
     public abstract String seller_username();
+
     public abstract String seller_feedback_score();
+
     public abstract String seller_trade_count();
+
     public abstract String seller_last_online();
+
     public abstract String seller_name();
+
     public abstract String buyer_username();
+
     public abstract String buyer_feedback_score();
+
     public abstract String buyer_trade_count();
+
     public abstract String buyer_last_online();
+
     public abstract String buyer_name();
+
     @Nullable
     public abstract String release_url(); // ONLINE_SELL escrows only
+
     public abstract String advertisement_public_view();
+
     public abstract String message_url();
+
     public abstract String message_post_url();
+
     @Nullable
     public abstract String mark_as_paid_url(); // ONLINE_BUY
+
     @Nullable
     public abstract String dispute_url(); // if eligible for dispute
+
     @Nullable
     public abstract String cancel_url(); //  if eligible for canceling
+
     @Nullable
     public abstract String fund_url(); //  contacts with escrow enabled but not funded
+
     @Nullable
     public abstract String details_receiver_name();
+
     @Nullable
     public abstract String details_receiver_email();
+
     @Nullable
     public abstract String details_iban();
+
     @Nullable
     public abstract String details_swift_bic();
+
     @Nullable
     public abstract String details_reference();
+
     @Nullable
     public abstract String details_ethereum_address();
+
     @Nullable
     public abstract String details_bsb();
+
     @Nullable
     public abstract String details_phone_number();
+
     @Nullable
     public abstract String details_biller_code();
+
     @Nullable
     public abstract String details_account_number();
+
     @Nullable
     public abstract String details_message();
+
     @Nullable
     public abstract String details_sort_code();
+
     public abstract String advertisement_id();
+
     @Nullable
     public abstract String advertisement_payment_method(); // online trades
+
     public abstract String advertisement_trade_type();
+
     public abstract String advertiser_username();
+
     public abstract String advertiser_feedback_score();
+
     public abstract String advertiser_trade_count();
+
     public abstract String advertiser_last_online();
+
     public abstract String advertiser_name();
+
     public abstract Boolean hasUnseenMessages();
+
     public abstract int messageCount();
 
     public static final Func1<SqlBrite.Query, ContactItem> MAP_SINGLE = new Func1<SqlBrite.Query, ContactItem>() {
@@ -387,7 +445,7 @@ public abstract class ContactItem {
                 contact.advertisement.id, contact.advertisement.payment_method, contact.advertisement.trade_type.name(), contact.advertisement.advertiser.username, contact.advertisement.advertiser.feedback_score, contact.advertisement.advertiser.trade_count, contact.advertisement.advertiser.last_online,
                 contact.advertisement.advertiser.name, contact.hasUnseenMessages, contact.messageCount);
     }
-    
+
     public static Builder createBuilder(Contact item, int messageCount, boolean hasUnseenMessages) {
         return new Builder()
                 .contact_id(item.contact_id)

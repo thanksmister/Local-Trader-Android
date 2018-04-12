@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
@@ -28,11 +29,10 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
-public class ScreenPagerAdapter extends PagerAdapter
-{
+public class ScreenPagerAdapter extends PagerAdapter {
     private int numberOfPages = 3;
 
     private Context context;
@@ -48,29 +48,19 @@ public class ScreenPagerAdapter extends PagerAdapter
             R.color.white,
             R.color.white};
 
-  
-    public ScreenPagerAdapter(Context context)
-    {
+
+    public ScreenPagerAdapter(Context context) {
         this.context = context;
         this.inflater = LayoutInflater.from(context);
     }
 
-    /*@Override
-    public Parcelable saveState() {
-        Bundle bundle = (Bundle) super.saveState();
-        bundle.putParcelableArray("states", null); // Never maintain any states from the base class to avoid TransactionTooLargeException
-        return bundle;
-    }*/
-
     @Override
-    public int getCount()
-    {
+    public int getCount() {
         return numberOfPages;
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position)
-    {
+    public Object instantiateItem(ViewGroup container, int position) {
         ViewHolder holder;
         View view = inflater.inflate(R.layout.adapter_pager_layout, container, false);
         holder = new ViewHolder(view);
@@ -78,12 +68,12 @@ public class ScreenPagerAdapter extends PagerAdapter
         //String[] titleStrings = context.getResources().getStringArray(R.array.login_registration_titles);
         //String[] summaryStrings = context.getResources().getStringArray(R.array.login_registration_screens_summary);
         String[] descriptionStrings = context.getResources().getStringArray(R.array.login_registration_screens_description);
-        
+
         //holder.summaryText.setText(Html.fromHtml(summaryStrings[position]));
         holder.descriptionText.setText(Html.fromHtml(descriptionStrings[position]));
         holder.descriptionText.setMovementMethod(LinkMovementMethod.getInstance());
         //holder.headerText.setText(titleStrings[position]);
-        
+
         holder.screenImage.setImageResource(res[position]);
         holder.background.setBackgroundColor(context.getResources().getColor(backgroundColor[position]));
 
@@ -93,22 +83,19 @@ public class ScreenPagerAdapter extends PagerAdapter
     }
 
     @Override
-    public boolean isViewFromObject(View view, Object object)
-    {
+    public boolean isViewFromObject(View view, Object object) {
         return view == object;
     }
 
     @Override
-    public void destroyItem(ViewGroup container, int position, Object object)
-    {
+    public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView((View) object);
     }
 
-    static class ViewHolder
-    {
-        @BindView(R.id.screenBackground) 
-        View background;   
-        
+    static class ViewHolder {
+        @BindView(R.id.screenBackground)
+        View background;
+
         @BindView(R.id.screenImage)
         ImageView screenImage;
 

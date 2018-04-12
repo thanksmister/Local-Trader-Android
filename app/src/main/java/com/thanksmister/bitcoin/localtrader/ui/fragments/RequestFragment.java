@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -60,12 +61,11 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
-import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.Observable;
 import rx.Observer;
@@ -78,7 +78,7 @@ import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 public class RequestFragment extends BaseFragment {
-    
+
     @Inject
     ExchangeService exchangeService;
 
@@ -157,12 +157,12 @@ public class RequestFragment extends BaseFragment {
                 setAmountFromClipboard();
                 return true;
             case R.id.action_share:
-                if(walletItem != null) {
+                if (walletItem != null) {
                     shareAddress(walletItem.address());
                 }
                 return true;
             case R.id.action_blockchain:
-                if(walletItem != null) {
+                if (walletItem != null) {
                     viewBlockChain(walletItem.address());
                 }
                 return true;
@@ -312,9 +312,9 @@ public class RequestFragment extends BaseFragment {
                 .subscribe(new Action1<WalletItem>() {
                     @Override
                     public void call(WalletItem item) {
-                        if(item != null) {
+                        if (item != null) {
                             walletItem = item;
-                            setWallet(walletItem);   
+                            setWallet(walletItem);
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -334,6 +334,7 @@ public class RequestFragment extends BaseFragment {
                     @Override
                     public void onCompleted() {
                     }
+
                     @Override
                     public void onError(final Throwable e) {
                         if (isAdded()) {
@@ -346,6 +347,7 @@ public class RequestFragment extends BaseFragment {
                             });
                         }
                     }
+
                     @Override
                     public void onNext(final Bitmap data) {
                         if (isAdded()) {
@@ -443,7 +445,7 @@ public class RequestFragment extends BaseFragment {
     }
 
     public void setAmountFromClipboard() {
-        
+
         String clipText = getClipboardText();
         if (Strings.isBlank(clipText)) {
             toast(R.string.toast_clipboard_empty);

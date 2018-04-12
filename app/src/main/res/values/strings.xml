@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2015 ThanksMister LLC
+  ~ Copyright (c) 2018 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License. 
+  ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
   ~ http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ Unless required by applicable law or agreed to in writing, software distributed 
-  ~ under the License is distributed on an "AS IS" BASIS, 
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-  ~ See the License for the specific language governing permissions and 
+  ~ Unless required by applicable law or agreed to in writing, software distributed
+  ~ under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
+  ~
   -->
 
 <resources>
@@ -191,8 +192,6 @@
     <string name="toast_clipboard_empty">The contents of the clipboard are empty.</string>
     <string name="toast_error_message">Error sending message.</string>
     <string name="toast_refreshing_data">Refreshing data…</string>
-    <string name="toast_valid_address_required">A valid address is required.</string>
-    <string name="toast_missing_phone_number">Phone number must not be blank.</string>
     <string name="toast_price_equation_blank">Price equation can\'t be blank.</string>
     <string name="toast_minimum_amount">Enter a valid minimum amount.</string>
     <string name="toast_maximum_amount">Enter a valid maximum amount.</string>
@@ -322,7 +321,6 @@
     <string name="form_trade_amount">Trade Amount</string>
     <string name="menu_get_device_location">Get Device Location</string>
     <string name="text_local_search_instructions">Local searches require a latitude/longitude. Either use device location, enter a country, city or address, or enter a latitude/longitude. Search for \"latitude and longitude from google maps\" to find out more.</string>
-    <string name="text_location_edit_instructions">New advertisements require a latitude/longitude. Either use device location, enter a country, city or address</string>
     <string name="toast_search_canceled">Search canceled…</string>
     <string name="error_unable_load_payment_methods">Unable to load online payment methods.</string>
     <string name="toast_loading_methods">Error getting methods…</string>
@@ -575,55 +573,21 @@
     </string-array>
     
     <string name="hint_enter_county_city_or_address">Enter County, City or Address</string>
-    <string name="text_payment_method">Payment method</string>
     <string name="text_post_update_canceled">Advertisement update canceled</string>
     <string name="error_address_title">Address Error</string>
     <string name="error_location_title">Location Error</string>
     <string name="error_location_message">Location manager could not use the available provider, your location could not be determined</string>
     <string name="text_advertisement_status">Status</string>
     <string name="dialog_loading">Loading…</string>
-    <string name="text_i_want_to">I want to…</string>
     <string name="text_method_name_all">All</string>
-    <string name="text_currency">Currency</string>
-    <string name="text_currency_description">Changes displayed Advertisement price to selected currency and updates price equation.</string>
     <string name="text_price_equation">Price Equation</string>
     <string name="text_minimum_amount_to_trade">Minimum amount to trade</string>
     <string name="text_maximum_amount_to_trade">Maximum amount to trade</string>
     <string name="text_terms_of_trade">Terms of trade</string>
-    <string name="text_liquidity_description">Decreases max request amount as trades are filled to match remaining balance. This option limits the liquidity of this Advertisement to the maximum amount.</string>
-    <string name="text_track_liquidity">Track liquidity</string>
-    <string name="text_identified_people_only">Identified people only</string>
-    <string name="text_identified_people_only_description">To contact your Advertisement, users need to verify their identity by sending IDs, driver\'s licence or passport.</string>
-    <string name="text_sms_verification_required">SMS verification required</string>
-    <string name="text_trusted_people_only">Trusted people only</string>
-    <string name="text_identify_user_before_continuing_trade">Identify user before continuing trade</string>
-    <string name="text_identify_user_before_continuing_trade_description">Other users can make a contact to your ad, but they need to identify to you before the trade can continue. Payment details are hidden and the buyer cannot send the payment until identification is approved by you.</string>
-    <string name="text_real_name_required">Real name required</string>
-    <string name="text_real_name_required_description">The buyer must have a real name set. You confirm the real name when the buyer replies to the Advertisement. For more information see localbitcoins.com/guides/real-name</string>
-    <string name="text_minimum_volume">Minimum volume</string>
-    <string name="text_minimum_volume_description">How much previous trade volume the buyer is required to have in BTC. Set this value larger than zero to filter out the first time buyers who have no volume.</string>
-    <string name="text_hint_payment_details">Enter payment details</string>
     <string name="text_payment_details">Payment details</string>
-    <string name="text_minimum_feedback_score">Minimum feedback score</string>
-    <string name="text_minimum_feedback_score_description">The percentage of positive feedback score the buyer is required to have (0–100). This does not apply to first time buyers who do not yet have feedback score.</string>
-    <string name="text_new_buyer_limit">New buyer limit</string>
-    <string name="text_new_buyer_limit_description">Optional. If the contact has no trading history, this is the bitcoin limit for the first transaction.</string>
     <string name="text_bank_name">Bank name</string>
-    <string name="text_bank_name_hint">Enter Bank name</string>
-    <string name="text_margin_value">Margin Value</string>
-    <string name="text_location">Location</string>
-    <string name="text_location_online_description">For online trade you need to specify the country. For local trade, please specify a city, postal code or street name.</string>
-    <string name="text_phone_number">Phone number</string>
-    <string name="text_phone_number_hint">Enter Phone number</string>
-    <string name="text_phone_number_description">Used for receiving payments.</string>
-    <string name="error_unable_to_load_currencies">Unable to load currencies, without them we can\'t create an new Advertisement.</string>
     <string name="text_trade_terms_hint">Enter terms</string>
-    <string name="text_floating_price">Floating price</string>
-    <string name="text_floating_price_description">Make the exchange rate float with the market while the trade is open. The trading price is determined at the time of bitcoin release. Note that an extra 15%% reserve is added to the reserved bitcoin amount. The excess amount will be returned after the trade is finished.</string>
     <string name="button_save_changes">Save Changes</string>
-    <string name="text_title_advertisement_info">Advertisement Info</string>
-    <string name="text_title_online_options">Online options</string>
-    <string name="text_title_security_options">Other options</string>
     <string name="dialog_saving_changes">Saving changes…</string>
     <string name="error_advertisement">Error Advertisement</string>
     <string name="dialog_updating_visibility">Updating visibility…</string>
@@ -660,7 +624,6 @@
     <string name="text_search_country">Country?</string>
     <string name="text_latitude">Latitude</string>
     <string name="text_search_buying_or_selling">Buying or selling?</string>
-    <string name="text_title_trade_type">Trade Type</string>
     <string name="text_buy">Buy</string>
     <string name="text_sell">Sell</string>
     <string name="text_from">from</string>
@@ -675,15 +638,9 @@
     <string name="text_advertisement_local_sale">Local sale</string>
     <string name="text_advertisement_online_buy">Online buy</string>
     <string name="text_advertisement_online_sale">Online sale</string>
-    <string name="text_title_more_info">More Info</string>
     <string name="toast_error_retrieving_trades">Error retrieving trades.</string>
     <string name="toast_contact_not_exist">That contact doesn\'t seem valid...</string>
-    <string name="toast_bank_name_required">Please provide a bank name.</string>
     <string name="toast_complete_all_fields">Please complete all fields.</string>
-    <string name="toast_provide_payment_details">Please provide payment details.</string>
-    <string name="toast_playment_method_blank">Payment method can\'t be blank.</string>
-    <string name="toast_swift_blank">SWIFT or Bic can\'t be blank.</string>
-    <string name="toast_gift_card_blank">Gift card issuer can\'t be blank.</string>
     <string name="text_advertisement_item_local_buy">Local Buy -</string>
     <string name="text_advertisement_item_local_sale">Local Sale -</string>
     <string name="text_advertisement_item_online_buy">Online Buy -</string>
@@ -723,7 +680,7 @@
     <string name="text_license_information">License information</string>
     <string name="text_join_community">Join community</string>
     <string name="text_rate_application">Rate application</string>
-    <string name="text_application_feedback">Application Feedback</string>
+    <string name="text_application_feedback">Project Page</string>
     <string name="text_localbitcoins_support">LocalBitcoins Support</string>
     <string name="text_getting_started_guides">Getting Started Guides</string>
     <string name="text_buying_locally">Buying Locally</string>

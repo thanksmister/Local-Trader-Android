@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.utils;
@@ -22,13 +23,13 @@ import android.text.TextUtils;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
+import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
+import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
+import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -41,7 +42,7 @@ import java.util.List;
 import timber.log.Timber;
 
 public class TradeUtils {
-    
+
     public static final String PAYPAL = "PAYPAL";
     public static final String NETELLER = "NETELLER";
     public static final String QIWI = "QIWI";
@@ -72,11 +73,11 @@ public class TradeUtils {
 
     public static String getContactDescription(ContactItem contact, Context context) {
 
-         if (isCanceledTrade(contact)) {
+        if (isCanceledTrade(contact)) {
 
-             return isLocalTrade(contact) ? context.getString(R.string.order_description_cancel_local) : context.getString(R.string.order_description_cancel);
+            return isLocalTrade(contact) ? context.getString(R.string.order_description_cancel_local) : context.getString(R.string.order_description_cancel);
 
-         } else if (isReleased(contact)) {
+        } else if (isReleased(contact)) {
 
             return context.getString(R.string.order_description_released);
 
@@ -84,10 +85,10 @@ public class TradeUtils {
 
             return context.getString(R.string.order_description_disputed);
 
-         } else if (isClosedTrade(contact)) {
+        } else if (isClosedTrade(contact)) {
 
-             return context.getString(R.string.order_description_closed);
-             
+            return context.getString(R.string.order_description_closed);
+
         } else if (isLocalTrade(contact)) {
 
             if (youAreAdvertiser(contact) && contact.is_selling()) {
@@ -122,7 +123,7 @@ public class TradeUtils {
     }
 
     public static int getTradeActionButtonLabel(ContactItem contact) {
-        
+
         if (isClosedTrade(contact) || isReleased(contact)) {
             return 0;
         }
@@ -162,11 +163,11 @@ public class TradeUtils {
             return contact.advertiser_username().equals(contact.buyer_username());
         }
     }
-    
-    public static boolean tradeIsActive(String closedAt, String canceledAt){
+
+    public static boolean tradeIsActive(String closedAt, String canceledAt) {
         return (TextUtils.isEmpty(closedAt) && TextUtils.isEmpty(canceledAt));
     }
-    
+
     private static boolean isCanceledTrade(ContactItem contact) {
         return !TextUtils.isEmpty(contact.canceled_at());
     }
@@ -314,7 +315,7 @@ public class TradeUtils {
         }
         return code;
     }
-    
+
     public static String getPaymentMethodFromItems(AdvertisementItem advertisement, List<MethodItem> methodItems) {
         if (methodItems == null || methodItems.isEmpty()) {
             return "";
@@ -359,7 +360,7 @@ public class TradeUtils {
 
         return paymentMethod;
     }
-    
+
     public static String getPaymentMethodName(String paymentMethod) {
         switch (paymentMethod) {
             case "NATIONAL_BANK":
@@ -455,7 +456,7 @@ public class TradeUtils {
 
         return R.drawable.last_seen_recently;
     }
-    
+
     public static String[] parseUserString(String value) {
         String[] nameSplit;
         if (!value.contains(" ")) {
@@ -523,65 +524,65 @@ public class TradeUtils {
             return value;
         }
     }
-    
+
     public static String getBankNameTitle(TradeType tradeType, String onlineProvider) {
-            String bankTitle = null;
-            if (tradeType == TradeType.ONLINE_SELL) {
-                switch (onlineProvider) {
-                    case TradeUtils.INTERNATIONAL_WIRE_SWIFT:
-                        bankTitle = "Bank SWIFT";
-                        break;
-                    case TradeUtils.CASH_DEPOSIT:
-                    case TradeUtils.SPECIFIC_BANK:
-                    case TradeUtils.NATIONAL_BANK:
-                        bankTitle = "Bank name (required)";
-                        break;
-                    case TradeUtils.OTHER:
-                    case TradeUtils.OTHER_REMITTANCE:
-                    case TradeUtils.OTHER_PRE_PAID_DEBIT:
-                    case TradeUtils.OTHER_ONLINE_WALLET_GLOBAL:
-                    case TradeUtils.OTHER_ONLINE_WALLET:
-                        bankTitle = "Payment method name";
-                        break;
-                    case TradeUtils.GIFT_CARD_CODE:
-                        bankTitle = "Gift Card Issuer: [AMC Theatres, Airbnb, American Express, Best Buy, Dell, GA2, GameStop, Google Play, Groupon, Home Depot, Lowe, Lyft, Microsoft Windows Store, Netflix, Other, Papa John's Pizza, PlayStation Store, Regal Cinemas, Skype Credit, Target, Uber, Whole Foods Market, Wolt, Xbox]";
-                        break;
-                    default:
-                        break;
-                }
-            } else if (tradeType == TradeType.ONLINE_BUY) {
-                switch (onlineProvider) {
-                    case TradeUtils.NATIONAL_BANK:
-                    case TradeUtils.CASH_DEPOSIT:
-                    case TradeUtils.SPECIFIC_BANK:
-                        bankTitle = "Bank name (required)";
-                        break;
-                    case TradeUtils.OTHER:
-                    case TradeUtils.OTHER_REMITTANCE:
-                    case TradeUtils.OTHER_PRE_PAID_DEBIT:
-                    case TradeUtils.OTHER_ONLINE_WALLET_GLOBAL:
-                    case TradeUtils.OTHER_ONLINE_WALLET:
-                        bankTitle = "Payment method name";
-                        break;
-                    case TradeUtils.INTERNATIONAL_WIRE_SWIFT:
-                        bankTitle = "Bank SWIFT";
-                        break;
-                    case TradeUtils.GIFT_CARD_CODE:
-                        bankTitle = "Gift Card Issuer: [AMC Theatres, Airbnb, American Express, Best Buy, Dell, GA2, GameStop, Google Play, Groupon, Home Depot, Lowe, Lyft, Microsoft Windows Store, Netflix, Other, Papa John's Pizza, PlayStation Store, Regal Cinemas, Skype Credit, Target, Uber, Whole Foods Market, Wolt, Xbox]";
-                        break;
-                    default:
-                        break;
-                }
+        String bankTitle = null;
+        if (tradeType == TradeType.ONLINE_SELL) {
+            switch (onlineProvider) {
+                case TradeUtils.INTERNATIONAL_WIRE_SWIFT:
+                    bankTitle = "Bank SWIFT";
+                    break;
+                case TradeUtils.CASH_DEPOSIT:
+                case TradeUtils.SPECIFIC_BANK:
+                case TradeUtils.NATIONAL_BANK:
+                    bankTitle = "Bank name (required)";
+                    break;
+                case TradeUtils.OTHER:
+                case TradeUtils.OTHER_REMITTANCE:
+                case TradeUtils.OTHER_PRE_PAID_DEBIT:
+                case TradeUtils.OTHER_ONLINE_WALLET_GLOBAL:
+                case TradeUtils.OTHER_ONLINE_WALLET:
+                    bankTitle = "Payment method name";
+                    break;
+                case TradeUtils.GIFT_CARD_CODE:
+                    bankTitle = "Gift Card Issuer: [AMC Theatres, Airbnb, American Express, Best Buy, Dell, GA2, GameStop, Google Play, Groupon, Home Depot, Lowe, Lyft, Microsoft Windows Store, Netflix, Other, Papa John's Pizza, PlayStation Store, Regal Cinemas, Skype Credit, Target, Uber, Whole Foods Market, Wolt, Xbox]";
+                    break;
+                default:
+                    break;
             }
-            
-            return bankTitle;
+        } else if (tradeType == TradeType.ONLINE_BUY) {
+            switch (onlineProvider) {
+                case TradeUtils.NATIONAL_BANK:
+                case TradeUtils.CASH_DEPOSIT:
+                case TradeUtils.SPECIFIC_BANK:
+                    bankTitle = "Bank name (required)";
+                    break;
+                case TradeUtils.OTHER:
+                case TradeUtils.OTHER_REMITTANCE:
+                case TradeUtils.OTHER_PRE_PAID_DEBIT:
+                case TradeUtils.OTHER_ONLINE_WALLET_GLOBAL:
+                case TradeUtils.OTHER_ONLINE_WALLET:
+                    bankTitle = "Payment method name";
+                    break;
+                case TradeUtils.INTERNATIONAL_WIRE_SWIFT:
+                    bankTitle = "Bank SWIFT";
+                    break;
+                case TradeUtils.GIFT_CARD_CODE:
+                    bankTitle = "Gift Card Issuer: [AMC Theatres, Airbnb, American Express, Best Buy, Dell, GA2, GameStop, Google Play, Groupon, Home Depot, Lowe, Lyft, Microsoft Windows Store, Netflix, Other, Papa John's Pizza, PlayStation Store, Regal Cinemas, Skype Credit, Target, Uber, Whole Foods Market, Wolt, Xbox]";
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return bankTitle;
     }
 
     // TODO unit test
     public static String getEthereumPriceEquation(TradeType tradeType, String margin) {
 
         String equation = "btc_in_eth";
-        
+
         if (!Strings.isBlank(margin)) {
             double marginValue = 1.0;
             try {
@@ -611,7 +612,7 @@ public class TradeUtils {
         if (!currency.equals(Constants.DEFAULT_CURRENCY)) {
             equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency;
         }
-        
+
         if (!Strings.isBlank(margin)) {
 
             double marginValue = 1.0;
@@ -634,7 +635,7 @@ public class TradeUtils {
 
         return equation;
     }
-    
+
     public static List<MethodItem> sortMethods(List<MethodItem> methods) {
         Collections.sort(methods, new MethodNameComparator());
         return methods;

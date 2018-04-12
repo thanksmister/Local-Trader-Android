@@ -1,3 +1,20 @@
+<!--
+  ~ Copyright (c) 2018 ThanksMister LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software distributed
+  ~ under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
 <resources>
 
     <!-- ERRORS & WARNINGS -->
@@ -158,10 +175,11 @@
     <string name="toast_invalid_address">No es una dirección bitcoin válida.</string>
     <string name="toast_clipboard_empty">El contenido del portapapeles está vacío.</string>
     <string name="toast_error_message">Error al enviar el mensaje.</string>
-    <string name="toast_refreshing_data">Actualizando datos…</string>
-    <string name="toast_valid_address_required">Se requiere una dirección válida.</string>
-    <string name="toast_missing_phone_number">El número de teléfono no debe estar en blanco.</string>
-    <string name="toast_price_equation_blank">La ecuación de precios no puede estar en blanco.</string>
+    <string name="toast_refreshing_data">Actualizando datos…</string><![CDATA[
+    
+    
+    ]]>
+    <string name="toast_price_equation_blank">La ecuación de precios no puede estar en blanco.</string>
     <string name="toast_minimum_amount">Ingrese un monto mínimo válido.</string>
     <string name="toast_maximum_amount">Ingrese una cantidad máxima válida.</string><![CDATA[
     
@@ -266,9 +284,10 @@
     <string name="button_create_request">Crear solicitud</string>
     <string name="form_trade_amount">Monto comercial</string>
     <string name="menu_get_device_location">Obtener ubicación del dispositivo</string>
-    <string name="text_local_search_instructions">Las búsquedas locales requieren una latitud / longitud. Utilice la ubicación del dispositivo, introduzca un país, una ciudad o una dirección, o introduzca una latitud / longitud. Busque "latitud y longitud de google maps \" para obtener más información.</string>
-    <string name="text_location_edit_instructions">Los nuevos anuncios requieren una latitud / longitud. Utilice la ubicación del dispositivo, ingrese un país, una ciudad o una dirección</string>
-    <string name="toast_search_canceled">Búsqueda cancelada…</string>
+    <string name="text_local_search_instructions">Las búsquedas locales requieren una latitud / longitud. Utilice la ubicación del dispositivo, introduzca un país, una ciudad o una dirección, o introduzca una latitud / longitud. Busque "latitud y longitud de google maps \" para obtener más información.</string><![CDATA[
+    
+    ]]>
+    <string name="toast_search_canceled">Búsqueda cancelada…</string>
     <string name="error_unable_load_payment_methods">No se pueden cargar los métodos de pago en línea.</string>
     <string name="toast_loading_methods">Error al obtener métodos…</string>
     
@@ -519,10 +538,11 @@
         <item>Zimbabwe</item>
     </string-array>
     
-    <string name="hint_enter_county_city_or_address">Ingrese el condado, la ciudad o la dirección</string>
-    <string name="text_payment_method">Método de pago</string><![CDATA[
+    <string name="hint_enter_county_city_or_address">Ingrese el condado, la ciudad o la dirección</string><![CDATA[
     
-    ]]>
+    
+    
+    ]]>
     <string name="text_post_update_canceled">Actualización del anuncio cancelada</string>
     <string name="error_address_title">Error de dirección</string>
     <string name="error_location_title">Error de ubicación</string>
@@ -533,50 +553,51 @@
     <string name="dialog_loading">Cargando…</string><![CDATA[
     
     
+    
+        ]]><string name="text_method_name_all">Todos</string><![CDATA[
+    
+    
     ]]>
-    <string name="text_i_want_to">Quiero…</string>
-    <string name="text_method_name_all">Todos</string>
-    <string name="text_currency">Moneda</string>
-    <string name="text_currency_description">Cambia el precio del anuncio a la moneda seleccionada y actualiza la ecuación del precio.</string>
-    <string name="text_price_equation">Ecuación de precios</string>
+    <string name="text_price_equation">Ecuación de precios</string>
     <string name="text_minimum_amount_to_trade">Cantidad mínima a negociar</string>
     <string name="text_maximum_amount_to_trade">Cantidad máxima a negociar</string>
-    <string name="text_terms_of_trade">Condiciones comerciales</string>
-    <string name="text_liquidity_description">Disminuye el importe máximo de la solicitud cuando los oficios se llenan para que coincida con el saldo restante. Esta opción limita la liquidez de este anuncio a la cantidad máxima.</string>
-    <string name="text_track_liquidity">Seguimiento de la liquidez</string>
-    <string name="text_identified_people_only">Personas identificadas solamente</string>
-    <string name="text_identified_people_only_description">Para contactar con su anuncio, los usuarios deben verificar su identidad enviando ID, licencia de conducir o pasaporte.</string>
-    <string name="text_sms_verification_required">Se requiere verificación de SMS</string>
-    <string name="text_trusted_people_only">Sólo personas de confianza</string>
-    <string name="text_identify_user_before_continuing_trade">Identifique al usuario antes de continuar con el comercio</string>
-    <string name="text_identify_user_before_continuing_trade_description">Otros usuarios pueden establecer un contacto con su anuncio, pero deben identificarse antes de que el comercio pueda continuar. Los detalles del pago están ocultos y el comprador no puede enviar el pago hasta que la identificación sea aprobada por usted.</string>
-    <string name="text_real_name_required">Nombre real requerido</string>
-    <string name="text_real_name_required_description">El comprador debe tener un nombre real. Confirma el nombre real cuando el comprador responde al anuncio. Para obtener más información, consulte localbitcoins.com/guides/real-name</string>
-    <string name="text_minimum_volume">Volumen mínimo</string>
-    <string name="text_minimum_volume_description">Cuánto volumen de comercio anterior se requiere que el comprador tenga en BTC. Establezca este valor mayor que cero para filtrar a los compradores de primera vez que no tienen volumen.</string>
-    <string name="text_hint_payment_details">Introduzca detalles de pago</string>
-    <string name="text_payment_details">Detalles del pago</string>
-    <string name="text_minimum_feedback_score">Calificación mínima de retroalimentación</string>
-    <string name="text_minimum_feedback_score_description">El porcentaje de retroalimentación positiva que el comprador debe tener (0–100). Esto no se aplica a los compradores por primera vez que aún no tienen puntuación de retroalimentación.</string>
-    <string name="text_new_buyer_limit">Nuevo límite de comprador</string>
-    <string name="text_new_buyer_limit_description">Opcional. Si el contacto no tiene historial de operaciones, este es el límite de bitcoin para la primera transacción.</string>
-    <string name="text_bank_name">Nombre del banco</string>
-    <string name="text_bank_name_hint">Introduzca el nombre del banco</string>
-    <string name="text_margin_value">Valor de margen</string>
-    <string name="text_location">Ubicación</string>
-    <string name="text_location_online_description">Para el comercio en línea es necesario especificar el país. Para el comercio local, especifique una ciudad, un código postal o un nombre de calle.</string>
-    <string name="text_phone_number">Número de teléfono</string>
-    <string name="text_phone_number_hint">Ingrese el número de teléfono</string>
-    <string name="text_phone_number_description">Se utiliza para recibir pagos.</string>
-    <string name="error_unable_to_load_currencies">No se pueden cargar monedas, sin ellas no podemos crear un nuevo anuncio.</string>
-    <string name="text_trade_terms_hint">Introduzca los términos</string>
-    <string name="text_floating_price">Precio flotante</string>
-    <string name="text_floating_price_description">Haga que el tipo de cambio flote con el mercado mientras el comercio está abierto. El precio de negociación se determina en el momento de la liberación de bitcoin. Tenga en cuenta que se añade una reserva adicional del 15% en la cantidad de bitcoin reservada. La cantidad de exceso se devolverá una vez finalizada la operación.</string>
-    <string name="button_save_changes">Guardar cambios</string>
-    <string name="text_title_advertisement_info">Información del anuncio</string>
-    <string name="text_title_online_options">Opciones en línea</string>
-    <string name="text_title_security_options">Otras opciones</string>
-    <string name="dialog_saving_changes">Guardando cambios…</string>
+    <string name="text_terms_of_trade">Condiciones comerciales</string><![CDATA[
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ]]><string name="text_payment_details">Detalles del pago</string><![CDATA[
+    
+    
+    
+    
+    ]]><string name="text_bank_name">Nombre del banco</string><![CDATA[
+
+    
+    
+    
+    
+    
+    
+    
+    ]]><string name="text_trade_terms_hint">Introduzca los términos</string><![CDATA[
+    
+    
+    ]]><string name="button_save_changes">Guardar cambios</string><![CDATA[
+    
+    
+    
+    ]]>
+    <string name="dialog_saving_changes">Guardando cambios…</string>
     <string name="error_advertisement">Error de anuncio</string>
     <string name="dialog_updating_visibility">Actualización de la visibilidad…</string>
     <string name="error_contact_action">No se puede realizar una acción de contacto.</string>
@@ -612,7 +633,6 @@
     <string name="text_search_country">¿País?</string>
     <string name="text_latitude">Latitud</string>
     <string name="text_search_buying_or_selling">¿Comprando o vendiendo?</string>
-    <string name="text_title_trade_type">Tipo de comercio</string>
     <string name="text_buy">Comprar</string>
     <string name="text_sell">Vender</string>
     <string name="text_from">de</string>
@@ -627,15 +647,9 @@
     <string name="text_advertisement_local_sale">Venta local</string>
     <string name="text_advertisement_online_buy">Compra en línea</string>
     <string name="text_advertisement_online_sale">Venta en línea</string>
-    <string name="text_title_more_info">Más información</string>
     <string name="toast_error_retrieving_trades">Error al recuperar intercambios.</string>
     <string name="toast_contact_not_exist">Ese contacto no parece válido ...</string>
-    <string name="toast_bank_name_required">Por favor proporcione un nombre de banco.</string>
     <string name="toast_complete_all_fields">Porfavor complete todos los campos.</string>
-    <string name="toast_provide_payment_details">Por favor brinde detalles de pago.</string>
-    <string name="toast_playment_method_blank">El método de pago no puede estar en blanco.</string>
-    <string name="toast_swift_blank">SWIFT o Bic no pueden estar en blanco.</string>
-    <string name="toast_gift_card_blank">El emisor de la tarjeta de regalo no puede estar en blanco.</string>
     <string name="text_advertisement_item_local_buy">Compra local -</string>
     <string name="text_advertisement_item_local_sale">Venta local -</string>
     <string name="text_advertisement_item_online_buy">Online Buy -</string>
@@ -675,7 +689,7 @@
     <string name="text_license_information">Información de licencia</string>
     <string name="text_join_community">Únete a la comunidad</string>
     <string name="text_rate_application">Aplicación de tarifas</string>
-    <string name="text_application_feedback">Comentarios de la aplicación</string>
+    <string name="text_application_feedback">Página de proyecto</string>
     <string name="text_localbitcoins_support">Soporte LocalBitcoins</string>
     <string name="text_getting_started_guides">Guías de inicio</string>
     <string name="text_buying_locally">Comprar localmente</string>

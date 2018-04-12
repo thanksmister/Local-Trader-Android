@@ -1,5 +1,6 @@
-/**
+/*
  * Copyright 2011 Google Inc.
+ * Copyright 2014 Andreas Schildbach
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,9 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.utils;
+package com.org.bitcoinj.core;
+
+import com.mrd.bitlib.util.HashUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -23,11 +26,11 @@ import java.util.Arrays;
 /**
  * BitcoinJ library http://code.google.com/p/bitcoinj/
  */
-public class Base58
-{
+public class Base58 {
     public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
 
     private static final int[] INDEXES = new int[128];
+
     static {
         for (int i = 0; i < INDEXES.length; i++) {
             INDEXES[i] = -1;
@@ -131,22 +134,21 @@ public class Base58
      * Uses the checksum in the last 4 bytes of the decoded data to verify the rest are correct. The checksum is
      * removed from the returned data.
      */
-    public static byte[] decodeChecked(String input) throws Error 
-    {
-        byte tmp [] = decode(input);
+    public static byte[] decodeChecked(String input) throws Error {
+        byte tmp[] = decode(input);
         if (tmp.length < 4)
             throw new Error("Input too short");
-        
+
         byte[] bytes = copyOfRange(tmp, 0, tmp.length - 4);
         byte[] checksum = copyOfRange(tmp, tmp.length - 4, tmp.length);
 
         // taken from Megion Research & Development GmbH (Apache License)
-        Sha256Hash sha256Hash = HashUtils.doubleSha256(bytes); 
+        Sha256Hash sha256Hash = HashUtils.doubleSha256(bytes);
         byte[] hash = sha256Hash.firstFourBytes();
         if (!Arrays.equals(checksum, hash)) {
             throw new Error("Checksum does not validate");
         }
-  
+
         return bytes;
     }
 
@@ -170,8 +172,7 @@ public class Base58
     //
     // number -> number / 256, returns number % 256
     //
-    private static byte divmod256(byte[] number58, int startAt) 
-    {
+    private static byte divmod256(byte[] number58, int startAt) {
         int remainder = 0;
         for (int i = startAt; i < number58.length; i++) {
             int digit58 = (int) number58[i] & 0xFF;

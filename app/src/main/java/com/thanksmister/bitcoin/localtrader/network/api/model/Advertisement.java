@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.network.api.model;
@@ -24,8 +25,7 @@ import com.google.gson.annotations.SerializedName;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
-public class Advertisement implements Parcelable
-{
+public class Advertisement implements Parcelable {
     public String ad_id;
     public String created_at;
     public boolean visible = true;
@@ -49,7 +49,7 @@ public class Advertisement implements Parcelable
     public String message;
     public double lat;
     public double lon;
-  
+
     public String temp_price;
     public String temp_price_usd;
     public String bank_name;
@@ -60,7 +60,7 @@ public class Advertisement implements Parcelable
     public boolean sms_verification_required = false;
     public boolean trusted_required = false;
     public boolean require_identification = false;
-    
+
     public String online_provider = TradeUtils.NATIONAL_BANK;
     public Profile profile = new Profile();
     public Actions actions = new Actions();
@@ -73,7 +73,7 @@ public class Advertisement implements Parcelable
 
     // "opening_hours": "null" or "[[sun_start, sun_end], [mon_start, mon_end], [tue_start, tue_end], [wed_start, wed_end], [thu_start, thu_end], [fri_start, fri_end], [sat_start, sat_end]"
     public String opening_hours;
-    
+
     // TODO not implemented yet
     public boolean require_trusted_by_advertiser = false;
     public boolean is_local_office = false;
@@ -84,9 +84,9 @@ public class Advertisement implements Parcelable
     public String volume_coefficient_btc;
     public boolean floating;
     public boolean display_reference;
-    
+
     public Advertisement() {
-    
+
     }
 
     protected Advertisement(Parcel in) {
@@ -146,8 +146,7 @@ public class Advertisement implements Parcelable
         }
     };
 
-    public boolean isATM()
-    {
+    public boolean isATM() {
         return atm_model != null;
     }
 
@@ -246,17 +245,17 @@ public class Advertisement implements Parcelable
         advertisement.reference_type = item.reference_type();
         advertisement.phone_number = item.phone_number();
         advertisement.opening_hours = item.opening_hours();
-        
+
         // profile
         advertisement.profile.name = item.profile_name();
         advertisement.profile.username = item.profile_username();
         advertisement.profile.last_online = item.profile_last_online();
         advertisement.profile.trade_count = item.profile_trade_count();
         advertisement.profile.feedback_score = item.profile_feedback_score();
-        
+
         // actions
         advertisement.actions.public_view = item.action_public_view();
-                
+
         return advertisement;
     }
 }

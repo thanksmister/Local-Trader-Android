@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -37,22 +38,21 @@ import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -61,7 +61,7 @@ import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class TradeRequestActivity extends BaseActivity {
-    
+
     public static final String EXTRA_AD_ID = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ID";
     public static final String EXTRA_AD_PRICE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PRICE";
     public static final String EXTRA_AD_COUNTRY_CODE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_COUNTRY_CODE";
@@ -158,16 +158,16 @@ public class TradeRequestActivity extends BaseActivity {
 
     @BindView(R.id.detailsReference)
     EditText detailsReference;
-    
+
     @BindView(R.id.tradeMessage)
     EditText tradeMessage;
-    
+
     @BindView(R.id.tradeMessageLayout)
     TextInputLayout tradeMessageLayout;
 
     @BindView(R.id.ethereumAmountText)
     EditText editEtherAmountText;
-    
+
     @BindView(R.id.bitcoinLayout)
     LinearLayout bitcoinLayout;
 
@@ -194,7 +194,7 @@ public class TradeRequestActivity extends BaseActivity {
 
     public static Intent createStartIntent(Context context, String adId, @NonNull TradeType tradeType, String countryCode, String onlineProvider,
                                            String adPrice, String adMin, String adMax, String currency, String profileName) {
-        
+
         Intent intent = new Intent(context, TradeRequestActivity.class);
         intent.putExtra(EXTRA_AD_ID, adId);
         intent.putExtra(EXTRA_AD_TRADE_TYPE, tradeType.name());
@@ -210,7 +210,7 @@ public class TradeRequestActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.view_trade_request);
@@ -220,8 +220,8 @@ public class TradeRequestActivity extends BaseActivity {
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
             String tradeTypeString = getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE);
-            if(!TextUtils.isEmpty(tradeTypeString)) {
-                tradeType = TradeType.valueOf(getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE)); 
+            if (!TextUtils.isEmpty(tradeTypeString)) {
+                tradeType = TradeType.valueOf(getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE));
             }
             countryCode = getIntent().getStringExtra(EXTRA_AD_COUNTRY_CODE);
             onlineProvider = getIntent().getStringExtra(EXTRA_AD_ONLINE_PROVIDER);
@@ -233,7 +233,7 @@ public class TradeRequestActivity extends BaseActivity {
         } else {
             adId = savedInstanceState.getString(EXTRA_AD_ID);
             String tradeTypeString = savedInstanceState.getString(EXTRA_AD_TRADE_TYPE);
-            if(!TextUtils.isEmpty(tradeTypeString)) {
+            if (!TextUtils.isEmpty(tradeTypeString)) {
                 tradeType = TradeType.valueOf(tradeTypeString);
             }
             countryCode = savedInstanceState.getString(EXTRA_AD_COUNTRY_CODE);
@@ -245,11 +245,11 @@ public class TradeRequestActivity extends BaseActivity {
             profileName = savedInstanceState.getString(EXTRA_AD_PROFILE_NAME);
         }
 
-        if(tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
+        if (tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
             showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
                 @Override
                 public void call() {
-                    if(!BuildConfig.DEBUG) {
+                    if (!BuildConfig.DEBUG) {
                         Crashlytics.logException(new Throwable("Bad trade type for requested trade: " + tradeType + " advertisement Id: " + adId));
                     }
                     finish();
@@ -257,10 +257,10 @@ public class TradeRequestActivity extends BaseActivity {
             });
             return;
         }
-        
+
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            if(getSupportActionBar() != null) {
+            if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setTitle(getString(R.string.text_trade_with, profileName));
             }
@@ -271,7 +271,7 @@ public class TradeRequestActivity extends BaseActivity {
         tradeDescription.setMovementMethod(LinkMovementMethod.getInstance());
 
         tradeAmountTitle.setText(getString(R.string.trade_request_title, currency));
-        
+
         if (adMin == null) {
             tradeLimit.setText("");
         } else if (adMax == null) {
@@ -313,19 +313,19 @@ public class TradeRequestActivity extends BaseActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                
+
                 if (editBitcoinText.hasFocus()) {
                     String bitcoin = editable.toString();
-                    if(onlineProvider.equals(TradeUtils.ALTCOIN_ETH)) {
+                    if (onlineProvider.equals(TradeUtils.ALTCOIN_ETH)) {
                         String ether = Calculations.calculateBitcoinToEther(bitcoin, adPrice);
                         boolean withinRange = Calculations.calculateEthereumWithinRange(ether, adMin, adMax);
-                        if(!withinRange) {
+                        if (!withinRange) {
                             editEtherAmountText.setTextColor(getResources().getColorStateList(R.color.red_light_up));
                         } else {
                             editEtherAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
                         }
                         editEtherAmountText.setText(ether);
-                        
+
                     } else {
                         calculateCurrencyAmount(bitcoin);
                     }
@@ -348,7 +348,7 @@ public class TradeRequestActivity extends BaseActivity {
                 if (editEtherAmountText.hasFocus()) {
                     String ether = editable.toString();
                     boolean withinRange = Calculations.calculateEthereumWithinRange(ether, adMin, adMax);
-                    if(!withinRange) {
+                    if (!withinRange) {
                         editEtherAmountText.setTextColor(getResources().getColorStateList(R.color.red_light_up));
                     } else {
                         editEtherAmountText.setTextColor(getResources().getColorStateList(R.color.light_green));
@@ -387,7 +387,7 @@ public class TradeRequestActivity extends BaseActivity {
     }
 
     private void showOptions() {
-        
+
         if (tradeType == TradeType.ONLINE_BUY) {
             switch (onlineProvider) {
                 case TradeUtils.NATIONAL_BANK:
@@ -475,7 +475,7 @@ public class TradeRequestActivity extends BaseActivity {
     private void validateChangesAndSend() {
 
         String amount = editAmountText.getText().toString();
-        if(onlineProvider.equals(TradeUtils.ALTCOIN_ETH)) {
+        if (onlineProvider.equals(TradeUtils.ALTCOIN_ETH)) {
             amount = editEtherAmountText.getText().toString();
         }
         boolean cancel = false;
@@ -530,7 +530,7 @@ public class TradeRequestActivity extends BaseActivity {
                         case "FI":
                             if (TextUtils.isEmpty(iban)
                                     || TextUtils.isEmpty(receiverName)
-                                    || TextUtils.isEmpty(bic) 
+                                    || TextUtils.isEmpty(bic)
                                     || TextUtils.isEmpty(reference)
                                     || TextUtils.isEmpty(accountNumber)) {
                                 toast(getString(R.string.toast_complete_all_fields));
@@ -601,10 +601,10 @@ public class TradeRequestActivity extends BaseActivity {
             }
         }
         String message = "";
-        if(!TextUtils.isEmpty(tradeMessage.getText().toString())) {
+        if (!TextUtils.isEmpty(tradeMessage.getText().toString())) {
             message = tradeMessage.getText().toString();
         }
-        
+
         if (!cancel) {
             sendTradeRequest(adId, amount, receiverName, phone, receiverEmail, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress);
         }
@@ -613,16 +613,16 @@ public class TradeRequestActivity extends BaseActivity {
     public void sendTradeRequest(String adId, String amount, String name, String phone,
                                  String email, String iban, String bic, String reference, String message,
                                  String sortCode, String billerCode, String accountNumber, String bsb, String ethereumAddress) {
-        
+
         showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_sending_trade_request)));
 
         dataService.createContact(
                 adId, tradeType, countryCode, onlineProvider,
                 amount, name, phone, email,
                 iban, bic, reference, message,
-                sortCode, billerCode, accountNumber, 
+                sortCode, billerCode, accountNumber,
                 bsb, ethereumAddress)
-                
+
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<ContactRequest>() {
@@ -676,7 +676,7 @@ public class TradeRequestActivity extends BaseActivity {
             Timber.e(e.getMessage());
         }
     }
-    
+
     private void calculateCurrencyAmount(String bitcoin) {
         if (TextUtils.isEmpty(bitcoin) || bitcoin.equals("0")) {
             editAmountText.setText("");

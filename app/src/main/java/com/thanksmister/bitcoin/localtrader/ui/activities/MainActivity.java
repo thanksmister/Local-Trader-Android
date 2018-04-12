@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -40,14 +41,13 @@ import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
 import com.kobakei.ratethisapp.RateThisApp;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
+import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.ui.adapters.EditActivity;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.AboutFragment;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.DashboardFragment;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.RequestFragment;
@@ -59,12 +59,10 @@ import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.ActivityEvent;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -72,10 +70,10 @@ import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 @BaseActivity.RequiresAuthentication
-public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener  {
+public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private static IntentFilter syncIntentFilter = new IntentFilter(SyncAdapter.ACTION_SYNC);
-    
+
     private static final String BITCOIN_URI = "com.thanksmister.extra.BITCOIN_URI";
     private static final String DASHBOARD_FRAGMENT = "com.thanksmister.fragment.DASHBOARD_FRAGMENT";
     private static final String ABOUT_FRAGMENT = "com.thanksmister.fragment.ACCOUNT_FRAGMENT";
@@ -158,9 +156,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
         final String bitcoinUri = getIntent().getStringExtra(BITCOIN_URI);
         boolean authenticated = AuthUtils.hasCredentials(preference, sharedPreferences);
-        
+
         if (authenticated) {
-            if(bitcoinUri != null) {
+            if (bitcoinUri != null) {
                 final String bitcoinAddress = WalletUtils.parseBitcoinAddress(bitcoinUri);
                 final String bitcoinAmount = WalletUtils.parseBitcoinAmount(bitcoinUri);
                 startSendFragment(bitcoinAddress, bitcoinAmount);
@@ -173,8 +171,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
         swipeLayout.setProgressViewOffset(false, 48, 186);
         swipeLayout.setDistanceToTriggerSync(250);
-        
-        if(!AuthUtils.isFirstTime(preference)) {
+
+        if (!AuthUtils.isFirstTime(preference)) {
             Toast.makeText(MainActivity.this, R.string.toast_refreshing_data, Toast.LENGTH_LONG).show();
             AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(MainActivity.this);
@@ -184,10 +182,10 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         // Set custom criteria (optional)
         RateThisApp.Config config = new RateThisApp.Config(7, 10);
         RateThisApp.init(config);
-        
+
         // Monitor launch times and interval from installation
         RateThisApp.onCreate(this);
-        
+
         // If the condition is satisfied, "Rate this app" dialog will be shown
         RateThisApp.showRateDialogIfNeeded(this, R.style.DialogTheme);
     }
@@ -266,7 +264,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             swipeLayout.setRefreshing(false);
         }
     }
-    
+
     private void updateData() {
         Timber.d("UpdateData");
         exchangeService.getSpotPrice()
@@ -282,7 +280,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 .subscribe(new Action1<ExchangeRate>() {
                     @Override
                     public void call(final ExchangeRate exchange) {
-                        if(exchange != null) {
+                        if (exchange != null) {
                             MainActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -315,7 +313,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 .subscribe(new Action1<ExchangeRateItem>() {
                     @Override
                     public void call(final ExchangeRateItem exchange) {
-                        if(exchange != null) {
+                        if (exchange != null) {
                             MainActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -340,7 +338,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     }
 
     private void setupNavigationView() {
-        
+
         final View headerView = navigationView.getHeaderView(0);
         userName = (TextView) headerView.findViewById(R.id.userName);
         tradeCount = (TextView) headerView.findViewById(R.id.userTradeCount);
@@ -432,7 +430,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         } catch (NullPointerException e) {
             Timber.w("Error closing keyboard");
         }
-        
+
         if (!isFinishing()) {
             if (position == DRAWER_WALLET) {
                 swipeLayout.setEnabled(true);
@@ -487,7 +485,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     public void handleRefresh() {
-        if(fragment != null && fragment.getTag() != null) {
+        if (fragment != null && fragment.getTag() != null) {
             switch (fragment.getTag()) {
                 case WALLET_FRAGMENT:
                     ((WalletFragment) fragment).onRefresh();
@@ -495,7 +493,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             }
         }
     }
-    
+
     public void navigateDashboardViewAndRefresh() {
         setContentFragment(DRAWER_DASHBOARD);
         navigationView.getMenu().findItem(R.id.navigationItemDashboard).setChecked(true);
@@ -533,10 +531,6 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-      
-        Timber.d("Request Code: " + requestCode);
-        Timber.d("Result Code: " + resultCode);
-        
         if (requestCode == REQUEST_SCAN) {
             IntentResult scanningResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
             if (scanningResult != null) {
@@ -546,15 +540,19 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             } else {
                 toast(getString(R.string.toast_scan_canceled));
             }
+        } else if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
+            if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
+                onRefresh();
+            }
         } else if (requestCode == AdvertisementActivity.REQUEST_CODE) {
             if (resultCode == AdvertisementActivity.RESULT_DELETED) {
                 onRefresh();
             }
-        } 
+        }
 
         super.onActivityResult(requestCode, resultCode, intent);
     }
-    
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -573,7 +571,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             }
         } else if (type == NotificationUtils.NOTIFICATION_TYPE_ADVERTISEMENT) {
             String id = extras.getString(EXTRA_NOTIFICATION_ID);
-            if(TextUtils.isEmpty(id)) {
+            if (TextUtils.isEmpty(id)) {
                 showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)));
             } else {
                 Intent launchIntent = AdvertisementActivity.createStartIntent(this, id);
@@ -584,10 +582,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             navigationView.getMenu().findItem(R.id.navigationItemWallet).setChecked(true);
         }
     }
-    
+
     @SuppressLint("SetTextI18n")
     private void setHeaderItem(String rate, String currency, String exchange) {
-        Timber.d("Exchange Rate Header:  " + rate);
         bitcoinTitle.setText(R.string.text_title_market_price);
         bitcoinPrice.setText(rate + " " + currency + "/" + getString(R.string.btc));
         bitcoinValue.setText(exchange + " (" + currency + ")");
@@ -608,7 +605,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 onRefreshStop();
                 break;
         }
-        
+
         AuthUtils.setFirstTime(preference, false);
     }
 

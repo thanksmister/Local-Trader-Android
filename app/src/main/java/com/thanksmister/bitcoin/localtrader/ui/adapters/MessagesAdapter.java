@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
@@ -32,12 +33,11 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder>
-{
+public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHolder> {
     private static final int TYPE_EMPTY = R.layout.view_empty_dashboard;
     private static final int TYPE_PROGRESS = R.layout.view_progress_dashboard;
     private static final int TYPE_ITEM = R.layout.adapter_dashboard_message_list;
@@ -46,33 +46,29 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
     private Context context;
     private OnItemClickListener onItemClickListener;
 
-    public static interface OnItemClickListener
-    {
+    public static interface OnItemClickListener {
         public void onSearchButtonClicked();
+
         public void onAdvertiseButtonClicked();
     }
 
-    public MessagesAdapter(Context context)
-    {
+    public MessagesAdapter(Context context) {
         this.context = context;
     }
 
-    public MessagesAdapter(Context context, OnItemClickListener onItemClickListener)
-    {
+    public MessagesAdapter(Context context, OnItemClickListener onItemClickListener) {
         this.context = context;
         this.onItemClickListener = onItemClickListener;
     }
 
-    public void replaceWith(List<RecentMessageItem> data)
-    {
+    public void replaceWith(List<RecentMessageItem> data) {
         this.items = data;
         notifyDataSetChanged();
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public MessagesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
-    {
+    public MessagesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         View itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false);
 
@@ -80,14 +76,13 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             return new ItemViewHolder(itemLayoutView);
         } else if (viewType == TYPE_EMPTY) {
             return new EmptyViewHolder(itemLayoutView);
-        } 
+        }
 
         return new ProgressViewHolder(itemLayoutView);
     }
 
     @Override
-    public int getItemViewType(int position)
-    {
+    public int getItemViewType(int position) {
         if (items == null) {
             return TYPE_PROGRESS;
         } else if (items.size() == 0) {
@@ -98,18 +93,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
     }
 
     @Override
-    public int getItemCount()
-    {
+    public int getItemCount() {
         if (items == null)
             return -1;
 
-        return items.size() > 0? items.size():1;
+        return items.size() > 0 ? items.size() : 1;
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position)
-    {
+    public void onBindViewHolder(ViewHolder viewHolder, int position) {
         if (viewHolder instanceof ItemViewHolder) {
             RecentMessageItem messageItem = items.get(position);
             ((ItemViewHolder) viewHolder).messageBody.setText("Message from " + messageItem.sender_username());
@@ -124,25 +117,21 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         }
     }
 
-    public RecentMessageItem getItemAt(int position)
-    {
-        if(items != null && !items.isEmpty() && items.size() > position) {
+    public RecentMessageItem getItemAt(int position) {
+        if (items != null && !items.isEmpty() && items.size() > position) {
             return items.get(position);
         }
         return null;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder
-    {
-        public ViewHolder(View itemView)
-        {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
     }
 
-    public class ItemViewHolder extends ViewHolder
-    {
+    public class ItemViewHolder extends ViewHolder {
         @BindView(R.id.messageBody)
         public TextView messageBody;
 
@@ -155,36 +144,29 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
         @BindView(R.id.createdAt)
         public TextView createdAt;
 
-        public ItemViewHolder(View itemView)
-        {
+        public ItemViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class EmptyViewHolder extends ViewHolder
-    {
+    public class EmptyViewHolder extends ViewHolder {
         @OnClick(R.id.advertiseButton)
-        public void advertiseButtonClicked()
-        {
+        public void advertiseButtonClicked() {
             onItemClickListener.onAdvertiseButtonClicked();
         }
 
         @OnClick(R.id.searchButton)
-        public void searchButtonClicked()
-        {
+        public void searchButtonClicked() {
             onItemClickListener.onSearchButtonClicked();
         }
 
-        public EmptyViewHolder(View itemView)
-        {
+        public EmptyViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class ProgressViewHolder extends ViewHolder
-    {
-        public ProgressViewHolder(View itemView)
-        {
+    public class ProgressViewHolder extends ViewHolder {
+        public ProgressViewHolder(View itemView) {
             super(itemView);
         }
     }

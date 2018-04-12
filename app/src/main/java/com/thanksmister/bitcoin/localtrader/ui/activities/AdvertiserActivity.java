@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -35,12 +36,12 @@ import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -54,7 +55,6 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.Optional;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -64,7 +64,7 @@ import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class AdvertiserActivity extends BaseActivity {
-    
+
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
 
     @Inject
@@ -251,8 +251,8 @@ public class AdvertiserActivity extends BaseActivity {
 
     protected void subscribeData() {
         Observable.combineLatest(
-                dbManager.methodQuery(), 
-                dataService.getAdvertisement(adId), 
+                dbManager.methodQuery(),
+                dataService.getAdvertisement(adId),
                 new Func2<List<MethodItem>, Advertisement, AdvertisementData>() {
                     @Override
                     public AdvertisementData call(List<MethodItem> methods, Advertisement advertisement) {
@@ -285,7 +285,7 @@ public class AdvertiserActivity extends BaseActivity {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        if(!BuildConfig.DEBUG) {
+                        if (!BuildConfig.DEBUG) {
                             Crashlytics.setString("advertiser_id", adId);
                             Crashlytics.logException(throwable);
                         }
@@ -425,11 +425,11 @@ public class AdvertiserActivity extends BaseActivity {
         if (advertisementData == null || advertisementData.advertisement == null) return;
         Advertisement advertisement = advertisementData.advertisement;
         final TradeType tradeType = advertisement.trade_type;
-        if(tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
+        if (tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
             showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
                 @Override
                 public void call() {
-                    if(!BuildConfig.DEBUG) {
+                    if (!BuildConfig.DEBUG) {
                         Crashlytics.log("advertisement_data: " + advertisementData.advertisement.toString());
                         Crashlytics.logException(new Throwable("Bad trade type for requested trade: " + tradeType + " advertisement Id: " + adId));
                     }
@@ -437,7 +437,7 @@ public class AdvertiserActivity extends BaseActivity {
             });
             return;
         }
-        
+
         Intent intent = TradeRequestActivity.createStartIntent(this, advertisement.ad_id,
                 advertisement.trade_type, advertisement.country_code, advertisement.online_provider,
                 advertisement.temp_price, advertisement.min_amount,

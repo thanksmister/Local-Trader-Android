@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
@@ -27,8 +28,7 @@ import android.widget.TextView;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-{
+public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final Context mContext;
     private static final int SECTION_TYPE = 0;
 
@@ -40,61 +40,52 @@ public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView
 
 
     public SectionRecycleViewAdapter(Context context, int sectionResourceId, int textResourceId,
-                                     RecyclerView.Adapter baseAdapter)
-    {
+                                     RecyclerView.Adapter baseAdapter) {
 
         mSectionResourceId = sectionResourceId;
         mTextResourceId = textResourceId;
         mBaseAdapter = baseAdapter;
         mContext = context;
 
-        mBaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver()
-        {
+        mBaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
-            public void onChanged()
-            {
+            public void onChanged() {
                 mValid = mBaseAdapter.getItemCount() > 0;
                 notifyDataSetChanged();
             }
 
             @Override
-            public void onItemRangeChanged(int positionStart, int itemCount)
-            {
+            public void onItemRangeChanged(int positionStart, int itemCount) {
                 mValid = mBaseAdapter.getItemCount() > 0;
                 notifyItemRangeChanged(positionStart, itemCount);
             }
 
             @Override
-            public void onItemRangeInserted(int positionStart, int itemCount)
-            {
+            public void onItemRangeInserted(int positionStart, int itemCount) {
                 mValid = mBaseAdapter.getItemCount() > 0;
                 notifyItemRangeInserted(positionStart, itemCount);
             }
 
             @Override
-            public void onItemRangeRemoved(int positionStart, int itemCount)
-            {
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
                 mValid = mBaseAdapter.getItemCount() > 0;
                 notifyItemRangeRemoved(positionStart, itemCount);
             }
         });
     }
 
-    public static class SectionViewHolder extends RecyclerView.ViewHolder
-    {
+    public static class SectionViewHolder extends RecyclerView.ViewHolder {
 
         public TextView title;
 
-        public SectionViewHolder(View view, int mTextResourceid)
-        {
+        public SectionViewHolder(View view, int mTextResourceid) {
             super(view);
             title = (TextView) view.findViewById(mTextResourceid);
         }
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int typeView)
-    {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int typeView) {
         if (typeView == SECTION_TYPE) {
             final View view = LayoutInflater.from(mContext).inflate(mSectionResourceId, parent, false);
             return new SectionViewHolder(view, mTextResourceId);
@@ -104,8 +95,7 @@ public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder sectionViewHolder, int position)
-    {
+    public void onBindViewHolder(RecyclerView.ViewHolder sectionViewHolder, int position) {
         if (isSectionHeaderPosition(position)) {
             ((SectionViewHolder) sectionViewHolder).title.setText(mSections.get(position).title);
         } else {
@@ -114,52 +104,43 @@ public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView
     }
 
     @Override
-    public int getItemViewType(int position)
-    {
+    public int getItemViewType(int position) {
         return isSectionHeaderPosition(position)
                 ? SECTION_TYPE
                 : mBaseAdapter.getItemViewType(sectionedPositionToPosition(position)) + 1;
     }
 
 
-    public static class Section
-    {
+    public static class Section {
         int firstPosition;
         int sectionedPosition;
         CharSequence title;
 
-        public Section(int firstPosition, CharSequence title)
-        {
+        public Section(int firstPosition, CharSequence title) {
             this.firstPosition = firstPosition;
             this.title = title;
         }
 
-        public CharSequence getTitle()
-        {
+        public CharSequence getTitle() {
             return title;
         }
     }
-    
-    public void updateBaseAdapter(RecyclerView.Adapter baseAdapter)
-    {
+
+    public void updateBaseAdapter(RecyclerView.Adapter baseAdapter) {
         mBaseAdapter = baseAdapter;
         notifyDataSetChanged();
     }
-    
-    public boolean hasSections()
-    {
-        return (mSections!= null && mSections.size() > 0);
+
+    public boolean hasSections() {
+        return (mSections != null && mSections.size() > 0);
     }
-    
-    public void setSections(Section[] sections)
-    {
+
+    public void setSections(Section[] sections) {
         mSections.clear();
 
-        Arrays.sort(sections, new Comparator<Section>()
-        {
+        Arrays.sort(sections, new Comparator<Section>() {
             @Override
-            public int compare(Section o, Section o1)
-            {
+            public int compare(Section o, Section o1) {
                 return (o.firstPosition == o1.firstPosition)
                         ? 0
                         : ((o.firstPosition < o1.firstPosition) ? -1 : 1);
@@ -176,20 +157,7 @@ public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView
         notifyDataSetChanged();
     }
 
-    public int positionToSectionedPosition(int position)
-    {
-        int offset = 0;
-        for (int i = 0; i < mSections.size(); i++) {
-            if (mSections.valueAt(i).firstPosition > position) {
-                break;
-            }
-            ++offset;
-        }
-        return position + offset;
-    }
-
-    public int sectionedPositionToPosition(int sectionedPosition)
-    {
+    public int sectionedPositionToPosition(int sectionedPosition) {
         if (isSectionHeaderPosition(sectionedPosition)) {
             return RecyclerView.NO_POSITION;
         }
@@ -204,23 +172,20 @@ public class SectionRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView
         return sectionedPosition + offset;
     }
 
-    public boolean isSectionHeaderPosition(int position)
-    {
+    public boolean isSectionHeaderPosition(int position) {
         return mSections.get(position) != null;
     }
 
 
     @Override
-    public long getItemId(int position)
-    {
+    public long getItemId(int position) {
         return isSectionHeaderPosition(position)
                 ? Integer.MAX_VALUE - mSections.indexOfKey(position)
                 : mBaseAdapter.getItemId(sectionedPositionToPosition(position));
     }
 
     @Override
-    public int getItemCount()
-    {
+    public int getItemCount() {
         return (mValid ? mBaseAdapter.getItemCount() + mSections.size() : 0);
     }
 

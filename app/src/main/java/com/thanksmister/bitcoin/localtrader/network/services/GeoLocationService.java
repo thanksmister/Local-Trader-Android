@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.network.services;
@@ -149,9 +150,10 @@ public class GeoLocationService {
                 });
     }
 
-   
+
     /**
-     *  Get a list of online advertisements using currency, payment method, country code and country name.
+     * Get a list of online advertisements using currency, payment method, country code and country name.
+     *
      * @param type
      * @param countryName
      * @param countryCode
@@ -159,7 +161,7 @@ public class GeoLocationService {
      * @param paymentMethod
      * @return
      */
-    public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final TradeType type, 
+    public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final TradeType type,
                                                                    @NonNull final String countryName,
                                                                    @NonNull final String countryCode,
                                                                    @NonNull final String currency,
@@ -170,8 +172,8 @@ public class GeoLocationService {
         } else {
             url = "sell-bitcoins-online";
         }
-        
-        if(!countryName.toLowerCase().equals("any") && paymentMethod.toLowerCase().equals("all")) {
+
+        if (!countryName.toLowerCase().equals("any") && paymentMethod.toLowerCase().equals("all")) {
             String countryNameFix = countryName.replace(" ", "-");
             return localBitcoins.searchOnlineAds(url, countryCode, countryNameFix)
                     .map(new ResponseToAds())
@@ -289,19 +291,19 @@ public class GeoLocationService {
     public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type) {
         String url = "";
         if (type == TradeType.LOCAL_BUY) {
-            if(place.buy_local_url.contains("https://localbitcoins.com/")) {
+            if (place.buy_local_url.contains("https://localbitcoins.com/")) {
                 url = place.buy_local_url.replace("https://localbitcoins.com/", "");
             } else if (place.buy_local_url.contains("https://localbitcoins.net/")) {
                 url = place.buy_local_url.replace("https://localbitcoins.net/", "");
-            }  else {
+            } else {
                 url = place.buy_local_url;
             }
-        } else if(type == TradeType.LOCAL_SELL) {
-            if(place.sell_local_url.contains("https://localbitcoins.com/")) {
+        } else if (type == TradeType.LOCAL_SELL) {
+            if (place.sell_local_url.contains("https://localbitcoins.com/")) {
                 url = place.sell_local_url.replace("https://localbitcoins.com/", "");
             } else if (place.sell_local_url.contains("https://localbitcoins.net/")) {
-                url = place.sell_local_url.replace("https://localbitcoins.net/", ""); 
-            }  else {
+                url = place.sell_local_url.replace("https://localbitcoins.net/", "");
+            } else {
                 url = place.sell_local_url;
             }
         }
@@ -317,7 +319,7 @@ public class GeoLocationService {
                     }
                 });
     }
-    
+
     /**
      * Compares distance as a double value to list advertisements by shortest to longest distance from user
      */

@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -41,14 +42,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.WalletData;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.WalletData;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
@@ -60,12 +61,11 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
-import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 import dpreference.DPreference;
 import rx.Observable;
@@ -81,7 +81,7 @@ import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 public class SendFragment extends BaseFragment {
-    
+
     public static final String EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS";
     public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
 
@@ -96,7 +96,7 @@ public class SendFragment extends BaseFragment {
 
     @Inject
     DbManager dbManager;
-    
+
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
@@ -126,7 +126,7 @@ public class SendFragment extends BaseFragment {
     private String address;
     private String amount;
     private WalletData walletData;
-    
+
     private Subscription sendSubscription;
 
     public static SendFragment newInstance(String address, String amount) {
@@ -144,18 +144,18 @@ public class SendFragment extends BaseFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        
+
         super.onCreate(savedInstanceState);
-        
+
         if (getArguments() != null) {
             address = getArguments().getString(EXTRA_ADDRESS);
             amount = getArguments().getString(EXTRA_AMOUNT);
         }
-        
+
         // TODO make these static
         amount = dPreference.getString("send_amount", amount);
         address = dPreference.getString("send_address", address);
-        
+
         setHasOptionsMenu(true);
     }
 
@@ -168,9 +168,9 @@ public class SendFragment extends BaseFragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        
+
         super.onActivityResult(requestCode, resultCode, intent);
-        
+
         Timber.d("onActivityResult: requestCode " + requestCode);
         Timber.d("onActivityResult: resultCode " + resultCode);
 
@@ -215,11 +215,11 @@ public class SendFragment extends BaseFragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        
+
         super.onViewCreated(view, savedInstanceState);
-        
+
         Timber.d("onViewCreated");
-        
+
         if (!TextUtils.isEmpty(amount)) {
             amountText.setText(amount);
         }
@@ -319,14 +319,14 @@ public class SendFragment extends BaseFragment {
             throw new RuntimeException(e);
         }
     }
-    
+
     private void setupToolbar() {
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
-        if(ab != null) {
+        if (ab != null) {
             ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
             ab.setTitle(getString(R.string.view_title_send));
-            ab.setDisplayHomeAsUpEnabled(true);  
+            ab.setDisplayHomeAsUpEnabled(true);
         }
     }
 
@@ -350,7 +350,7 @@ public class SendFragment extends BaseFragment {
                     walletData.setAddress(wallet.address());
                     walletData.setBalance(wallet.sendable()); // only have sendable balance available to send
                     walletData.setRate("0");
-                    if(rateItem != null) {
+                    if (rateItem != null) {
                         walletData.setRate(rateItem.rate());
                     }
                 }
@@ -386,7 +386,7 @@ public class SendFragment extends BaseFragment {
     }
 
     public void setAddressFromClipboardTouch() {
-        
+
         String clipText = getClipboardText();
         if (TextUtils.isEmpty(clipText)) {
             return;
@@ -403,6 +403,7 @@ public class SendFragment extends BaseFragment {
                     public void onCompleted() {
                         Timber.d("onCompleted");
                     }
+
                     @Override
                     public void onError(final Throwable e) {
                         getActivity().runOnUiThread(new Runnable() {
@@ -412,12 +413,13 @@ public class SendFragment extends BaseFragment {
                             }
                         });
                     }
+
                     @Override
                     public void onNext(final Boolean valid) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if(valid) {
+                                if (valid) {
                                     Timber.d("valid: " + String.valueOf(true));
                                     setAddressFromClipboard();
                                 }
@@ -428,7 +430,7 @@ public class SendFragment extends BaseFragment {
     }
 
     public void setAddressFromClipboard() {
-        
+
         String clipText = getClipboardText();
         if (TextUtils.isEmpty(clipText)) {
             toast(R.string.toast_clipboard_empty);
@@ -436,10 +438,10 @@ public class SendFragment extends BaseFragment {
         }
 
         Timber.d("setAddressFromClipboard");
-        
+
         final String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
         final String bitcoinAmount = WalletUtils.parseBitcoinAmount(clipText);
-        
+
         validateBitcoinAddress(bitcoinAddress)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Boolean>bindUntilEvent(FragmentEvent.PAUSE))
@@ -447,6 +449,7 @@ public class SendFragment extends BaseFragment {
                     @Override
                     public void onCompleted() {
                     }
+
                     @Override
                     public void onError(final Throwable e) {
                         getActivity().runOnUiThread(new Runnable() {
@@ -456,15 +459,16 @@ public class SendFragment extends BaseFragment {
                             }
                         });
                     }
+
                     @Override
                     public void onNext(final Boolean valid) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if(valid) {
+                                if (valid) {
                                     Timber.d("valid: " + String.valueOf(true));
                                     setBitcoinAddress(bitcoinAddress);
-                                    if(!TextUtils.isEmpty(bitcoinAmount)) {
+                                    if (!TextUtils.isEmpty(bitcoinAmount)) {
                                         if (WalletUtils.validAmount(bitcoinAmount)) {
                                             setAmount(bitcoinAmount);
                                         } else {
@@ -479,7 +483,7 @@ public class SendFragment extends BaseFragment {
                     }
                 });
     }
-    
+
     private Observable<Boolean> validateBitcoinAddress(final String address) {
         return Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override
@@ -496,7 +500,7 @@ public class SendFragment extends BaseFragment {
             }
         });
     }
-    
+
     private String getClipboardText() {
         String clipText = "";
         ClipboardManager clipboardManager = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
@@ -510,9 +514,9 @@ public class SendFragment extends BaseFragment {
     }
 
     public void pinCodeEvent(final String pinCode, final String address, final String amount) {
-        
+
         Timber.d("pinCodeEvent");
-        
+
         this.address = address;
         this.amount = amount;
 
@@ -527,7 +531,7 @@ public class SendFragment extends BaseFragment {
     }
 
     public void confirmedPinCodeSend(String pinCode, String address, String amount) {
-        
+
         if (sendSubscription != null)
             return;
 
@@ -578,7 +582,7 @@ public class SendFragment extends BaseFragment {
     }
 
     public void resetWallet() {
-        if(isAdded()) {
+        if (isAdded()) {
             amount = "";
             address = "";
             amountText.setText("");
@@ -601,7 +605,7 @@ public class SendFragment extends BaseFragment {
 
     // TODO validate that the balance is not negative
     protected void validateForm() {
-        
+
         if (TextUtils.isEmpty(amountText.getText().toString())) {
             toast(getString(R.string.error_missing_address_amount));
             return;
@@ -609,7 +613,7 @@ public class SendFragment extends BaseFragment {
 
         amount = Conversions.formatBitcoinAmount(amountText.getText().toString());
         address = addressText.getText().toString();
-        
+
         if (TextUtils.isEmpty(address)) {
             toast(getString(R.string.error_missing_address_amount));
             return;
@@ -619,7 +623,7 @@ public class SendFragment extends BaseFragment {
             toast(getString(R.string.toast_invalid_btc_amount));
             return;
         }
-        
+
         validateBitcoinAddress(address)
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -636,7 +640,7 @@ public class SendFragment extends BaseFragment {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if(valid) {
+                                if (valid) {
                                     promptForPin(address, amount);
                                 } else {
                                     toast(getString(R.string.toast_invalid_address));

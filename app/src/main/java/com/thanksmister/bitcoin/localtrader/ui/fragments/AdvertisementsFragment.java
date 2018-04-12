@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -44,7 +45,6 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
-import com.thanksmister.bitcoin.localtrader.ui.activities.EditAdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertisementsAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
@@ -55,15 +55,15 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import rx.functions.Action0;
 
 public class AdvertisementsFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int ADVERTISEMENT_LOADER_ID = 1;
     private static final int METHOD_LOADER_ID = 2;
-    
+
     @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
@@ -74,7 +74,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     private List<AdvertisementItem> advertisements = Collections.emptyList();
     private List<MethodItem> methods = Collections.emptyList();
     private AdvertisementObserver advertisementObserver;
-    
+
     /**
      * Returns a new instance of this fragment for the given section
      * number.
@@ -150,7 +150,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         getLoaderManager().restartLoader(METHOD_LOADER_ID, null, this);
 
     }
-    
+
     @Override
     public void onPause() {
         super.onPause();
@@ -163,7 +163,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
 
     @Override
     public void onDetach() {
-        
+
         super.onDetach();
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
@@ -177,7 +177,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
             throw new RuntimeException(e);
         }
     }
-    
+
     private AdvertisementsAdapter getAdapter() {
         return itemAdapter;
     }
@@ -221,19 +221,19 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         }
         return null;
     }
-    
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         switch (loader.getId()) {
             case ADVERTISEMENT_LOADER_ID:
                 advertisements = AdvertisementItem.getModelList(cursor);
-                if(methods != null && advertisements != null) {
+                if (methods != null && advertisements != null) {
                     setupList(advertisements, methods);
                 }
                 break;
             case METHOD_LOADER_ID:
                 methods = MethodItem.getModelList(cursor);
-                if(methods != null && advertisements != null) {
+                if (methods != null && advertisements != null) {
                     setupList(advertisements, methods);
                 }
                 break;
@@ -250,9 +250,10 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         AdvertisementObserver(Handler handler) {
             super(handler);
         }
+
         @Override
         public void onChange(boolean selfChange) {
-            if(selfChange && getActivity() != null) {
+            if (selfChange && getActivity() != null) {
                 getActivity().getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, AdvertisementsFragment.this);
             }
         }

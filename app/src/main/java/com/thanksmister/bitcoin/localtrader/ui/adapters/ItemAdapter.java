@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
@@ -26,12 +27,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -41,12 +42,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
-{
+public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     private static final int TYPE_EMPTY = R.layout.view_empty_dashboard;
     private static final int TYPE_PROGRESS = R.layout.view_progress_dashboard;
     private static final int TYPE_HEADER = R.layout.view_dashboard_header;
@@ -59,26 +59,22 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     private Context context;
     private OnItemClickListener onItemClickListener;
 
-    public static interface OnItemClickListener
-    {
+    public static interface OnItemClickListener {
         public void onSearchButtonClicked();
 
         public void onAdvertiseButtonClicked();
     }
 
-    public ItemAdapter(Context context)
-    {
+    public ItemAdapter(Context context) {
         this.context = context;
     }
 
-    public ItemAdapter(Context context, OnItemClickListener onItemClickListener)
-    {
+    public ItemAdapter(Context context, OnItemClickListener onItemClickListener) {
         this.context = context;
         this.onItemClickListener = onItemClickListener;
     }
 
-    public void replaceWith(List data, List<MethodItem> methods)
-    {
+    public void replaceWith(List data, List<MethodItem> methods) {
         this.items = data;
         this.methods = methods;
         notifyDataSetChanged();
@@ -86,8 +82,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ItemAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
-    {
+    public ItemAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         View itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false);
 
@@ -107,8 +102,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     }
 
     @Override
-    public int getItemViewType(int position)
-    {
+    public int getItemViewType(int position) {
 
         if (items == null) {
             return TYPE_PROGRESS;
@@ -130,8 +124,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     }
 
     @Override
-    public int getItemCount()
-    {
+    public int getItemCount() {
 
         if (items == null)
             return -1;
@@ -141,8 +134,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position)
-    {
+    public void onBindViewHolder(ViewHolder viewHolder, int position) {
         if (viewHolder instanceof ContactViewHolder) {
 
             ContactItem contact = (ContactItem) items.get(position);
@@ -242,8 +234,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         }
     }
 
-    public Object getItemAt(int position)
-    {
+    public Object getItemAt(int position) {
         try {
             return items.get(position);
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -251,10 +242,8 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         }
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder
-    {
-        public ViewHolder(View itemView)
-        {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public ViewHolder(View itemView) {
             super(itemView);
 
             ButterKnife.bind(this, itemView);
@@ -262,8 +251,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
     }
 
     // inner class to hold a reference to each item of RecyclerView 
-    public class ContactViewHolder extends ViewHolder
-    {
+    public class ContactViewHolder extends ViewHolder {
         @BindView(R.id.tradeType)
         public TextView tradeType;
 
@@ -273,14 +261,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         @BindView(R.id.tradeDetails)
         public TextView tradeDetails;
 
-        public ContactViewHolder(View itemView)
-        {
+        public ContactViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class MessageViewHolder extends ViewHolder
-    {
+    public class MessageViewHolder extends ViewHolder {
         @BindView(R.id.messageBody)
         public TextView messageBody;
 
@@ -293,14 +279,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         @BindView(R.id.createdAt)
         public TextView createdAt;
 
-        public MessageViewHolder(View itemView)
-        {
+        public MessageViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class AdvertisementViewHolder extends ViewHolder
-    {
+    public class AdvertisementViewHolder extends ViewHolder {
         @BindView(android.R.id.background)
         public View row;
 
@@ -313,14 +297,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         @BindView(R.id.advertisementDetails)
         public TextView advertisementDetails;
 
-        public AdvertisementViewHolder(View itemView)
-        {
+        public AdvertisementViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class ExchangeViewHolder extends ViewHolder
-    {
+    public class ExchangeViewHolder extends ViewHolder {
         @BindView(R.id.bitcoinTitle)
         TextView bitcoinTitle;
 
@@ -330,36 +312,29 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder>
         @BindView(R.id.bitcoinValue)
         TextView bitcoinValue;
 
-        public ExchangeViewHolder(View itemView)
-        {
+        public ExchangeViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class EmptyViewHolder extends ViewHolder
-    {
+    public class EmptyViewHolder extends ViewHolder {
         @OnClick(R.id.advertiseButton)
-        public void advertiseButtonClicked()
-        {
+        public void advertiseButtonClicked() {
             onItemClickListener.onAdvertiseButtonClicked();
         }
 
         @OnClick(R.id.searchButton)
-        public void searchButtonClicked()
-        {
+        public void searchButtonClicked() {
             onItemClickListener.onSearchButtonClicked();
         }
 
-        public EmptyViewHolder(View itemView)
-        {
+        public EmptyViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class ProgressViewHolder extends ViewHolder
-    {
-        public ProgressViewHolder(View itemView)
-        {
+    public class ProgressViewHolder extends ViewHolder {
+        public ProgressViewHolder(View itemView) {
             super(itemView);
         }
     }

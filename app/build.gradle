@@ -3,7 +3,7 @@ apply plugin: 'io.fabric'
 
 def versionMajor = 2
 def versionMinor = 4
-def versionPatch = 2
+def versionPatch = 3
 def versionBuild = 0 // bump for dog food builds, public betas, etc.
 
 def LBC_KEY() {
@@ -16,6 +16,18 @@ def LBC_SECRET() {
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
     return properties.getProperty("lbcAccessSecret");
+}
+
+def KEY_STORE() {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return properties.getProperty("keystore");
+}
+
+def KEY_PASSWORD() {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return properties.getProperty("keystore.password");
 }
 
 android {
@@ -31,12 +43,21 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            storeFile file(KEY_STORE())
+            storePassword KEY_PASSWORD()
+        }
+    }
+
     buildTypes {
         debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules-debug.pro'
         }
         release {
-            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     flavorDimensions "default"
@@ -99,9 +120,7 @@ dependencies {
     
     compile 'com.squareup.dagger:dagger:1.2.2'
     annotationProcessor 'com.squareup.dagger:dagger-compiler:1.2.2'
-
-    //compile 'com.jakewharton:butterknife:6.1.0'
-
+    
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 

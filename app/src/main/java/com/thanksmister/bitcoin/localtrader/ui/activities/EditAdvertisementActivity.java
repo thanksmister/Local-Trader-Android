@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -21,10 +22,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -32,7 +30,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -42,25 +39,16 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.ui.fragments.BaseEditFragment;
-import com.thanksmister.bitcoin.localtrader.ui.fragments.EditInfoFragment;
-import com.thanksmister.bitcoin.localtrader.ui.fragments.EditMoreInfoFragment;
-import com.thanksmister.bitcoin.localtrader.ui.fragments.EditOnlineFragment;
-import com.thanksmister.bitcoin.localtrader.ui.fragments.EditSecurityFragment;
-import com.thanksmister.bitcoin.localtrader.ui.fragments.EditTypeFragment;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import com.trello.rxlifecycle.ActivityEvent;
 
@@ -68,8 +56,8 @@ import org.json.JSONObject;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -77,10 +65,7 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-import static android.view.View.GONE;
-
-public class EditAdvertisementActivity extends BaseActivity implements BaseEditFragment.OnFragmentInteractionListener, 
-        LoaderManager.LoaderCallbacks<Cursor> {
+public class EditAdvertisementActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int ADVERTISEMENT_LOADER_ID = 1;
     public static final String EXTRA_ADVERTISEMENT_ID = "com.thanksmister.extras.EXTRA_ADVERTISEMENT_ID";
@@ -88,7 +73,6 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
 
     public static final int REQUEST_CODE = 10937;
     public static final int RESULT_UPDATED = 72322;
-
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -128,7 +112,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
     private AdvertisementItem advertisement;
     private Advertisement editAdvertisement;
     private String adId;
-    
+
     public static Intent createStartIntent(Context context, String adId) {
         Intent intent = new Intent(context, EditAdvertisementActivity.class);
         intent.putExtra(EXTRA_ADVERTISEMENT_ID, adId);
@@ -191,7 +175,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
         if (item.getItemId() == android.R.id.home) {
             advertisementCanceled();
             return true;
-        } else if (item.getItemId() == R.id.action_advertisement){
+        } else if (item.getItemId() == R.id.action_advertisement) {
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_EDIT_URL + adId)));
             } catch (android.content.ActivityNotFoundException ex) {
@@ -215,11 +199,11 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
     }
 
     protected void handleNetworkDisconnect() {
-        if (!NetworkUtils.isNetworkConnected(EditAdvertisementActivity.this)) {
+        if (NetworkUtils.isNetworkConnected(EditAdvertisementActivity.this)) {
             snack(getString(R.string.error_no_internet), false);
         }
     }
-    
+
     private void setInitialAdvertisementViews(Advertisement editAdvertisement, AdvertisementItem advertisement) {
         this.advertisement = advertisement;
         this.editAdvertisement = editAdvertisement;
@@ -230,7 +214,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
 
         activeCheckBox.setChecked(editAdvertisement.visible);
 
-        if(TradeUtils.ALTCOIN_ETH.equals(editAdvertisement.online_provider)) {
+        if (TradeUtils.ALTCOIN_ETH.equals(editAdvertisement.online_provider)) {
             editMinimumAmountCurrency.setText(getString(R.string.eth));
             editMaximumAmountCurrency.setText(getString(R.string.eth));
         } else {
@@ -238,19 +222,19 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
             editMaximumAmountCurrency.setText(editAdvertisement.currency);
         }
 
-        if(!TextUtils.isEmpty(editAdvertisement.min_amount)) {
+        if (!TextUtils.isEmpty(editAdvertisement.min_amount)) {
             editMinimumAmount.setText(editAdvertisement.min_amount);
         }
 
-        if(!TextUtils.isEmpty(editAdvertisement.max_amount)) {
+        if (!TextUtils.isEmpty(editAdvertisement.max_amount)) {
             editMaximumAmount.setText(editAdvertisement.max_amount);
         }
 
-        if(!TextUtils.isEmpty(editAdvertisement.price_equation)) {
+        if (!TextUtils.isEmpty(editAdvertisement.price_equation)) {
             editPriceEquation.setText(editAdvertisement.price_equation);
         }
 
-        if(!TextUtils.isEmpty(editAdvertisement.message)) {
+        if (!TextUtils.isEmpty(editAdvertisement.message)) {
             editMessageText.setText(editAdvertisement.message);
         }
     }
@@ -282,11 +266,11 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
         return true;
     }
 
-    public Advertisement getEditAdvertisement(){
+    public Advertisement getEditAdvertisement() {
         Advertisement advertisement = new Advertisement();
         String advertisementJson = preference.getString("editAdvertisement", null);
         Timber.d("getEditAdvertisement: " + advertisementJson);
-        if(!TextUtils.isEmpty(advertisementJson)) {
+        if (!TextUtils.isEmpty(advertisementJson)) {
             advertisement = new Gson().fromJson(advertisementJson, Advertisement.class);
         }
         return advertisement;
@@ -304,14 +288,15 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
 
     /**
      * Check the edit editAdvertisement to see if there are any changes to commit.
+     *
      * @param editAdvertisement Advertisement
      */
     private void validateChangesAndCommit(Advertisement editAdvertisement) {
-        if(!validateChanges()) {
+        if (!validateChanges()) {
             return;
         }
         boolean commitChanges = false;
-        if(advertisement != null){
+        if (advertisement != null) {
             try {
                 if ((editAdvertisement.account_info != null && !editAdvertisement.account_info.equals(advertisement.account_info()))
                         || (editAdvertisement.price_equation != null && !editAdvertisement.price_equation.equals(advertisement.price_equation()))
@@ -337,7 +322,7 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
         Timber.d("commitChanges: " + commitChanges);
         Timber.d("\n\n\neditAdvertisement: " + new Gson().toJson(advertisement));
         Timber.d("\n\n\neditAdvertisement: " + new Gson().toJson(editAdvertisement));
-        
+
         if (commitChanges) {
             showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_saving_changes)), true);
             dataService.updateAdvertisement(editAdvertisement)
@@ -387,8 +372,8 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
             advertisementCanceled();
         }
     }
-    
-    private void advertisementCanceled(){
+
+    private void advertisementCanceled() {
         hideProgressDialog();
         toast(getString(R.string.text_post_update_canceled));
         Intent returnIntent = getIntent();
@@ -417,14 +402,16 @@ public class EditAdvertisementActivity extends BaseActivity implements BaseEditF
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         switch (loader.getId()) {
             case ADVERTISEMENT_LOADER_ID:
-                if(cursor != null && cursor.getCount() > 0) {
+                if (cursor != null && cursor.getCount() > 0) {
                     AdvertisementItem advertisement = AdvertisementItem.getModel(cursor);
-                    if(advertisement != null) {
+                    if (advertisement != null) {
                         Advertisement editAdvertisement = new Advertisement().convertAdvertisementItemToAdvertisement(advertisement);
                         setInitialAdvertisementViews(editAdvertisement, advertisement);
                     }
                 }
                 break;
+            default:
+                throw new Error("Incorrect loader Id");
         }
     }
 

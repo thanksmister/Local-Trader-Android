@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
@@ -38,13 +39,13 @@ import android.widget.ListView;
 
 import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
-import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.ui.activities.LoginActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.SettingsActivity;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
@@ -110,7 +111,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                 return true;
             }
         });
-        
+
         String endpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
         apiPreference = (EditTextPreference) findPreference(getString(R.string.pref_key_api));
         apiPreference.setText(endpoint);
@@ -222,7 +223,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                                 handler.postDelayed(refreshRunnable, 100);
                             }
                         });
-                        
+
                     }
                 }, new Action0() {
                     @Override
@@ -263,9 +264,9 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     }
 
     private void updateCurrencies(List<ExchangeCurrency> currencies) {
-        
+
         currencies = CurrencyUtils.sortCurrencies(currencies);
-        
+
         ArrayList<String> currencyList = new ArrayList<>();
         ArrayList<String> currencyValues = new ArrayList<>();
         String exchangeCurrency = exchangeService.getExchangeCurrency();
@@ -298,7 +299,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         marketCurrencyPreference.setEntryValues(stringValues);
         marketCurrencyPreference.setValue(String.valueOf(selectedValue));
     }
-    
+
     private void logOut() {
         ((SettingsActivity) getActivity()).logOutConfirmation();
     }

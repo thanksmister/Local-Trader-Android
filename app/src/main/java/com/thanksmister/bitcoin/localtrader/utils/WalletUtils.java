@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.utils;
@@ -24,6 +25,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.WindowManager;
 
+import com.org.bitcoinj.core.Base58;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
@@ -44,7 +46,7 @@ import timber.log.Timber;
 public class WalletUtils {
 
     private static int BITCOIN_ADDRESS_BYTES_LENGTH = 21;
-    
+
     public static Bitmap encodeAsBitmap(String address, Context appContext) {
         return encodeAsBitmap(address, null, appContext);
     }
@@ -124,11 +126,12 @@ public class WalletUtils {
     /**
      * Validates a Bitcoin address, but warning that this is not thread safe
      * and needs to be run on separate thread.
+     *
      * @param address
      * @return
      */
     public static boolean validBitcoinAddress(String address) {
-        
+
         if (address == null || (address.trim().length() < 1 || address.length() < 1)) {
             return false;
         }

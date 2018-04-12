@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2015 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.utils;
@@ -20,12 +21,12 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-public class Conversions
-{
-    public static int MAXIMUM_BTC_DECIMALS = 8;
-    public static int MINIMUM_BTC_DECIMALS = 1;
-    public static int MINIMUM_CURRENCY_DECIMALS = 2;
-    
+public class Conversions {
+
+    private static int MAXIMUM_BTC_DECIMALS = 8;
+    private static int MINIMUM_BTC_DECIMALS = 1;
+    private static int MINIMUM_CURRENCY_DECIMALS = 2;
+
     public static String ZERO_OR_MORE_DECIMALS = "###.##";
     public static String ZERO_DECIMALS = "0";
     public static String ONE_DECIMALS = "0.0";
@@ -33,25 +34,22 @@ public class Conversions
     public static String THREE_DECIMALS = "0.000";
     public static String FOUR_DECIMALS = "0.0000";
     public static String FIVE_DECIMALS = "0.00000";
+
     public static double KILOMETERS_TO_MILES = .62137;
 
-    private Conversions()
-    {
+    private Conversions() {
     }
 
-    public static String kilometersToMiles(double km)
-    {
+    public static String kilometersToMiles(double km) {
         double mi = km * KILOMETERS_TO_MILES;
         return Conversions.formatDecimalToString(mi, TWO_DECIMALS);
     }
 
-    public static double diffOfTwoValues(String value1, String value2)
-    {
+    public static double diffOfTwoValues(String value1, String value2) {
         return convertToDouble(value1) - convertToDouble(value2);
     }
 
-    public static String formatDecimalToString(double value, String format)
-    {
+    public static String formatDecimalToString(double value, String format) {
         try {
             DecimalFormat decimalFormat = new DecimalFormat(format);
             return decimalFormat.format(value);
@@ -60,18 +58,15 @@ public class Conversions
         }
     }
 
-    public static double sumOfTwoValues(String value1, String value2)
-    {
+    public static double sumOfTwoValues(String value1, String value2) {
         return convertToDouble(value1) + convertToDouble(value2);
     }
-    
-    public static double sumOfTwoValues(double value1, String value2)
-    {
+
+    public static double sumOfTwoValues(double value1, String value2) {
         return value1 + convertToDouble(value2);
     }
 
-    public static String convertDollarsCents(String centValue)
-    {
+    public static String convertDollarsCents(String centValue) {
         // Declaration of variables.
         double dollars;
         double cents;
@@ -88,12 +83,11 @@ public class Conversions
 
         return dollars + "." + cents;
     }
-    
-    public static String convertToCents(String cents)
-    {
-        if(cents == null) return "0.00";
-        if(cents.contains(".")) return cents;  
-        if(cents.length() < 2) {
+
+    public static String convertToCents(String cents) {
+        if (cents == null) return "0.00";
+        if (cents.contains(".")) return cents;
+        if (cents.length() < 2) {
             return "0.0" + cents;
         } else if (cents.length() == 2) {
             return "0." + cents;
@@ -102,13 +96,12 @@ public class Conversions
             String andcents = cents.substring(cents.length() - 2, cents.length());
             return dollars + "." + andcents;
         }
-        
+
         return cents;
     }
 
-    
-    public static String formatBitcoinAmount(Double amount)
-    {
+
+    public static String formatBitcoinAmount(Double amount) {
         try {
             Locale locUS = new Locale("en_US");
             NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
@@ -122,14 +115,12 @@ public class Conversions
         return null;
     }
 
-    public static String formatWholeNumber(Double amount)
-    {
+    public static String formatWholeNumber(Double amount) {
         NumberFormat formatter = new DecimalFormat("###");
         return formatter.format(amount);
     }
 
-    public static String formatCurrencyAmount(Double amount)
-    {
+    public static String formatCurrencyAmount(Double amount) {
         try {
             Locale locUS = new Locale("en_US");
             NumberFormat numberFormat = NumberFormat.getNumberInstance(locUS);
@@ -139,12 +130,11 @@ public class Conversions
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         return "0.00";
     }
-    
-    public static float convertToFloat (String value)
-    {
+
+    public static float convertToFloat(String value) {
         try {
             return Float.parseFloat(value);
         } catch (NumberFormatException e) {
@@ -152,9 +142,8 @@ public class Conversions
         }
         return 0;
     }
-    
-    public static String formatBitcoinAmount(String btc)
-    {
+
+    public static String formatBitcoinAmount(String btc) {
         try {
             Locale locUS = new Locale("en_US");
             Double value = Doubles.convertToDouble(btc);
@@ -165,45 +154,43 @@ public class Conversions
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         return "";
     }
-    
-    public static Double convertToDouble(String value)
-    {
+
+    public static Double convertToDouble(String value) {
         return Doubles.convertToDouble(value);
     }
 
     /**
      * Computes value of bitcoin based on current rate and fiat amount entered
+     *
      * @param fiat Required amount of fiat currency (USD)
      * @param rate Market rate of Bitcoin
      * @return Computed bitcoin amount as <code>String</code>
      */
-    public static String computeBitcoinFromFiatAndRate(String fiat, String rate)
-    {
+    public static String computeBitcoinFromFiatAndRate(String fiat, String rate) {
         double fiatAmount = Doubles.convertToDouble(fiat);
         double rateAmount = Doubles.convertToDouble(rate);
-        return formatBitcoinAmount(fiatAmount/rateAmount);
+        return formatBitcoinAmount(fiatAmount / rateAmount);
     }
 
     /**
      * Computes value of bitcoin based on current rate and bitcoin amount entered
+     *
      * @param bitcoin Bitcoin amount
-     * @param rate Market rate of Bitcoin
+     * @param rate    Market rate of Bitcoin
      * @return Computed bitcoin amount as <code>String</code>
      */
-    public static String computeFiatFromBitcoinAndRate(String bitcoin, String rate)
-    {
+    public static String computeFiatFromBitcoinAndRate(String bitcoin, String rate) {
         double btcAmount = Doubles.convertToDouble(bitcoin);
         double rateAmount = Doubles.convertToDouble(rate);
-        return formatCurrencyAmount(btcAmount*rateAmount);
+        return formatCurrencyAmount(btcAmount * rateAmount);
     }
-    
-    public static String formatDealAmount(String btc, String amount)
-    {
+
+    public static String formatDealAmount(String btc, String amount) {
         double btcAmount = Doubles.convertToDouble(btc);
         double fiatAmount = Doubles.convertToDouble(amount);
-        return formatCurrencyAmount(fiatAmount/btcAmount);
+        return formatCurrencyAmount(fiatAmount / btcAmount);
     }
 }

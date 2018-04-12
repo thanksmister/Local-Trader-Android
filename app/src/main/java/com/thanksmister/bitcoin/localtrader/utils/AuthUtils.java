@@ -1,5 +1,18 @@
 /*
- * Copyright (c) 2016. DusApp
+ * Copyright (c) 2018 ThanksMister LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.utils;
@@ -25,7 +38,6 @@ public class AuthUtils {
     private static final String PREFS_USER_FEEDBACK = "userFeedback";
     private static final String PREFS_USER_TRADES = "userTrades";
     private static final String PREFS_FIRST_TIME = "firstTime";
-    private static final String PREFS_DISTANCE_UNITS = "distanceUnits";
     private static final String PREFS_FORCE_UPDATES = "forceUpdates";
     private static final String PREFS_API_ENDPOINT = "apiEndpoint";
     private static final String BASE_URL = "https://localbitcoins.com";
@@ -71,7 +83,7 @@ public class AuthUtils {
     public static String getServiceEndpoint(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_API_ENDPOINT);
         String currentValue = stringPreference.get();
-        if(!TextUtils.isEmpty(currentValue)) {
+        if (!TextUtils.isEmpty(currentValue)) {
             setServiceEndPoint(preference, currentValue);
             stringPreference.delete();
         }
@@ -86,18 +98,18 @@ public class AuthUtils {
     public static boolean hasCredentials(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, ACCESS_TOKEN);
         String currentAccessToken = stringPreference.get();
-        if(!TextUtils.isEmpty(currentAccessToken)) {
+        if (!TextUtils.isEmpty(currentAccessToken)) {
             setAccessToken(preference, currentAccessToken);
             stringPreference.delete();
         }
 
         stringPreference = new StringPreference(sharedPreferences, REFRESH_TOKEN);
         String currentRefreshToken = getRefreshToken(preference, sharedPreferences);
-        if(!TextUtils.isEmpty(currentRefreshToken)) {
+        if (!TextUtils.isEmpty(currentRefreshToken)) {
             setRefreshToken(preference, currentRefreshToken);
             stringPreference.delete();
         }
-        
+
         String accessToken = preference.getString(ACCESS_TOKEN, null);
         String refreshToken = preference.getString(REFRESH_TOKEN, null);
         return !TextUtils.isEmpty(accessToken) && !TextUtils.isEmpty(refreshToken);
@@ -105,17 +117,18 @@ public class AuthUtils {
 
     /**
      * Get the stored access token
+     *
      * @return
      */
     public static String getAccessToken(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, ACCESS_TOKEN);
         String currentAccessToken = stringPreference.get();
 
-        if(!TextUtils.isEmpty(currentAccessToken)) {
+        if (!TextUtils.isEmpty(currentAccessToken)) {
             setAccessToken(preference, currentAccessToken);
             stringPreference.delete();
         }
-        
+
         return preference.getString(ACCESS_TOKEN, null);
     }
 
@@ -125,12 +138,12 @@ public class AuthUtils {
     public static String getRefreshToken(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, REFRESH_TOKEN);
         String currentRefreshToken = stringPreference.get();
-        
-        if(!TextUtils.isEmpty(currentRefreshToken)) {
+
+        if (!TextUtils.isEmpty(currentRefreshToken)) {
             setRefreshToken(preference, currentRefreshToken);
             stringPreference.delete();
         }
-        
+
         try {
             return preference.getString(REFRESH_TOKEN, null);
         } catch (NullPointerException e) {
@@ -146,19 +159,19 @@ public class AuthUtils {
      */
     public static String getUsername(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER);
-        String currentUserName =  stringPreference.get();
-        if(!TextUtils.isEmpty(currentUserName)) {
+        String currentUserName = stringPreference.get();
+        if (!TextUtils.isEmpty(currentUserName)) {
             setUsername(preference, currentUserName);
             stringPreference.delete();
         }
-        
+
         return preference.getString(PREFS_USER, currentUserName);
     }
-    
+
     public static String getTrades(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_TRADES);
         String currentTrades = stringPreference.get();
-        if(!TextUtils.isEmpty(currentTrades)) {
+        if (!TextUtils.isEmpty(currentTrades)) {
             setTrades(preference, currentTrades);
             stringPreference.delete();
         }
@@ -168,7 +181,7 @@ public class AuthUtils {
     public static String getFeedbackScore(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
         StringPreference stringPreference = new StringPreference(sharedPreferences, PREFS_USER_FEEDBACK);
         String feedback = stringPreference.get();
-        if(!TextUtils.isEmpty(feedback)) {
+        if (!TextUtils.isEmpty(feedback)) {
             setFeedbackScore(preference, feedback);
         }
         return preference.getString(PREFS_USER_FEEDBACK, feedback);
@@ -232,11 +245,11 @@ public class AuthUtils {
     public static void setTrades(@NonNull DPreference preference, @NonNull String trades) {
         preference.putString(PREFS_USER_TRADES, trades);
     }
-    
+
     public static boolean getForceUpdate(@NonNull DPreference preference) {
         return preference.getBoolean(PREFS_FORCE_UPDATES, false);
     }
-    
+
     public static void setForceUpdate(@NonNull DPreference preference, boolean force) {
         preference.putBoolean(PREFS_FORCE_UPDATES, force);
     }
@@ -262,7 +275,7 @@ public class AuthUtils {
         editor.apply();
 
     }
-    
+
     public static void reset(DPreference preference) {
         preference.removePreference(ACCESS_TOKEN);
         preference.removePreference(REFRESH_TOKEN);

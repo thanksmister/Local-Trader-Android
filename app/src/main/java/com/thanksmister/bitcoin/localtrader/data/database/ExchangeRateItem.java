@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 package com.thanksmister.bitcoin.localtrader.data.database;
 
@@ -30,10 +31,9 @@ import rx.functions.Func1;
 import static com.squareup.sqlbrite.SqlBrite.Query;
 
 @AutoParcel
-public abstract class ExchangeRateItem implements Parcelable
-{
+public abstract class ExchangeRateItem implements Parcelable {
     public static final String TABLE = "exchange_rate_item";
-    
+
     public static final String ID = "_id";
     static final String EXCHANGE = "exchange";
     static final String CURRENCY = "currency";
@@ -42,10 +42,13 @@ public abstract class ExchangeRateItem implements Parcelable
     public static final String QUERY = "SELECT * FROM " + ExchangeRateItem.TABLE;
 
     public abstract long id();
+
     public abstract String exchange();
+
     public abstract String rate();
+
     public abstract String currency();
-    
+
     public static final Func1<Query, List<ExchangeRateItem>> MAP = new Func1<Query, List<ExchangeRateItem>>() {
         @Override
         public List<ExchangeRateItem> call(Query query) {
@@ -69,16 +72,16 @@ public abstract class ExchangeRateItem implements Parcelable
     public static final Func1<Query, ExchangeRateItem> MAP_SINGLE = new Func1<Query, ExchangeRateItem>() {
         @Override
         public ExchangeRateItem call(Query query) {
-                Cursor cursor = query.run();
-                if(cursor.getCount() > 0) {
-                    cursor.moveToFirst();
-                    long id = Db.getLong(cursor, ID);
-                    String exchange = Db.getString(cursor, EXCHANGE);
-                    String currency = Db.getString(cursor, CURRENCY);
-                    String rate = Db.getString(cursor, RATE);
-                    return new AutoParcel_ExchangeRateItem(id, exchange, rate, currency);
-                }
-                return null;
+            Cursor cursor = query.run();
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                long id = Db.getLong(cursor, ID);
+                String exchange = Db.getString(cursor, EXCHANGE);
+                String currency = Db.getString(cursor, CURRENCY);
+                String rate = Db.getString(cursor, RATE);
+                return new AutoParcel_ExchangeRateItem(id, exchange, rate, currency);
+            }
+            return null;
         }
     };
 
@@ -88,7 +91,7 @@ public abstract class ExchangeRateItem implements Parcelable
                 .rate(item.getRate())
                 .currency(item.getCurrency());
     }
-    
+
     public static final class Builder {
         private final ContentValues values = new ContentValues();
 
@@ -111,9 +114,9 @@ public abstract class ExchangeRateItem implements Parcelable
             values.put(RATE, value);
             return this;
         }
-        
+
         public ContentValues build() {
-            return values; 
+            return values;
         }
     }
 }

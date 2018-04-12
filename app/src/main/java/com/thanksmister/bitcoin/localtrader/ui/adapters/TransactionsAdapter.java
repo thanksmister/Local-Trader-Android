@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
@@ -38,11 +39,11 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapter.ViewHolder> {
-    
+
     private static final int TYPE_TRANSACTION = R.layout.adapter_transaction_list;
 
     private List items = Collections.emptyList();
@@ -80,14 +81,14 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     public int getItemViewType(int position) {
         return TYPE_TRANSACTION;
     }
-    
+
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        
+
         if (items == null || items.isEmpty()) {
             return;
         }
-        
+
         TransactionItem transaction = (TransactionItem) items.get(position);
         String amount = Conversions.formatBitcoinAmount(transaction.amount());
         if (transaction.tx_type() == TransactionType.RECEIVED) {
@@ -130,7 +131,7 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         }
 
         if (!TextUtils.isEmpty(transaction.created_at())) {
-            ((TransactionViewHolder) viewHolder).dateText.setText(Dates.parseLocalDateStringShort(transaction.created_at()));
+            ((TransactionViewHolder) viewHolder).dateText.setText(Dates.parseLocaleDate(transaction.created_at()));
         }
     }
 

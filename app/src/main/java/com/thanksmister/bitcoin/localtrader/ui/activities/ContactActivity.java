@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2017 ThanksMister LLC
+ * Copyright (c) 2018 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License. 
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed 
- * under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.thanksmister.bitcoin.localtrader.ui.activities;
@@ -51,9 +52,6 @@ import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
@@ -61,11 +59,14 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
@@ -82,8 +83,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.ButterKnife;
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -97,7 +98,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     // The loader's unique id. Loader ids are specific to the Activity or
     private static final int CONTACT_LOADER_ID = 1;
     private static final int MESSAGES_LOADER_ID = 2;
-    
+
     public static final String EXTRA_ID = "com.thanksmister.extras.EXTRA_ID";
 
     @Inject
@@ -123,7 +124,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
     @BindView(R.id.emptyText)
     TextView emptyText;
-    
+
     private TextView detailsEthereumAddress;
     private TextView detailsSortCode;
     private TextView detailsBSB;
@@ -148,7 +149,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     private View detailsIbanLayout;
     private View detailsSwiftBicLayout;
     private View detailsReferenceLayout;
-    
+
     private TextView tradePrice;
     private TextView tradeAmountTitle;
     private TextView tradeAmount;
@@ -171,7 +172,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     private MenuItem cancelItem;
     private MenuItem disputeItem;
     private Handler handler;
-    
+
     public static Intent createStartIntent(Context context, String contactId) {
         Intent intent = new Intent(context, ContactActivity.class);
         intent.putExtra(EXTRA_ID, contactId);
@@ -180,7 +181,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.view_contact);
@@ -194,17 +195,17 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         } else {
             contactId = savedInstanceState.getString(EXTRA_ID);
         }
-        
+
         if (toolbar != null) {
             setSupportActionBar(toolbar);
-            if(getSupportActionBar() != null) {
+            if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setTitle("");
                 setToolBarMenu(toolbar);
             }
         }
 
-        if(TextUtils.isEmpty(contactId)) {
+        if (TextUtils.isEmpty(contactId)) {
             showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.toast_error_contact_data)), new Action0() {
                 @Override
                 public void call() {
@@ -236,7 +237,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         detailsIbanName = (TextView) headerView.findViewById(R.id.detailsIbanName);
         detailsSwiftBic = (TextView) headerView.findViewById(R.id.detailsSwiftBic);
         detailsReference = (TextView) headerView.findViewById(R.id.detailsReference);
-       
+
         onlineOptionsLayout = headerView.findViewById(R.id.onlineOptionsLayout);
         detailsEthereumAddressLayout = headerView.findViewById(R.id.detailsEthereumAddressLayout);
         detailsSortCodeLayout = headerView.findViewById(R.id.detailsSortCodeLayout);
@@ -249,7 +250,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         detailsIbanLayout = headerView.findViewById(R.id.detailsIbanLayout);
         detailsSwiftBicLayout = headerView.findViewById(R.id.detailsSwiftBicLayout);
         detailsReferenceLayout = headerView.findViewById(R.id.detailsReferenceLayout);
-       
+
         tradeAmountTitle = (TextView) headerView.findViewById(R.id.tradeAmountTitle);
         tradePrice = (TextView) headerView.findViewById(R.id.tradePrice);
         tradeAmount = (TextView) headerView.findViewById(R.id.tradeAmount);
@@ -452,17 +453,17 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             }
         });
     }
-    
+
     public void showContent() {
         content.setVisibility(View.VISIBLE);
         emptyLayout.setVisibility(View.GONE);
         progress.setVisibility(View.GONE);
     }
-    
+
     private void updateContact() {
-        
+
         toast(getString(R.string.toast_refreshing_data));
-        
+
         dataService.getContactInfo(contactId)
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -476,7 +477,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 .subscribe(new Action1<Contact>() {
                     @Override
                     public void call(Contact contact) {
-                        if(contact != null) {
+                        if (contact != null) {
                             final int messageCount = contact.messages.size();
                             dbManager.updateContact(contact, messageCount, false);
                             dbManager.updateMessages(contact.contact_id, contact.messages);
@@ -544,9 +545,9 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                     }
                 });
     }
-    
+
     public void setContact(ContactItem contact) {
-        
+
         this.contact = contact;
 
         String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
@@ -591,21 +592,21 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         if (buttonTag > 0) {
             contactButton.setText(getString(buttonTag));
         }
-        
+
         if (buttonTag == R.string.button_cancel || buttonTag == 0) {
             buttonLayout.setVisibility(View.GONE);
         } else {
             buttonLayout.setVisibility(View.VISIBLE);
         }
-        
+
         String description = TradeUtils.getContactDescription(contact, this);
-        if(!TextUtils.isEmpty(description)) {
+        if (!TextUtils.isEmpty(description)) {
             noteText.setText(Html.fromHtml(description));
             //noteText.setMovementMethod(LinkMovementMethod.getInstance());
         }
         contactHeaderLayout.setVisibility((description == null) ? View.GONE : View.VISIBLE);
-        
-        if(TradeUtils.isOnlineTrade(contact)) {
+
+        if (TradeUtils.isOnlineTrade(contact)) {
             tradeAmountTitle.setText(R.string.text_escrow_amount);
             showOnlineOptions(contact);
         }
@@ -614,60 +615,60 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     private void showOnlineOptions(ContactItem contact) {
-        
+
         onlineOptionsLayout.setVisibility(View.VISIBLE);
-        
-        if(!TextUtils.isEmpty(contact.details_bsb())) {
+
+        if (!TextUtils.isEmpty(contact.details_bsb())) {
             detailsBSB.setText(contact.details_bsb());
             detailsBSBLayout.setVisibility(View.VISIBLE);
         }
-        
-        if(!TextUtils.isEmpty(contact.details_iban())) {
+
+        if (!TextUtils.isEmpty(contact.details_iban())) {
             detailsIbanName.setText(contact.details_iban());
             detailsIbanLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_sort_code())) {
+        if (!TextUtils.isEmpty(contact.details_sort_code())) {
             detailsSortCode.setText(contact.details_sort_code());
             detailsSortCodeLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_receiver_name())) {
+        if (!TextUtils.isEmpty(contact.details_receiver_name())) {
             detailsReceiverName.setText(contact.details_receiver_name());
             detailsReceiverNameLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_receiver_email())) {
+        if (!TextUtils.isEmpty(contact.details_receiver_email())) {
             detailsReceiverEmail.setText(contact.details_receiver_email());
             detailsReceiverEmailLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_swift_bic())) {
+        if (!TextUtils.isEmpty(contact.details_swift_bic())) {
             detailsSwiftBic.setText(contact.details_swift_bic());
             detailsSwiftBicLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_ethereum_address())) {
+        if (!TextUtils.isEmpty(contact.details_ethereum_address())) {
             detailsEthereumAddress.setText(contact.details_ethereum_address());
             detailsEthereumAddressLayout.setVisibility(View.VISIBLE);
         }
-        
-        if(!TextUtils.isEmpty(contact.details_reference())) {
+
+        if (!TextUtils.isEmpty(contact.details_reference())) {
             detailsReference.setText(contact.details_reference());
             detailsReferenceLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_phone_number())) {
+        if (!TextUtils.isEmpty(contact.details_phone_number())) {
             detailsPhoneNumber.setText(contact.details_phone_number());
             detailsPhoneNumberLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_biller_code())) {
+        if (!TextUtils.isEmpty(contact.details_biller_code())) {
             detailsBillerCode.setText(contact.details_biller_code());
             detailsBillerCodeLayout.setVisibility(View.VISIBLE);
         }
 
-        if(!TextUtils.isEmpty(contact.details_account_number())) {
+        if (!TextUtils.isEmpty(contact.details_account_number())) {
             detailsAccountNumber.setText(contact.details_account_number());
             detailsAccountNumberLayout.setVisibility(View.VISIBLE);
         }
@@ -682,10 +683,10 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     public void downloadAttachment(final MessageItem message) {
-        
-        if(TextUtils.isEmpty(message.attachment_url())) {
+
+        if (TextUtils.isEmpty(message.attachment_url())) {
             showAlertDialog(getString(R.string.toast_attachment_empty));
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.setString("download_error", message.attachment_url());
                 Crashlytics.logException(new Exception("Error downloading url: " + message.attachment_url()));
             }
@@ -700,9 +701,9 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         try {
             downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            downloadManager.enqueue(request); 
+            downloadManager.enqueue(request);
         } catch (NullPointerException e) {
-            if(!BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Crashlytics.setString("download_error", message.attachment_url());
                 Crashlytics.logException(new Exception("Error downloading url: " + message.attachment_url()));
             }
@@ -771,7 +772,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     private void contactAction(final String contactId, final String pinCode, final ContactAction action) {
-        
+
         dataService.contactAction(contactId, pinCode, action)
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -875,7 +876,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     private void loadAdvertisementView(ContactItem contact) {
-        if(TextUtils.isEmpty(contact.advertisement_id())) {
+        if (TextUtils.isEmpty(contact.advertisement_id())) {
             showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
                 @Override
                 public void call() {
@@ -925,14 +926,14 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             }
         }
     };
-    
+
     @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if(id == CONTACT_LOADER_ID) {
+        if (id == CONTACT_LOADER_ID) {
             return new CursorLoader(ContactActivity.this, SyncProvider.CONTACT_TABLE_URI, null, ContactItem.CONTACT_ID + " = ?", new String[]{contactId}, null);
         } else if (id == MESSAGES_LOADER_ID) {
-            return new CursorLoader(ContactActivity.this, SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ?", new String[]{contactId}, 
+            return new CursorLoader(ContactActivity.this, SyncProvider.MESSAGE_TABLE_URI, null, MessageItem.CONTACT_ID + " = ?", new String[]{contactId},
                     MessageItem.CREATED_AT + " DESC");
         }
         return null;
@@ -943,7 +944,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         switch (loader.getId()) {
             case CONTACT_LOADER_ID:
                 ContactItem contactItem = ContactItem.getModel(cursor);
-                if(contactItem != null) {
+                if (contactItem != null) {
                     showContent();
                     setContact(contactItem);
                 } else {
@@ -952,13 +953,15 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 break;
             case MESSAGES_LOADER_ID:
                 List<MessageItem> messageItems = MessageItem.getModelList(cursor);
-                if(!messageItems.isEmpty()) {
+                if (!messageItems.isEmpty()) {
                     getAdapter().replaceWith(messageItems);
                 }
                 break;
+            default:
+                throw new Error("Incorrect loader Id");
         }
     }
-    
+
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
     }
