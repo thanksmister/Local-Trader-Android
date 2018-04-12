@@ -10,7 +10,7 @@ A LocalBitcoins account is required to use Local trader. To get an account, plea
 If you are not familiar with LocalBitcoins, please visit their [about page](https://localbitcoins.com/about) for additional information. Also please read the [getting started guides](https://localbitcoins.com/guides/?ch=2hbo) available on LocalBitcoins to learn how to trade. As always, trade responsibly and safely.
 
 
-## FEATURES
+## Features
 - Ethereum, Bitcoin, Dash, Ripple, Monero, Litecoin trading
 - Wallet functionality with PIN code for sending Bitcoin
 - Release and fund trades with PIN code
