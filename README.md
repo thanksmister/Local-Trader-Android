@@ -1,6 +1,6 @@
 # Local Trader
 
-Local Trader is an open source Android application for <b>[LocalBitcoins](https://localbitcoins.net/?ch=2hbo)</b>. Local Trader allows you to manage your advertisements, trades, messages, and wallet. Local Trader is available for download on the [Goolge Play Store](https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader) or you can download and install the latest file from the [release section](https://github.com/thanksmister/Local-Trader-Android/releases).
+Local Trader is an open source Android application for <b>[LocalBitcoins](https://localbitcoins.net/?ch=2hbo)</b>. Local Trader allows you to manage your advertisements, trades, messages, and wallet. Local Trader is available for download on the [Goolge Play Store](https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader) or you can download and install the latest file from the [release section](https://github.com/thanksmister/Local-Trader-Android/releases). 
 
 ![android_app1](https://github.com/thanksmister/thanksmister.github.io/blob/master/assets/img/img1.png)
  
@@ -11,13 +11,13 @@ If you are not familiar with LocalBitcoins, please visit their [about page](http
 
 
 ## FEATURES
-★ Ethereum, Bitcoin, Dash, Ripple, Monero, Litecoin trading
-★ Wallet functionality with PIN code for sending Bitcoin
-★ Release and fund trades with PIN code
-★ Send and receive trade messages and notifications of trade updates
-★ Send and download trade message attachments
-★ Update advertisements (not fully supported)
-★ Search local or online trades to buy or sell Bitcoin or other cryptocurrencies
+- Ethereum, Bitcoin, Dash, Ripple, Monero, Litecoin trading
+- Wallet functionality with PIN code for sending Bitcoin
+- Release and fund trades with PIN code
+- Send and receive trade messages and notifications of trade updates
+- Send and download trade message attachments
+- Update advertisements (not fully supported)
+- Search local or online trades to buy or sell Bitcoin or other cryptocurrencies
 
 
 ## SECURITY
@@ -41,9 +41,9 @@ Authenticate accounts - used for application authority for syncing data.
 ## ADDITIONAL INFORMATION
 Local Trader is not owned or operated by LocalBitcoins. Please contact LocalBitcoins support for any account issues or questions. 
 
-★ [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
-★  [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
-★ [Reddit Community](https://www.reddit.com/r/LocalTrader/)
+- [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
+- [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
+- [Reddit Community](https://www.reddit.com/r/LocalTrader/)
 
 ## Contributers
 At this time I am looking for contributers to translate the application and Google Play listing into different languages. Please contact me if you are interested. 
