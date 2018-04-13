@@ -2,7 +2,10 @@
 
 Local Trader is an open source Android application for <b>[LocalBitcoins](https://localbitcoins.net/?ch=2hbo)</b>. Local Trader allows you to manage your advertisements, trades, messages, and wallet. Local Trader is available for download on the [Goolge Play Store](https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader) or you can download and install the latest file from the [release section](https://github.com/thanksmister/Local-Trader-Android/releases). 
 
-![android_app1](https://github.com/thanksmister/thanksmister.github.io/blob/master/assets/img/img1.png)
+<p>
+<img src="img/lt_menu.png" width="300" />
+<img  src="img/lt_search.png" width="300" />
+<p>
  
 A LocalBitcoins account is required to use Local Trader. To get an account, please register for at [LocalBitcoins.com](https://localbitcoins.com/register/?ch=2hbo]or) use the new mirror site at [LocalBitcoins.net](https://localbitcoins.net/register/?ch=2hbo) for blocked regions. 
 
