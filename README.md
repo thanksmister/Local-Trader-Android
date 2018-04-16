@@ -56,5 +56,10 @@ lbcAccessKey=[your_api_key]
 lbcAccessSecret=[your_api_secret]
 ```
 
+## Roadmap
+- Updated architecture using RxJava 2, Room Database, Android Architecture components
+- Add additional adveretisement editing features
+- Add advertisement creation features
+
 ## Contributers
 At this time I am looking for contributers to translate the application and Google Play listing into different languages. Please contact me if you are interested. 
