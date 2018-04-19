@@ -17,25 +17,39 @@
 
 package com.thanksmister.bitcoin.localtrader.network;
 
-/**
- * Created by Michael Ritchie on 4/10/18.
- */
 public class NetworkException extends Exception {
-    private String message;
-    private int code;
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
+    private int code;
+    private int status;
+    private Throwable cause;
 
     public int getCode() {
         return code;
     }
 
-    public NetworkException(String msg, int code) {
+    public int getStatus() {
+        return status;
+    }
+
+    public Throwable getCause() {
+        return cause;
+    }
+
+    public NetworkException(String msg, Throwable cause) {
         super(msg);
-        this.message = msg;
+        this.cause = cause;
+    }
+
+    public NetworkException(String msg, int code, int status, Throwable cause) {
+        super(msg);
         this.code = code;
+        this.status = status;
+        this.cause = cause;
+    }
+
+    public NetworkException(String msg, int code, Throwable cause) {
+        super(msg);
+        this.code = code;
+        this.cause = cause;
     }
 }

@@ -41,6 +41,8 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
 import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
+import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
+import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
@@ -236,12 +238,29 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         getContext().sendBroadcast(intent);
     }
 
-    private void onSyncFailed(String message, int code) {
+    private void onSyncFailed(Throwable cause) {
+        int code = SYNC_ERROR_CODE;
+        if(cause instanceof NetworkException) {
+            NetworkException networkException = (NetworkException) cause;
+            code = (networkException.getCode());
+            if(code == 3) {
+                // allow refresh
+                return;
+            } else {
+                code = networkException.getStatus();
+            }
+        }
+
         Intent intent = new Intent(ACTION_SYNC);
         intent.putExtra(EXTRA_ACTION_TYPE, ACTION_TYPE_ERROR);
-        intent.putExtra(EXTRA_ERROR_MESSAGE, message);
+        intent.putExtra(EXTRA_ERROR_MESSAGE, cause.getCause());
         intent.putExtra(EXTRA_ERROR_CODE, code);
         getContext().sendBroadcast(intent);
+
+        if (cause.getMessage() != null) {
+            Timber.e("Sync Data Error: " + cause.getMessage());
+            cause.printStackTrace();
+        }
     }
 
     private void getCurrencies() {
@@ -281,8 +300,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        handleError(throwable);
-                        onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
+                        onSyncFailed(throwable);
                         updateSyncMap(SYNC_CURRENCIES, false);
                     }
                 });
@@ -320,8 +338,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        handleError(throwable);
-                        onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
+                        onSyncFailed(throwable);
                         updateSyncMap(SYNC_METHODS, false);
                     }
                 });
@@ -353,11 +370,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                             Timber.d("Advertisements Error: " + throwable.getMessage());
                         } else {
                             Timber.e("Advertisements Error: " + throwable.getMessage());
-                            handleError(throwable);
                         }
                         cancelSync();
                         AuthUtils.setForceUpdate(preference, false);
-                        onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
+                        onSyncFailed(throwable);
                         updateSyncMap(SYNC_ADVERTISEMENTS, false);
                     }
                 });
@@ -378,8 +394,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        handleError(throwable);
-                        onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
+                        onSyncFailed(throwable);
                         updateSyncMap(SYNC_CONTACTS, false);
                     }
                 });
@@ -400,9 +415,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        handleError(throwable);
                         isCanceled();
-                        onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
+                        onSyncFailed(throwable);
                         updateSyncMap(SYNC_NOTIFICATIONS, false);
                     }
                 });
@@ -423,23 +437,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        handleError(throwable);
                         isCanceled();
-                        onSyncFailed(throwable.getMessage(), SYNC_ERROR_CODE);
+                        onSyncFailed(throwable);
                         updateSyncMap(SYNC_WALLET, false);
                     }
                 });
-    }
-
-    protected void reportError(Throwable throwable) {
-        if (throwable != null && throwable.getMessage() != null) {
-            Timber.e("Sync Data Error: " + throwable.getMessage());
-            throwable.printStackTrace();
-        }
-    }
-
-    protected void handleError(Throwable throwable) {
-        reportError(throwable);
     }
 
     /**
@@ -512,7 +514,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                         notificationService.balanceUpdateNotification("Bitcoin Received", "Bitcoin received...", "You received " + diff + " BTC");
                     }
                 } catch (Exception e) {
-                    reportError(e);
+                    Timber.e(e.getMessage());
                 }
             }
             cursor.close();

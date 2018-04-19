@@ -46,6 +46,7 @@ import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
+import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
@@ -389,7 +390,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     private BroadcastReceiver connReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-            NetworkInfo currentNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            NetworkInfo currentNetworkInfo = connectivityManager != null ? connectivityManager.getActiveNetworkInfo() : null;
             if (currentNetworkInfo != null && currentNetworkInfo.isConnected()) {
                 if (snackBar != null && snackBar.isShown()) {
                     snackBar.dismiss();
@@ -438,13 +439,37 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         handleError(throwable, false);
     }
 
+    // FIXME when we move this over to new Retrofit implement new error handling across all network calls
     protected void handleError(Throwable throwable, boolean retry) {
 
+        // Handle NetworkConnectionException
         if (throwable instanceof NetworkConnectionException) {
-            snack(getString(R.string.error_no_internet), retry);
+            NetworkConnectionException networkConnectionException = (NetworkConnectionException) throwable;
+            snack(networkConnectionException.getMessage(), retry);
             return;
         }
 
+        // Handle NetworkException
+        if(throwable instanceof NetworkException) {
+            NetworkException networkException = (NetworkException) throwable;
+            if (networkException.getStatus() == 403) {
+                showAlertDialog(new AlertDialogEvent(getString(R.string.alert_token_expired_title), getString(R.string.error_bad_token)), new Action0() {
+                    @Override
+                    public void call() {
+                        logOut();
+                    }
+                });
+                return;
+            } else if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
+                // refreshing token and will return 403 if refresh token invalid
+                return;
+            } else {
+                // let's just let the throwable pass through
+                throwable = networkException.getCause();
+            }
+        }
+
+        // Handle Throwable exception
         if (DataServiceUtils.isConnectionError(throwable)) {
             Timber.i("Connection Error");
             snack(getString(R.string.error_service_unreachable_error), retry);
@@ -457,12 +482,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         } else if (DataServiceUtils.isHttp504Error(throwable)) {
             Timber.i("Data Error: " + "Code 504");
             snack(getString(R.string.error_service_timeout_error), retry);
-        } else if (DataServiceUtils.isHttp42Error(throwable)) {
-            Timber.i("Data Error: " + "Code 42");
-            snack(getString(R.string.error_generic_error), retry);
-        } else if (DataServiceUtils.isHttp41Error(throwable)) {
-            Timber.i("Data Error: " + "Code 41");
-            snack(getString(R.string.error_authentication), retry);
         } else if (DataServiceUtils.isHttp502Error(throwable)) {
             Timber.i("Data Error: " + "Code 502");
             snack(getString(R.string.error_service_error), retry);
@@ -492,7 +511,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                         logOut();
                     }
                 });
-
             } else {
                 Timber.e("Data Error Message: " + error.getMessage());
                 snack(error.getMessage(), retry);

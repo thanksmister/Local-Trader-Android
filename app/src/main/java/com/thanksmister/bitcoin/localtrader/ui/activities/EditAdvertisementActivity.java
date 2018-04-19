@@ -42,6 +42,7 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
@@ -336,17 +337,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
                                 @Override
                                 public void run() {
                                     hideProgressDialog();
-                                    if (Parser.containsError(jsonObject)) {
-                                        RetroError error = Parser.parseError(jsonObject);
-                                        showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), error.getMessage()), new Action0() {
-                                            @Override
-                                            public void call() {
-                                                advertisementCanceled();
-                                            }
-                                        });
-                                    } else {
-                                        advertisementSaved();
-                                    }
+                                    advertisementSaved();
                                 }
                             });
                         }

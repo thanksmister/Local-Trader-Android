@@ -219,11 +219,6 @@ public class ContactsActivity extends BaseActivity {
 
     public void updateData(final DashboardType type) {
 
-        if (NetworkUtils.isNetworkConnected(ContactsActivity.this)) {
-            handleError(new NetworkConnectionException());
-            return;
-        }
-
         toast(getString(R.string.toast_loading_trades));
         showProgress();
 

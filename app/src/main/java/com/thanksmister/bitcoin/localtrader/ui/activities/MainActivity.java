@@ -44,6 +44,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
+import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
@@ -602,6 +603,14 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 break;
             case SyncAdapter.ACTION_TYPE_ERROR:
                 Timber.e("Sync error: " + extraErrorMessage + "code: " + extraErrorCode);
+                if(extraErrorCode == DataServiceUtils.STATUS_403) {
+                    showAlertDialog(new AlertDialogEvent(getString(R.string.alert_token_expired_title), getString(R.string.error_bad_token)), new Action0() {
+                        @Override
+                        public void call() {
+                            logOut();
+                        }
+                    });
+                }
                 onRefreshStop();
                 break;
         }

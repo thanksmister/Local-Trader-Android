@@ -45,6 +45,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
@@ -569,12 +570,13 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                     }
                 }, new Action1<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void call(final Throwable throwable) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 hideProgressDialog();
-                                showAlertDialog(getString(R.string.alert_error_deleting_advertisement));
+                                //showAlertDialog(getString(R.string.alert_error_deleting_advertisement));
+                                showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), throwable.getMessage()));
                             }
                         });
                     }
@@ -605,7 +607,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                     @Override
                     public void call(Throwable throwable) {
                         hideProgressDialog();
-                        showAlertDialog(throwable.getMessage());
+                        showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), throwable.getMessage()));
                     }
                 });
     }

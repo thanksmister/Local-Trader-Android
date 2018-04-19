@@ -33,8 +33,8 @@ public class DataServiceUtils {
 
     public static int CODE_MINUS_ONE = -1; // authorization failed
     public static int CODE_THREE = 3; // authorization failed
-    public static int CODE_FORTY_ONE = 41; // bad hmac signature
-    public static int CODE_FORTY_TWO = 42; // nonce too small
+    public static int STATUS_403 = 403; // not authenticated
+    public static int STATUS_400 = 400; // some error
 
     public static boolean isNetworkError(Throwable throwable) {
         if (throwable instanceof UnknownHostException || throwable instanceof NetworkConnectionException) {
@@ -58,24 +58,6 @@ public class DataServiceUtils {
     public static boolean isConnectionError(Throwable throwable) {
         if (throwable instanceof ConnectException) {
             return true;
-        }
-
-        return false;
-    }
-
-    public static boolean isHttp41Error(Throwable throwable) {
-        if (throwable instanceof RetrofitError) {
-            RetroError retroError = createRetroError(throwable);
-            return (retroError.getCode() == CODE_FORTY_ONE);
-        }
-
-        return false;
-    }
-
-    public static boolean isHttp42Error(Throwable throwable) {
-        if (throwable instanceof RetrofitError) {
-            RetroError retroError = createRetroError(throwable);
-            return (retroError.getCode() == CODE_FORTY_TWO);
         }
 
         return false;

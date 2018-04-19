@@ -163,6 +163,8 @@ public class Parser {
         }
     }
 
+    // Error handling specifically for invalid grants because yet again we have a
+    // different error type from LBC {"error_description": "* refresh_token\n  * Invalid grant", "error": "invalid_grant"}
     public static RetroError parseError(String response) {
         JSONObject jsonObject;
         try {
@@ -171,9 +173,7 @@ public class Parser {
             int error_code = errorObj.getInt("error_code");
             String error_message = errorObj.getString("message");
             return new RetroError(error_message, error_code);
-
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
             return parseInvalidGrantError(response);
         }
     }

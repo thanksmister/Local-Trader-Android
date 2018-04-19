@@ -18,7 +18,30 @@
 package com.thanksmister.bitcoin.localtrader.network;
 
 public class NetworkConnectionException extends Exception {
-    public NetworkConnectionException() {
-        super();
+
+    private int status;
+    private Throwable cause;
+
+    public NetworkConnectionException(String msg) {
+        super(msg);
+    }
+
+    public NetworkConnectionException(String msg, int status) {
+        super(msg);
+        this.status = status;
+    }
+
+    public NetworkConnectionException(String msg, int status, Throwable cause) {
+        super(msg);
+        this.status = status;
+        this.cause = cause;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public Throwable getCause() {
+        return cause;
     }
 }

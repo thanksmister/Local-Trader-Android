@@ -96,20 +96,6 @@ public class AuthUtils {
      * @param sharedPreferences
      */
     public static boolean hasCredentials(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, ACCESS_TOKEN);
-        String currentAccessToken = stringPreference.get();
-        if (!TextUtils.isEmpty(currentAccessToken)) {
-            setAccessToken(preference, currentAccessToken);
-            stringPreference.delete();
-        }
-
-        stringPreference = new StringPreference(sharedPreferences, REFRESH_TOKEN);
-        String currentRefreshToken = getRefreshToken(preference, sharedPreferences);
-        if (!TextUtils.isEmpty(currentRefreshToken)) {
-            setRefreshToken(preference, currentRefreshToken);
-            stringPreference.delete();
-        }
-
         String accessToken = preference.getString(ACCESS_TOKEN, null);
         String refreshToken = preference.getString(REFRESH_TOKEN, null);
         return !TextUtils.isEmpty(accessToken) && !TextUtils.isEmpty(refreshToken);
@@ -121,14 +107,6 @@ public class AuthUtils {
      * @return
      */
     public static String getAccessToken(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, ACCESS_TOKEN);
-        String currentAccessToken = stringPreference.get();
-
-        if (!TextUtils.isEmpty(currentAccessToken)) {
-            setAccessToken(preference, currentAccessToken);
-            stringPreference.delete();
-        }
-
         return preference.getString(ACCESS_TOKEN, null);
     }
 
@@ -136,19 +114,7 @@ public class AuthUtils {
      * Get the stored refresh token
      */
     public static String getRefreshToken(@NonNull DPreference preference, SharedPreferences sharedPreferences) {
-        StringPreference stringPreference = new StringPreference(sharedPreferences, REFRESH_TOKEN);
-        String currentRefreshToken = stringPreference.get();
-
-        if (!TextUtils.isEmpty(currentRefreshToken)) {
-            setRefreshToken(preference, currentRefreshToken);
-            stringPreference.delete();
-        }
-
-        try {
-            return preference.getString(REFRESH_TOKEN, null);
-        } catch (NullPointerException e) {
-            return null;
-        }
+        return preference.getString(REFRESH_TOKEN, null);
     }
 
     /**

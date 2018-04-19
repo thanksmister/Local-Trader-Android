@@ -33,6 +33,7 @@ import retrofit.mime.TypedFile;
 import rx.Observable;
 
 public interface LocalBitcoins {
+
     String GET_MYSELF = "/api/myself/";
     String GET_ADS = "/api/ads/";
     String GET_WALLET = "/api/wallet/";
@@ -40,7 +41,6 @@ public interface LocalBitcoins {
     String GET_DASHBOARD = "/api/dashboard/";
     String GET_AD = "/api/ad-get/";
     String GET_CONTACT_INFO = "/api/contact_info/";
-    String GET_RECENT_MESSAGES = "/api/recent_messages/";
     String GET_NOTIFICATIONS = "/api/notifications/";
     String GET_CONTACT_MESSAGES = "/api/contact_messages/";
     String GET_CURRENCIES = "/api/currencies/";
@@ -48,9 +48,6 @@ public interface LocalBitcoins {
     String UPDATE_AD = "/api/ad/";
     String CHECK_PINCODE = "/api/pincode/";
     String GET_PAYMENT_METHODS = "/api/payment_methods/";
-    String GET_COUNTRY_CODES = "/api/countrycodes/";
-    String GET_ADS_BY_PLACE = "/get/ads/by/place/";
-    String GET_ONLINE_ADS = "/get/online/ads/";
     String GET_ADS_PLACES = "/api/places/";
     String POST_NOTIFICATIONS_MARK_READ = "/api/notifications/mark_as_read/";
     String POST_CONTACT_MESSAGE = "/api/contact_message_post/";
@@ -62,7 +59,6 @@ public interface LocalBitcoins {
     String POST_WALLET_SEND_PIN = "/api/wallet-send-pin/";
     String POST_CONTACT_CREATE = "/api/contact_create/";
     String POST_AD_CREATE = "/api/ad-create/";
-    String DOWNLOAD_ATTACHMENT = "/api/download/";
 
     @FormUrlEncoded
     @POST("/oauth2/access_token/")
@@ -342,9 +338,6 @@ public interface LocalBitcoins {
                                        @Field("pincode") String pincode,
                                        @Field("address") String address,
                                        @Field("amount") String amount);
-
-    @GET(GET_RECENT_MESSAGES)
-    Observable<Response> recentMessages(@Query("access_token") String token);
 
     @GET(GET_NOTIFICATIONS)
     Observable<Response> getNotifications(@Query("access_token") String token);
