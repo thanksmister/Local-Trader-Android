@@ -63,3 +63,7 @@ lbcAccessSecret=[your_api_secret]
 
 ## Contributers
 At this time I am looking for contributers to translate the application and Google Play listing into different languages. Please contact me if you are interested. 
+
+## Acknowledgements
+Special thanks to [Jiwei li](https://github.com/jiweiyx) for Chinese translations.  
+
