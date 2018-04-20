@@ -15,25 +15,66 @@
   ~
   -->
 
-<RelativeLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/screenBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_above="@id/buttonLayout"
         android:orientation="vertical">
-    
-    <android.support.v4.view.ViewPager
-            android:id="@+id/pager"
-            android:layout_alignParentTop="true"
-            android:layout_above="@+id/indicator"
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    
-    <com.viewpagerindicator.CirclePageIndicator
-            android:id="@+id/indicator"
-            android:layout_above="@id/buttonLayout"
-            android:padding="10dip"
-            android:layout_height="wrap_content"
-            android:layout_width="fill_parent"/>
+            android:layout_height="match_parent"
+            android:gravity="top"
+            android:padding="@dimen/activity_padding"
+            android:orientation="vertical">
+
+            <android.support.v4.widget.Space
+                android:id="@+id/spacerTop"
+                android:layout_alignParentTop="true"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"/>
+
+            <ImageView
+                android:id="@+id/screenImage"
+                android:layout_width="260dp"
+                android:layout_height="260dp"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/spacerTop"
+                android:src="@drawable/logo_screen"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/screenImage"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentBottom="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/descriptionText"
+                    style="@style/TextLarge.SmallAction"
+                    android:textColor="@color/body_text_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_marginLeft="36dp"
+                    android:layout_marginRight="36dp"
+                    android:text="@string/login_registration_screens_description"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
 
     <LinearLayout
             android:id="@+id/buttonLayout"
@@ -50,7 +91,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="Register"/>
+                android:text="@string/button_register"/>
 
         <View
                 android:layout_width="8dp"
@@ -62,7 +103,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:text="Authenticate"/>
+                android:text="@string/button_authenticate"/>
 
     </LinearLayout>
 

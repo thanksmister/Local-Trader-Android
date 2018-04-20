@@ -63,22 +63,24 @@ public final class ApiModule {
 
     @Provides
     @Singleton
-    BitstampExchange provideBitstamp(Client client) {
+    BitstampExchange provideBitstamp(BaseApplication app, Client client) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
                 .setLogLevel(RestAdapter.LogLevel.HEADERS)
                 .setEndpoint(BITSTAMP_API_ENDPOINT)
+                .setErrorHandler(new CustomErrorHandler(app))  // use error handler..
                 .build();
         return restAdapter.create(BitstampExchange.class);
     }
 
     @Provides
     @Singleton
-    BitcoinAverage provideBitcoinAverage(Client client, DPreference preference, SharedPreferences sharedPreferences) {
+    BitcoinAverage provideBitcoinAverage(BaseApplication app, Client client, DPreference preference, SharedPreferences sharedPreferences) {
         String baseUrl = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
                 .setLogLevel(RestAdapter.LogLevel.HEADERS)
+                .setErrorHandler(new CustomErrorHandler(app))  // use error handler..
                 .setEndpoint(baseUrl)
                 .build();
         return restAdapter.create(BitcoinAverage.class);
@@ -86,10 +88,11 @@ public final class ApiModule {
 
     @Provides
     @Singleton
-    BitfinexExchange provideBitfinex(Client client) {
+    BitfinexExchange provideBitfinex(BaseApplication app, Client client) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
                 .setLogLevel(RestAdapter.LogLevel.HEADERS)
+                .setErrorHandler(new CustomErrorHandler(app))  // use error handler..
                 .setEndpoint(BITFINEX_API_ENDPOINT)
                 .build();
         return restAdapter.create(BitfinexExchange.class);
@@ -97,10 +100,11 @@ public final class ApiModule {
 
     @Provides
     @Singleton
-    Coinbase provideCoinbase(Client client) {
+    Coinbase provideCoinbase(BaseApplication app, Client client) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setClient(client)
                 .setLogLevel(RestAdapter.LogLevel.HEADERS)
+                .setErrorHandler(new CustomErrorHandler(app))  // use error handler..
                 .setEndpoint(COINBASE_ENDPOINT)
                 .build();
         return restAdapter.create(Coinbase.class);

@@ -23,6 +23,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ErrorResponse;
 import com.thanksmister.bitcoin.localtrader.network.api.model.LocalBitcoinsErrorResponse;
 
+import java.net.UnknownHostException;
 import java.util.List;
 
 import retrofit.ErrorHandler;
@@ -46,6 +47,13 @@ public class CustomErrorHandler implements ErrorHandler {
     public Exception handleError(RetrofitError cause) {
         String errorDescription = "";
         int status = 0;
+
+        if(cause.getCause() instanceof UnknownHostException) {
+            Timber.d("UnknownHostException");
+            errorDescription = context.getString(R.string.error_no_internet);
+            return new NetworkConnectionException(errorDescription, status, cause);
+        }
+
         try {
             status = cause.getResponse().getStatus();
         } catch (Exception e) {

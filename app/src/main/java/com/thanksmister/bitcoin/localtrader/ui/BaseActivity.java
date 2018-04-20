@@ -33,6 +33,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -402,8 +403,14 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         }
     };
 
+    protected void toast(int messageId) {
+        toast(getString(messageId));
+    }
+
     protected void toast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        Toast toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.BOTTOM, 0, 180);
+        toast.show();
     }
 
     protected void reportError(Throwable throwable) {
@@ -530,8 +537,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     protected void snackError(String message) {
         if (snackBar != null && snackBar.isShownOrQueued()) {
             snackBar.dismiss();
-            snackBar = null;
-            return;
         }
 
         try {
@@ -551,8 +556,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     protected void snack(String message, boolean retry) {
         if (snackBar != null && snackBar.isShownOrQueued()) {
             snackBar.dismiss();
-            snackBar = null;
-            return;
         }
 
         try {
@@ -560,7 +563,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             if (view != null) {
                 if (retry) {
                     snackBar = Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
-                            .setAction("Retry", new View.OnClickListener() {
+                            .setAction(R.string.button_retry, new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
                                     handleRefresh();
@@ -578,18 +581,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             }
         } catch (NullPointerException e) {
             Timber.e(e.getMessage());
-        }
-    }
-
-    protected void toast(int messageId) {
-        Toast.makeText(this, messageId, Toast.LENGTH_SHORT).show();
-    }
-
-    protected void toast(int messageId, boolean showLong) {
-        if (showLong) {
-            Toast.makeText(this, messageId, Toast.LENGTH_LONG).show();
-        } else {
-            toast(messageId);
         }
     }
 }

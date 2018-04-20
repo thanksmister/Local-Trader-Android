@@ -153,10 +153,15 @@ public class LoginActivity extends BaseActivity {
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            content.setVisibility(View.VISIBLE);
-            webView.setVisibility(View.GONE);
             toast(getString(R.string.toast_authentication_canceled));
-            return true;
+            if(webView.getVisibility() == View.VISIBLE) {
+                content.setVisibility(View.VISIBLE);
+                webView.setVisibility(View.GONE);
+                return true;
+            }
+            Intent intent = PromoActivity.createStartIntent(LoginActivity.this);
+            startActivity(intent);
+            finish();
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -314,6 +319,7 @@ public class LoginActivity extends BaseActivity {
 
         Timber.d("Username: " + user.username);
 
+        //toast(getString(R.string.authentication_success, user.username));
         Intent intent = new Intent(this, SplashActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -328,7 +334,6 @@ public class LoginActivity extends BaseActivity {
                     @Override
                     public void call(User user) {
                         hideProgressDialog();
-                        toast(getString(R.string.authentication_success, user.username));
                         setTokens(accessToken, refreshToken, user, endpoint);
                     }
                 }, new Action1<Throwable>() {

@@ -243,7 +243,7 @@ public class PinCodeActivity extends BaseActivity {
         pinCode = "";
         pinComplete = false;
         showFilledPins(0);
-        toast(R.string.toast_pin_code_invalid, true);
+        toast(R.string.toast_pin_code_invalid);
     }
 
     private void addPinCode(String code) {

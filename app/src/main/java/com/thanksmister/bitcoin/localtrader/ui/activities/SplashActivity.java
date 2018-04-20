@@ -90,6 +90,7 @@ public class SplashActivity extends BaseActivity {
             case SyncAdapter.ACTION_TYPE_START:
                 break;
             case SyncAdapter.ACTION_TYPE_COMPLETE:
+                AuthUtils.setFirstTime(preference, false);
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);

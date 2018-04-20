@@ -35,7 +35,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
@@ -43,6 +42,7 @@ import com.kobakei.ratethisapp.RateThisApp;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
@@ -174,7 +174,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         swipeLayout.setDistanceToTriggerSync(250);
 
         if (!AuthUtils.isFirstTime(preference)) {
-            Toast.makeText(MainActivity.this, R.string.toast_refreshing_data, Toast.LENGTH_LONG).show();
+            toast(R.string.toast_refreshing_data);
             AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(MainActivity.this);
         }
@@ -249,15 +249,16 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     public void onRefresh() {
-
-        Timber.d("onRefresh");
-
-        // force refresh of advertisements
         AuthUtils.setForceUpdate(preference, true);
         SyncUtils.requestSyncNow(MainActivity.this);
-
         handleRefresh();
         updateData();
+    }
+
+    private void onRefreshStart() {
+        if (swipeLayout != null) {
+            swipeLayout.setRefreshing(true);
+        }
     }
 
     private void onRefreshStop() {
@@ -267,7 +268,12 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     }
 
     private void updateData() {
-        Timber.d("UpdateData");
+
+        /*if(NetworkUtils.isNetworkConnected(this)) {
+            handleError(new NetworkConnectionException(getString(R.string.error_no_internet)));
+            return;
+        }*/
+
         exchangeService.getSpotPrice()
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -294,7 +300,12 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        snackError(getString(R.string.error_update_exchange_rate));
+                        if(throwable instanceof NetworkConnectionException) {
+                            onRefreshStop();
+                        } else {
+                            snackError(getString(R.string.error_update_exchange_rate));
+                        }
+
                     }
                 });
     }

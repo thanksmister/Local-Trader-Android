@@ -221,11 +221,11 @@ public class AuthUtils {
     }
 
     public static boolean isFirstTime(@NonNull DPreference preference) {
-        return preference.getBoolean(PREFS_FIRST_TIME, false);
+        return preference.getBoolean(PREFS_FIRST_TIME, true);
     }
 
-    public static void setFirstTime(@NonNull DPreference preference, boolean force) {
-        preference.putBoolean(PREFS_FIRST_TIME, force);
+    public static void setFirstTime(@NonNull DPreference preference, boolean value) {
+        preference.putBoolean(PREFS_FIRST_TIME, value);
     }
 
     /**
@@ -249,6 +249,6 @@ public class AuthUtils {
         preference.removePreference(PREFS_FORCE_UPDATES);
         preference.removePreference(PREFS_USER_FEEDBACK);
         preference.removePreference(PREFS_USER);
-        //preference.removePreference(PREFS_API_ENDPOINT);
+        preference.removePreference(PREFS_FIRST_TIME);
     }
 }

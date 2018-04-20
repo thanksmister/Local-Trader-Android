@@ -22,27 +22,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.view.View;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.ui.adapters.ScreenPagerAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-import com.viewpagerindicator.CirclePageIndicator;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import timber.log.Timber;
 
 public class PromoActivity extends BaseActivity {
-    @BindView(R.id.pager)
-    ViewPager viewPager;
-
-    @BindView(R.id.indicator)
-    CirclePageIndicator circlePageIndicator;
 
     @OnClick(R.id.registerButton)
     public void registerButtonClicked() {
@@ -54,10 +44,6 @@ public class PromoActivity extends BaseActivity {
         showLoginView();
     }
 
-    /**
-     * The pager adapter, which provides the pages to the view pager widget.
-     */
-    private PagerAdapter pagerAdapter;
 
     public static Intent createStartIntent(Context context) {
         return new Intent(context, PromoActivity.class);
@@ -66,53 +52,24 @@ public class PromoActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.view_promo);
-
         ButterKnife.bind(this);
-
-        pagerAdapter = new ScreenPagerAdapter(getContext());
-        viewPager.setAdapter(pagerAdapter);
-        viewPager.setPageTransformer(false, new ViewPager.PageTransformer() {
-            @Override
-            public void transformPage(View page, float position) {
-                final float normalizedposition = Math.abs(Math.abs(position) - 1);
-                page.setAlpha(normalizedposition);
-                page.setScaleX(normalizedposition / 2 + 0.5f);
-                page.setScaleY(normalizedposition / 2 + 0.5f);
-            }
-        });
-
-        circlePageIndicator.setViewPager(viewPager);
-        circlePageIndicator.setFillColor(getContext().getResources().getColor(R.color.red_light_pressed));
-        circlePageIndicator.setStrokeColor(getContext().getResources().getColor(R.color.gray_pressed));
-        circlePageIndicator.setRadius(12);
-
-        if (AuthUtils.showUpgradedMessage(getApplicationContext(), preference)) {
-            AuthUtils.setUpgradeVersion(getApplicationContext(), preference);
-        }
     }
 
     public void showLoginView() {
-        Intent intent = LoginActivity.createStartIntent(getContext());
-        intent.setClass(getContext(), LoginActivity.class);
-        getContext().startActivity(intent);
+        Intent intent = LoginActivity.createStartIntent(PromoActivity.this);
+        startActivity(intent);
     }
 
     public void showRegistration() {
         String url = Constants.REGISTRATION_URL;
         try {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            getContext().startActivity(browserIntent);
+            startActivity(browserIntent);
         } catch (SecurityException e) {
             showAlertDialogLinks(getString(R.string.error_traffic_rerouted));
         } catch (ActivityNotFoundException e) {
             showAlertDialogLinks(getString(R.string.toast_error_no_installed_ativity));
         }
-
-    }
-
-    public Context getContext() {
-        return this;
     }
 }
