@@ -25,15 +25,9 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
 import java.util.ArrayList;
 import java.util.List;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
-
-import static com.squareup.sqlbrite.SqlBrite.Query;
-
 /**
  * https://github.com/square/sqlbrite/
  */
-@AutoParcel
 public abstract class RecentMessageItem {
     public static final String TABLE = "recent_message_item";
 
@@ -86,7 +80,7 @@ public abstract class RecentMessageItem {
     @Nullable
     public abstract String attachment_url();
 
-    public static final Func1<Query, List<RecentMessageItem>> MAP = new Func1<Query, List<RecentMessageItem>>() {
+    /*public static final Func1<Query, List<RecentMessageItem>> MAP = new Func1<Query, List<RecentMessageItem>>() {
         @Override
         public List<RecentMessageItem> call(Query query) {
             Cursor cursor = query.run();
@@ -115,7 +109,7 @@ public abstract class RecentMessageItem {
                 cursor.close();
             }
         }
-    };
+    };*/
 
 
     public static Builder createBuilder(Message item) {

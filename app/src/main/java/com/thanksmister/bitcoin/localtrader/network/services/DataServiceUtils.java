@@ -17,26 +17,14 @@
 
 package com.thanksmister.bitcoin.localtrader.network.services;
 
-import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
-
-import java.net.ConnectException;
-import java.net.UnknownHostException;
-import java.util.concurrent.TimeoutException;
-
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import timber.log.Timber;
-
 public class DataServiceUtils {
 
     public static int CODE_MINUS_ONE = -1; // authorization failed
     public static int CODE_THREE = 3; // authorization failed
     public static int STATUS_403 = 403; // not authenticated
-    public static int STATUS_400 = 400; // some error
+    public static int STATUS_400 = 400; // service error
 
-    public static boolean isNetworkError(Throwable throwable) {
+   /* public static boolean isNetworkError(Throwable throwable) {
         if (throwable instanceof UnknownHostException || throwable instanceof NetworkConnectionException) {
             return true;
         } else if (throwable instanceof RetrofitError) {
@@ -131,10 +119,10 @@ public class DataServiceUtils {
         return false;
     }
 
-    /*
+    *//*
    Added because service now always returns 400 error and have to check valid code
    {"error": {"message": "Invalid or expired access token for scope 2. 
-    */
+    *//*
     public static RetroError createRetroError(Throwable throwable) {
         RetrofitError retroError = (RetrofitError) throwable;
         Response response = retroError.getResponse();
@@ -187,5 +175,5 @@ public class DataServiceUtils {
         }
 
         return 0;
-    }
+    }*/
 }

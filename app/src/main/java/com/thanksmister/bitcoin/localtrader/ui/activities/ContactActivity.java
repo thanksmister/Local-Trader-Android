@@ -26,15 +26,10 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -52,77 +47,39 @@ import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
-import com.thanksmister.bitcoin.localtrader.data.database.ContentResolverAsyncHandler;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.ActivityEvent;
-
-import org.json.JSONObject;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-import timber.log.Timber;
-
-public class ContactActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor>, SwipeRefreshLayout.OnRefreshListener {
-
-    // The loader's unique id. Loader ids are specific to the Activity or
-    private static final int CONTACT_LOADER_ID = 1;
-    private static final int MESSAGES_LOADER_ID = 2;
+public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String EXTRA_ID = "com.thanksmister.extras.EXTRA_ID";
 
     @Inject
-    DataService dataService;
+    Preferences preferences;
 
-    @Inject
-    DbManager dbManager;
-
-    @BindView(R.id.contactList)
     ListView content;
 
-    @BindView(R.id.contactToolBar)
     Toolbar toolbar;
 
-    @BindView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
-    @BindView(R.id.view_progress)
     View progress;
 
-    @BindView(R.id.emptyLayout)
     View emptyLayout;
 
-    @BindView(R.id.emptyText)
     TextView emptyText;
 
     private TextView detailsEthereumAddress;
@@ -186,8 +143,6 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
         setContentView(R.layout.view_contact);
 
-        ButterKnife.bind(this);
-
         handler = new Handler();
 
         if (savedInstanceState == null) {
@@ -206,12 +161,12 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         }
 
         if (TextUtils.isEmpty(contactId)) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.toast_error_contact_data)), new Action0() {
+            /*showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.toast_error_contact_data)), new Action0() {
                 @Override
                 public void call() {
                     finish();
                 }
-            });
+            });*/
         }
 
         swipeLayout.setOnRefreshListener(this);
@@ -305,7 +260,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         adapter = new MessageAdapter(this);
         setAdapter(adapter);
 
-        Observable<AdvertisementItem> o1 = dbManager.advertisementItemQuery("dfdfdf");
+       /* Observable<AdvertisementItem> o1 = dbManager.advertisementItemQuery("dfdfdf");
         Observable<List<MethodItem>> o2 = dbManager.methodQuery();
         Observable.zip(o1, o2, new Func2<AdvertisementItem, List<MethodItem>, Object>() {
             @Override
@@ -313,7 +268,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 return null;
             }
         })
-                .subscribe();
+                .subscribe();*/
 
     }
 
@@ -322,8 +277,8 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         super.onResume();
         onRefreshStart();
         registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-        getSupportLoaderManager().restartLoader(CONTACT_LOADER_ID, null, this);
-        getSupportLoaderManager().restartLoader(MESSAGES_LOADER_ID, null, this);
+        //getSupportLoaderManager().restartLoader(CONTACT_LOADER_ID, null, this);
+        //getSupportLoaderManager().restartLoader(MESSAGES_LOADER_ID, null, this);
         updateData();
         updateContact();
     }
@@ -337,8 +292,8 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
-        getSupportLoaderManager().destroyLoader(CONTACT_LOADER_ID);
-        getSupportLoaderManager().destroyLoader(MESSAGES_LOADER_ID);
+        //getSupportLoaderManager().destroyLoader(CONTACT_LOADER_ID);
+        //getSupportLoaderManager().destroyLoader(MESSAGES_LOADER_ID);
     }
 
     @Override
@@ -464,7 +419,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
         toast(getString(R.string.toast_refreshing_data));
 
-        dataService.getContactInfo(contactId)
+        /*dataService.getContactInfo(contactId)
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -490,11 +445,11 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                         handleError(throwable, true);
                         onRefreshStop();
                     }
-                });
+                });*/
     }
 
     private void updateData() {
-        dbManager.notificationsQuery()
+        /*dbManager.notificationsQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -543,7 +498,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                     public void call(Throwable throwable) {
                         Timber.e(throwable.getMessage());
                     }
-                });
+                });*/
     }
 
     public void setContact(ContactItem contact) {
@@ -692,7 +647,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
             }
             return;
         }
-        String token = AuthUtils.getAccessToken(preference, sharedPreferences);
+        String token = preferences.accessToken();
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(message.attachment_url() + "?access_token=" + token));
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
         request.setVisibleInDownloadsUi(true);
@@ -741,39 +696,39 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
     }
 
     public void releaseTradeWithPin(final String pinCode) {
-        showConfirmationDialog(new ConfirmationDialogEvent(getString(R.string.alert_release_trade_title), "Are you sure you want to release this trade?", getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
+        /*showConfirmationDialog(new ConfirmationDialogEvent(getString(R.string.alert_release_trade_title), "Are you sure you want to release this trade?", getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
             @Override
             public void call() {
                 showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_releasing)));
                 contactAction(contactId, pinCode, ContactAction.RELEASE);
             }
-        }));
+        }));*/
     }
 
     public void cancelContact() {
-        showConfirmationDialog(new ConfirmationDialogEvent(getString(R.string.alert_cancel_trade_title), getString(R.string.contact_cancel_confirm), getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
+        /*showConfirmationDialog(new ConfirmationDialogEvent(getString(R.string.alert_cancel_trade_title), getString(R.string.contact_cancel_confirm), getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
             @Override
             public void call() {
                 showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_canceling_trade)));
                 contactAction(contactId, null, ContactAction.CANCEL);
             }
-        }));
+        }));*/
     }
 
     public void createAlert(String title, String message, final String contactId, final String pinCode, final ContactAction action) {
-        ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
+        /*ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
             @Override
             public void call() {
                 contactAction(contactId, pinCode, action);
             }
-        });
+        });*/
 
-        showConfirmationDialog(event);
+        //showConfirmationDialog(event);
     }
 
     private void contactAction(final String contactId, final String pinCode, final ContactAction action) {
 
-        dataService.contactAction(contactId, pinCode, action)
+        /*dataService.contactAction(contactId, pinCode, action)
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -799,11 +754,11 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                         hideProgressDialog();
                         showAlertDialog(getString(R.string.error_contact_action));
                     }
-                });
+                });*/
     }
 
     private void deleteContact(String contactId, final ContactAction action) {
-        dbManager.deleteContact(contactId, new ContentResolverAsyncHandler.AsyncQueryListener() {
+        /*dbManager.deleteContact(contactId, new ContentResolverAsyncHandler.AsyncQueryListener() {
             @Override
             public void onQueryComplete() {
                 hideProgressDialog();
@@ -814,7 +769,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                 }
                 finish();
             }
-        });
+        });*/
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -854,7 +809,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
     public void showAdvertisement() {
         if (contact != null) {
-            dbManager.advertisementItemQuery(contact.advertisement_id())
+            /*dbManager.advertisementItemQuery(contact.advertisement_id())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<AdvertisementItem>() {
@@ -871,18 +826,18 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
                         public void call(Throwable throwable) {
                             launchAdvertisementLink(contact);
                         }
-                    });
+                    });*/
         }
     }
 
     private void loadAdvertisementView(ContactItem contact) {
         if (TextUtils.isEmpty(contact.advertisement_id())) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
+            /*showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
                 @Override
                 public void call() {
                     finish();
                 }
-            });
+            });*/
         } else {
             Intent intent = AdvertisementActivity.createStartIntent(ContactActivity.this, contact.advertisement_id());
             startActivity(intent);
@@ -927,7 +882,7 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         }
     };
 
-    @NonNull
+    /*@NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if (id == CONTACT_LOADER_ID) {
@@ -964,5 +919,5 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-    }
+    }*/
 }

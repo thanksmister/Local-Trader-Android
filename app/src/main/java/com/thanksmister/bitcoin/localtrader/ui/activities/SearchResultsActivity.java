@@ -19,6 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -29,48 +30,34 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertiseAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.SearchUtils;
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.ActivityEvent;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-
 public class SearchResultsActivity extends BaseActivity {
 
     @Inject
-    DbManager dbManager;
+    SharedPreferences sharedPreferences;
 
     @Inject
     GeoLocationService geoLocationService;
 
-    @BindView(R.id.resultsList)
     ListView content;
 
-    @BindView(R.id.resultsProgress)
     View progress;
 
-    @BindView(R.id.emptyLayout)
     View emptyLayout;
 
-    @BindView(R.id.emptyText)
     TextView emptyText;
 
-    @BindView(R.id.searchResultsToolBar)
     Toolbar toolbar;
 
     private AdvertiseAdapter adapter;
@@ -86,8 +73,6 @@ public class SearchResultsActivity extends BaseActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_search_results);
-
-        ButterKnife.bind(this);
 
         tradeType = TradeType.valueOf(SearchUtils.getSearchTradeType(sharedPreferences));
 
@@ -194,7 +179,7 @@ public class SearchResultsActivity extends BaseActivity {
         showProgress();
 
         if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
-            geoLocationService.getLocalAdvertisements(latitude, longitude, tradeType)
+           /* geoLocationService.getLocalAdvertisements(latitude, longitude, tradeType)
                     .subscribeOn(Schedulers.newThread())
                     .compose(this.<List<Advertisement>>bindUntilEvent(ActivityEvent.PAUSE))
                     .observeOn(AndroidSchedulers.mainThread())
@@ -218,9 +203,9 @@ public class SearchResultsActivity extends BaseActivity {
                                 }
                             });
                         }
-                    });
+                    });*/
         } else {
-            dbManager.methodQuery().cache()
+            /*dbManager.methodQuery().cache()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(this.<List<MethodItem>>bindUntilEvent(ActivityEvent.PAUSE))
@@ -252,11 +237,11 @@ public class SearchResultsActivity extends BaseActivity {
                                         }
                                     });
                         }
-                    });
+                    });*/
         }
     }
 
-    private void setData(List<Advertisement> advertisements, List<MethodItem> methodItems) {
+    private void setData(List<Advertisement> advertisements, List<Method> methodItems) {
         if (advertisements.isEmpty()) {
             showEmpty();
         } else if ((tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && methodItems == null) {

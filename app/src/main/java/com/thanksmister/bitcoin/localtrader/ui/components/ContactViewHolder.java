@@ -19,7 +19,6 @@ package com.thanksmister.bitcoin.localtrader.ui.components;
 
 import android.view.View;
 
-import butterknife.ButterKnife;
 
 public class ContactViewHolder extends MainViewHolder {
 
@@ -33,7 +32,7 @@ public class ContactViewHolder extends MainViewHolder {
 
         super(itemView);
 
-        ButterKnife.bind(this, itemView);
+
 
     }
 

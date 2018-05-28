@@ -25,11 +25,10 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -72,27 +71,16 @@ public class TradeUtils {
     public static final String VIPPS = "VIPPS";
 
     public static String getContactDescription(ContactItem contact, Context context) {
-
         if (isCanceledTrade(contact)) {
-
             return isLocalTrade(contact) ? context.getString(R.string.order_description_cancel_local) : context.getString(R.string.order_description_cancel);
-
         } else if (isReleased(contact)) {
-
             return context.getString(R.string.order_description_released);
-
         } else if (isDisputed(contact)) {
-
             return context.getString(R.string.order_description_disputed);
-
         } else if (isClosedTrade(contact)) {
-
             return context.getString(R.string.order_description_closed);
-
         } else if (isLocalTrade(contact)) {
-
             if (youAreAdvertiser(contact) && contact.is_selling()) {
-
                 if (contact.is_funded()) {
                     //return canFundTrade(contact)? context.getString(R.string.order_description_funded_local):context.getString(R.string.order_description_funded_local_no_action);
                     return context.getString(R.string.order_description_funded_local);
@@ -100,59 +88,43 @@ public class TradeUtils {
                     //return canReleaseTrade(contact)? context.getString(R.string.order_description_not_funded_local):context.getString(R.string.order_description_not_funded_local_no_action);  
                     return context.getString(R.string.order_description_not_funded_local);
                 }
-
             } else {
-
                 if (contact.is_funded()) {
                     return context.getString(R.string.order_description_funded_local);
                 } else {
                     return context.getString(R.string.order_description_not_funded_local);
                 }
             }
-
         } else if (isOnlineTrade(contact)) {
-
             if (contact.is_buying()) {
                 return isMarkedPaid(contact) ? context.getString(R.string.order_description_paid) : context.getString(R.string.order_description_mark_paid);
             } else {
                 return isMarkedPaid(contact) ? context.getString(R.string.order_description_online_paid) : context.getString(R.string.order_description_online_mark_paid);
             }
         }
-
         return null;
     }
 
     public static int getTradeActionButtonLabel(ContactItem contact) {
-
         if (isClosedTrade(contact) || isReleased(contact)) {
             return 0;
         }
-
         if (isLocalTrade(contact)) { // selling or buying locally with ad
-
-            if (contact.is_selling()) { // ad to sell bitcoins locally 
-
+            if (contact.is_selling()) { // ad to sell bitcoins locally
                 if (contact.is_funded() || isFunded(contact)) { // TODO is this available for local?
                     return R.string.button_release;
                 } else {
                     return R.string.button_fund;
                 }
             }
-
             return R.string.button_cancel;
-
         } else if (isOnlineTrade(contact)) {   // handle online trade ads
-
-            if (contact.is_buying()) { // ad to buy bitcoins  
-
+            if (contact.is_buying()) { // ad to buy bitcoins
                 return isMarkedPaid(contact) ? R.string.button_dispute : R.string.button_mark_paid;
-
-            } else { // ad to sell bitcoins 
-
+            } else { // ad to sell bitcoins
                 return R.string.button_release;
             }
         }
-
         return 0;
     }
 
@@ -257,7 +229,6 @@ public class TradeUtils {
         return (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL);
     }
 
-
     public static boolean isOnlineTrade(Advertisement advertisement) {
         return (advertisement.trade_type == TradeType.ONLINE_BUY || advertisement.trade_type == TradeType.ONLINE_SELL);
     }
@@ -276,55 +247,50 @@ public class TradeUtils {
 
     public static Method getMethodForAdvertisement(String online_provider, List<Method> methods) {
         for (Method m : methods) {
-            if (online_provider.equals(m.code)) {
+            if (online_provider.equals(m.getCode())) {
                 return m;
             }
         }
-
         return null;
     }
 
-    public static MethodItem getMethodForAdvertisement(Advertisement advertisement, List<MethodItem> methods) {
-        for (MethodItem m : methods) {
-            if (advertisement.online_provider.equals(m.code())) {
+    public static Method getMethodForAdvertisement(Advertisement advertisement, List<Method> methods) {
+        for (Method m : methods) {
+            if (advertisement.online_provider.equals(m.getCode())) {
                 return m;
             }
         }
-
         return null;
     }
 
-    public static MethodItem getMethodForAdvertisement(AdvertisementItem advertisement, List<MethodItem> methods) {
-        for (MethodItem m : methods) {
-            if (advertisement.online_provider().equals(m.code())) {
+    public static Method getMethodForAdvertisement(AdvertisementItem advertisement, List<Method> methods) {
+        for (Method m : methods) {
+            if (advertisement.online_provider().equals(m.getCode())) {
                 return m;
             }
         }
-
         return null;
     }
 
-    public static String getPaymentMethod(String code, List<MethodItem> methods) {
-        for (MethodItem method : methods) {
-            if (method.code().equals(code)) {
-                if (Strings.isBlank(method.key()))
+    public static String getPaymentMethod(String code, List<Method> methods) {
+        for (Method method : methods) {
+            if (method.getCode().equals(code)) {
+                if (TextUtils.isEmpty(method.getName()))
                     return code;
 
-                return method.key();
+                return method.getName();
             }
         }
         return code;
     }
 
-    public static String getPaymentMethodFromItems(AdvertisementItem advertisement, List<MethodItem> methodItems) {
+    public static String getPaymentMethodFromItems(AdvertisementItem advertisement, List<Method> methodItems) {
         if (methodItems == null || methodItems.isEmpty()) {
             return "";
         }
-
         String paymentMethod = "";
-
-        for (MethodItem method : methodItems) {
-            if (method.code().equals(advertisement.online_provider())) {
+        for (Method method : methodItems) {
+            if (method.getCode().equals(advertisement.online_provider())) {
                 paymentMethod = getPaymentMethod(advertisement, method);
                 break;
             }
@@ -332,10 +298,10 @@ public class TradeUtils {
         return paymentMethod;
     }
 
-    public static String getPaymentMethod(Advertisement advertisement, List<MethodItem> methods) {
+    public static String getPaymentMethod(Advertisement advertisement, List<Method> methods) {
         String paymentMethod = "";
-        for (MethodItem method : methods) {
-            if (method.code().equals(advertisement.online_provider)) {
+        for (Method method : methods) {
+            if (method.getCode().equals(advertisement.online_provider)) {
                 paymentMethod = getPaymentMethod(advertisement, method);
                 break;
             }
@@ -343,21 +309,19 @@ public class TradeUtils {
         return paymentMethod;
     }
 
-    public static String getPaymentMethodName(Advertisement advertisement, MethodItem method) {
+    public static String getPaymentMethodName(Advertisement advertisement, Method method) {
         String paymentMethod = "Other";
-        if (method != null && method.code().equals(advertisement.online_provider)) {
-            paymentMethod = method.name();
+        if (method != null && method.getCode().equals(advertisement.online_provider)) {
+            paymentMethod = method.getName();
         }
-
         return paymentMethod;
     }
 
-    public static String getPaymentMethodName(AdvertisementItem advertisement, MethodItem method) {
+    public static String getPaymentMethodName(AdvertisementItem advertisement, Method method) {
         String paymentMethod = "Other";
-        if (method != null && method.code().equals(advertisement.online_provider())) {
-            paymentMethod = method.name();
+        if (method != null && method.getCode().equals(advertisement.online_provider())) {
+            paymentMethod = method.getName();
         }
-
         return paymentMethod;
     }
 
@@ -370,67 +334,42 @@ public class TradeUtils {
             case "SPECIFIC_BANK":
                 return "Bank transfer";
         }
-
         return paymentMethod;
     }
 
-    public static String getPaymentMethod(AdvertisementItem advertisement, MethodItem method) {
+    public static String getPaymentMethod(AdvertisementItem advertisement, Method method) {
         String paymentMethod = "Online";
-        if (method != null && method.code().equals(advertisement.online_provider())) {
-            if (method.code().equals("NATIONAL_BANK")) {
-                if (Strings.isBlank(method.countryName()))
-                    return "National Bank transfer";
-
-                return "bank transfer in " + method.countryName();
-            } else if (method.code().equals("CASH_DEPOSIT")) {
-                if (Strings.isBlank(method.countryName()))
-                    return "Cash deposit";
-
-                return "cash deposit in " + method.countryName();
-            } else if (method.code().equals("SPECIFIC_BANK")) {
-                if (Strings.isBlank(method.countryName()))
-                    return "Bank transfer";
-
-                return "bank transfer in " + method.countryName();
+        if (method != null && method.getCode().equals(advertisement.online_provider())) {
+            if (method.getCode().equals("NATIONAL_BANK")) {
+                return "National Bank transfer";
+            } else if (method.getCode().equals("CASH_DEPOSIT")) {
+                return "Cash deposit";
+            } else if (method.getCode().equals("SPECIFIC_BANK")) {
+                return "Bank transfer";
             }
-
-            paymentMethod = method.name();
+            paymentMethod = method.getName();
         }
-
-        if (!Strings.isBlank(advertisement.bank_name()) && advertisement.online_provider().equals("NATIONAL_BANK")) {
+        if (!TextUtils.isEmpty(advertisement.bank_name()) && advertisement.online_provider().equals("NATIONAL_BANK")) {
             return paymentMethod + " with " + advertisement.bank_name();
         }
-
         return paymentMethod;
     }
 
-    public static String getPaymentMethod(Advertisement advertisement, MethodItem method) {
+    public static String getPaymentMethod(Advertisement advertisement, Method method) {
         String paymentMethod = "Online";
-        if (method != null && method.code().equals(advertisement.online_provider)) {
-            if (method.code().equals("NATIONAL_BANK")) {
-                if (Strings.isBlank(method.countryName()))
-                    return "National Bank transfer";
-
-                return "bank transfer in " + method.countryName();
-            } else if (method.code().equals("CASH_DEPOSIT")) {
-                if (Strings.isBlank(method.countryName()))
-                    return "Cash deposit";
-
-                return "cash deposit in " + method.countryName();
-            } else if (method.code().equals("SPECIFIC_BANK")) {
-                if (Strings.isBlank(method.countryName()))
-                    return "Bank transfer";
-
-                return "bank transfer in " + method.countryName();
+        if (method != null && method.getCode().equals(advertisement.online_provider)) {
+            if (method.getCode().equals("NATIONAL_BANK")) {
+                return "National Bank transfer";
+            } else if (method.getCode().equals("CASH_DEPOSIT")) {
+                return "Cash deposit";
+            } else if (method.getCode().equals("SPECIFIC_BANK")) {
+                return "Bank transfer";
             }
-
-            paymentMethod = method.name();
+            paymentMethod = method.getName();
         }
-
         if (!Strings.isBlank(advertisement.bank_name) && advertisement.online_provider.equals("NATIONAL_BANK")) {
             return paymentMethod + " with " + advertisement.bank_name;
         }
-
         return paymentMethod;
     }
 
@@ -445,15 +384,12 @@ public class TradeUtils {
     public static int determineLastSeenIcon(@NonNull String lasOnline) {
         Date now = new Date();
         Date lastSeen = Dates.parseLastSeenDate(lasOnline);
-
         long diff = now.getTime() - lastSeen.getTime();
-
         if ((diff > 1800000) && (diff < 10800000)) {
             return R.drawable.last_seen_shortly;
         } else if (diff > 10800000) {
             return R.drawable.last_seen_long;
         }
-
         return R.drawable.last_seen_recently;
     }
 
@@ -465,7 +401,6 @@ public class TradeUtils {
             nameSplit = stringArrayList.toArray(new String[stringArrayList.size()]);
             return nameSplit;
         }
-
         // strip out any parenthesis and split on spacing?
         value = value.replaceAll("(\\()", "");
         value = value.replaceAll("(\\))", "");
@@ -477,7 +412,6 @@ public class TradeUtils {
     public static String parsePaymentService(String value) {
         // strip out any parenthesis and split on spacing?
         value = value.replaceAll("(\\_)", " ");
-
         String[] words = value.split(" ");
         StringBuilder sb = new StringBuilder();
         if (words[0].length() > 0) {
@@ -487,13 +421,11 @@ public class TradeUtils {
                 sb.append(Character.toUpperCase(words[i].charAt(0)) + words[i].subSequence(1, words[i].length()).toString().toLowerCase());
             }
         }
-
         return sb.toString();
     }
 
     public static String parsePaymentServiceTitle(String value) {
         value = value.replaceAll("(\\_)", " ");
-
         String[] words = value.split(" ");
         StringBuilder sb = new StringBuilder();
         if (words[0].length() > 0) {
@@ -574,15 +506,11 @@ public class TradeUtils {
                     break;
             }
         }
-
         return bankTitle;
     }
 
-    // TODO unit test
     public static String getEthereumPriceEquation(TradeType tradeType, String margin) {
-
         String equation = "btc_in_eth";
-
         if (!Strings.isBlank(margin)) {
             double marginValue = 1.0;
             try {
@@ -590,7 +518,6 @@ public class TradeUtils {
             } catch (Exception e) {
                 Timber.e(e.getMessage());
             }
-
             double marginPercent = 1.0;
             if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
                 marginPercent = 1 - marginValue / 100;
@@ -601,27 +528,22 @@ public class TradeUtils {
         } else {
             equation = equation + "*" + Constants.DEFAULT_MARGIN;
         }
-
         return equation;
     }
 
-    // TODO unit test
     public static String getPriceEquation(@NonNull TradeType tradeType, @NonNull String margin, @NonNull String currency) {
-
         String equation = Constants.DEFAULT_PRICE_EQUATION;
         if (!currency.equals(Constants.DEFAULT_CURRENCY)) {
             equation = equation + "*" + Constants.DEFAULT_CURRENCY + "_in_" + currency;
         }
 
         if (!Strings.isBlank(margin)) {
-
             double marginValue = 1.0;
             try {
                 marginValue = Doubles.convertToDouble(margin);
             } catch (Exception e) {
                 Timber.e(e.getMessage());
             }
-
             double marginPercent = 1.0;
             if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
                 marginPercent = 1 - marginValue / 100;
@@ -632,19 +554,18 @@ public class TradeUtils {
         } else {
             equation = equation + "*" + Constants.DEFAULT_MARGIN;
         }
-
         return equation;
     }
 
-    public static List<MethodItem> sortMethods(List<MethodItem> methods) {
+    public static List<Method> sortMethods(List<Method> methods) {
         Collections.sort(methods, new MethodNameComparator());
         return methods;
     }
 
-    private static class MethodNameComparator implements Comparator<MethodItem> {
+    private static class MethodNameComparator implements Comparator<Method> {
         @Override
-        public int compare(MethodItem o1, MethodItem o2) {
-            return o1.name().toLowerCase().compareTo(o2.name().toLowerCase());
+        public int compare(Method o1, Method o2) {
+            return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
         }
     }
 }

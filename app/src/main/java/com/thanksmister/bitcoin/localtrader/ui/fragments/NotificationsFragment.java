@@ -27,65 +27,40 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.persistence.Notification;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.NotificationAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
-import com.trello.rxlifecycle.FragmentEvent;
-
-import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import dpreference.DPreference;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import timber.log.Timber;
 
 public class NotificationsFragment extends BaseFragment {
 
     @Inject
-    DataService dataService;
+    Preferences preferences;
 
-    @Inject
-    DbManager dbManager;
-
-    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
     @Inject
     protected SharedPreferences sharedPreferences;
 
-    @Inject
-    protected DPreference preference;
-
     private NotificationAdapter itemAdapter;
-    private List<NotificationItem> notifications = Collections.emptyList();
+    private List<Notification> notifications = Collections.emptyList();
 
     /**
      * Returns a new instance of this fragment for the given section
@@ -122,10 +97,10 @@ public class NotificationsFragment extends BaseFragment {
         ItemClickSupport.addTo(recycleView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                NotificationItem notificationItem = getAdapter().getItemAt(position);
-                if (notificationItem.contact_id() != null) {
+                Notification notificationItem = getAdapter().getItemAt(position);
+                if (notificationItem.getContactId() != null) {
                     showContact(notificationItem);
-                } else if (notificationItem.advertisement_id() != null) {
+                } else if (notificationItem.getAdvertisementId() != null) {
                     showAdvertisement(notificationItem);
                 } else {
                     try {
@@ -139,7 +114,7 @@ public class NotificationsFragment extends BaseFragment {
         recycleView.setAdapter(itemAdapter);
     }
 
-    private void setupList(List<NotificationItem> items) {
+    private void setupList(List<Notification> items) {
         if (isAdded()) {
             itemAdapter.replaceWith(items);
             recycleView.setAdapter(itemAdapter);
@@ -149,7 +124,6 @@ public class NotificationsFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_dashboard_items, container, false);
-        ButterKnife.bind(this, view);
         return view;
     }
 
@@ -186,7 +160,7 @@ public class NotificationsFragment extends BaseFragment {
 
     protected void subscribeData() {
 
-        dbManager.notificationsQuery()
+        /*dbManager.notificationsQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnUnsubscribe(new Action0() {
@@ -215,7 +189,7 @@ public class NotificationsFragment extends BaseFragment {
                         setupList(notifications);
                         reportError(throwable);
                     }
-                });
+                });*/
     }
 
     protected NotificationAdapter getAdapter() {
@@ -239,7 +213,7 @@ public class NotificationsFragment extends BaseFragment {
      * Creating or editing advertisements takes users to the LBC website
      */
     private void createAdvertisementScreen() {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
+       /* showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
             @Override
             public void call() {
                 try {
@@ -253,7 +227,7 @@ public class NotificationsFragment extends BaseFragment {
             public void call() {
                 // na-da
             }
-        });
+        });*/
     }
 
     protected void showSearchScreen() {
@@ -262,8 +236,8 @@ public class NotificationsFragment extends BaseFragment {
         }
     }
 
-    private void onNotificationLinkClicked(final NotificationItem notification) {
-        dataService.markNotificationRead(notification.notification_id())
+    private void onNotificationLinkClicked(final Notification notification) {
+        /*dataService.markNotificationRead(notification.notification_id())
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -295,19 +269,19 @@ public class NotificationsFragment extends BaseFragment {
                     public void call(Throwable throwable) {
                         Timber.e(throwable.getMessage());
                     }
-                });
+                });*/
     }
 
     private void launchNotificationLink(String url) {
-        String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
+        String currentEndpoint = preferences.endPoint();
         Intent intent;
         intent = new Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint + url));
         startActivity(intent);
     }
 
-    private void showAdvertisement(NotificationItem item) {
+    private void showAdvertisement(Notification item) {
         if (item != null && isAdded() && getActivity() != null) {
-            Intent intent = AdvertisementActivity.createStartIntent(getActivity(), item.advertisement_id());
+            Intent intent = AdvertisementActivity.createStartIntent(getActivity(), Objects.requireNonNull(item.getAdvertisementId()));
             intent.setClass(getActivity(), AdvertisementActivity.class);
             startActivity(intent);
         } else {
@@ -315,9 +289,9 @@ public class NotificationsFragment extends BaseFragment {
         }
     }
 
-    private void showContact(NotificationItem item) {
+    private void showContact(Notification item) {
         if (item != null && isAdded() && getActivity() != null) {
-            Intent intent = ContactActivity.createStartIntent(getActivity(), item.contact_id());
+            Intent intent = ContactActivity.createStartIntent(getActivity(), item.getContactId());
             intent.setClass(getActivity(), ContactActivity.class);
             startActivity(intent);
         } else {

@@ -17,16 +17,11 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api;
 
-import com.thanksmister.bitcoin.localtrader.network.api.model.Bitstamp;
-
-import retrofit.http.GET;
-import retrofit.http.Path;
-import rx.Observable;
 
 public interface BitstampExchange {
-    @GET("/api/ticker/")
+    /*@GET("/api/ticker/")
     Observable<Bitstamp> ticker();
 
     @GET("/api/v2/ticker/{currency_pair}/")
-    Observable<Bitstamp> ticker(@Path("currency_pair") String currency_pair);
+    Observable<Bitstamp> ticker(@Path("currency_pair") String currency_pair);*/
 }

@@ -22,47 +22,47 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.gson.internal.LinkedTreeMap;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
+import com.thanksmister.bitcoin.localtrader.network.api.model.CurrencyExchange;
+import com.thanksmister.bitcoin.localtrader.network.api.model.OauthResponse;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Currency;
+
 import com.thanksmister.bitcoin.localtrader.network.api.model.Exchange;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
 import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
-import com.thanksmister.bitcoin.localtrader.network.api.model.User;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.persistence.Currency;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import retrofit.client.Response;
+
 import timber.log.Timber;
 
 public class Parser {
 
-    public static Authorization parseAuthorization(String response) {
+    public static OauthResponse parseAuthorization(String response) {
         JSONObject jsonObject;
-        Authorization authorization = new Authorization();
+        OauthResponse authorization = new OauthResponse();
         try {
             jsonObject = new JSONObject(response);
             authorization.access_token = jsonObject.getString("access_token");
@@ -76,7 +76,7 @@ public class Parser {
         }
     }
 
-    public static String parseRetrofitResponse(Response response) throws Throwable {
+    /*public static String parseRetrofitResponse(Response response) throws Throwable {
         if (response == null || response.getBody() == null)
             throw new Exception("Error connecting to service.");
 
@@ -99,7 +99,7 @@ public class Parser {
         }
 
         return sb.toString();
-    }
+    }*/
 
     public static boolean containsError(JSONObject jsonObject) {
         String response = jsonObject.toString();
@@ -110,7 +110,7 @@ public class Parser {
         return response.contains("error_code") && response.contains("error");
     }
 
-    public static JSONObject parseResponseToJsonObject(Response response) {
+   /* public static JSONObject parseResponseToJsonObject(Response response) {
         //Try to get response body
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
@@ -137,7 +137,7 @@ public class Parser {
         }
 
         return new JSONObject();
-    }
+    }*/
 
     public static RetroError parseError(JSONObject jsonObject) {
         try {
@@ -196,38 +196,6 @@ public class Parser {
         }
     }
 
-    public static User parseUser(String response) {
-        JSONObject jsonObject;
-        try {
-            jsonObject = new JSONObject(response);
-        } catch (JSONException e) {
-            Timber.e(e.getMessage());
-            return null;
-        }
-
-        try {
-            User user = new User();
-            JSONObject object = jsonObject.getJSONObject("data");
-            user.username = (object.getString("username"));
-            user.age_text = (object.getString("age_text"));
-            user.feedback_count = (Integer.parseInt(object.getString("feedback_count")));
-            user.has_common_trades = ((object.getString("has_common_trades").equals("true")));
-            user.confirmed_trade_count_text = (object.getString("confirmed_trade_count_text"));
-            user.trade_volume_text = (object.getString("trade_volume_text"));
-            user.blocked_count = (Integer.parseInt(object.getString("blocked_count")));
-            user.feedback_score = (object.getString("feedback_score"));
-            user.feedbacks_unconfirmed_count = (Integer.parseInt(object.getString("feedbacks_unconfirmed_count")));
-            user.trading_partners_count = (Integer.parseInt(object.getString("trading_partners_count")));
-            user.trusted_count = (Integer.parseInt(object.getString("trusted_count")));
-            user.url = (object.getString("url"));
-            user.created_at = (object.getString("created_at"));
-            return user;
-        } catch (JSONException e) {
-            Timber.e(e.getMessage());
-        }
-
-        return null;
-    }
 
     public static List<Contact> parseContacts(String response) {
         JSONObject jsonObject;
@@ -466,7 +434,7 @@ public class Parser {
         return null;
     }
 
-    public static ArrayList<Notification> parseNotifications(String response) {
+    /*public static ArrayList<Notification> parseNotifications(String response) {
         JSONObject jsonObject;
         ArrayList<Notification> results = new ArrayList<Notification>();
         try {
@@ -489,9 +457,9 @@ public class Parser {
         }
 
         return results;
-    }
+    }*/
 
-    private static Notification parseNotification(JSONObject jsonObject) {
+   /* private static Notification parseNotification(JSONObject jsonObject) {
         Notification notification = new Notification();
         try {
             if (jsonObject.has("url")) notification.url = (jsonObject.getString("url"));
@@ -510,7 +478,7 @@ public class Parser {
         }
 
         return null;
-    }
+    }*/
 
     public static ArrayList<Message> parseMessages(String response) {
         JSONObject jsonObject;
@@ -751,7 +719,6 @@ public class Parser {
             Timber.e(e.getMessage());
             return null;
         }
-
         ArrayList<Advertisement> items = new ArrayList<Advertisement>();
         String nextUrl = null;
         try {
@@ -775,25 +742,54 @@ public class Parser {
         return items;
     }
 
-    public static List<Method> parseMethods(String response) {
+
+    public static List<Method> parseMethods(TreeMap<String, Object> treeMap) {
+        ArrayList<Method> methods = new ArrayList<Method>();
+        for (Object o : treeMap.entrySet()) {
+            Map.Entry entry = (Map.Entry) o;
+            LinkedTreeMap linkedTreeMap = (LinkedTreeMap) entry.getValue();
+            Method method = new Method();
+            String key = (String) entry.getKey();
+            String code = (String) linkedTreeMap.get("code");
+            String name = (String) linkedTreeMap.get("name");
+            method.setName(name);
+            method.setCode(code);
+            methods.add(method);
+            ArrayList<String> currencies = (ArrayList<String>) linkedTreeMap.get("currencies");
+            method.setCurrencies(currencies);
+        }
+        Collections.sort(methods, new MethodNameComparator());
+        return methods;
+    }
+
+    /**
+     * Parse LocalBitcoins methods from json string
+     * @param jsonString
+     * @return
+     */
+    public static List<Method> parseMethods(String jsonString) {
         JSONObject jsonObject;
         JSONObject dataObject;
         ArrayList<Method> methods = new ArrayList<>();
         try {
-            jsonObject = new JSONObject(response);
-            dataObject = jsonObject.getJSONObject("data");
-
-            JSONObject methodsObject = dataObject.getJSONObject("methods");
+            jsonObject = new JSONObject(jsonString);
+            JSONObject methodsObject = jsonObject.getJSONObject("methods");
             Iterator<?> keys = methodsObject.keys();
             while (keys.hasNext()) {
                 Method method = new Method();
                 String key = (String) keys.next();
                 try {
                     if (methodsObject.get(key) instanceof JSONObject) {
-                        method.key = key;
+                        //method.key = key;
                         JSONObject obj = (JSONObject) methodsObject.get(key);
-                        if (obj.has("code")) method.code = (obj.getString("code"));
-                        if (obj.has("name")) method.name = (obj.getString("name"));
+                        if (obj.has("code")) method.setCode(obj.getString("code"));
+                        if (obj.has("name")) method.setName(obj.getString("name"));
+                        JSONArray currencies = obj.getJSONArray("currencies");
+                        ArrayList<String> codes = new ArrayList<>();
+                        for (int i = 0; i < currencies.length(); i++) {
+                            codes.add((String) currencies.get(0));
+                        }
+                        method.setCurrencies(codes);
                         methods.add(method);
                     }
                 } catch (JSONException e) {
@@ -804,16 +800,17 @@ public class Parser {
             Timber.e(e.getMessage());
             return null;
         }
-
         Collections.sort(methods, new MethodNameComparator());
-
         return methods;
     }
 
     private static class MethodNameComparator implements Comparator<Method> {
         @Override
         public int compare(Method o1, Method o2) {
-            return o1.name.toLowerCase().compareTo(o2.name.toLowerCase());
+            if(o1.getName() != null && o2.getName() != null) {
+                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+            }
+            return 0;
         }
     }
 
@@ -1009,41 +1006,74 @@ public class Parser {
         return null;
     }
 
-    public static class ExchangeNameComparator implements Comparator<Currency> {
+    public static class ExchangeNameComparator implements Comparator<CurrencyExchange> {
         @Override
-        public int compare(Currency o1, Currency o2) {
+        public int compare(CurrencyExchange o1, CurrencyExchange o2) {
             return o1.ticker.toLowerCase().compareTo(o2.ticker.toLowerCase());
         }
     }
 
-    public static List<ExchangeCurrency> parseExchangeCurrencies(String response) {
+    /**
+     * Parse LocalBitcoins currencies from json string.
+     * {"DZD": {"name": "Algerian Dinar (DZD)", "altcoin": false}
+     * @param treeMap TreeMap<String, Object>
+     * @return
+     */
+    public static List<Currency> parseCurrencies(TreeMap<String, Object> treeMap) {
+        ArrayList<Currency> currencies = new ArrayList<Currency>();
+        for (Object o : treeMap.entrySet()) {
+            Map.Entry entry = (Map.Entry) o;
+            LinkedTreeMap linkedTreeMap = (LinkedTreeMap) entry.getValue();
+            String key = (String) entry.getKey();
+            Boolean altcoin = (Boolean) linkedTreeMap.get("altcoin");
+            String name = (String) linkedTreeMap.get("name");
+            Currency currency = new Currency();
+            currency.setCode(key);
+            currency.setName(name);
+            currency.setAltcoin(altcoin);
+            currencies.add(currency);
+        }
+        Collections.sort(currencies, new CurrencyComparator());
+        return currencies;
+    }
 
-        JSONObject jsonObject;
-        ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
-
+    @Deprecated
+    public static List<Currency> parseCurrencies(String jsonString) {
+        ArrayList<Currency> currencies = new ArrayList<>();
         try {
-            jsonObject = new JSONObject(response);
-            JSONObject dataObject = jsonObject.getJSONObject("data");
-            JSONObject currenciesObject = dataObject.getJSONObject("currencies");
+            Timber.d("JSON Currencies: " + jsonString);
+            JSONObject jsonObject = new JSONObject(jsonString);
+            JSONObject currenciesObject = jsonObject.getJSONObject("currencies");
             Iterator<?> keys = currenciesObject.keys();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                ExchangeCurrency currency = new ExchangeCurrency(key);
-                currencies.add(currency);
+                Currency currency = new Currency();
+                currency.setCode(key);
+                if (currenciesObject.get(key) instanceof JSONObject) {
+                    JSONObject currencyObj = (JSONObject) jsonObject.get(key);
+                    String name = currencyObj.getString("name");
+                    Boolean altcoin = currencyObj.getBoolean("altcoin");
+                    currency.setName(name);
+                    currency.setAltcoin(altcoin);
+                    currency.setCode(key);
+                    currencies.add(currency);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
         }
-
         Collections.sort(currencies, new CurrencyComparator());
         return currencies;
     }
 
-    public static class CurrencyComparator implements Comparator<ExchangeCurrency> {
+    public static class CurrencyComparator implements Comparator<Currency> {
         @Override
-        public int compare(ExchangeCurrency o1, ExchangeCurrency o2) {
-            return o1.getCurrency().toLowerCase().compareTo(o2.getCurrency().toLowerCase());
+        public int compare(Currency o1, Currency o2) {
+            if(o2.getCode() != null && o1.getCode() != null) {
+                return o2.getCode().compareTo(o1.getCode());
+            }
+            return 0;
         }
     }
 
@@ -1065,7 +1095,7 @@ public class Parser {
         }
     }
 
-    public static ExchangeRate parseBitcoinAverageExchangeRate(String exchangeName, String currency, Response response) {
+    /*public static ExchangeRate parseBitcoinAverageExchangeRate(String exchangeName, String currency, Response response) {
         // Read the body
         BufferedReader reader = null;
         StringBuilder sb = new StringBuilder();
@@ -1106,7 +1136,7 @@ public class Parser {
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 
     @SuppressLint("DefaultLocale")
     public static ExchangeRate parseBitfinexExchangeRate(String response) {

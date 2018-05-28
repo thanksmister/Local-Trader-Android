@@ -22,15 +22,14 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 
 import javax.inject.Inject;
 
 public class BitcoinHandler extends BaseActivity {
-    @Inject
-    DbManager dbManager;
+
+    @Inject Preferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +41,7 @@ public class BitcoinHandler extends BaseActivity {
 
             final String url = data.toString();
             String scheme = data.getScheme(); // "http"
-            boolean authorized = AuthUtils.hasCredentials(preference, sharedPreferences);
+            boolean authorized = preferences.hasCredentials();
             if (!authorized) {
                 toast("You need to be logged in to perform that action.");
                 launchMainApplication();

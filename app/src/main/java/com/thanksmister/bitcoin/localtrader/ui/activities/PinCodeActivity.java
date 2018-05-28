@@ -36,20 +36,7 @@ import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
-import timber.log.Timber;
 
 public class PinCodeActivity extends BaseActivity {
     public static final String EXTRA_PROGRESS = "EXTRA_PROGRESS";
@@ -65,75 +52,58 @@ public class PinCodeActivity extends BaseActivity {
     @Inject
     DataService dataService;
 
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.pinCode1)
     ImageView pinCode1;
 
-    @BindView(R.id.pinCode2)
     ImageView pinCode2;
 
-    @BindView(R.id.pinCode3)
     ImageView pinCode3;
 
-    @BindView(R.id.pinCode4)
     ImageView pinCode4;
 
-    @BindView(R.id.descriptionText)
     TextView description;
 
-    @OnClick(R.id.button0)
     public void button0Clicked() {
         addPinCode("0");
     }
 
-    @OnClick(R.id.button1)
     public void button1Clicked() {
         addPinCode("1");
     }
 
-    @OnClick(R.id.button2)
     public void button2Clicked() {
         addPinCode("2");
     }
 
-    @OnClick(R.id.button3)
     public void button3Clicked() {
         addPinCode("3");
     }
 
-    @OnClick(R.id.button4)
     public void button4Clicked() {
         addPinCode("4");
     }
 
-    @OnClick(R.id.button5)
     public void button5Clicked() {
         addPinCode("5");
     }
 
-    @OnClick(R.id.button6)
     public void button6Clicked() {
         addPinCode("6");
     }
 
-    @OnClick(R.id.button7)
     public void button7Clicked() {
         addPinCode("7");
     }
 
-    @OnClick(R.id.button8)
     public void button8Clicked() {
         addPinCode("8");
     }
 
-    @OnClick(R.id.button9)
     public void button9Clicked() {
         addPinCode("9");
     }
 
-    @OnClick(R.id.buttonDel)
     public void buttonDelClicked() {
         removePinCode();
     }
@@ -142,7 +112,6 @@ public class PinCodeActivity extends BaseActivity {
     private String pinCode = "";
     private String address;
     private String amount;
-    private Subscription subscription = Subscriptions.empty();
 
     public static Intent createStartIntent(Context context) {
         return new Intent(context, PinCodeActivity.class);
@@ -160,8 +129,6 @@ public class PinCodeActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.view_release);
-
-        ButterKnife.bind(this);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); // show keyboard
 
@@ -194,8 +161,6 @@ public class PinCodeActivity extends BaseActivity {
     @Override
     public void onPause() {
         super.onPause();
-
-        subscription.unsubscribe();
     }
 
     @Override
@@ -310,7 +275,7 @@ public class PinCodeActivity extends BaseActivity {
     private void validatePinCode(final String pinCode, final String address, final String amount) {
         showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_pin_verify)), true);
 
-        subscription = dataService.validatePinCode(pinCode)
+        /*subscription = dataService.validatePinCode(pinCode)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<JSONObject>() {
@@ -343,6 +308,6 @@ public class PinCodeActivity extends BaseActivity {
                         hideProgressDialog();
                         invalidatePinCode();
                     }
-                });
+                });*/
     }
 }

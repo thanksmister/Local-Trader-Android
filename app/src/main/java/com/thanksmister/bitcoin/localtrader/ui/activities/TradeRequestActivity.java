@@ -35,12 +35,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
@@ -51,13 +47,6 @@ import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class TradeRequestActivity extends BaseActivity {
@@ -72,112 +61,74 @@ public class TradeRequestActivity extends BaseActivity {
     public static final String EXTRA_AD_CURRENCY = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_CURRENCY";
     public static final String EXTRA_AD_PROFILE_NAME = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PROFILE_NAME";
 
-    @Inject
-    DataService dataService;
-
-    @BindView(R.id.tradeRequestToolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.editAmountText)
     EditText editAmountText;
 
-    @BindView(R.id.editBitcoinText)
     EditText editBitcoinText;
 
-    @BindView(R.id.tradeAmountTitle)
     TextView tradeAmountTitle;
 
-    @BindView(R.id.tradeLimit)
     TextView tradeLimit;
 
-    @BindView(R.id.tradeCurrency)
     TextView tradeCurrency;
 
-    @BindView(R.id.detailsEthereumAddress)
     EditText detailsEthereumAddress;
 
-    @BindView(R.id.detailsSortCode)
     EditText detailsSortCode;
 
-    @BindView(R.id.detailsBSB)
     EditText detailsBSB;
 
-    @BindView(R.id.detailsAccountNumber)
     EditText detailsAccountNumber;
 
-    @BindView(R.id.detailsBillerCode)
     EditText detailsBillerCode;
 
-    @BindView(R.id.detailsEthereumAddressLayout)
     TextInputLayout detailsEthereumAddressLayout;
 
-    @BindView(R.id.detailsSortCodeLayout)
     TextInputLayout detailsSortCodeLayout;
 
-    @BindView(R.id.detailsBSBLayout)
     TextInputLayout detailsBSBLayout;
 
-    @BindView(R.id.detailsAccountNumberLayout)
     TextInputLayout detailsAccountNumberLayout;
 
-    @BindView(R.id.detailsBillerCodeLayout)
     TextInputLayout detailsBillerCodeLayout;
 
-    @BindView(R.id.detailsPhoneNumberLayout)
     TextInputLayout detailsPhoneNumberLayout;
 
-    @BindView(R.id.detailsPhoneNumber)
     EditText detailsPhoneNumber;
 
-    @BindView(R.id.detailsReceiverEmailLayout)
     TextInputLayout detailsReceiverEmailLayout;
 
-    @BindView(R.id.detailsReceiverEmail)
     EditText detailsReceiverEmail;
 
-    @BindView(R.id.detailsReceiverNameLayout)
     TextInputLayout detailsReceiverNameLayout;
 
-    @BindView(R.id.detailsReceiverName)
     EditText detailsReceiverName;
 
-    @BindView(R.id.detailsIbanLayout)
     TextInputLayout detailsIbanLayout;
 
-    @BindView(R.id.detailsIbanName)
     EditText detailsIbanName;
 
-    @BindView(R.id.detailsSwiftBicLayout)
     View detailsSwiftBicLayout;
 
-    @BindView(R.id.detailsSwiftBic)
     EditText detailsSwiftBic;
 
-    @BindView(R.id.detailsReferenceLayout)
     View detailsReferenceLayout;
 
-    @BindView(R.id.detailsReference)
     EditText detailsReference;
 
-    @BindView(R.id.tradeMessage)
     EditText tradeMessage;
 
-    @BindView(R.id.tradeMessageLayout)
     TextInputLayout tradeMessageLayout;
 
-    @BindView(R.id.ethereumAmountText)
     EditText editEtherAmountText;
 
-    @BindView(R.id.bitcoinLayout)
     LinearLayout bitcoinLayout;
 
-    @BindView(R.id.ethereumLayout)
     LinearLayout ethereumLayout;
 
-    @BindView(R.id.fiatLayout)
     LinearLayout fiatLayout;
 
-    @OnClick(R.id.sendButton)
     public void sendButtonClicked() {
         validateChangesAndSend();
     }
@@ -215,8 +166,6 @@ public class TradeRequestActivity extends BaseActivity {
 
         setContentView(R.layout.view_trade_request);
 
-        ButterKnife.bind(this);
-
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
             String tradeTypeString = getIntent().getStringExtra(EXTRA_AD_TRADE_TYPE);
@@ -246,7 +195,7 @@ public class TradeRequestActivity extends BaseActivity {
         }
 
         if (tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
+           /* showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
                 @Override
                 public void call() {
                     if (!BuildConfig.DEBUG) {
@@ -254,7 +203,7 @@ public class TradeRequestActivity extends BaseActivity {
                     }
                     finish();
                 }
-            });
+            });*/
             return;
         }
 
@@ -616,7 +565,7 @@ public class TradeRequestActivity extends BaseActivity {
 
         showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_sending_trade_request)));
 
-        dataService.createContact(
+        /*dataService.createContact(
                 adId, tradeType, countryCode, onlineProvider,
                 amount, name, phone, email,
                 iban, bic, reference, message,
@@ -649,7 +598,7 @@ public class TradeRequestActivity extends BaseActivity {
                         });
                     }
 
-                });
+                });*/
     }
 
     private void calculateBitcoinAmount(String amount) {

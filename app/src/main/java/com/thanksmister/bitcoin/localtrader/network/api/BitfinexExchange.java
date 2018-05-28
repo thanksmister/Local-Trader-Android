@@ -17,12 +17,8 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api;
 
-import retrofit.client.Response;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import rx.Observable;
 
 public interface BitfinexExchange {
-    @GET("/v2/ticker/{symbol}")
-    Observable<Response> ticker(@Path("symbol") String symbol);
+    /*@GET("/v2/ticker/{symbol}")
+    Observable<Response> ticker(@Path("symbol") String symbol);*/
 }

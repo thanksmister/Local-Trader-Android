@@ -17,23 +17,20 @@
 
 package com.thanksmister.bitcoin.localtrader.events;
 
-import rx.functions.Action0;
 
+@Deprecated
 public class ConfirmationDialogEvent {
     public final String message;
     public final String title;
     public final String positive;
     public final String negative;
-    public final Action0 action;
 
     public ConfirmationDialogEvent(final String title, final String message,
                                    final String positive,
-                                   final String negative,
-                                   Action0 action) {
+                                   final String negative) {
         this.title = title;
         this.message = message;
         this.positive = positive;
         this.negative = negative;
-        this.action = action;
     }
 }

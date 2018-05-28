@@ -40,14 +40,11 @@ import com.google.zxing.android.IntentIntegrator;
 import com.google.zxing.android.IntentResult;
 import com.kobakei.ratethisapp.RateThisApp;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
-import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.AboutFragment;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.DashboardFragment;
@@ -55,25 +52,27 @@ import com.thanksmister.bitcoin.localtrader.ui.fragments.RequestFragment;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.SearchFragment;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.SendFragment;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.WalletFragment;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
-import com.trello.rxlifecycle.ActivityEvent;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
+
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.ACTION_SYNC;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.ACTION_TYPE_CANCELED;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.ACTION_TYPE_COMPLETE;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.ACTION_TYPE_ERROR;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.ACTION_TYPE_START;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.EXTRA_ACTION_TYPE;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.EXTRA_ERROR_CODE;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.EXTRA_ERROR_MESSAGE;
+import static com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter.SYNC_ERROR_CODE;
 
 @BaseActivity.RequiresAuthentication
 public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
 
-    private static IntentFilter syncIntentFilter = new IntentFilter(SyncAdapter.ACTION_SYNC);
+    private static IntentFilter syncIntentFilter = new IntentFilter(ACTION_SYNC);
 
     private static final String BITCOIN_URI = "com.thanksmister.extra.BITCOIN_URI";
     private static final String DASHBOARD_FRAGMENT = "com.thanksmister.fragment.DASHBOARD_FRAGMENT";
@@ -98,24 +97,18 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     private static final int REQUEST_SCAN = 49374;
 
     @Inject
-    ExchangeService exchangeService;
+    Preferences preferences;
 
-    @BindView(R.id.drawer_layout)
     DrawerLayout drawerLayout;
 
-    @BindView(R.id.navigation)
     NavigationView navigationView;
 
-    @BindView(R.id.bitcoinTitle)
     TextView bitcoinTitle;
 
-    @BindView(R.id.bitcoinPrice)
     TextView bitcoinPrice;
 
-    @BindView(R.id.bitcoinValue)
     TextView bitcoinValue;
 
-    @BindView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
     private Fragment fragment;
@@ -138,16 +131,14 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         try {
             setContentView(R.layout.activity_main);
         } catch (NoClassDefFoundError e) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_device_title), getString(R.string.error_device_softare_description)), new Action0() {
+           /* showAlertDialog(new AlertDialogEvent(getString(R.string.error_device_title), getString(R.string.error_device_softare_description)), new Action0() {
                 @Override
                 public void call() {
                     finish();
                 }
-            });
+            });*/
             return;
         }
-
-        ButterKnife.bind(this);
 
         if (savedInstanceState != null) {
             position = savedInstanceState.getInt(EXTRA_FRAGMENT);
@@ -156,7 +147,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         setupNavigationView();
 
         final String bitcoinUri = getIntent().getStringExtra(BITCOIN_URI);
-        boolean authenticated = AuthUtils.hasCredentials(preference, sharedPreferences);
+        boolean authenticated = preferences.hasCredentials();
 
         if (authenticated) {
             if (bitcoinUri != null) {
@@ -173,9 +164,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         swipeLayout.setProgressViewOffset(false, 48, 186);
         swipeLayout.setDistanceToTriggerSync(250);
 
-        if (!AuthUtils.isFirstTime(preference)) {
+        if (!preferences.firstTime()) {
             toast(R.string.toast_refreshing_data);
-            AuthUtils.setForceUpdate(preference, false);
+            preferences.forceUpdates(false);
             SyncUtils.requestSyncNow(MainActivity.this);
         }
 
@@ -203,14 +194,14 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         super.onResume();
 
         if (((Object) this).getClass().isAnnotationPresent(RequiresAuthentication.class)) {
-            boolean authenticated = AuthUtils.hasCredentials(preference, sharedPreferences);
+            boolean authenticated = preferences.hasCredentials();
             if (!authenticated) {
                 launchPromoScreen();
                 return;
-            } else if (AuthUtils.showUpgradedMessage(getApplicationContext(), preference)) {
+            } else if (preferences.showUpgradedMessage(this)) {
                 //String title = getString(R.string.text_whats_new) + AuthUtils.getCurrentVersionName(getApplicationContext());
                 //showAlertDialogLinks(new AlertDialogEvent(title, getString(R.string.whats_new_message)));
-                AuthUtils.setUpgradeVersion(getApplicationContext(), preference);
+                preferences.upgradeVersion(getApplicationContext());
             }
         }
 
@@ -249,7 +240,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     public void onRefresh() {
-        AuthUtils.setForceUpdate(preference, true);
+        preferences.forceUpdates(true);
         SyncUtils.requestSyncNow(MainActivity.this);
         handleRefresh();
         updateData();
@@ -274,7 +265,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             return;
         }*/
 
-        exchangeService.getSpotPrice()
+        /*exchangeService.getSpotPrice()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -307,12 +298,12 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                         }
 
                     }
-                });
+                });*/
     }
 
     private void subscribeData() {
         Timber.d("subscribeData");
-        dbManager.exchangeQuery()
+        /*dbManager.exchangeQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -339,7 +330,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                     public void call(Throwable throwable) {
                         reportError(throwable);
                     }
-                });
+                });*/
     }
 
     private void launchPromoScreen() {
@@ -356,9 +347,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         tradeCount = (TextView) headerView.findViewById(R.id.userTradeCount);
         feedbackScore = (TextView) headerView.findViewById(R.id.userTradeFeedback);
 
-        userName.setText(AuthUtils.getUsername(preference, sharedPreferences));
-        tradeCount.setText(AuthUtils.getUsername(preference, sharedPreferences));
-        feedbackScore.setText(AuthUtils.getTrades(preference, sharedPreferences));
+        userName.setText(preferences.userName());
+        tradeCount.setText(preferences.userTrades());
+        feedbackScore.setText(preferences.userFeedback());
 
         drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
@@ -604,29 +595,29 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     protected void handleSyncEvent(String syncActionType, String extraErrorMessage, int extraErrorCode) {
         switch (syncActionType) {
-            case SyncAdapter.ACTION_TYPE_START:
+            case ACTION_TYPE_START:
                 break;
-            case SyncAdapter.ACTION_TYPE_COMPLETE:
+            case ACTION_TYPE_COMPLETE:
                 onRefreshStop();
                 break;
-            case SyncAdapter.ACTION_TYPE_CANCELED:
+            case ACTION_TYPE_CANCELED:
                 onRefreshStop();
                 break;
-            case SyncAdapter.ACTION_TYPE_ERROR:
+            case ACTION_TYPE_ERROR:
                 Timber.e("Sync error: " + extraErrorMessage + "code: " + extraErrorCode);
                 if(extraErrorCode == DataServiceUtils.STATUS_403) {
-                    showAlertDialog(new AlertDialogEvent(getString(R.string.alert_token_expired_title), getString(R.string.error_bad_token)), new Action0() {
+                    /*showAlertDialog(new AlertDialogEvent(getString(R.string.alert_token_expired_title), getString(R.string.error_bad_token)), new Action0() {
                         @Override
                         public void call() {
                             logOut();
                         }
-                    });
+                    });*/
                 }
                 onRefreshStop();
                 break;
         }
 
-        AuthUtils.setFirstTime(preference, false);
+        preferences.firstTime(false);
     }
 
     private BroadcastReceiver syncBroadcastReceiver = new BroadcastReceiver() {
@@ -634,17 +625,17 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            String syncActionType = intent.getStringExtra(SyncAdapter.EXTRA_ACTION_TYPE);
+            String syncActionType = intent.getStringExtra(EXTRA_ACTION_TYPE);
             assert syncActionType != null; // this should never be null
 
             String extraErrorMessage = "";
-            int extraErrorCode = SyncAdapter.SYNC_ERROR_CODE;
+            int extraErrorCode = SYNC_ERROR_CODE;
 
-            if (intent.hasExtra(SyncAdapter.EXTRA_ERROR_MESSAGE)) {
-                extraErrorMessage = intent.getStringExtra(SyncAdapter.EXTRA_ERROR_MESSAGE);
+            if (intent.hasExtra(EXTRA_ERROR_MESSAGE)) {
+                extraErrorMessage = intent.getStringExtra(EXTRA_ERROR_MESSAGE);
             }
-            if (intent.hasExtra(SyncAdapter.EXTRA_ERROR_CODE)) {
-                extraErrorCode = intent.getIntExtra(SyncAdapter.EXTRA_ERROR_CODE, SyncAdapter.SYNC_ERROR_CODE);
+            if (intent.hasExtra(EXTRA_ERROR_CODE)) {
+                extraErrorCode = intent.getIntExtra(EXTRA_ERROR_CODE, SYNC_ERROR_CODE);
             }
 
             handleSyncEvent(syncActionType, extraErrorMessage, extraErrorCode);

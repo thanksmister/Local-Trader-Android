@@ -38,16 +38,6 @@ import android.widget.Toast;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 public class QRCodeActivity extends Activity {
@@ -58,25 +48,19 @@ public class QRCodeActivity extends Activity {
     private Bitmap bitmap;
     private String address;
     private String amount;
-    private Subscription subscription = Subscriptions.empty();
 
-    @BindView(R.id.headerText)
     TextView headerText;
 
-    @BindView(R.id.image)
     ImageView image;
 
-    @OnClick(R.id.cancelButton)
     public void cancelButtonClicked() {
         finish();
     }
 
-    @OnClick(R.id.copyButton)
     public void copyButtonClicked() {
         setRequestOnClipboard();
     }
 
-    @OnClick(R.id.shareButton)
     public void shareButtonClicked() {
         shareBitcoinRequest();
     }
@@ -102,14 +86,12 @@ public class QRCodeActivity extends Activity {
             amount = getIntent().getStringExtra(EXTRA_QR_AMOUNT);
         }
 
-        ButterKnife.bind(this);
         generateQrCodeImage(address, amount);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        subscription.unsubscribe();
     }
 
     @Override
@@ -148,7 +130,7 @@ public class QRCodeActivity extends Activity {
     }
 
     public void generateQrCodeImage(final String address, final String amount) {
-        subscription = generateBitmap(address, amount)
+        /*subscription = generateBitmap(address, amount)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<Bitmap>() {
@@ -168,10 +150,10 @@ public class QRCodeActivity extends Activity {
                         bitmap = data;
                         image.setImageBitmap(bitmap);
                     }
-                });
+                });*/
     }
 
-    private Observable<Bitmap> generateBitmap(final String address, final String amount) {
+   /* private Observable<Bitmap> generateBitmap(final String address, final String amount) {
         return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
             public void call(Subscriber<? super Bitmap> subscriber) {
@@ -183,5 +165,5 @@ public class QRCodeActivity extends Activity {
                 }
             }
         });
-    }
+    }*/
 }

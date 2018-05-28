@@ -20,17 +20,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 
-import com.squareup.sqlbrite.SqlBrite;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
-import timber.log.Timber;
-
-@AutoParcel
 public abstract class ContactItem {
     public static final String TABLE = "contact_item";
 
@@ -261,7 +252,7 @@ public abstract class ContactItem {
 
     public abstract int messageCount();
 
-    public static final Func1<SqlBrite.Query, ContactItem> MAP_SINGLE = new Func1<SqlBrite.Query, ContactItem>() {
+    /*public static final Func1<SqlBrite.Query, ContactItem> MAP_SINGLE = new Func1<SqlBrite.Query, ContactItem>() {
         @Override
         public ContactItem call(SqlBrite.Query query) {
             Cursor cursor = query.run();
@@ -890,6 +881,6 @@ public abstract class ContactItem {
         public ContentValues build() {
             return values;
         }
-    }
+    }*/
 }
 

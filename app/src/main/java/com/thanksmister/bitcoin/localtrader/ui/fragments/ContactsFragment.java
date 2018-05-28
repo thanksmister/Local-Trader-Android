@@ -19,7 +19,6 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,47 +27,28 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactsAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class ContactsFragment extends BaseFragment {
-    @Inject
-    DataService dataService;
 
-    @Inject
-    DbManager dbManager;
 
-    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
     @Inject
@@ -133,7 +113,6 @@ public class ContactsFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_dashboard_items, container, false);
-        ButterKnife.bind(this, view);
         return view;
     }
 
@@ -171,7 +150,7 @@ public class ContactsFragment extends BaseFragment {
     private void subscribeData() {
         Timber.d("subscribeData");
 
-        dbManager.contactsQuery()
+        /*dbManager.contactsQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnUnsubscribe(new Action0() {
@@ -212,7 +191,7 @@ public class ContactsFragment extends BaseFragment {
                         setupList(contacts);
                         reportError(throwable);
                     }
-                });
+                });*/
 
     }
 
@@ -230,7 +209,7 @@ public class ContactsFragment extends BaseFragment {
     }
 
     protected void createAdvertisementScreen() {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
+        /*showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
             @Override
             public void call() {
                 try {
@@ -244,7 +223,7 @@ public class ContactsFragment extends BaseFragment {
             public void call() {
                 // na-da
             }
-        });
+        });*/
     }
 
     protected void showSearchScreen() {

@@ -380,6 +380,15 @@
     <string name="login_registration_screens_description">Local Trade 是一个LocalBitcoins 网站的android开源。使用Local Trader你可以更新广告，管理交易，发送消息，释放和托管交易或者处理付款。</string>
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">同步帐户数据</string>
+    <string name="notifications_notification_title">New notifications</string>
+    <string name="notifications_trade_title">Trade notification</string>
+    <string name="notifications_advertisement_title">Advertisement notification</string>
+    <string name="notification_title">Notification</string>
+    <string name="notifications_description">You have %1$s new notifications.</string>
+    <string name="notification_bitcoin_received">Bitcoin Received</string>
+    <string name="notification_bitcoin_received_description">You received %1$s BTC</string>
+    <string name="notifcation_bitcoin_amount_description">You have %1$s BTC</string>
+    <string name="notifcation_bitcoin_amount_title">Bitcoin Balance</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">

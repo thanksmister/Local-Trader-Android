@@ -39,8 +39,6 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapter.ViewHolder> {
 
@@ -138,21 +136,16 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
         }
     }
 
     class TransactionViewHolder extends ViewHolder {
-        @BindView(R.id.descriptionText)
         TextView descriptionText;
 
-        @BindView(R.id.btcText)
         TextView btcText;
 
-        @BindView(R.id.dateText)
         TextView dateText;
 
-        @BindView(R.id.transactionIcon)
         ImageView transactionIcon;
 
         TransactionViewHolder(View itemView) {

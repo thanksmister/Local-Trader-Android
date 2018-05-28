@@ -28,7 +28,6 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.NetworkOnMainThreadException;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
@@ -40,56 +39,34 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.zxing.android.IntentIntegrator;
-import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
 import com.thanksmister.bitcoin.localtrader.network.NetworkException;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils;
 import com.thanksmister.bitcoin.localtrader.ui.activities.PromoActivity;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.UnknownHostException;
 
-import javax.inject.Inject;
 import javax.net.ssl.SSLHandshakeException;
 
-import dpreference.DPreference;
-import retrofit.RetrofitError;
-import rx.functions.Action0;
+import dagger.android.support.DaggerAppCompatActivity;
+import io.reactivex.functions.Action;
 import timber.log.Timber;
 
 /**
  * Base activity which sets up a per-activity object graph and performs injection.
  */
-public abstract class BaseActivity extends RxAppCompatActivity {
+public abstract class BaseActivity extends DaggerAppCompatActivity {
     /**
      * This activity requires authentication
      */
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface RequiresAuthentication {
     }
-
-    @Inject
-    protected DbManager dbManager;
-
-    @Inject
-    protected DataService dataService;
-
-    @Inject
-    protected SharedPreferences sharedPreferences;
-
-    @Inject
-    protected DPreference preference;
 
     private AlertDialog progressDialog;
     private AlertDialog alertDialog;
@@ -98,7 +75,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Injector.inject(this);
     }
 
     @Override
@@ -235,7 +211,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                 .show();
     }
 
-    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake) {
+    public void showAlertDialog(AlertDialogEvent event, final Action actionToTake) {
 
         if (alertDialog != null) {
             alertDialog.dismiss();
@@ -249,13 +225,17 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        actionToTake.call();
+                        try {
+                            actionToTake.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .show();
     }
 
-    public void showAlertDialog(String message, final Action0 actionToTake) {
+    public void showAlertDialog(String message, final Action actionToTake) {
 
         if (alertDialog != null) {
             alertDialog.dismiss();
@@ -267,13 +247,17 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        actionToTake.call();
+                        try {
+                            actionToTake.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .show();
     }
 
-    public void showAlertDialog(String message, final Action0 actionToTake, final Action0 cancelActionToTake) {
+   public void showAlertDialog(String message, final Action actionToTake, final Action cancelActionToTake) {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
@@ -285,19 +269,28 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        cancelActionToTake.call();
+
+                        try {
+                            cancelActionToTake.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        actionToTake.call();
+                        try {
+                            actionToTake.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .show();
     }
 
-    public void showAlertDialog(@NonNull AlertDialogEvent event, final Action0 actionToTake, final Action0 cancelActionToTake) {
+    public void showAlertDialog(AlertDialogEvent event, final Action actionToTake, final Action cancelActionToTake) {
         if (alertDialog != null) {
             alertDialog.dismiss();
             alertDialog = null;
@@ -311,13 +304,21 @@ public abstract class BaseActivity extends RxAppCompatActivity {
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        cancelActionToTake.call();
+                        try {
+                            cancelActionToTake.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        actionToTake.call();
+                        try {
+                            actionToTake.run();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .show();
@@ -348,12 +349,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     }
 
     private void onLoggedOut() {
-        dataService.logout();
-        dbManager.clearDbManager();
 
-        // clear preferences
-        AuthUtils.resetCredentials(sharedPreferences);
-        AuthUtils.reset(preference);
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         SharedPreferences.Editor prefEditor = settings.edit();
@@ -364,7 +360,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
 
         hideProgressDialog();
 
-        Intent intent = PromoActivity.createStartIntent(BaseActivity.this);
+        Intent intent = PromoActivity.Companion.createStartIntent(BaseActivity.this);
         startActivity(intent);
         finish();
     }
@@ -374,18 +370,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             alertDialog.dismiss();
             alertDialog = null;
         }
-
-        alertDialog = new AlertDialog.Builder(BaseActivity.this, R.style.DialogTheme)
-                .setTitle(event.title)
-                .setMessage(Html.fromHtml(event.message))
-                .setNegativeButton(event.negative, null)
-                .setPositiveButton(event.positive, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        event.action.call();
-                    }
-                })
-                .show();
     }
 
     private BroadcastReceiver connReceiver = new BroadcastReceiver() {
@@ -414,14 +398,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     }
 
     protected void reportError(Throwable throwable) {
-        if (throwable instanceof RetrofitError) {
-            if (DataServiceUtils.isHttp400Error(throwable)) {
-                return;
-            } else if (DataServiceUtils.isHttp500Error(throwable)) {
-                return;
-            }
-        }
-
         if (throwable instanceof SSLHandshakeException) {
             Timber.e(throwable.getMessage());
             return;
@@ -450,16 +426,17 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     protected void handleError(Throwable throwable, boolean retry) {
 
         // Handle NetworkConnectionException
-        if (throwable instanceof NetworkConnectionException) {
-            NetworkConnectionException networkConnectionException = (NetworkConnectionException) throwable;
+        /*if (throwable instanceof ConnectionException) {
+            ConnectionException networkConnectionException = (ConnectionException) throwable;
             snack(networkConnectionException.getMessage(), retry);
             return;
-        }
+        }*/
 
         // Handle NetworkException
         if(throwable instanceof NetworkException) {
             NetworkException networkException = (NetworkException) throwable;
-            if (networkException.getStatus() == 403) {
+
+            /*if (networkException.getStatus() == 403) {
                 showAlertDialog(new AlertDialogEvent(getString(R.string.alert_token_expired_title), getString(R.string.error_bad_token)), new Action0() {
                     @Override
                     public void call() {
@@ -473,11 +450,11 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             } else {
                 // let's just let the throwable pass through
                 throwable = networkException.getCause();
-            }
+            }*/
         }
 
         // Handle Throwable exception
-        if (DataServiceUtils.isConnectionError(throwable)) {
+        /*if (DataServiceUtils.isConnectionError(throwable)) {
             Timber.i("Connection Error");
             snack(getString(R.string.error_service_unreachable_error), retry);
         } else if (DataServiceUtils.isTimeoutError(throwable)) {
@@ -527,7 +504,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             snack(throwable.getMessage(), retry);
         } else {
             snack(R.string.error_unknown_error, retry);
-        }
+        }*/
     }
 
     protected void snack(int message, boolean retry) {

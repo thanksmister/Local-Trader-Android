@@ -38,9 +38,9 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.SectionRecycleViewAdapter;
@@ -48,7 +48,6 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.TransactionsAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
-import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -56,50 +55,29 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class WalletFragment extends BaseFragment {
 
     @Inject
-    DataService dataService;
+    Preferences preferences;
 
-    @Inject
-    ExchangeService exchangeService;
-
-    @Inject
-    DbManager dbManager;
-
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
-    @BindView(R.id.bitcoinTitle)
     TextView bitcoinTitle;
 
-    @BindView(R.id.bitcoinPrice)
     TextView bitcoinPrice;
 
-    @BindView(R.id.bitcoinValue)
     TextView bitcoinValue;
 
-    @BindView(R.id.bitcoinLayout)
     View bitcoinLayout;
 
-    @BindView(R.id.emptyText)
     TextView emptyText;
 
-    @BindView(R.id.emptyLayout)
     View emptyLayout;
 
-    @BindView(R.id.resultsProgress)
     View progress;
 
     private TransactionsAdapter transactionsAdapter;
@@ -134,7 +112,6 @@ public class WalletFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_wallet, container, false);
-        ButterKnife.bind(this, view);
         return view;
     }
 
@@ -160,7 +137,7 @@ public class WalletFragment extends BaseFragment {
 
         setupToolbar();
 
-        String currency = exchangeService.getExchangeCurrency();
+        String currency = preferences.getExchangeCurrency();
         setAppBarText("0", "0", currency);
     }
 
@@ -231,7 +208,7 @@ public class WalletFragment extends BaseFragment {
 
     private void subscribeData() {
         //dbManager.clearWallet();
-        dbManager.walletQuery()
+        /*dbManager.walletQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -302,11 +279,11 @@ public class WalletFragment extends BaseFragment {
                     public void call(final Throwable throwable) {
                         reportError(throwable);
                     }
-                });
+                });*/
     }
 
     private void updateData(final boolean force) {
-        if (dataService.needToRefreshWallet() && !force) {
+       /* if (dataService.needToRefreshWallet() && !force) {
             showProgress();
             toast(getString(R.string.toast_refreshing_data));
             dataService.getWallet()
@@ -332,7 +309,7 @@ public class WalletFragment extends BaseFragment {
                             Timber.e(throwable.getMessage());
                         }
                     });
-        }
+        }*/
     }
 
     // TODO split list by date
@@ -372,7 +349,7 @@ public class WalletFragment extends BaseFragment {
     }
 
     private void setAppBarText(String rate, String balance, String exchange) {
-        String currency = exchangeService.getExchangeCurrency();
+        String currency = preferences.getExchangeCurrency();
         String btcValue = Calculations.computedValueOfBitcoin(rate, balance);
         String btcAmount = Conversions.formatBitcoinAmount(balance) + " " + getString(R.string.btc);
         bitcoinPrice.setText(btcAmount);

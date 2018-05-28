@@ -17,11 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api;
 
-import retrofit.client.Response;
-import retrofit.http.GET;
-import rx.Observable;
-
 public interface BitcoinAverage {
-    @GET("/bitcoinaverage/ticker-all-currencies/")
-    Observable<Response> ticker();
+    /*@GET("/bitcoinaverage/ticker-all-currencies/")
+    Observable<Response> ticker();*/
 }

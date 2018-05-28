@@ -47,51 +47,48 @@ import java.lang.reflect.Field;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import timber.log.Timber;
 
 import static com.thanksmister.bitcoin.localtrader.constants.Constants.BITCOIN_ADDRESS;
 
 public class AboutFragment extends BaseFragment {
-    @BindView(R.id.toolbar)
+
     Toolbar toolbar;
 
     @Inject
     SharedPreferences sharedPreferences;
 
-    @OnClick(R.id.guidesButton)
+
     public void guidesButtonClicked() {
         guides();
     }
 
-    @OnClick(R.id.sendFeedbackButton)
+
     public void sendButtonClicked() {
         gitHub();
     }
 
-    @OnClick(R.id.sendAccountButton)
+
     public void sendAccountButton() {
         support();
     }
 
-    @OnClick(R.id.rateApplicationButton)
+
     public void rateButtonClicked() {
         rate();
     }
 
-    @OnClick(R.id.joinCommunityButton)
+
     public void communityButtonClicked() {
         join();
     }
 
-    @OnClick(R.id.licenseButton)
+
     public void licenseButtonClicked() {
         showLicense();
     }
 
-    @OnClick(R.id.donateButton)
+
     public void donateButtonClicked() {
         donateBitcoin();
     }
@@ -113,7 +110,7 @@ public class AboutFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.view_about, container, false);
-        ButterKnife.bind(this, fragmentView);
+
         return fragmentView;
     }
 

@@ -19,24 +19,20 @@ package com.thanksmister.bitcoin.localtrader.ui;
 
 import android.os.Bundle;
 
-import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.trello.rxlifecycle.components.support.RxFragment;
 
-import rx.functions.Action0;
+import dagger.android.support.DaggerFragment;
 
 /**
  * Base fragment which performs injection using the activity object graph of its parent.
  */
-public abstract class BaseFragment extends RxFragment {
+public abstract class BaseFragment extends DaggerFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-        Injector.inject(this);
     }
 
     protected void reportError(Throwable throwable) {
@@ -64,24 +60,9 @@ public abstract class BaseFragment extends RxFragment {
             ((BaseActivity) getActivity()).toast(message);
     }
 
-    protected void snack(String message) {
-        if (isAdded() && getActivity() != null)
-            ((BaseActivity) getActivity()).snack(message, false);
-    }
-
     public void showAlertDialog(AlertDialogEvent event) {
         if (isAdded() && getActivity() != null)
             ((BaseActivity) getActivity()).showAlertDialog(event);
-    }
-
-    public void showAlertDialog(AlertDialogEvent event, Action0 action) {
-        if (isAdded() && getActivity() != null)
-            ((BaseActivity) getActivity()).showAlertDialog(event, action);
-    }
-
-    public void showAlertDialog(AlertDialogEvent event, Action0 actionPos, Action0 actionNeg) {
-        if (isAdded() && getActivity() != null)
-            ((BaseActivity) getActivity()).showAlertDialog(event, actionPos, actionNeg);
     }
 
     public void showConfirmationDialog(ConfirmationDialogEvent event) {

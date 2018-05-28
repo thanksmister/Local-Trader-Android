@@ -19,30 +19,19 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.ContentObserver;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
@@ -55,16 +44,11 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.functions.Action0;
-
-public class AdvertisementsFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class AdvertisementsFragment extends BaseFragment  {
 
     private static final int ADVERTISEMENT_LOADER_ID = 1;
     private static final int METHOD_LOADER_ID = 2;
 
-    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
     @Inject
@@ -72,8 +56,8 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
 
     private AdvertisementsAdapter itemAdapter;
     private List<AdvertisementItem> advertisements = Collections.emptyList();
-    private List<MethodItem> methods = Collections.emptyList();
-    private AdvertisementObserver advertisementObserver;
+    private List<Method> methods = Collections.emptyList();
+    //private AdvertisementObserver advertisementObserver;
 
     /**
      * Returns a new instance of this fragment for the given section
@@ -125,7 +109,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         recycleView.setAdapter(itemAdapter);
     }
 
-    private void setupList(List<AdvertisementItem> advertisementItems, List<MethodItem> methodItems) {
+    private void setupList(List<AdvertisementItem> advertisementItems, List<Method> methodItems) {
         if (isAdded()) {
             itemAdapter.replaceWith(advertisementItems, methodItems);
             recycleView.setAdapter(itemAdapter);
@@ -135,19 +119,16 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_dashboard_items, container, false);
-        ButterKnife.bind(this, view);
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        advertisementObserver = new AdvertisementObserver(new Handler());
+        //advertisementObserver = new AdvertisementObserver(new Handler());
         if (getActivity() != null) {
-            getActivity().getContentResolver().registerContentObserver(SyncProvider.ADVERTISEMENT_TABLE_URI, true, advertisementObserver);
+            //getActivity().getContentResolver().registerContentObserver(SyncProvider.ADVERTISEMENT_TABLE_URI, true, advertisementObserver);
         }
-        getLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, this);
-        getLoaderManager().restartLoader(METHOD_LOADER_ID, null, this);
 
     }
 
@@ -155,10 +136,8 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     public void onPause() {
         super.onPause();
         if (getActivity() != null) {
-            getActivity().getContentResolver().unregisterContentObserver(advertisementObserver);
+            //getActivity().getContentResolver().unregisterContentObserver(advertisementObserver);
         }
-        getLoaderManager().destroyLoader(ADVERTISEMENT_LOADER_ID);
-        getLoaderManager().destroyLoader(METHOD_LOADER_ID);
     }
 
     @Override
@@ -188,7 +167,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
     }
 
     private void createAdvertisementScreen() {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
+       /* showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
             @Override
             public void call() {
                 try {
@@ -202,7 +181,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
             public void call() {
                 // na-da
             }
-        });
+        });*/
     }
 
     protected void showSearchScreen() {
@@ -211,7 +190,7 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
         }
     }
 
-    @NonNull
+   /* @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if (id == ADVERTISEMENT_LOADER_ID && getActivity() != null) {
@@ -244,9 +223,9 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-    }
+    }*/
 
-    private class AdvertisementObserver extends ContentObserver {
+   /* private class AdvertisementObserver extends ContentObserver {
         AdvertisementObserver(Handler handler) {
             super(handler);
         }
@@ -257,5 +236,5 @@ public class AdvertisementsFragment extends BaseFragment implements LoaderManage
                 getActivity().getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, AdvertisementsFragment.this);
             }
         }
-    }
+    }*/
 }

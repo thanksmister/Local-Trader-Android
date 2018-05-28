@@ -27,32 +27,9 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAds;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToPlace;
-import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import javax.inject.Inject;
-
-import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Func1;
-import rx.subscriptions.Subscriptions;
-import timber.log.Timber;
 
 public class GeoLocationService {
-    public final static int MAX_ADDRESSES = 5;
+    /*public final static int MAX_ADDRESSES = 5;
 
     private static final long LOCATION_MIN_TIME_BETWEEN_UPDATES = 0L;
     private static final float LOCATION_MIN_DISTANCE_BETWEEN_UPDATES = 0f;
@@ -119,9 +96,9 @@ public class GeoLocationService {
         }).publish().refCount();
     }
 
-    /**
+    *//**
      * @return Observable that observes on UI Thread.
-     */
+     *//*
     public Observable<Location> getLocationObservable() {
         return locationObservable.observeOn(AndroidSchedulers.mainThread());
     }
@@ -151,7 +128,7 @@ public class GeoLocationService {
     }
 
 
-    /**
+    *//**
      * Get a list of online advertisements using currency, payment method, country code and country name.
      *
      * @param type
@@ -160,7 +137,7 @@ public class GeoLocationService {
      * @param currency
      * @param paymentMethod
      * @return
-     */
+     *//*
     public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final TradeType type,
                                                                    @NonNull final String countryName,
                                                                    @NonNull final String countryCode,
@@ -320,9 +297,9 @@ public class GeoLocationService {
                 });
     }
 
-    /**
+    *//**
      * Compares distance as a double value to list advertisements by shortest to longest distance from user
-     */
+     *//*
     private class AdvertisementNameComparator implements Comparator<Advertisement> {
         @Override
         public int compare(Advertisement a1, Advertisement a2) {
@@ -332,5 +309,5 @@ public class GeoLocationService {
                 return 0;
             }
         }
-    }
+    }*/
 }

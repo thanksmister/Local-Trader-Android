@@ -49,6 +49,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.QRCodeActivity;
@@ -58,62 +59,38 @@ import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
-import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 public class RequestFragment extends BaseFragment {
 
     @Inject
-    ExchangeService exchangeService;
+    Preferences preferences;
 
-    @Inject
-    DbManager dbManager;
-
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.amountText)
     TextView amountText;
 
-    @BindView(R.id.currencyText)
     TextView currencyText;
 
-    @BindView(R.id.fiatEditText)
     TextView fiatEditText;
 
-    @OnClick(R.id.qrButton)
     public void qrButtonClicked() {
         validateForm(walletItem);
     }
 
-    @BindView(R.id.codeImage)
     ImageView qrCodeImage;
 
-    @BindView(R.id.walletAddressButton)
     AutoResizeTextView addressButton;
 
-    @OnClick(R.id.codeImage)
     public void codeButtonClicked() {
         setAddressOnClipboard(addressButton.getText().toString());
     }
 
-    @OnClick(R.id.walletAddressButton)
     public void addressButtonClicked() {
         setAddressOnClipboard(addressButton.getText().toString());
     }
@@ -121,10 +98,6 @@ public class RequestFragment extends BaseFragment {
     private WalletItem walletItem;
     private ExchangeRateItem exchangeItem;
     private Bitmap qrImage;
-
-    CompositeSubscription subscriptions = new CompositeSubscription();
-    CompositeSubscription updateSubscriptions = new CompositeSubscription();
-
 
     public static RequestFragment newInstance() {
         return new RequestFragment();
@@ -173,7 +146,7 @@ public class RequestFragment extends BaseFragment {
     }
 
     private void setCurrency() {
-        String currency = exchangeService.getExchangeCurrency();
+        String currency = preferences.getExchangeCurrency();
         if (currencyText != null) {
             currencyText.setText(currency);
         }
@@ -182,7 +155,7 @@ public class RequestFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_request, container, false);
-        ButterKnife.bind(this, view);
+
         return view;
     }
 
@@ -243,8 +216,6 @@ public class RequestFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        subscriptions.unsubscribe();
-        updateSubscriptions.unsubscribe();
     }
 
     @Override
@@ -274,7 +245,7 @@ public class RequestFragment extends BaseFragment {
 
     private void subscribeData() {
 
-        dbManager.exchangeQuery()
+        /*dbManager.exchangeQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<ExchangeRateItem>bindUntilEvent(FragmentEvent.PAUSE))
@@ -322,11 +293,11 @@ public class RequestFragment extends BaseFragment {
                     public void call(Throwable throwable) {
                         reportError(throwable);
                     }
-                });
+                });*/
     }
 
     public void setWallet(final WalletItem item) {
-        generateBitmap(item.address())
+        /*generateBitmap(item.address())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Bitmap>bindUntilEvent(FragmentEvent.PAUSE))
@@ -360,61 +331,10 @@ public class RequestFragment extends BaseFragment {
                             });
                         }
                     }
-                });
-        
-        /*Observable.defer(new Func0<Observable<Bitmap>>() {
-            
-            @Override
-            public Observable<Bitmap> call() {
-                        try {
-                            return generateBitmap(item.address());
-                        } catch (Exception e) {
-                            Timber.e("Error reading wallet QR Code data: " + e.getLocalizedMessage());
-                            return null;
-                        }
-                    }
-                })
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Bitmap subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Bitmap>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Bitmap>() {
-                    @Override
-                    public void onCompleted() {
-                    }
-                    @Override
-                    public void onError(final Throwable e) {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    setupWallet(walletItem, qrImage);
-                                    reportError(e);
-                                }
-                            });
-                        }
-                    }
-                    @Override
-                    public void onNext(final Bitmap bitmap) {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    qrImage = bitmap;
-                                    setupWallet(walletItem, qrImage);
-                                }
-                            });
-                        }
-                    }
                 });*/
     }
 
-    private Observable<Bitmap> generateBitmap(final String address) {
+    /*private Observable<Bitmap> generateBitmap(final String address) {
         return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
             public void call(Subscriber<? super Bitmap> subscriber) {
@@ -426,7 +346,7 @@ public class RequestFragment extends BaseFragment {
                 }
             }
         });
-    }
+    }*/
 
     private void setupWallet(WalletItem walletItem, Bitmap qrImage) {
         if (walletItem.address() != null) {

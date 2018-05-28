@@ -24,20 +24,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.crashlytics.android.Crashlytics;
-import com.squareup.sqlbrite.BriteContentResolver;
-import com.squareup.sqlbrite.BriteDatabase;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,20 +32,15 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import rx.Observable;
-import rx.functions.Func1;
-import timber.log.Timber;
-
+@Deprecated
 public class DbManager {
 
-    private BriteDatabase db;
-    private BriteContentResolver briteContentResolver;
+
     private ContentResolver contentResolver;
 
     @Inject
-    public DbManager(BriteDatabase db, BriteContentResolver briteContentResolver, ContentResolver contentResolver) {
-        this.db = db;
-        this.briteContentResolver = briteContentResolver;
+    public DbManager( ContentResolver contentResolver) {
+
         this.contentResolver = contentResolver;
     }
 
@@ -67,28 +48,10 @@ public class DbManager {
      * Resets Db manager and clear all preferences
      */
     public void clearDbManager() {
-        db.delete(WalletItem.TABLE, null);
-        db.delete(ContactItem.TABLE, null);
-        db.delete(MessageItem.TABLE, null);
-        db.delete(AdvertisementItem.TABLE, null);
-        db.delete(TransactionItem.TABLE, null);
-        db.delete(RecentMessageItem.TABLE, null);
-        db.delete(NotificationItem.TABLE, null);
-        db.delete(ExchangeCurrencyItem.TABLE, null);
-        db.delete(AdvertisementItem.TABLE, null);
 
-        // let's not clear these on reset as they require a lot of work to fetch
-        //db.delete(CurrencyItem.TABLE, null);
-        //db.delete(ExchangeItem.TABLE, null);
-        //db.delete(MethodItem.TABLE, null);
     }
 
-    public void clearTable(String tableName) {
-        db.delete(tableName, null);
-    }
-
-
-    public List<String> insertContacts(List<Contact> items) {
+   /* public List<String> insertContacts(List<Contact> items) {
         HashMap<String, Contact> entryMap = new HashMap<String, Contact>();
         for (Contact item : items) {
             entryMap.put(item.contact_id, item);
@@ -119,13 +82,13 @@ public class DbManager {
         return updatedContactIds;
     }
 
-    /**
+    *//**
      * Updates or inserts new contact with message count and unseen messages flag.
      *
      * @param contact           Contact
      * @param messageCount
      * @param hasUnseenMessages
-     */
+     *//*
     public long updateContact(@NonNull Contact contact, int messageCount, boolean hasUnseenMessages) {
         if (!TextUtils.isEmpty(contact.contact_id)) {
             synchronized (this) {
@@ -244,14 +207,14 @@ public class DbManager {
         }
     }
 
-    /**
+    *//**
      * Bulk inserts messages into the database after adding the contact id to each.
      * There is no need to delete previous messages because they are not deleted, so
      * we only need to insert them.
      *
      * @param contactId Contact Id associated with the message.
      * @param messages  List of Message items
-     */
+     *//*
     public void updateMessages(@NonNull String contactId, List<Message> messages) {
         if (!TextUtils.isEmpty(contactId)) {
             for (Message message : messages) {
@@ -302,11 +265,11 @@ public class DbManager {
                 .map(ExchangeRateItem.MAP_SINGLE);
     }
 
-    /**
+    *//**
      * Returns the LocalBitcoins service currencies
      *
      * @return
-     */
+     *//*
     public Observable<List<CurrencyItem>> currencyQuery() {
         return db.createQuery(CurrencyItem.TABLE, CurrencyItem.QUERY)
                 .distinct()
@@ -364,11 +327,11 @@ public class DbManager {
         }
     }
 
-    /**
+    *//**
      * Insert localbitcoins currencies
      *
      * @param currencies
-     */
+     *//*
     public void insertCurrencies(final List<ExchangeCurrency> currencies) {
         contentResolver.delete(SyncProvider.CURRENCY_TABLE_URI, null, null);
         for (ExchangeCurrency item : currencies) {
@@ -377,12 +340,12 @@ public class DbManager {
         }
     }
 
-    /**
+    *//**
      * Bulk inserting methods, removing any that don't exist and only inserting
      * those that do not exist.
      *
      * @param methods
-     */
+     *//*
     public void updateMethods(final List<Method> methods) {
         HashMap<String, Method> entryMap = new HashMap<String, Method>();
         for (Method item : methods) {
@@ -433,12 +396,12 @@ public class DbManager {
         return 0;
     }
 
-    /**
+    *//**
      * Get a single <code>NotificationModel</code>
      *
      * @param key
      * @return
-     */
+     *//*
     private MethodItem getMethod(@NonNull String key) {
         MethodItem model = null;
         if (!TextUtils.isEmpty(key)) {
@@ -528,5 +491,5 @@ public class DbManager {
                 Crashlytics.logException(new Throwable("updateAdvertisementVisibility Id is null: " + adId));
             }
         }
-    }
+    }*/
 }

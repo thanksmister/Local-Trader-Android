@@ -625,11 +625,11 @@
     <string name="pref_market_currency_title">Market currency</string>
     <string name="alert_token_expired_title">Token Expired</string>
     <string name="alert_change_endpoint">Changing the service end point requires an application restart. Do you want to update the end point and restart now?</string>
-    <string name="alert_valid_endpoint">The service end point should not be a valid URL.</string>
+    <string name="alert_valid_endpoint">The service end point should be a valid URL.</string>
     <string name="alert_authentication_error_title">Authentication Error</string>
     <string name="error_cannot_open_links">Can\'t open external links from authentication flow.</string>
     <string name="error_security_error_title">Security Error</string>
-    <string name="error_traffic_rerouted">It appears your traffic is being rerouted, you may want to try LocalBitcions.net. Here is the information:</string>
+    <string name="error_traffic_rerouted">It appears your traffic is being rerouted, you may want to try LocalBitcoins.net. Here is the information:</string>
     <string name="toast_message_blank">Message is blank...</string>
     <string name="toast_no_file_manager">Please install a file manager to handle file selection.</string>
     <string name="toast_file_no_upload">The file could not be uploaded.</string>
@@ -649,6 +649,15 @@
     <string name="button_register">Register</string>
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">Syncing account data…</string>
+    <string name="notifications_notification_title">New notifications</string>
+    <string name="notifications_trade_title">Trade notification</string>
+    <string name="notifications_advertisement_title">Advertisement notification</string>
+    <string name="notification_title">Notification</string>
+    <string name="notifications_description">You have %1$s new notifications.</string>
+    <string name="notification_bitcoin_received">Bitcoin Received</string>
+    <string name="notification_bitcoin_received_description">You received %1$s BTC</string>
+    <string name="notifcation_bitcoin_amount_description">You have %1$s BTC</string>
+    <string name="notifcation_bitcoin_amount_title">Bitcoin Balance</string>
 
 
 </resources>

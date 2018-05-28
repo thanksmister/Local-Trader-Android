@@ -24,23 +24,9 @@ import com.thanksmister.bitcoin.localtrader.network.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.network.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.network.api.BitstampExchange;
 import com.thanksmister.bitcoin.localtrader.network.api.Coinbase;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Bitstamp;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToBitfinex;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToExchange;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToExchangeCurrencies;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
-
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import retrofit.client.Response;
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func1;
 
 @Singleton
 public class ExchangeService {
@@ -52,9 +38,7 @@ public class ExchangeService {
 
     public static final int CHECK_EXCHANGE_DATA = 2 * 60 * 1000;// 5 minutes
 
-    public static final String USD = "USD";
 
-    public static final String COINBASE_EXCHANGE = "Coinbase";
     public static final String BITSTAMP_EXCHANGE = "Bitstamp";
     public static final String BITFINEX_EXCHANGE = "Bitfinex";
     public static final String BITCOINAVERAGE_EXCHANGE = "BitcoinAverage";
@@ -74,28 +58,8 @@ public class ExchangeService {
         this.sharedPreferences = sharedPreferences;
     }
 
-    public void setSelectedExchange(String name) {
-        StringPreference preference = new StringPreference(sharedPreferences, PREFS_SELECTED_EXCHANGE, COINBASE_EXCHANGE);
-        preference.set(name);
-    }
 
-    public String getSelectedExchange() {
-        StringPreference preference = new StringPreference(sharedPreferences, PREFS_SELECTED_EXCHANGE, COINBASE_EXCHANGE);
-        return preference.get();
-    }
-
-    public void setExchangeCurrency(String currency) {
-        StringPreference preference = new StringPreference(sharedPreferences, PREFS_EXCHANGE_CURRENCY, USD);
-        preference.set(currency);
-    }
-
-    public String getExchangeCurrency() {
-        StringPreference preference = new StringPreference(sharedPreferences, PREFS_EXCHANGE_CURRENCY, USD);
-        if (preference.get().equals("")) return USD;
-        return preference.get();
-    }
-
-    @Deprecated
+    /*@Deprecated
     public Observable<List<ExchangeCurrency>> getCurrencies() {
         return coinbase.currencies()
                 .map(new ResponseToExchangeCurrencies());
@@ -165,7 +129,7 @@ public class ExchangeService {
             return Observable.just(null);
         }
         //}
-    }
+    }*/
 
     public void clearExchangeExpireTime() {
         synchronized (this) {

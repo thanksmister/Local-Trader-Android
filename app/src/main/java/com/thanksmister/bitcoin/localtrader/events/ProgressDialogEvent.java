@@ -17,6 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.events;
 
+@Deprecated
 public class ProgressDialogEvent {
     public final String message;
     public final boolean hide;

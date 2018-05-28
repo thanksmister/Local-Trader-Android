@@ -30,7 +30,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -59,18 +58,15 @@ import android.widget.TextView;
 import com.google.android.gms.location.LocationRequest;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
 import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.SearchResultsActivity;
@@ -83,31 +79,16 @@ import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
 import com.thanksmister.bitcoin.localtrader.utils.SearchUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
-
-import static com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService.MAX_ADDRESSES;
 
 public class SearchFragment extends BaseFragment {
 
@@ -116,17 +97,6 @@ public class SearchFragment extends BaseFragment {
     public static final int REQUEST_CHECK_SETTINGS = 0;
     public static final int REQUEST_GOOGLE_PLAY_SERVICES = 1972;
 
-    @Inject
-    DbManager dbManager;
-
-    @Inject
-    DataService dataService;
-
-    @Inject
-    ExchangeService exchangeService;
-
-    @Inject
-    GeoLocationService geoLocationService;
 
     @Inject
     SharedPreferences sharedPreferences;
@@ -134,52 +104,36 @@ public class SearchFragment extends BaseFragment {
     @Inject
     LocationManager locationManager;
 
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.editLocationText)
     AutoCompleteTextView editLocation;
 
-    @BindView(R.id.locationText)
     TextView locationText;
 
-    @BindView(R.id.editLatitude)
     EditText editLatitude;
 
-    @BindView(R.id.editLongitude)
     EditText editLongitude;
 
-    @BindView(R.id.editLocationLayout)
     View editLocationLayout;
 
-    @BindView(R.id.locationSpinner)
     Spinner locationSpinner;
 
-    @BindView(R.id.typeSpinner)
     Spinner typeSpinner;
 
-    @BindView(R.id.countrySpinner)
     Spinner countrySpinner;
 
-    @BindView(R.id.paymentMethodSpinner)
     Spinner paymentMethodSpinner;
 
-    @BindView(R.id.onlineOptionsLayout)
     View onlineOptionsLayout;
 
-    @BindView(R.id.localOptionsLayout)
     View localOptionsLayout;
 
-    @BindView(R.id.searchButton)
     Button searchButton;
 
-    @BindView(R.id.clearButton)
     ImageButton clearButton;
 
-    @BindView(R.id.currencySpinner)
     Spinner currencySpinner;
 
-    @OnClick(R.id.clearButton)
     public void clearButtonClicked() {
         SearchUtils.setSearchLatitude(sharedPreferences, 0);
         SearchUtils.setSearchLongitude(sharedPreferences, 0);
@@ -190,17 +144,13 @@ public class SearchFragment extends BaseFragment {
         showEditTextLayout();
     }
 
-    @OnClick(R.id.searchButton)
     public void searchButtonClicked() {
         showSearchResultsScreen();
     }
 
     private PredictAdapter predictAdapter;
     private TradeType tradeType = TradeType.LOCAL_BUY;
-    private Subscription geoSubscription;
-    private Subscription dataServiceSubscription;
-    private Subscription geoLocationSubscription;
-    private Subscription currencySubscription = Subscriptions.empty();
+
     private MenuItem locationMenuItem;
 
     public static SearchFragment newInstance() {
@@ -258,25 +208,6 @@ public class SearchFragment extends BaseFragment {
     public void onDetach() {
         super.onDetach();
 
-        if (geoSubscription != null) {
-            geoSubscription.unsubscribe();
-            geoSubscription = null;
-        }
-
-        if (geoLocationSubscription != null) {
-            geoLocationSubscription.unsubscribe();
-            geoLocationSubscription = null;
-        }
-
-        if (dataServiceSubscription != null) {
-            dataServiceSubscription.unsubscribe();
-            dataServiceSubscription = null;
-        }
-
-        if (currencySubscription != null) {
-            currencySubscription.unsubscribe();
-            currencySubscription = null;
-        }
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
@@ -293,7 +224,6 @@ public class SearchFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_search, container, false);
-        ButterKnife.bind(this, view);
         return view;
     }
 
@@ -533,7 +463,7 @@ public class SearchFragment extends BaseFragment {
     }
 
     private void subscribeData() {
-        dbManager.currencyQuery()
+        /*dbManager.currencyQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<List<CurrencyItem>>bindUntilEvent(FragmentEvent.PAUSE))
@@ -578,12 +508,12 @@ public class SearchFragment extends BaseFragment {
                     public void call(Throwable throwable) {
                         handleError(new Throwable(getString(R.string.error_unable_load_payment_methods)));
                     }
-                });
+                });*/
     }
 
     private void fetchCurrencies() {
 
-        dataService.getCurrencies()
+        /*dataService.getCurrencies()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnUnsubscribe(new Action0() {
@@ -607,14 +537,14 @@ public class SearchFragment extends BaseFragment {
                         handleError(throwable);
 
                     }
-                });
+                });*/
     }
 
     private void fetchMethods() {
 
         Timber.d("getMethods");
 
-        dataService.getMethods()
+        /*dataService.getMethods()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnUnsubscribe(new Action0() {
@@ -637,18 +567,18 @@ public class SearchFragment extends BaseFragment {
                     public void call(Throwable throwable) {
                         toast(getString(R.string.toast_loading_methods));
                     }
-                });
+                });*/
     }
 
-    private void setMethods(@NonNull List<MethodItem> methods) {
+    private void setMethods(@NonNull List<Method> methods) {
 
         MethodAdapter typeAdapter = new MethodAdapter(getActivity(), R.layout.spinner_layout, methods);
         paymentMethodSpinner.setAdapter(typeAdapter);
 
         String methodCode = SearchUtils.getSearchPaymentMethod(sharedPreferences);
         int position = 0;
-        for (MethodItem methodItem : methods) {
-            if (methodItem.code().equals(methodCode)) {
+        for (Method methodItem : methods) {
+            if (methodItem.getCode().equals(methodCode)) {
                 break;
             }
             position++;
@@ -662,8 +592,8 @@ public class SearchFragment extends BaseFragment {
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 try {
-                    MethodItem methodItem = (MethodItem) paymentMethodSpinner.getAdapter().getItem(position);
-                    SearchUtils.setSearchPaymentMethod(sharedPreferences, methodItem.code());
+                    Method methodItem = (Method) paymentMethodSpinner.getAdapter().getItem(position);
+                    SearchUtils.setSearchPaymentMethod(sharedPreferences, methodItem.getCode());
                 } catch (IndexOutOfBoundsException e) {
                     Timber.e("Error setting methods: " + e.getMessage());
                 }
@@ -799,7 +729,7 @@ public class SearchFragment extends BaseFragment {
     }
 
     private void doAddressLookup(String locationName) {
-        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getContext().getApplicationContext());
+        /*final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getContext().getApplicationContext());
         locationProvider.getGeocodeObservable(locationName, MAX_ADDRESSES)
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -843,7 +773,7 @@ public class SearchFragment extends BaseFragment {
                             });
                         }
                     }
-                });
+                });*/
     }
 
     private void showSearchResultsScreen() {
@@ -920,7 +850,7 @@ public class SearchFragment extends BaseFragment {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_PERMISSIONS);
             return;
         }
-        geoLocationSubscription = locationProvider.getUpdatedLocation(request)
+       /* geoLocationSubscription = locationProvider.getUpdatedLocation(request)
                 .timeout(20000, TimeUnit.MILLISECONDS)
                 .onErrorResumeNext(new Func1<Throwable, Observable<Location>>() {
                     @Override
@@ -972,7 +902,7 @@ public class SearchFragment extends BaseFragment {
                             });
                         }
                     }
-                });
+                });*/
     }
 
     // TODO move these to base fragment
@@ -1033,7 +963,7 @@ public class SearchFragment extends BaseFragment {
      * @param location
      */
     private void reverseLocationLookup(Location location) {
-        final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());
+        /*final ReactiveLocationProvider locationProvider = new ReactiveLocationProvider(getActivity());
         locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
@@ -1083,11 +1013,11 @@ public class SearchFragment extends BaseFragment {
                             });
                         }
                     }
-                });
+                });*/
     }
 
     private void showNoLocationServicesWarning() {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active)), new Action0() {
+        /*showAlertDialog(new AlertDialogEvent(getString(R.string.warning_no_location_services_title), getString(R.string.warning_no_location_active)), new Action0() {
             @Override
             public void call() {
                 Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
@@ -1098,6 +1028,6 @@ public class SearchFragment extends BaseFragment {
             public void call() {
                 closeView();
             }
-        });
+        });*/
     }
 }

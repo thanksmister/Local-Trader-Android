@@ -19,7 +19,6 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -32,37 +31,23 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.persistence.Notification;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactsActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
-import com.trello.rxlifecycle.FragmentEvent;
-
-import org.json.JSONObject;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import dpreference.DPreference;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class DashboardFragment extends BaseFragment {
@@ -77,14 +62,13 @@ public class DashboardFragment extends BaseFragment {
     @Inject
     DbManager dbManager;
 
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
     @Inject
     protected SharedPreferences sharedPreferences;
 
     @Inject
-    protected DPreference preference;
+    protected Preferences preferences;
 
     private int pagerPosition = 0;
     private Fragment fragment;
@@ -157,13 +141,13 @@ public class DashboardFragment extends BaseFragment {
         try {
             ((MainActivity) getActivity()).setSupportActionBar(toolbar);
         } catch (NoClassDefFoundError e) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_device_title),
+            /*showAlertDialog(new AlertDialogEvent(getString(R.string.error_device_title),
                     getString(R.string.error_device_softare_description)), new Action0() {
                 @Override
                 public void call() {
                     getActivity().finish();
                 }
-            });
+            });*/
             return;
         }
 
@@ -177,7 +161,7 @@ public class DashboardFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_dashboard, container, false);
-        ButterKnife.bind(this, view);
+
         return view;
     }
 
@@ -225,7 +209,7 @@ public class DashboardFragment extends BaseFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putInt("pagePosition", pagerPosition);
-        super.onSaveInstanceState(outState);
+       // super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -271,7 +255,7 @@ public class DashboardFragment extends BaseFragment {
     }
 
     private void createAdvertisementScreen() {
-        showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
+        /*showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
             @Override
             public void call() {
                 try {
@@ -285,12 +269,12 @@ public class DashboardFragment extends BaseFragment {
             public void call() {
                 // na-da
             }
-        });
+        });*/
     }
 
     private void getUnreadNotifications() {
         showProgressDialog(new ProgressDialogEvent("Marking notifications read..."));
-        dbManager.notificationsQuery()
+       /* dbManager.notificationsQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -324,13 +308,13 @@ public class DashboardFragment extends BaseFragment {
                         hideProgressDialog();
                         reportError(throwable);
                     }
-                });
+                });*/
     }
 
-    private void markNotificationsRead(List<NotificationItem> notificationItems) {
-        for (NotificationItem notificationItem : notificationItems) {
-            final String notificationId = notificationItem.notification_id();
-            dataService.markNotificationRead(notificationId)
+    private void markNotificationsRead(List<Notification> notificationItems) {
+        for (Notification notificationItem : notificationItems) {
+            //final String notificationId = notificationItem.getId();
+           /* dataService.markNotificationRead(notificationId)
                     .doOnUnsubscribe(new Action0() {
                         @Override
                         public void call() {
@@ -352,7 +336,7 @@ public class DashboardFragment extends BaseFragment {
                         public void call(Throwable throwable) {
                             Timber.e(throwable.getMessage());
                         }
-                    });
+                    });*/
         }
 
         hideProgressDialog();

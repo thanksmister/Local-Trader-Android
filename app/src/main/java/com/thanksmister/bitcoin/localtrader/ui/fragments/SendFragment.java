@@ -43,13 +43,10 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
-import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.WalletData;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
@@ -58,26 +55,12 @@ import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
-import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import dpreference.DPreference;
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
+
 import timber.log.Timber;
 
 public class SendFragment extends BaseFragment {
@@ -86,10 +69,7 @@ public class SendFragment extends BaseFragment {
     public static final String EXTRA_AMOUNT = "com.thanksmister.extra.EXTRA_AMOUNT";
 
     @Inject
-    DataService dataService;
-
-    @Inject
-    DPreference dPreference;
+    Preferences preferences;
 
     @Inject
     ExchangeService exchangeService;
@@ -97,28 +77,20 @@ public class SendFragment extends BaseFragment {
     @Inject
     DbManager dbManager;
 
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.amountText)
     TextView amountText;
 
-    @BindView(R.id.fiatEditText)
     TextView fiatEditText;
 
-    @BindView(R.id.balanceText)
     TextView balance;
 
-    @BindView(R.id.address)
     TextView addressText;
 
-    @BindView(R.id.currencyText)
     TextView currencyText;
 
-    @BindView(R.id.sendDescription)
     TextView sendDescription;
 
-    @OnClick(R.id.sendButton)
     public void sendButtonClicked() {
         validateForm();
     }
@@ -126,8 +98,6 @@ public class SendFragment extends BaseFragment {
     private String address;
     private String amount;
     private WalletData walletData;
-
-    private Subscription sendSubscription;
 
     public static SendFragment newInstance(String address, String amount) {
         SendFragment fragment = new SendFragment();
@@ -152,17 +122,13 @@ public class SendFragment extends BaseFragment {
             amount = getArguments().getString(EXTRA_AMOUNT);
         }
 
-        // TODO make these static
-        amount = dPreference.getString("send_amount", amount);
-        address = dPreference.getString("send_address", address);
-
         setHasOptionsMenu(true);
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        dPreference.putString("send_amount", amount);
-        dPreference.putString("send_address", address);
+    public void onSaveInstanceState(Bundle outState) { ;
+        outState.putString("send_address", amount);
+        outState.putString("send_amount", address);
         super.onSaveInstanceState(outState);
     }
 
@@ -209,7 +175,6 @@ public class SendFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_send, container, false);
-        ButterKnife.bind(this, view);
         return view;
     }
 
@@ -297,8 +262,6 @@ public class SendFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (sendSubscription != null)
-            sendSubscription.unsubscribe();
     }
 
     @Override
@@ -306,9 +269,6 @@ public class SendFragment extends BaseFragment {
         super.onDetach();
 
         Timber.d("onDetach");
-
-        dPreference.removePreference("send_amount");
-        dPreference.removePreference("send_address");
 
         //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
         try {
@@ -331,7 +291,7 @@ public class SendFragment extends BaseFragment {
     }
 
     private void setCurrency() {
-        String currency = exchangeService.getExchangeCurrency();
+        String currency = preferences.getExchangeCurrency();
 
         if (currencyText != null)
             currencyText.setText(currency);
@@ -339,7 +299,7 @@ public class SendFragment extends BaseFragment {
 
     protected void subscribeData() {
         // this must be set each time
-        CompositeSubscription dataSubscriptions = new CompositeSubscription();
+        /*CompositeSubscription dataSubscriptions = new CompositeSubscription();
 
         dataSubscriptions.add(Observable.combineLatest(dbManager.exchangeQuery(), dbManager.walletQuery(), new Func2<ExchangeRateItem, WalletItem, WalletData>() {
             @Override
@@ -377,7 +337,7 @@ public class SendFragment extends BaseFragment {
                     public void call(Throwable throwable) {
                         reportError(throwable);
                     }
-                }));
+                }));*/
     }
 
     private void promptForPin(String bitcoinAddress, String bitcoinAmount) {
@@ -395,7 +355,7 @@ public class SendFragment extends BaseFragment {
         Timber.d("setAddressFromClipboardTouch");
 
         final String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
-        validateBitcoinAddress(bitcoinAddress)
+      /*  validateBitcoinAddress(bitcoinAddress)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Boolean>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribe(new Observer<Boolean>() {
@@ -426,7 +386,7 @@ public class SendFragment extends BaseFragment {
                             }
                         });
                     }
-                });
+                });*/
     }
 
     public void setAddressFromClipboard() {
@@ -442,7 +402,7 @@ public class SendFragment extends BaseFragment {
         final String bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText);
         final String bitcoinAmount = WalletUtils.parseBitcoinAmount(clipText);
 
-        validateBitcoinAddress(bitcoinAddress)
+        /*validateBitcoinAddress(bitcoinAddress)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.<Boolean>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribe(new Observer<Boolean>() {
@@ -481,10 +441,10 @@ public class SendFragment extends BaseFragment {
                             }
                         });
                     }
-                });
+                });*/
     }
 
-    private Observable<Boolean> validateBitcoinAddress(final String address) {
+    /*private Observable<Boolean> validateBitcoinAddress(final String address) {
         return Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override
             public void call(Subscriber<? super Boolean> subscriber) {
@@ -499,7 +459,7 @@ public class SendFragment extends BaseFragment {
                 }
             }
         });
-    }
+    }*/
 
     private String getClipboardText() {
         String clipText = "";
@@ -522,17 +482,17 @@ public class SendFragment extends BaseFragment {
 
         String confirmTitle = "Confirm Transaction";
         String confirmDescription = getString(R.string.send_confirmation_description, amount, address);
-        showConfirmationDialog(new ConfirmationDialogEvent(confirmTitle, confirmDescription, getString(R.string.button_confirm), getString(R.string.button_cancel), new Action0() {
+        /*showConfirmationDialog(new ConfirmationDialogEvent(confirmTitle, confirmDescription, getString(R.string.button_confirm), getString(R.string.button_cancel), new Action0() {
             @Override
             public void call() {
                 confirmedPinCodeSend(pinCode, address, amount);
             }
-        }));
+        }));*/
     }
 
     public void confirmedPinCodeSend(String pinCode, String address, String amount) {
 
-        if (sendSubscription != null)
+        /*if (sendSubscription != null)
             return;
 
         showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_sending_transaction)));
@@ -552,14 +512,10 @@ public class SendFragment extends BaseFragment {
                         hideProgressDialog();
                         handleSendError(throwable);
                     }
-                });
+                });*/
     }
 
     private void handleSendError(Throwable throwable) {
-        if (sendSubscription != null) {
-            sendSubscription.unsubscribe();
-            sendSubscription = null;
-        }
         amountText.setText("");
         addressText.setText("");
         calculateCurrencyAmount("0.00");
@@ -624,7 +580,7 @@ public class SendFragment extends BaseFragment {
             return;
         }
 
-        validateBitcoinAddress(address)
+        /*validateBitcoinAddress(address)
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnUnsubscribe(new Action0() {
@@ -653,7 +609,7 @@ public class SendFragment extends BaseFragment {
                     public void call(Throwable throwable) {
                         Timber.w(throwable.getMessage());
                     }
-                });
+                });*/
     }
 
     protected void computeBalance(double btcAmount) {
@@ -665,7 +621,7 @@ public class SendFragment extends BaseFragment {
         String btcBalance = Conversions.formatBitcoinAmount(balanceAmount - btcAmount);
 
         String value = Calculations.computedValueOfBitcoin(walletData.getRate(), walletData.getBalance());
-        String currency = exchangeService.getExchangeCurrency();
+        String currency = preferences.getExchangeCurrency();
         if (balanceAmount < btcAmount) {
             balance.setText(Html.fromHtml(getString(R.string.form_balance_negative, btcBalance, value, currency)));
         } else {

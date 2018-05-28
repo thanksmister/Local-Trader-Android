@@ -20,16 +20,10 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcelable;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
-
-import static com.squareup.sqlbrite.SqlBrite.Query;
-
 /**
  * https://github.com/square/sqlbrite/
  */
 
-@AutoParcel
 public abstract class ExchangeItem implements Parcelable {
     public static final String TABLE = "exchange_item";
 
@@ -52,7 +46,7 @@ public abstract class ExchangeItem implements Parcelable {
 
     public abstract String last();
 
-    public static final Func1<Query, ExchangeItem> MAP = new Func1<Query, ExchangeItem>() {
+    /*public static final Func1<Query, ExchangeItem> MAP = new Func1<Query, ExchangeItem>() {
         @Override
         public ExchangeItem call(Query query) {
             Cursor cursor = query.run();
@@ -72,7 +66,7 @@ public abstract class ExchangeItem implements Parcelable {
                 cursor.close();
             }
         }
-    };
+    };*/
 
     public static final class Builder {
         private final ContentValues values = new ContentValues();

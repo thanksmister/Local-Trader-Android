@@ -33,6 +33,7 @@ import static android.content.Context.ACCOUNT_SERVICE;
  */
 public class SyncUtils {
 
+    public static final String CONTENT_AUTHORITY = "com.thanksmister.bitcoin.localtrader.provider";
     public static final long SYNC_FREQUENCY = 5 * 60;  // 5 minutes in seconds
 
     /**
@@ -45,7 +46,7 @@ public class SyncUtils {
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_DO_NOT_RETRY, true);
-        ContentResolver.requestSync(getSyncAccount(context), SyncProvider.CONTENT_AUTHORITY, bundle);
+        ContentResolver.requestSync(getSyncAccount(context), CONTENT_AUTHORITY, bundle);
     }
 
     /**
@@ -54,7 +55,7 @@ public class SyncUtils {
      * @param context
      */
     public static void cancelSync(Context context) {
-        ContentResolver.cancelSync(getSyncAccount(context), SyncProvider.CONTENT_AUTHORITY);
+        ContentResolver.cancelSync(getSyncAccount(context), CONTENT_AUTHORITY);
     }
 
     /**
@@ -67,7 +68,9 @@ public class SyncUtils {
         String acctType = "com.thanksmister.bitcoin.localtrader.sync";
         AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
         Account account = new Account(context.getString(R.string.app_name), acctType);
-        accountManager.addAccountExplicitly(account, null, null);
+        if (accountManager != null) {
+            accountManager.addAccountExplicitly(account, null, null);
+        }
         return account;
     }
 }

@@ -34,9 +34,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 public class MessageAdapter extends BaseAdapter {
     private List<MessageItem> data = Collections.emptyList();
     private Context context;
@@ -112,21 +109,14 @@ public class MessageAdapter extends BaseAdapter {
     }
 
     static class ViewHolder {
-        @BindView(R.id.row)
         View row;
-        @BindView(R.id.senderName)
         TextView senderName;
-        @BindView(R.id.createdAt)
         TextView createdAt;
-        @BindView(R.id.messageBody)
         TextView messageBody;
-        @BindView(R.id.attachmentLayout)
         View attachmentLayout;
-        @BindView(R.id.attachmentName)
         TextView attachmentName;
 
-        public ViewHolder(View view) {
-            ButterKnife.bind(this, view);
+        public ViewHolder(View view){
         }
     }
 }

@@ -37,34 +37,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.thanksmister.bitcoin.localtrader.Injector;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeCurrencyItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.activities.LoginActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.SettingsActivity;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.CurrencyUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
-
-import butterknife.ButterKnife;
-import dpreference.DPreference;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
-import timber.log.Timber;
 
 import static com.thanksmister.bitcoin.localtrader.R.xml.preferences;
 import static com.thanksmister.bitcoin.localtrader.network.services.ExchangeService.PREFS_EXCHANGE;
@@ -74,20 +60,12 @@ import static com.thanksmister.bitcoin.localtrader.network.services.ExchangeServ
  * A simple {@link Fragment} subclass.
  */
 public class SettingsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
-    @Inject
-    DbManager db;
 
     @Inject
-    ExchangeService exchangeService;
+    Preferences appPreferences;
 
     @Inject
     SharedPreferences sharedPreferences;
-
-    @Inject
-    DPreference preference;
-
-    private Subscription subscription = Subscriptions.empty();
-    private Subscription currencySubscription = Subscriptions.empty();
 
     ListPreference marketCurrencyPreference;
     ListPreference exchangePreference;
@@ -101,8 +79,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(preferences);
 
-        Injector.inject(this);
-
         Preference resetPreference = findPreference("reset");
         resetPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
@@ -112,23 +88,23 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             }
         });
 
-        String endpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
+        String endpoint = appPreferences.endPoint();
         apiPreference = (EditTextPreference) findPreference(getString(R.string.pref_key_api));
         apiPreference.setText(endpoint);
         apiPreference.setDefaultValue(endpoint);
         apiPreference.setSummary(endpoint);
 
-        String units = preference.getString(getString(R.string.pref_key_distance), "0");
+        String units = sharedPreferences.getString(getString(R.string.pref_key_distance), "0");
         unitsPreference = (ListPreference) findPreference(getString(R.string.pref_key_distance));
         unitsPreference.setTitle((units.equals("0") ? getString(R.string.pref_distance_km) : getString(R.string.pref_distance_mi)));
 
-        String currency = exchangeService.getExchangeCurrency();
+        String currency = appPreferences.getExchangeCurrency();
         marketCurrencyPreference = (ListPreference) findPreference("exchange_currency");
         marketCurrencyPreference.setTitle(getString(R.string.pref_market_currency, currency));
 
         exchangePreference = (ListPreference) findPreference(PREFS_EXCHANGE);
-        exchangePreference.setDefaultValue(exchangeService.getSelectedExchange());
-        exchangePreference.setTitle(getString(R.string.pref_exchange, exchangeService.getSelectedExchange()));
+        exchangePreference.setDefaultValue(appPreferences.getSelectedExchange());
+        exchangePreference.setTitle(getString(R.string.pref_exchange, appPreferences.getSelectedExchange()));
 
         String[] currencyList = {"USD"};
         String[] currencyValues = {"0"};
@@ -149,8 +125,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     @Override
     public void onPause() {
         super.onPause();
-        subscription.unsubscribe();
-        currencySubscription.unsubscribe();
         getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
@@ -171,7 +145,6 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        ButterKnife.bind(this, view);
         super.onViewCreated(view, savedInstanceState);
     }
 
@@ -181,32 +154,33 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         if (key.equals(PREFS_EXCHANGE)) {
 
             String exchange = exchangePreference.getValue();
-            exchangeService.setSelectedExchange(exchange);
-            exchangePreference.setTitle(getString(R.string.pref_exchange, exchangeService.getSelectedExchange()));
+            appPreferences.setSelectedExchange(exchange);
+            exchangePreference.setTitle(getString(R.string.pref_exchange, appPreferences.getSelectedExchange()));
 
         } else if (key.equals("exchange_currency")) {
 
             String marketCurrency = marketCurrencyPreference.getEntry().toString();
-            String storedMarketCurrency = exchangeService.getExchangeCurrency();
+            String storedMarketCurrency = appPreferences.getExchangeCurrency();
             if (!storedMarketCurrency.equals(marketCurrency)) {
                 marketCurrencyPreference.setTitle("Market currency (" + marketCurrencyPreference.getEntry() + ")");
-                exchangeService.setExchangeCurrency(marketCurrency);
+                appPreferences.setExchangeCurrency(marketCurrency);
             }
         } else if (key.equals("distance_units")) {
 
             String units = unitsPreference.getValue();
-            unitsPreference.setTitle((units.equals("0") ? "Kilometers (km)" : "Miles (mi)"));
+            // TODO internationalize
+            unitsPreference.setTitle((units.equals("0") ? getString(R.string.pref_distance_km) : getString(R.string.pref_distance_mi)));
 
         } else if (key.equals(getString(R.string.pref_key_api))) {
 
             final String endpoint = apiPreference.getEditText().getText().toString();
-            final String currentEndpoint = AuthUtils.getServiceEndpoint(preference, sharedPreferences);
+            final String currentEndpoint = appPreferences.endPoint();
             if (TextUtils.isEmpty(endpoint)) {
                 ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "The service end point should be a valid URL."));
             } else if (!Patterns.WEB_URL.matcher(endpoint).matches()) {
                 ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "The service end point should be a valid URL."));
-            } else if (!currentEndpoint.equals(endpoint)) {
-                ((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), new Action0() {
+            } else if (!TextUtils.isEmpty(currentEndpoint) && !currentEndpoint.equals(endpoint)) {
+                /*((SettingsActivity) getActivity()).showAlertDialog(new AlertDialogEvent(null, "Changing the service end point requires an application restart. Do you want to update the end point and restart now?"), new Action0() {
                     @Override
                     public void call() {
                         Timber.d("endpoint: " + endpoint);
@@ -233,7 +207,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                         apiPreference.setSummary(currentEndpoint);
                         apiPreference.setDefaultValue(currentEndpoint);
                     }
-                });
+                });*/
             }
         }
     }
@@ -241,7 +215,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     private Runnable refreshRunnable = new Runnable() {
         @Override
         public void run() {
-            Intent intent = LoginActivity.createStartIntent(getActivity());
+            Intent intent = LoginActivity.Companion.createStartIntent(getActivity());
             PendingIntent restartIntent = PendingIntent.getActivity(getActivity(), 0, intent, 0);
             AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
             alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 100, restartIntent);
@@ -250,7 +224,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     };
 
     private void subscribeData() {
-        db.currencyQuery()
+       /* db.currencyQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<List<CurrencyItem>>() {
@@ -260,7 +234,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                         exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
                         updateCurrencies(exchangeCurrencies);
                     }
-                });
+                });*/
     }
 
     private void updateCurrencies(List<ExchangeCurrency> currencies) {
@@ -269,7 +243,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
 
         ArrayList<String> currencyList = new ArrayList<>();
         ArrayList<String> currencyValues = new ArrayList<>();
-        String exchangeCurrency = exchangeService.getExchangeCurrency();
+        String exchangeCurrency = appPreferences.getExchangeCurrency();
 
         if (currencies.isEmpty()) {
             ExchangeCurrency exchangeRate = new ExchangeCurrency(getString(R.string.usd));
@@ -293,7 +267,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         String[] stringValues = new String[currencyValues.size()];
         stringValues = currencyValues.toArray(stringValues);
 
-        exchangeService.clearExchangeExpireTime();
+        //appPreferences.clearExchangeExpireTime();
         marketCurrencyPreference.setEntries(stringExchanges);
         marketCurrencyPreference.setDefaultValue("0");
         marketCurrencyPreference.setEntryValues(stringValues);

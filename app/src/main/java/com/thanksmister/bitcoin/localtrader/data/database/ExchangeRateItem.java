@@ -25,12 +25,6 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import java.util.ArrayList;
 import java.util.List;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
-
-import static com.squareup.sqlbrite.SqlBrite.Query;
-
-@AutoParcel
 public abstract class ExchangeRateItem implements Parcelable {
     public static final String TABLE = "exchange_rate_item";
 
@@ -49,7 +43,7 @@ public abstract class ExchangeRateItem implements Parcelable {
 
     public abstract String currency();
 
-    public static final Func1<Query, List<ExchangeRateItem>> MAP = new Func1<Query, List<ExchangeRateItem>>() {
+    /*public static final Func1<Query, List<ExchangeRateItem>> MAP = new Func1<Query, List<ExchangeRateItem>>() {
         @Override
         public List<ExchangeRateItem> call(Query query) {
             Cursor cursor = query.run();
@@ -83,7 +77,7 @@ public abstract class ExchangeRateItem implements Parcelable {
             }
             return null;
         }
-    };
+    };*/
 
     public static Builder createBuilder(ExchangeRate item) {
         return new Builder()

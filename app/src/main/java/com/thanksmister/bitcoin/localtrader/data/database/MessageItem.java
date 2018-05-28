@@ -25,16 +25,10 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
 import java.util.ArrayList;
 import java.util.List;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
-import timber.log.Timber;
-
-import static com.squareup.sqlbrite.SqlBrite.Query;
-
 /**
  * https://github.com/square/sqlbrite/
  */
-@AutoParcel
+
 public abstract class MessageItem {
     public static final String TABLE = "message_item";
 
@@ -105,7 +99,7 @@ public abstract class MessageItem {
 
     @Nullable
     public abstract String attachment_url();
-
+/*
     public static final Func1<Query, List<MessageItem>> MAP = new Func1<Query, List<MessageItem>>() {
         @Override
         public List<MessageItem> call(Query query) {
@@ -142,9 +136,9 @@ public abstract class MessageItem {
             }
         }
         return values;
-    }
+    }*/
 
-    public static MessageItem getModel(Cursor cursor) {
+    /*public static MessageItem getModel(Cursor cursor) {
         if (cursor != null && cursor.getCount() > 0) {
             long id = Db.getLong(cursor, ID);
             String created_at = Db.getString(cursor, CREATED_AT);
@@ -177,7 +171,7 @@ public abstract class MessageItem {
             }
         }
         return values;
-    }
+    }*/
 
     public static ContentValues getContentValues(Message item, long id) {
         ContentValues values = createBuilder(item).build();

@@ -33,114 +33,66 @@ import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.ActivityEvent;
 
-import java.util.List;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
-import timber.log.Timber;
 
 public class AdvertiserActivity extends BaseActivity {
 
     public static final String EXTRA_AD_ID = "com.thanksmister.extras.EXTRA_AD_ID";
 
-    @Inject
-    DataService dataService;
-
-    @Inject
-    DbManager dbManager;
-
-    @BindView(R.id.advertiserProgress)
     View progress;
 
-    @BindView(R.id.advertiserContent)
     ScrollView content;
 
-    @BindView(R.id.priceLayout)
     View priceLayout;
 
-    @BindView(R.id.priceLayoutDivider)
     View priceLayoutDivider;
 
-    @BindView(R.id.advertiserToolbar)
     Toolbar toolbar;
 
-    @BindView(R.id.tradePrice)
     TextView tradePrice;
 
-    @BindView(R.id.traderName)
     TextView traderName;
 
-    @BindView(R.id.tradeLimit)
     TextView tradeLimit;
 
-    @BindView(R.id.tradeTerms)
     TextView tradeTerms;
 
-    @BindView(R.id.tradeFeedback)
     TextView tradeFeedback;
 
-    @BindView(R.id.tradeCount)
+
     TextView tradeCount;
 
     @Nullable
-    @BindView(R.id.dateText)
     TextView dateText;
 
-    @BindView(R.id.noteTextAdvertiser)
     TextView noteTextAdvertiser;
 
-    @BindView(R.id.lastSeenIcon)
     View lastSeenIcon;
 
-    @BindView(R.id.requirementsLayout)
     View requirementsLayout;
 
-    @BindView(R.id.trustedTextView)
     TextView trustedTextView;
 
-    @BindView(R.id.identifiedTextView)
     TextView identifiedTextView;
 
-    @BindView(R.id.smsTextView)
     TextView smsTextView;
 
-    @BindView(R.id.feedbackText)
     TextView feedbackText;
 
-    @BindView(R.id.limitText)
     TextView limitText;
 
-    @BindView(R.id.volumeText)
     TextView volumeText;
 
-    @BindView(R.id.requestButton)
     Button requestButton;
 
-    @OnClick(R.id.requestButton)
     public void requestButtonClicked() {
         showTradeRequest();
     }
@@ -151,7 +103,7 @@ public class AdvertiserActivity extends BaseActivity {
 
     private class AdvertisementData {
         public Advertisement advertisement;
-        public MethodItem method;
+        public Method method;
     }
 
     public static Intent createStartIntent(Context context, String adId) {
@@ -165,8 +117,6 @@ public class AdvertiserActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.view_advertiser);
-
-        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_AD_ID);
@@ -250,7 +200,7 @@ public class AdvertiserActivity extends BaseActivity {
     }
 
     protected void subscribeData() {
-        Observable.combineLatest(
+        /*Observable.combineLatest(
                 dbManager.methodQuery(),
                 dataService.getAdvertisement(adId),
                 new Func2<List<MethodItem>, Advertisement, AdvertisementData>() {
@@ -292,10 +242,10 @@ public class AdvertiserActivity extends BaseActivity {
                         handleError(throwable);
                         //toast(R.string.toast_error_advertisement_data);
                     }
-                });
+                });*/
     }
 
-    public void setAdvertisement(Advertisement advertisement, MethodItem method) {
+    public void setAdvertisement(Advertisement advertisement, Method method) {
 
         requestButton.setEnabled(true);
         setHeader(advertisement.trade_type);
@@ -426,7 +376,7 @@ public class AdvertiserActivity extends BaseActivity {
         Advertisement advertisement = advertisementData.advertisement;
         final TradeType tradeType = advertisement.trade_type;
         if (tradeType == null || TradeType.NONE.name().equals(tradeType.name())) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
+            /*showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
                 @Override
                 public void call() {
                     if (!BuildConfig.DEBUG) {
@@ -434,7 +384,7 @@ public class AdvertiserActivity extends BaseActivity {
                         Crashlytics.logException(new Throwable("Bad trade type for requested trade: " + tradeType + " advertisement Id: " + adId));
                     }
                 }
-            });
+            });*/
             return;
         }
 

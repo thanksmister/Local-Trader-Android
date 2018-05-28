@@ -22,15 +22,11 @@ import android.os.Parcelable;
 
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
 
-import static com.squareup.sqlbrite.SqlBrite.Query;
 
 /**
  * https://github.com/square/sqlbrite/
  */
-@AutoParcel
 public abstract class WalletItem implements Parcelable {
     public static final String TABLE = "wallet_item";
 
@@ -53,7 +49,7 @@ public abstract class WalletItem implements Parcelable {
 
     public static final String QUERY = "SELECT * FROM " + WalletItem.TABLE;
 
-    public static final Func1<Query, WalletItem> MAP = new Func1<Query, WalletItem>() {
+    /*public static final Func1<Query, WalletItem> MAP = new Func1<Query, WalletItem>() {
         @Override
         public WalletItem call(Query query) {
             Cursor cursor = query.run();
@@ -74,7 +70,7 @@ public abstract class WalletItem implements Parcelable {
                 cursor.close();
             }
         }
-    };
+    };*/
 
     public static Builder createBuilder(Wallet wallet) {
         return new Builder()

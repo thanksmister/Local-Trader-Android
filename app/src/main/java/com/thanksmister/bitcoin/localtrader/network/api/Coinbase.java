@@ -17,19 +17,14 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api;
 
-import retrofit.client.Response;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import rx.Observable;
-
 public interface Coinbase {
 
-    @GET("/v2/exchange-rates?currency=BTC")
+    /*@GET("/v2/exchange-rates?currency=BTC")
     Observable<Response> exchangeRates();
 
     @GET("/v2/currencies")
     Observable<Response> currencies();
 
     @GET("/v2/prices/BTC-{currency}/spot")
-    Observable<Response> spotPrice(@Path("currency") String currency);
+    Observable<Response> spotPrice(@Path("currency") String currency);*/
 }

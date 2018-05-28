@@ -26,16 +26,11 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import java.util.ArrayList;
 import java.util.List;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
-import timber.log.Timber;
-
-import static com.squareup.sqlbrite.SqlBrite.Query;
 
 /**
  * https://github.com/square/sqlbrite/
  */
-@AutoParcel
+
 public abstract class AdvertisementItem implements Parcelable {
     public static final String TABLE = "advertisement_item";
 
@@ -190,7 +185,7 @@ public abstract class AdvertisementItem implements Parcelable {
     @Nullable
     public abstract String opening_hours();
 
-    public static final Func1<Query, List<AdvertisementItem>> MAP = new Func1<Query, List<AdvertisementItem>>() {
+    /*public static final Func1<Query, List<AdvertisementItem>> MAP = new Func1<Query, List<AdvertisementItem>>() {
         @Override
         public List<AdvertisementItem> call(Query query) {
             Cursor cursor = query.run();
@@ -618,5 +613,5 @@ public abstract class AdvertisementItem implements Parcelable {
         public ContentValues build() {
             return values;
         }
-    }
+    }*/
 }

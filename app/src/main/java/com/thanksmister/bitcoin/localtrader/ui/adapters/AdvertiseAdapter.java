@@ -27,21 +27,19 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.Collections;
 import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
+;
 
 public class AdvertiseAdapter extends BaseAdapter {
     private List<Advertisement> data = Collections.emptyList();
-    private List<MethodItem> methods = Collections.emptyList();
+    private List<Method> methods = Collections.emptyList();
     private Context context;
     private final LayoutInflater inflater;
 
@@ -76,7 +74,7 @@ public class AdvertiseAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    public void replaceWith(List<Advertisement> data, List<MethodItem> methods) {
+    public void replaceWith(List<Advertisement> data, List<Method> methods) {
         this.methods = methods;
         this.data = data;
         notifyDataSetChanged();
@@ -152,25 +150,25 @@ public class AdvertiseAdapter extends BaseAdapter {
     }
 
     static class ViewHolder {
-        @BindView(android.R.id.background)
+
         View row;
-        @BindView(R.id.tradePrice)
+
         TextView tradePrice;
-        @BindView(R.id.traderName)
+
         TextView traderName;
-        @BindView(R.id.tradeLimit)
+
         TextView tradeLimit;
-        @BindView(R.id.tradeFeedback)
+
         TextView tradeFeedback;
-        @BindView(R.id.tradeCount)
+
         TextView tradeCount;
-        @BindView(R.id.tradLocation)
+
         TextView tradLocation;
-        @BindView(R.id.lastSeenIcon)
+
         View lastSeenIcon;
 
         public ViewHolder(View view) {
-            ButterKnife.bind(this, view);
+
         }
     }
 }

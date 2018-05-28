@@ -28,11 +28,9 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.SettingsFragment;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class SettingsActivity extends BaseActivity {
-    @BindView(R.id.toolbar)
+
     Toolbar toolbar;
 
     public static Intent createStartIntent(Context context) {
@@ -44,8 +42,6 @@ public class SettingsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_settings);
-
-        ButterKnife.bind(this);
 
         // Display the fragment as the main content
         getFragmentManager().beginTransaction().replace(R.id.content, new SettingsFragment()).commit();

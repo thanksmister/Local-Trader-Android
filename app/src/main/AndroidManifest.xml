@@ -62,12 +62,11 @@
                 android:exported="false"
                 android:syncable="true"/>
 
-        <!-- Preference Provider -->
         <provider
-                android:name="dpreference.PreferenceProvider"
-                android:authorities="thanksmister.bitcoin.localtrader.PreferenceProvider"
-                android:enabled="true"
-                android:exported="false"/>
+            android:name="net.grandcentrix.tray.provider.TrayContentProvider"
+            android:authorities="com.thanksmister.localtrader.authority"
+            android:exported="false"
+            tools:replace="android:authorities"/>
 
         <!-- Services -->
         <service android:name=".network.services.AuthenticatorService" >

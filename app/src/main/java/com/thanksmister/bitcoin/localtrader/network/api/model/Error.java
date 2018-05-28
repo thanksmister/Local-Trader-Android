@@ -21,6 +21,8 @@ package com.thanksmister.bitcoin.localtrader.network.api.model;
  * Created by Michael Ritchie on 4/10/18.
  */
 
+import android.support.annotation.Nullable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -28,7 +30,9 @@ public class Error {
 
     @SerializedName("message")
     @Expose
+    @Nullable
     private String message;
+    @Nullable
     @SerializedName("errors")
     @Expose
     private Errors errors;
@@ -37,6 +41,7 @@ public class Error {
     private Integer errorCode;
     @SerializedName("error_lists")
     @Expose
+    @Nullable
     private ErrorLists errorLists;
 
     public String getMessage() {

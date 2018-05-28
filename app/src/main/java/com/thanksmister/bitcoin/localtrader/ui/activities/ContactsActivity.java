@@ -31,57 +31,38 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
-import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter;
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
-import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
-import com.trello.rxlifecycle.ActivityEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
-import timber.log.Timber;
-
 public class ContactsActivity extends BaseActivity {
     public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_NOTIFICATION_TYPE";
 
-    @Inject
-    DataService dataService;
-
-    @BindView(R.id.recycleView)
     RecyclerView recycleView;
 
-    @BindView(R.id.contactsToolBar)
+
     Toolbar toolbar;
 
-    @BindView(R.id.emptyLayout)
+
     View emptyLayout;
 
-    @BindView(R.id.resultsProgress)
+
     View progress;
 
-    @BindView(R.id.emptyText)
+
     TextView emptyText;
 
     private ContactAdapter itemAdapter;
 
     private DashboardType dashboardType = DashboardType.NONE;
 
-    private Subscription updateSubscription = Subscriptions.empty();
-    private Subscription subscription = Subscriptions.empty();
 
     public static Intent createStartIntent(Context context, DashboardType dashboardType) {
         Intent intent = new Intent(context, ContactsActivity.class);
@@ -95,7 +76,6 @@ public class ContactsActivity extends BaseActivity {
 
         setContentView(R.layout.view_contacts);
 
-        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             dashboardType = (DashboardType) getIntent().getSerializableExtra(EXTRA_TYPE);
@@ -160,8 +140,7 @@ public class ContactsActivity extends BaseActivity {
     @Override
     public void onPause() {
         super.onPause();
-        subscription.unsubscribe();
-        updateSubscription.unsubscribe();
+
     }
 
     @Override
@@ -222,7 +201,7 @@ public class ContactsActivity extends BaseActivity {
         toast(getString(R.string.toast_loading_trades));
         showProgress();
 
-        subscription.unsubscribe(); // stop subscribed database data
+        /*subscription.unsubscribe(); // stop subscribed database data
         dashboardType = type;
         setTitle(dashboardType);
         updateSubscription = dataService.getContacts(dashboardType)
@@ -245,7 +224,7 @@ public class ContactsActivity extends BaseActivity {
                         showEmpty();
                         toast(getString(R.string.toast_error_retrieving_trades));
                     }
-                });
+                });*/
     }
 
     protected void showContact(ContactItem contact) {

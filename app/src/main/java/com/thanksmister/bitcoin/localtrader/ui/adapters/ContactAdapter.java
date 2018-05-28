@@ -32,9 +32,6 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
     private static final int TYPE_ITEM = R.layout.adapter_dashboard_contact_list;
 
@@ -110,24 +107,18 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
         }
     }
 
     public class ItemViewHolder extends ViewHolder {
-        @BindView(R.id.tradeType)
         public TextView tradeType;
 
-        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @BindView(R.id.tradeDetails)
         public TextView tradeDetails;
 
-        @BindView(R.id.contactId)
         public TextView contactId;
 
-        @BindView(R.id.contactDate)
         public TextView contactDate;
 
         public ItemViewHolder(View itemView) {

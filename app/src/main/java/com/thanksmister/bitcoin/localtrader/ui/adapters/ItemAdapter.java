@@ -30,9 +30,9 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
@@ -42,9 +42,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     private static final int TYPE_EMPTY = R.layout.view_empty_dashboard;
@@ -55,7 +52,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     private static final int TYPE_MESSAGE = R.layout.adapter_dashboard_message_list;
 
     protected List items;
-    protected List<MethodItem> methods = Collections.emptyList();
+    protected List<Method> methods = Collections.emptyList();
     private Context context;
     private OnItemClickListener onItemClickListener;
 
@@ -74,7 +71,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
         this.onItemClickListener = onItemClickListener;
     }
 
-    public void replaceWith(List data, List<MethodItem> methods) {
+    public void replaceWith(List data, List<Method> methods) {
         this.items = data;
         this.methods = methods;
         notifyDataSetChanged();
@@ -246,19 +243,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
         public ViewHolder(View itemView) {
             super(itemView);
 
-            ButterKnife.bind(this, itemView);
         }
     }
 
     // inner class to hold a reference to each item of RecyclerView 
     public class ContactViewHolder extends ViewHolder {
-        @BindView(R.id.tradeType)
         public TextView tradeType;
 
-        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @BindView(R.id.tradeDetails)
         public TextView tradeDetails;
 
         public ContactViewHolder(View itemView) {
@@ -267,16 +260,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     }
 
     public class MessageViewHolder extends ViewHolder {
-        @BindView(R.id.messageBody)
         public TextView messageBody;
 
-        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @BindView(R.id.contactId)
         public TextView contactId;
 
-        @BindView(R.id.createdAt)
         public TextView createdAt;
 
         public MessageViewHolder(View itemView) {
@@ -285,16 +274,14 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     }
 
     public class AdvertisementViewHolder extends ViewHolder {
-        @BindView(android.R.id.background)
+
         public View row;
 
-        @BindView(R.id.advertisementType)
         public TextView advertisementType;
 
-        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @BindView(R.id.advertisementDetails)
+
         public TextView advertisementDetails;
 
         public AdvertisementViewHolder(View itemView) {
@@ -303,13 +290,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     }
 
     public class ExchangeViewHolder extends ViewHolder {
-        @BindView(R.id.bitcoinTitle)
+
         TextView bitcoinTitle;
 
-        @BindView(R.id.bitcoinPrice)
         TextView bitcoinPrice;
 
-        @BindView(R.id.bitcoinValue)
+
         TextView bitcoinValue;
 
         public ExchangeViewHolder(View itemView) {
@@ -318,12 +304,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
     }
 
     public class EmptyViewHolder extends ViewHolder {
-        @OnClick(R.id.advertiseButton)
+
         public void advertiseButtonClicked() {
             onItemClickListener.onAdvertiseButtonClicked();
         }
 
-        @OnClick(R.id.searchButton)
+
         public void searchButtonClicked() {
             onItemClickListener.onSearchButtonClicked();
         }

@@ -15,34 +15,15 @@
  *
  */
 
-package com.thanksmister.bitcoin.localtrader.network.api;
+package com.thanksmister.bitcoin.localtrader.network.api;;
 
-import android.content.SharedPreferences;
-
-import com.squareup.okhttp.OkHttpClient;
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.network.CustomErrorHandler;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-
-import javax.inject.Singleton;
-
-import dagger.Module;
-import dagger.Provides;
-import dpreference.DPreference;
-import retrofit.RestAdapter;
-import retrofit.client.Client;
-import retrofit.client.OkClient;
-
-@Module(
-        complete = false,
-        library = true
-)
+@Deprecated
 public final class ApiModule {
     private static final String BITSTAMP_API_ENDPOINT = "https://www.bitstamp.net";
     private static final String BITFINEX_API_ENDPOINT = "https://api.bitfinex.com";
     private static final String COINBASE_ENDPOINT = "https://api.coinbase.com";
 
-    @Provides
+    /*@Provides
     @Singleton
     Client provideClient(OkHttpClient client) {
         return new OkClient(client);
@@ -108,5 +89,5 @@ public final class ApiModule {
                 .setEndpoint(COINBASE_ENDPOINT)
                 .build();
         return restAdapter.create(Coinbase.class);
-    }
+    }*/
 }

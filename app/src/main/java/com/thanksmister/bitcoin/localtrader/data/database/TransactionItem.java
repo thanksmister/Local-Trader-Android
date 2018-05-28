@@ -21,17 +21,13 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 
-import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import auto.parcel.AutoParcel;
-import rx.functions.Func1;
 
-@AutoParcel
 public abstract class TransactionItem {
     public static final String TABLE = "transaction_item";
 
@@ -62,7 +58,7 @@ public abstract class TransactionItem {
 
     public abstract String created_at();
 
-    public static final Func1<SqlBrite.Query, List<TransactionItem>> MAP = new Func1<SqlBrite.Query, List<TransactionItem>>() {
+    /*public static final Func1<SqlBrite.Query, List<TransactionItem>> MAP = new Func1<SqlBrite.Query, List<TransactionItem>>() {
 
         @Override
         public List<TransactionItem> call(SqlBrite.Query query) {
@@ -88,7 +84,7 @@ public abstract class TransactionItem {
                 cursor.close();
             }
         }
-    };
+    };*/
 
     public static Builder createBuilder(Transaction item) {
         return new Builder()

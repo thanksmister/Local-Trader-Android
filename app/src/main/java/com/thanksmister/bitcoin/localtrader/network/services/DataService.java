@@ -17,72 +17,13 @@
 
 package com.thanksmister.bitcoin.localtrader.network.services;
 
-import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.text.TextUtils;
-
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.network.NetworkException;
-import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
-import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.network.api.model.User;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAd;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAds;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAuthorize;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToContact;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToContactRequest;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToContacts;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToCurrencies;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToJSONObject;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToMessages;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToMethod;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToNotifications;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToUser;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToWallet;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-
-import org.json.JSONObject;
-
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import dpreference.DPreference;
-import retrofit.client.Response;
-import retrofit.mime.TypedFile;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import timber.log.Timber;
 
-
-@Singleton
+@Deprecated
 public class DataService {
 
-    private static final String PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire";
+    /*private static final String PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire";
     private static final String PREFS_CURRENCY_EXPIRE_TIME = "pref_currency_expire";
     private static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
     private static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
@@ -123,7 +64,7 @@ public class DataService {
 
     }
 
-    /*@Deprecated // because it does not pass the updated token
+    *//*@Deprecated // because it does not pass the updated token
     private <T> Func1<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
         Timber.d("refreshTokenAndRetry");
         return new Func1<Throwable, Observable<? extends T>>() {
@@ -181,7 +122,7 @@ public class DataService {
             }
         };
     }
-*/
+*//*
     private Observable<String> refreshTokens() {
         final String refreshToken = AuthUtils.getRefreshToken(preference, sharedPreferences);
         return localBitcoins.refreshToken("refresh_token", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
@@ -1359,5 +1300,5 @@ public class DataService {
 
     private void resetWalletExpireTime() {
         preference.removePreference(PREFS_WALLET_EXPIRE_TIME);
-    }
+    }*/
 }

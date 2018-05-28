@@ -27,8 +27,8 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
@@ -36,9 +36,6 @@ import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 // TODO make a base calss
 public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder> {
@@ -47,7 +44,7 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
     private static final int TYPE_ITEM = R.layout.adapter_dashboard_advertisement_list;
 
     protected List<AdvertisementItem> items;
-    protected List<MethodItem> methods = Collections.emptyList();
+    protected List<Method> methods = Collections.emptyList();
     private Context context;
     private OnItemClickListener onItemClickListener;
 
@@ -62,7 +59,7 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
         this.onItemClickListener = onItemClickListener;
     }
 
-    public void replaceWith(List<AdvertisementItem> data, List<MethodItem> methods) {
+    public void replaceWith(List<AdvertisementItem> data, List<Method> methods) {
         this.items = data;
         this.methods = methods;
         notifyDataSetChanged();
@@ -173,27 +170,21 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+
         }
     }
 
     public class AdvertisementViewHolder extends ViewHolder {
-        @BindView(android.R.id.background)
         public View row;
 
-        @BindView(R.id.advertisementType)
         public TextView advertisementType;
 
-        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @BindView(R.id.advertisementDetails)
         public TextView advertisementDetails;
 
-        @BindView(R.id.advertisementId)
         public TextView advertisementId;
 
-        @BindView(R.id.advertisementDate)
         public TextView advertisementDate;
 
         public AdvertisementViewHolder(View itemView) {
@@ -202,12 +193,12 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
     }
 
     public class EmptyViewHolder extends ViewHolder {
-        @OnClick(R.id.advertiseButton)
+
         public void advertiseButtonClicked() {
             onItemClickListener.onAdvertiseButtonClicked();
         }
 
-        @OnClick(R.id.searchButton)
+
         public void searchButtonClicked() {
             onItemClickListener.onSearchButtonClicked();
         }

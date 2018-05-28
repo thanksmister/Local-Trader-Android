@@ -20,14 +20,10 @@ package com.thanksmister.bitcoin.localtrader.ui.activities;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -37,40 +33,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.squareup.sqlbrite.BriteDatabase;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ConfirmationDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.ActivityEvent;
-
-import org.json.JSONObject;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 
-public class AdvertisementActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor>, SwipeRefreshLayout.OnRefreshListener {
+public class AdvertisementActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     // The loader's unique id. Loader ids are specific to the Activity or
     private static final int ADVERTISEMENT_LOADER_ID = 1;
@@ -80,93 +58,60 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     public static final int REQUEST_CODE = 10939;
     public static final int RESULT_DELETED = 837373;
 
-    @Inject
-    DataService dataService;
 
-    @Inject
-    DbManager dbManager;
-
-    @Inject
-    BriteDatabase db;
-
-    @BindView(R.id.tradePrice)
     TextView tradePrice;
 
-    @BindView(R.id.noteTextAdvertisement)
     TextView noteTextAdvertisement;
 
-    @BindView(R.id.tradeLimit)
     TextView tradeLimit;
 
-    @BindView(R.id.tradeTerms)
     TextView tradeTerms;
 
-    @BindView(R.id.priceEquation)
     TextView priceEquation;
 
-    @BindView(R.id.onlineProvider)
     TextView onlineProvider;
 
-    @BindView(R.id.bankName)
     TextView bankName;
 
-    @BindView(R.id.paymentDetails)
     TextView paymentDetails;
 
-    @BindView(R.id.noteText)
     TextView noteText;
 
-    @BindView(R.id.advertisementId)
     TextView advertisementId;
 
-    @BindView(R.id.noteLayout)
     View noteLayout;
 
-    @BindView(R.id.bankNameLayout)
     View bankNameLayout;
 
-    @BindView(R.id.termsLayout)
     View termsLayout;
 
-    @BindView(R.id.paymentDetailsLayout)
     View paymentDetailsLayout;
 
-    @BindView(R.id.onlinePaymentLayout)
     View onlinePaymentLayout;
 
-    @BindView(R.id.advertisementContent)
     View content;
 
-    @BindView(R.id.advertisementToolBar)
     Toolbar toolbar;
 
-    @BindView(R.id.requirementsLayout)
     View requirementsLayout;
 
-    @BindView(R.id.trustedTextView)
     TextView trustedTextView;
 
-    @BindView(R.id.identifiedTextView)
     TextView identifiedTextView;
 
-    @BindView(R.id.smsTextView)
     TextView smsTextView;
 
-    @BindView(R.id.feedbackText)
     TextView feedbackText;
 
-    @BindView(R.id.limitText)
     TextView limitText;
 
-    @BindView(R.id.volumeText)
     TextView volumeText;
 
-    @BindView(R.id.swipeLayout)
     SwipeRefreshLayout swipeLayout;
 
     private String adId;
     private Menu menu;
-    private List<MethodItem> methodItems;
+    private List<Method> methodItems;
     private AdvertisementItem advertisement;
     private Handler handler;
 
@@ -181,8 +126,6 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.view_advertisement);
-
-        ButterKnife.bind(this);
 
         handler = new Handler();
 
@@ -205,12 +148,12 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         swipeLayout.setColorSchemeColors(getResources().getColor(R.color.red));
 
         if (TextUtils.isEmpty(adId)) {
-            showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
+            /*showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
                 @Override
                 public void call() {
                     finish();
                 }
-            });
+            });*/
         }
     }
 
@@ -280,8 +223,6 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     @Override
     public void onResume() {
         super.onResume();
-        getSupportLoaderManager().restartLoader(METHOD_LOADER_ID, null, this);
-        getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, this);
     }
 
     @Override
@@ -298,8 +239,6 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getSupportLoaderManager().destroyLoader(METHOD_LOADER_ID);
-        getSupportLoaderManager().destroyLoader(ADVERTISEMENT_LOADER_ID);
     }
 
     @Override
@@ -339,7 +278,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
 
     private void updateAdvertisement() {
         toast(getString(R.string.toast_refreshing_data));
-        dataService.getAdvertisement(adId)
+        /*dataService.getAdvertisement(adId)
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -363,12 +302,12 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                         handleError(throwable, true);
                         onRefreshStop();
                     }
-                });
+                });*/
     }
 
-    public void setAdvertisement(AdvertisementItem advertisement, List<MethodItem> methods) {
+    public void setAdvertisement(AdvertisementItem advertisement, List<Method> methods) {
 
-        MethodItem method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
+        Method method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
         tradePrice.setText(getString(R.string.trade_price, advertisement.temp_price(), advertisement.currency()));
 
         String price = advertisement.currency();
@@ -525,7 +464,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
     }
 
     private void deleteAdvertisement() {
-        ConfirmationDialogEvent event = new ConfirmationDialogEvent("Delete Advertisement",
+        /*ConfirmationDialogEvent event = new ConfirmationDialogEvent("Delete Advertisement",
                 getString(R.string.advertisement_delete_confirm),
                 getString(R.string.button_delete),
                 getString(R.string.button_cancel), new Action0() {
@@ -535,12 +474,12 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
             }
         });
 
-        showConfirmationDialog(event);
+        showConfirmationDialog(event);*/
     }
 
     private void deleteAdvertisementConfirmed(final String adId) {
         showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_deleting)));
-        dataService.deleteAdvertisement(adId)
+        /*dataService.deleteAdvertisement(adId)
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -580,7 +519,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                             }
                         });
                     }
-                });
+                });*/
     }
 
     private void updateAdvertisementVisibility() {
@@ -593,7 +532,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         final String adId = editAdvertisement.ad_id;
         final boolean visible = !editAdvertisement.visible;
 
-        dataService.updateAdvertisementVisibility(editAdvertisement, visible)
+        /*dataService.updateAdvertisementVisibility(editAdvertisement, visible)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<JSONObject>() {
@@ -609,7 +548,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
                         hideProgressDialog();
                         showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), throwable.getMessage()));
                     }
-                });
+                });*/
     }
 
     private void showAdvertisementOnMap() {
@@ -654,7 +593,7 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
         startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE);
     }
 
-    @Override
+    /*@Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         if (id == ADVERTISEMENT_LOADER_ID && !TextUtils.isEmpty(adId)) {
             return new CursorLoader(AdvertisementActivity.this, SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ?", new String[]{adId}, null);
@@ -688,5 +627,5 @@ public class AdvertisementActivity extends BaseActivity implements LoaderManager
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-    }
+    }*/
 }

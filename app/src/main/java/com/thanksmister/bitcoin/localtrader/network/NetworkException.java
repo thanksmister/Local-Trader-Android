@@ -21,7 +21,6 @@ public class NetworkException extends Exception {
 
     private int code;
     private int status;
-    private Throwable cause;
 
     public int getCode() {
         return code;
@@ -31,25 +30,18 @@ public class NetworkException extends Exception {
         return status;
     }
 
-    public Throwable getCause() {
-        return cause;
-    }
-
-    public NetworkException(String msg, Throwable cause) {
+    public NetworkException(String msg) {
         super(msg);
-        this.cause = cause;
     }
 
-    public NetworkException(String msg, int code, int status, Throwable cause) {
+    public NetworkException(String msg, int code, int status) {
         super(msg);
         this.code = code;
         this.status = status;
-        this.cause = cause;
     }
 
-    public NetworkException(String msg, int code, Throwable cause) {
+    public NetworkException(String msg, int code) {
         super(msg);
         this.code = code;
-        this.cause = cause;
     }
 }

@@ -19,13 +19,9 @@ package com.thanksmister.bitcoin.localtrader.ui.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -40,33 +36,18 @@ import com.google.gson.Gson;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.ActivityEvent;
-
-import org.json.JSONObject;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-public class EditAdvertisementActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class EditAdvertisementActivity extends BaseActivity {
 
     private static final int ADVERTISEMENT_LOADER_ID = 1;
     public static final String EXTRA_ADVERTISEMENT_ID = "com.thanksmister.extras.EXTRA_ADVERTISEMENT_ID";
@@ -75,37 +56,33 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
     public static final int REQUEST_CODE = 10937;
     public static final int RESULT_UPDATED = 72322;
 
-    @BindView(R.id.toolbar)
+
     Toolbar toolbar;
 
-    @BindView(R.id.nextButton)
+
     Button nextButton;
 
-    @BindView(R.id.editMaximumAmountCurrency)
     TextView editMaximumAmountCurrency;
 
-    @BindView(R.id.editMinimumAmountCurrency)
+
     TextView editMinimumAmountCurrency;
 
-    @BindView(R.id.editMaximumAmount)
+
     EditText editMaximumAmount;
 
-    @BindView(R.id.editMinimumAmount)
+
     EditText editMinimumAmount;
 
-    @BindView(R.id.editPriceEquation)
+
     EditText editPriceEquation;
 
-    @BindView(R.id.editMessageText)
+
     EditText editMessageText;
 
-    @BindView(R.id.activeCheckBox)
+
     CheckBox activeCheckBox;
 
-    @Inject
-    public DataService dataService;
 
-    @OnClick(R.id.nextButton)
     public void nextButtonClicked() {
         validateChangesAndCommit(editAdvertisement);
     }
@@ -127,8 +104,6 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
         setContentView(R.layout.activity_edit_advertisement);
 
-        ButterKnife.bind(this);
-
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_ADVERTISEMENT_ID);
         } else {
@@ -143,7 +118,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
             }
         }
 
-        getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, this);
+        //getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, this);
         toggleNavButtons(getString(R.string.button_save_changes));
     }
 
@@ -155,7 +130,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
     @Override
     public void onPause() {
         super.onPause();
-        getSupportLoaderManager().destroyLoader(ADVERTISEMENT_LOADER_ID);
+        //getSupportLoaderManager().destroyLoader(ADVERTISEMENT_LOADER_ID);
     }
 
     @Override
@@ -267,7 +242,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         return true;
     }
 
-    public Advertisement getEditAdvertisement() {
+    /*public Advertisement getEditAdvertisement() {
         Advertisement advertisement = new Advertisement();
         String advertisementJson = preference.getString("editAdvertisement", null);
         Timber.d("getEditAdvertisement: " + advertisementJson);
@@ -281,7 +256,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         String editString = new Gson().toJson(advertisement);
         Timber.d("setEditAdvertisement: " + editString);
         preference.putString("editAdvertisement", editString);
-    }
+    }*/
 
     private void toggleNavButtons(String nextButtonTitle) {
         nextButton.setText(nextButtonTitle);
@@ -326,7 +301,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
         if (commitChanges) {
             showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_saving_changes)), true);
-            dataService.updateAdvertisement(editAdvertisement)
+           /* dataService.updateAdvertisement(editAdvertisement)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
@@ -358,7 +333,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
                             });
 
                         }
-                    });
+                    });*/
         } else {
             advertisementCanceled();
         }
@@ -383,7 +358,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         finish();
     }
 
-    @NonNull
+    /*@NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(EditAdvertisementActivity.this, SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ?", new String[]{adId}, null);
@@ -408,5 +383,5 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-    }
+    }*/
 }

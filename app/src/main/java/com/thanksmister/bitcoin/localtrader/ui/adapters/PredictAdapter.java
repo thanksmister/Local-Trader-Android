@@ -31,8 +31,6 @@ import com.thanksmister.bitcoin.localtrader.R;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class PredictAdapter extends ArrayAdapter<Address> implements Filterable {
     private List<Address> data = Collections.emptyList();
@@ -93,11 +91,10 @@ public class PredictAdapter extends ArrayAdapter<Address> implements Filterable 
     }
 
     static class ViewHolder {
-        @BindView(R.id.addressText)
         TextView addressText;
 
         public ViewHolder(View view) {
-            ButterKnife.bind(this, view);
+
         }
     }
 }

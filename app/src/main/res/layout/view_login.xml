@@ -16,16 +16,24 @@
   -->
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ProgressBar
+        android:id="@+id/loginProgressBar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:max="100"/>
 
     <LinearLayout
-            android:id="@+id/content"
+            android:id="@+id/loginContentView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:paddingTop="16dp"
             tools:visibility="visible"
             android:visibility="visible">
 
@@ -34,7 +42,7 @@
                 android:text="@string/setup_credentials"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="16dp"
+                android:paddingTop="32dp"
                 android:paddingLeft="16dp"/>
 
         <ScrollView
@@ -57,7 +65,7 @@
                         android:theme="@style/EditTextTheme">
 
                     <EditText
-                            android:id="@+id/apiEndpoint"
+                            android:id="@+id/apiEndpointText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:theme="@style/EditTextTheme"
@@ -77,69 +85,6 @@
                         android:linksClickable="true"
                         android:text="@string/setup_description"
                         tools:visibility="visible"/>
-
-               <!-- <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_list_padding"/>
-                
-                <CheckBox
-                        android:id="@+id/hmacCheckBox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/use_hmac_authentication"
-                        android:theme="@style/EditTextTheme"/>
-
-                <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="4dp"/>
-                
-                <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme">
-
-                    <EditText
-                            android:id="@+id/hmacKey"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/setup_hint_key"
-                            android:enabled="false"
-                            android:inputType="textMultiLine"
-                            android:maxLines="2"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_list_padding"/>
-
-                <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme">
-
-                    <EditText
-                            android:id="@+id/hmacSecret"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:enabled="false"
-                            android:hint="@string/setup_hint_secret"
-                            android:inputType="textMultiLine"
-                            android:maxLines="3"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <TextView
-                        android:id="@+id/hmacTextDescription"
-                        style="@style/TextMedium.Secondary"
-                        android:layout_margin="@dimen/view_padding_small"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:linksClickable="true"
-                        android:text="@string/setup_description_hmac"
-                        tools:visibility="visible"/>-->
 
             </LinearLayout>
 

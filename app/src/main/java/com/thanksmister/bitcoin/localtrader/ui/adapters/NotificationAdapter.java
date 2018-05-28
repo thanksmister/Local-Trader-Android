@@ -27,15 +27,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
+import com.thanksmister.bitcoin.localtrader.persistence.Notification;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
 
@@ -43,7 +40,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     private static final int TYPE_PROGRESS = R.layout.view_progress_dashboard;
     private static final int TYPE_ITEM = R.layout.adapter_dashboard_notification_list;
 
-    protected List<NotificationItem> items;
+    protected List<Notification> items;
     private Context context;
     private OnItemClickListener onItemClickListener;
 
@@ -58,7 +55,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         this.onItemClickListener = onItemClickListener;
     }
 
-    public void replaceWith(List<NotificationItem> data) {
+    public void replaceWith(List<Notification> data) {
         this.items = data;
         notifyDataSetChanged();
     }
@@ -102,21 +99,21 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
 
         if (viewHolder instanceof ItemViewHolder) {
-            NotificationItem item = items.get(position);
-            ((ItemViewHolder) viewHolder).messageBody.setText(item.message().trim());
+            Notification item = items.get(position);
+            ((ItemViewHolder) viewHolder).messageBody.setText(item.getMsg().trim());
             ((ItemViewHolder) viewHolder).contactId.setVisibility(View.VISIBLE);
-            if (item.contact_id() != null) {
-                ((ItemViewHolder) viewHolder).contactId.setText("Contact #" + item.contact_id());
-            } else if (item.advertisement_id() != null) {
-                ((ItemViewHolder) viewHolder).contactId.setText("Advertisement #" + item.advertisement_id());
+            if (item.getContactId() != null) {
+                ((ItemViewHolder) viewHolder).contactId.setText("Contact #" + item.getContactId());
+            } else if (item.getAdvertisementId() != null) {
+                ((ItemViewHolder) viewHolder).contactId.setText("Advertisement #" + item.getAdvertisementId());
             } else {
                 ((ItemViewHolder) viewHolder).contactId.setVisibility(View.GONE);
             }
 
-            Date date = Dates.parseLocalDateISO(item.created_at());
+            Date date = Dates.parseLocalDateISO(item.getCreatedAt());
             ((ItemViewHolder) viewHolder).createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
 
-            if (item.read()) {
+            if (item.getRead()) {
                 ((ItemViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_action_notification);
             } else {
                 ((ItemViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_action_notification_new);
@@ -124,7 +121,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
     }
 
-    public NotificationItem getItemAt(int position) {
+    public Notification getItemAt(int position) {
         if (items != null && !items.isEmpty() && items.size() > position) {
             return items.get(position);
         }
@@ -134,21 +131,16 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
         }
     }
 
     public class ItemViewHolder extends ViewHolder {
-        @BindView(R.id.messageBody)
         public TextView messageBody;
 
-        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @BindView(R.id.contactId)
         public TextView contactId;
 
-        @BindView(R.id.createdAt)
         public TextView createdAt;
 
         public ItemViewHolder(View itemView) {
@@ -158,12 +150,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
 
     public class EmptyViewHolder extends ViewHolder {
-        @OnClick(R.id.advertiseButton)
         public void advertiseButtonClicked() {
             onItemClickListener.onAdvertiseButtonClicked();
         }
 
-        @OnClick(R.id.searchButton)
         public void searchButtonClicked() {
             onItemClickListener.onSearchButtonClicked();
         }

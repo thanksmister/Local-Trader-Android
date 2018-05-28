@@ -32,10 +32,6 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
     private static final int TYPE_EMPTY = R.layout.view_empty_dashboard;
     private static final int TYPE_PROGRESS = R.layout.view_progress_dashboard;
@@ -134,24 +130,18 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
         }
     }
 
     public class ItemViewHolder extends ViewHolder {
-        @BindView(R.id.tradeType)
         public TextView tradeType;
 
-        @BindView(R.id.itemIcon)
         public ImageView icon;
 
-        @BindView(R.id.tradeDetails)
         public TextView tradeDetails;
 
-        @BindView(R.id.contactId)
         public TextView contactId;
 
-        @BindView(R.id.contactDate)
         public TextView contactDate;
 
         public ItemViewHolder(View itemView) {
@@ -160,12 +150,10 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
     }
 
     public class EmptyViewHolder extends ViewHolder {
-        @OnClick(R.id.advertiseButton)
         public void advertiseButtonClicked() {
             onItemClickListener.onAdvertiseButtonClicked();
         }
 
-        @OnClick(R.id.searchButton)
         public void searchButtonClicked() {
             onItemClickListener.onSearchButtonClicked();
         }

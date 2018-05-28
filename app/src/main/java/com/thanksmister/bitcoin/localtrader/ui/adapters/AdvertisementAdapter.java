@@ -30,10 +30,10 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.AdvertisementType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
+import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.utils.Dates;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -41,12 +41,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 public class AdvertisementAdapter extends BaseAdapter implements Filterable {
     protected List<AdvertisementItem> data = Collections.emptyList();
-    protected List<MethodItem> methods = Collections.emptyList();
+    protected List<Method> methods = Collections.emptyList();
     protected Context context;
     protected final LayoutInflater inflater;
     private ValueFilter valueFilter;
@@ -77,7 +74,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable {
         return position;
     }
 
-    public void replaceWith(List<AdvertisementItem> data, List<MethodItem> methods) {
+    public void replaceWith(List<AdvertisementItem> data, List<Method> methods) {
         this.data = data;
         this.methods = methods;
         dataFiltered = data;
@@ -202,17 +199,17 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable {
     }
 
     protected static class ViewHolder {
-        @BindView(android.R.id.background)
+
         public View row;
-        @BindView(R.id.advertisementType)
+
         public TextView advertisementType;
-        @BindView(android.R.id.icon)
+
         public ImageView icon;
-        @BindView(R.id.advertisementDetails)
+
         public TextView advertisementDetails;
 
         public ViewHolder(View view) {
-            ButterKnife.bind(this, view);
+
         }
     }
 
@@ -291,17 +288,17 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable {
         }
 
         static class ViewHolder {
-            @BindView(R.id.tradeType)
+
             TextView tradeType;
-            @BindView(android.R.id.icon)
+
             ImageView icon;
-            @BindView(R.id.tradeDetails)
+
             TextView tradeDetails;
-            @BindView(R.id.contactMessageCount)
+
             TextView contactMessageCount;
 
             public ViewHolder(View view) {
-                ButterKnife.bind(this, view);
+
             }
         }
     }
