@@ -57,7 +57,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -346,7 +346,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
     }
 
     @Override
-    protected void handleNetworkDisconnect() {
+    public void handleNetworkDisconnect() {
         onRefreshStop();
         snack(getString(R.string.error_no_internet), true);
     }
@@ -505,7 +505,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
 
         this.contact = contact;
 
-        String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
+        String date = DateUtils.parseLocalDateStringAbbreviatedTime(contact.created_at());
         String amount = contact.amount() + " " + contact.currency();
         String type = "";
 

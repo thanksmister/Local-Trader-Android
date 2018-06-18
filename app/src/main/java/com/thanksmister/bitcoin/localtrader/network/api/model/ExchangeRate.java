@@ -17,22 +17,20 @@
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
 
+@Deprecated
 public class ExchangeRate {
     private String display_name;
     private String currency;
     private String rate;
 
-    public ExchangeRate(String name, String rate, String currency) {
-        this.display_name = name;
-        this.rate = rate;
-        this.currency = currency;
+    public ExchangeRate() {
     }
 
-    public String getDisplay_name() {
+    public String getDisplayName() {
         return display_name;
     }
 
-    public void setDisplay_name(String display_name) {
+    public void setDisplayName(String display_name) {
         this.display_name = display_name;
     }
 

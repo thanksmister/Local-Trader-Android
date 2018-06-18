@@ -71,11 +71,6 @@ public class SendFragment extends BaseFragment {
     @Inject
     Preferences preferences;
 
-    @Inject
-    ExchangeService exchangeService;
-
-    @Inject
-    DbManager dbManager;
 
     Toolbar toolbar;
 
@@ -545,7 +540,7 @@ public class SendFragment extends BaseFragment {
             addressText.setText("");
             calculateCurrencyAmount("0.00");
             toast(R.string.toast_transaction_success);
-            ((MainActivity) getActivity()).navigateDashboardViewAndRefresh();
+            // TODO finish activity
         }
     }
 

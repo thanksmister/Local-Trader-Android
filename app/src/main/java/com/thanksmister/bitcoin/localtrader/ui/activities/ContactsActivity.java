@@ -32,15 +32,12 @@ import android.widget.TextView;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter;
-import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport;
+import com.thanksmister.bitcoin.localtrader.ui.controls.ItemClickSupport;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.inject.Inject;
 
 public class ContactsActivity extends BaseActivity {
     public static final String EXTRA_TYPE = "com.thanksmister.extras.EXTRA_NOTIFICATION_TYPE";
@@ -124,7 +121,7 @@ public class ContactsActivity extends BaseActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (toolbar != null)
-            toolbar.inflateMenu(R.menu.contacts);
+            toolbar.inflateMenu(R.menu.contacts_history);
 
         return true;
     }
@@ -210,10 +207,10 @@ public class ContactsActivity extends BaseActivity {
                 .compose(this.<List<Contact>>bindUntilEvent(ActivityEvent.PAUSE))
                 .subscribe(new Action1<List<Contact>>() {
                     @Override
-                    public void call(List<Contact> contacts) {
-                        Timber.d("Update Data Contacts: " + contacts.size());
+                    public void call(List<Contact> contacts_history) {
+                        Timber.d("Update Data Contacts: " + contacts_history.size());
                         ArrayList<ContactItem> contactItems = new ArrayList<ContactItem>();
-                        for (Contact contact : contacts) {
+                        for (Contact contact : contacts_history) {
                             contactItems.add(ContactItem.convertContact(contact));
                         }
                         setContacts(contactItems);

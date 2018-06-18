@@ -41,10 +41,8 @@ import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent
-import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
-import com.thanksmister.bitcoin.localtrader.ui.LoginViewModel
-import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.LoginViewModel
 import kotlinx.android.synthetic.main.view_login.*
 import timber.log.Timber
 import java.util.regex.Pattern
@@ -53,9 +51,6 @@ import javax.inject.Inject
 class LoginActivity : BaseActivity() {
 
     var OAUTH_URL = ""
-
-    @Inject lateinit var preferences: Preferences
-    @Inject lateinit var dialogUtils: DialogUtils
 
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     lateinit var viewModel: LoginViewModel

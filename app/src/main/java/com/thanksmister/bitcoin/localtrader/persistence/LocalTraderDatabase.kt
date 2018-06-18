@@ -24,7 +24,7 @@ import android.content.Context
 /**
  * The Room database that contains the Messages table
  */
-@Database(entities = arrayOf(User::class, Notification::class, Wallet::class, Currency::class, Method::class), version = 7, exportSchema = false)
+@Database(entities = arrayOf(User::class, Notification::class, Wallet::class, Currency::class, Method::class, Rate::class), version = 8, exportSchema = false)
 abstract class LocalTraderDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
@@ -32,6 +32,7 @@ abstract class LocalTraderDatabase : RoomDatabase() {
     abstract fun walletDao(): WalletDao
     abstract fun currencyDao(): CurrencyDao
     abstract fun methodDao(): MethodDao
+    abstract fun rateDao(): RateDao
 
     companion object {
 

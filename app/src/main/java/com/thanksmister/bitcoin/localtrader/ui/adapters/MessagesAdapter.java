@@ -19,7 +19,6 @@ package com.thanksmister.bitcoin.localtrader.ui.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +27,7 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -103,8 +102,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.ViewHo
             RecentMessageItem messageItem = items.get(position);
             ((ItemViewHolder) viewHolder).messageBody.setText("Message from " + messageItem.sender_username());
             ((ItemViewHolder) viewHolder).contactId.setText("Contact #" + messageItem.contact_id());
-            Date date = Dates.parseLocalDateISO(messageItem.create_at());
-            ((ItemViewHolder) viewHolder).createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
+            Date date = DateUtils.parseLocalDateISO(messageItem.create_at());
+            ((ItemViewHolder) viewHolder).createdAt.setText(android.text.format.DateUtils.getRelativeTimeSpanString(date.getTime()));
             if (messageItem.seen()) {
                 ((ItemViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_communication_messenger);
             } else {

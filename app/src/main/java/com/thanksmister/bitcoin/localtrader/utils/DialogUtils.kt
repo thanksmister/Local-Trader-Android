@@ -68,26 +68,26 @@ class DialogUtils(base: Context?) : ContextWrapper(base), LifecycleObserver {
         }
     }
 
-    fun showAlertDialog(activity: AppCompatActivity, message: String) {
+    fun showAlertDialog(context: Context, message: String) {
         hideAlertDialog()
-        alertDialog = AlertDialog.Builder(activity, R.style.DialogTheme)
+        alertDialog = AlertDialog.Builder(context, R.style.DialogTheme)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
     }
 
-    fun showAlertDialogToDismiss(activity: AppCompatActivity, title: String, message: String) {
+    fun showAlertDialogToDismiss(context: Context, title: String, message: String) {
         hideAlertDialog()
-        alertDialog = AlertDialog.Builder(activity, R.style.DialogTheme)
+        alertDialog = AlertDialog.Builder(context, R.style.DialogTheme)
                 .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
     }
 
-    fun showAlertDialog(activity: AppCompatActivity, title: String, message: String) {
+    fun showAlertDialog(context: Context, title: String, message: String) {
         hideAlertDialog()
-        alertDialog = AlertDialog.Builder(activity, R.style.DialogTheme)
+        alertDialog = AlertDialog.Builder(context, R.style.DialogTheme)
                 .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
@@ -103,13 +103,13 @@ class DialogUtils(base: Context?) : ContextWrapper(base), LifecycleObserver {
                 .show()
     }
 
-    fun showAlertDialogCancel(context: Context, message: String, onClickListener: DialogInterface.OnClickListener) {
+    fun showAlertDialogCancel(context: Context, message: String, onClickListener: DialogInterface.OnClickListener, onCancelListener: DialogInterface.OnClickListener) {
         hideAlertDialog()
         Timber.d("showAlertDialog")
         alertDialog = AlertDialog.Builder(context, R.style.DialogTheme)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, onClickListener)
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(android.R.string.cancel, onCancelListener)
                 .show()
     }
 }

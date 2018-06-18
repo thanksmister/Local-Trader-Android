@@ -43,18 +43,18 @@ public class SearchUtilsTest {
     public void setUp() throws Exception {
         context = InstrumentationRegistry.getTargetContext();
         sharedPreferences = context.getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
-        SearchUtils.clearSearchLocationAddress(sharedPreferences);
+        SearchUtils.INSTANCE.clearSearchLocationAddress(sharedPreferences);
     }
 
     @After
     public void tearDown() throws Exception {
-        SearchUtils.clearSearchLocationAddress(sharedPreferences);
+        SearchUtils.INSTANCE.clearSearchLocationAddress(sharedPreferences);
     }
     
     @Test
     public void getSearchLocationAddress() throws Exception {
 
-        Address address = SearchUtils.getSearchLocationAddress(sharedPreferences);
+        Address address = SearchUtils.INSTANCE.getSearchLocationAddress(sharedPreferences);
         assertNotNull(address);
 
         assertEquals(null, address.getCountryName());
@@ -74,8 +74,8 @@ public class SearchUtilsTest {
         address.setLatitude(-34.6157142);
         address.setLongitude(-58.5033604);
         
-        SearchUtils.setSearchLocationAddress(sharedPreferences, address);
-        address = SearchUtils.getSearchLocationAddress(sharedPreferences);
+        SearchUtils.INSTANCE.setSearchLocationAddress(sharedPreferences, address);
+        address = SearchUtils.INSTANCE.getSearchLocationAddress(sharedPreferences);
         assertNotNull(address);
 
         assertEquals("Country", address.getCountryName());
@@ -88,30 +88,30 @@ public class SearchUtilsTest {
 
     @Test
     public void coordinatesToAddress() throws Exception {
-        Address address = SearchUtils.coordinatesToAddress("-34.6157142", "-58.5033604");
-        String displayAddress = SearchUtils.getDisplayAddress(address);
+        Address address = SearchUtils.INSTANCE.coordinatesToAddress("-34.6157142", "-58.5033604");
+        String displayAddress = SearchUtils.INSTANCE.getDisplayAddress(address);
         assertEquals("-34.6157142, -58.5033604", displayAddress);
     }
     
     @Test
     public void coordinatesValid() throws Exception {
-        boolean valid = SearchUtils.coordinatesValid("-34.6157142", "-58.5033604");
+        boolean valid = SearchUtils.INSTANCE.coordinatesValid("-34.6157142", "-58.5033604");
         assertEquals(true, valid);
 
-        valid = SearchUtils.coordinatesValid("0", "-58.5033604");
+        valid = SearchUtils.INSTANCE.coordinatesValid("0", "-58.5033604");
         assertEquals(false, valid);
 
-        valid = SearchUtils.coordinatesValid("0", "0");
+        valid = SearchUtils.INSTANCE.coordinatesValid("0", "0");
         assertEquals(false, valid);
 
-        valid = SearchUtils.coordinatesValid("91", "-181");
+        valid = SearchUtils.INSTANCE.coordinatesValid("91", "-181");
         assertEquals(false, valid);
     }
 
     @Test
     public void getDisplayAddress() throws Exception {
         Address address = new Address(Locale.US);
-        String displayAddress = SearchUtils.getDisplayAddress(address);
+        String displayAddress = SearchUtils.INSTANCE.getDisplayAddress(address);
         assertEquals("", displayAddress);
         
         address = new Address(Locale.US);
@@ -122,10 +122,10 @@ public class SearchUtilsTest {
         address.setLatitude(-34.6157142);
         address.setLongitude(-58.5033604);
 
-        SearchUtils.setSearchLocationAddress(sharedPreferences, address);
-        address = SearchUtils.getSearchLocationAddress(sharedPreferences);
+        SearchUtils.INSTANCE.setSearchLocationAddress(sharedPreferences, address);
+        address = SearchUtils.INSTANCE.getSearchLocationAddress(sharedPreferences);
 
-        displayAddress = SearchUtils.getDisplayAddress(address);
+        displayAddress = SearchUtils.INSTANCE.getDisplayAddress(address);
         assertEquals("Address Line, Country", displayAddress);
 
         address = new Address(Locale.US);
@@ -134,7 +134,7 @@ public class SearchUtilsTest {
         assertEquals(-34.6157142, address.getLatitude());
         assertEquals(-58.5033604, address.getLongitude());
 
-        displayAddress = SearchUtils.getDisplayAddress(address);
+        displayAddress = SearchUtils.INSTANCE.getDisplayAddress(address);
         assertEquals("-34.6157142, -58.5033604", displayAddress);
     }
 }

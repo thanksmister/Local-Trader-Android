@@ -17,13 +17,9 @@
 package com.thanksmister.bitcoin.localtrader.data.database;
 
 import android.content.ContentValues;
-import android.database.Cursor;
 import android.os.Parcelable;
 
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class ExchangeRateItem implements Parcelable {
     public static final String TABLE = "exchange_rate_item";
@@ -81,7 +77,7 @@ public abstract class ExchangeRateItem implements Parcelable {
 
     public static Builder createBuilder(ExchangeRate item) {
         return new Builder()
-                .exchange(item.getDisplay_name())
+                .exchange(item.getDisplayName())
                 .rate(item.getRate())
                 .currency(item.getCurrency());
     }

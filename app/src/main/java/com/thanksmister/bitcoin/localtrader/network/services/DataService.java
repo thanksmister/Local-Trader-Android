@@ -902,9 +902,9 @@ public class DataService {
                         .map(new ResponseToContacts())
                         .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
-                            public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
+                            public Observable<? extends List<Contact>> call(final List<Contact> contacts_history) {
                                 //setContactsExpireTime();
-                                return Observable.just(contacts);
+                                return Observable.just(contacts_history);
                             }
                         });
             default:
@@ -948,9 +948,9 @@ public class DataService {
                         .map(new ResponseToContacts())
                         .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
-                            public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
+                            public Observable<? extends List<Contact>> call(final List<Contact> contacts_history) {
                                 //setContactsExpireTime();
-                                return Observable.just(contacts);
+                                return Observable.just(contacts_history);
                             }
                         });
         }

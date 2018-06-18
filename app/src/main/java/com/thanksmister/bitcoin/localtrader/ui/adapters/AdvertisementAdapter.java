@@ -34,7 +34,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.AdvertisementType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.persistence.Method;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.ArrayList;
@@ -278,7 +278,7 @@ public class AdvertisementAdapter extends BaseAdapter implements Filterable {
 
             String amount = contact.amount + " " + contact.currency;
             String person = (contact.is_buying) ? contact.seller.username : contact.buyer.username;
-            String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at);
+            String date = DateUtils.parseLocalDateStringAbbreviatedTime(contact.created_at);
 
             holder.tradeType.setText(type + " - " + amount);
             holder.tradeDetails.setText(context.getString(R.string.text_with, person + " (" + date + ")"));

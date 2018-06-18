@@ -22,6 +22,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.User
 import com.thanksmister.bitcoin.localtrader.persistence.Wallet
 import io.reactivex.Observable
 import okhttp3.Response
+import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.http.*
 import java.util.*
@@ -58,6 +59,10 @@ interface LocalBitcoinsRequest {
     @GET("/api/payment_methods/")
     fun getMethods(): Observable<TreeMap<String, Any>>
 
+    @POST("/api/notifications/mark_as_read/" + "{notification_id}/")
+    fun markNotificationRead(@Query("access_token") token: String,
+                             @Path("notification_id") notification_id: String): Observable<ResponseBody>;
+
     /*@Multipart
     @POST("sendPhoto")
     fun sendPhoto(
@@ -72,7 +77,7 @@ String GET_MYSELF = "/api/myself/";
     String GET_ADS = "/api/ads/";
     String GET_WALLET = "/api/wallet/";
     String GET_WALLET_BALANCE = "/api/wallet-balance/";
-    String GET_DASHBOARD = "/api/dashboard/";
+    String GET_DASHBOARD = "/api/advertisements/";
     String GET_AD = "/api/ad-get/";
     String GET_CONTACT_INFO = "/api/contact_info/";
     String GET_NOTIFICATIONS = "/api/notifications/";

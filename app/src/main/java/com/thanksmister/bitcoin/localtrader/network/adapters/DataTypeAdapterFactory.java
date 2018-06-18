@@ -47,8 +47,11 @@ public class DataTypeAdapterFactory implements TypeAdapterFactory {
                 JsonObject dataObject = new JsonObject();
                 if (jsonElement.isJsonObject()) {
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
+                    Timber.d("Data Return: " + jsonObject.toString());
                     if (jsonObject.has("data") && jsonObject.get("data").isJsonObject()) {
                         dataObject = jsonObject.getAsJsonObject("data");
+
+                        Timber.d("dataObject: " + dataObject.toString());
                         if (jsonObject.has("actions") && jsonObject.get("actions").isJsonObject()) {
                             dataObject.add("actions", jsonObject.getAsJsonObject("actions"));
                             jsonElement = dataObject;
@@ -63,6 +66,9 @@ public class DataTypeAdapterFactory implements TypeAdapterFactory {
                         jsonElement = jsonObject.getAsJsonArray("data");
                     }
                 }
+
+                Timber.d("jsonElement: " + jsonElement.toString());
+
                 return delegate.fromJsonTree(jsonElement);
             }
         }.nullSafe();

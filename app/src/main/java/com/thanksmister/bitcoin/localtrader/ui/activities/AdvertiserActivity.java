@@ -38,7 +38,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -303,7 +303,7 @@ public class AdvertiserActivity extends BaseActivity {
         tradeFeedback.setText(advertisement.profile.feedback_score);
         tradeCount.setText(advertisement.profile.trade_count);
         lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(advertisement.profile.last_online));
-        String date = Dates.parseLocalDateStringAbbreviatedTime(advertisement.profile.last_online);
+        String date = DateUtils.parseLocalDateStringAbbreviatedTime(advertisement.profile.last_online);
         dateText.setText(getString(R.string.text_last_seen, date));
 
         setTradeRequirements(advertisement);

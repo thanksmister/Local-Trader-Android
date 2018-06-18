@@ -18,7 +18,6 @@
 package com.thanksmister.bitcoin.localtrader.ui.adapters;
 
 import android.content.Context;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,7 @@ import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.MessageItem;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 
 import java.util.Collections;
@@ -93,8 +92,8 @@ public class MessageAdapter extends BaseAdapter {
         MessageItem message = getItem(position);
 
         holder.senderName.setText(message.sender_username());
-        Date date = Dates.parseLocalDateISO(message.create_at());
-        holder.createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
+        Date date = DateUtils.parseLocalDateISO(message.create_at());
+        holder.createdAt.setText(android.text.format.DateUtils.getRelativeTimeSpanString(date.getTime()));
         holder.messageBody.setText(message.message());
 
         if (!Strings.isBlank(message.attachment_name())) {

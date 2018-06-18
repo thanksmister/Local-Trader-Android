@@ -41,4 +41,5 @@
     <dimen name="view_padding_xxlarge">36dp</dimen>
 
     <dimen name="large_barcode_width">230dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
 </resources>

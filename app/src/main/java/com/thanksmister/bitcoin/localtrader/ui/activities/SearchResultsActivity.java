@@ -74,7 +74,7 @@ public class SearchResultsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_search_results);
 
-        tradeType = TradeType.valueOf(SearchUtils.getSearchTradeType(sharedPreferences));
+        tradeType = TradeType.valueOf(SearchUtils.INSTANCE.getSearchTradeType(sharedPreferences));
 
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -168,12 +168,12 @@ public class SearchResultsActivity extends BaseActivity {
 
     protected void updateData() {
 
-        final String currency = SearchUtils.getSearchCurrency(sharedPreferences);
-        final String paymentMethod = SearchUtils.getSearchPaymentMethod(sharedPreferences);
-        final String country = SearchUtils.getSearchCountryName(sharedPreferences);
-        final String code = SearchUtils.getSearchCountryCode(sharedPreferences);
-        final double latitude = SearchUtils.getSearchLatitude(sharedPreferences);
-        final double longitude = SearchUtils.getSearchLongitude(sharedPreferences);
+        final String currency = SearchUtils.INSTANCE.getSearchCurrency(sharedPreferences);
+        final String paymentMethod = SearchUtils.INSTANCE.getSearchPaymentMethod(sharedPreferences);
+        final String country = SearchUtils.INSTANCE.getSearchCountryName(sharedPreferences);
+        final String code = SearchUtils.INSTANCE.getSearchCountryCode(sharedPreferences);
+        final double latitude = SearchUtils.INSTANCE.getSearchLatitude(sharedPreferences);
+        final double longitude = SearchUtils.INSTANCE.getSearchLongitude(sharedPreferences);
 
         toast(getString(R.string.toast_searching));
         showProgress();

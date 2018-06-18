@@ -17,10 +17,13 @@
 
 package com.thanksmister.bitcoin.localtrader.network;
 
+import timber.log.Timber;
+
 public class NetworkException extends Exception {
 
     private int code;
     private int status;
+    private Throwable cause;
 
     public int getCode() {
         return code;
@@ -30,18 +33,23 @@ public class NetworkException extends Exception {
         return status;
     }
 
-    public NetworkException(String msg) {
+    public NetworkException(String msg, Throwable cause) {
         super(msg);
+        this.cause = cause;
     }
 
-    public NetworkException(String msg, int code, int status) {
+    public NetworkException(String msg, int code, int status, Throwable cause) {
         super(msg);
+        Timber.d("Status: " + status);
+        Timber.d("Code: " + code);
         this.code = code;
         this.status = status;
+        this.cause = cause;
     }
 
-    public NetworkException(String msg, int code) {
+    public NetworkException(String msg, int code, Throwable cause) {
         super(msg);
         this.code = code;
+        this.cause = cause;
     }
 }

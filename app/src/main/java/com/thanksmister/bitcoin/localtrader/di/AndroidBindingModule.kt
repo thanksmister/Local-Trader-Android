@@ -18,15 +18,10 @@ package com.thanksmister.bitcoin.localtrader.di
 
 
 import android.arch.lifecycle.ViewModel
-import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
-import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
-import com.thanksmister.bitcoin.localtrader.ui.LoginViewModel
-import com.thanksmister.bitcoin.localtrader.ui.SplashViewModel
+import com.thanksmister.bitcoin.localtrader.ui.*
 import com.thanksmister.bitcoin.localtrader.ui.activities.*
-import com.thanksmister.bitcoin.localtrader.ui.fragments.AdvertisementsFragment
-import com.thanksmister.bitcoin.localtrader.ui.fragments.ContactsFragment
-import com.thanksmister.bitcoin.localtrader.ui.fragments.NotificationsFragment
+import com.thanksmister.bitcoin.localtrader.ui.fragments.*
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.*
 import dagger.Binds
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
@@ -45,6 +40,31 @@ internal abstract class AndroidBindingModule {
     @ViewModelKey(SplashViewModel::class)
     abstract fun bindsSplashViewModel(viewModel: SplashViewModel): ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(MainViewModel::class)
+    abstract fun bindsMainViewModel(viewModel: MainViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(SearchViewModel::class)
+    abstract fun bindsSearchViewModel(viewModel: SearchViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(NotificationsViewModel::class)
+    abstract fun bindsNotificationsViewModel(viewModel: NotificationsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(ContactsViewModel::class)
+    abstract fun bindsContactsViewModel(viewModel: ContactsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(AdvertisementsViewModel::class)
+    abstract fun bindsAdvertisementsViewModel(viewModel: AdvertisementsViewModel): ViewModel
+
     @ContributesAndroidInjector
     internal abstract fun baseActivity(): BaseActivity
 
@@ -59,6 +79,9 @@ internal abstract class AndroidBindingModule {
 
     @ContributesAndroidInjector
     internal abstract fun contactActivity(): ContactActivity
+
+    @ContributesAndroidInjector
+    internal abstract fun searchActivity(): SearchActivity
 
     @ContributesAndroidInjector
     internal abstract fun tradeRequestActivity(): TradeRequestActivity
@@ -86,5 +109,11 @@ internal abstract class AndroidBindingModule {
 
     @ContributesAndroidInjector
     internal abstract fun contactsFragment(): ContactsFragment
+
+    @ContributesAndroidInjector
+    internal abstract fun searchFragment(): SearchFragment
+
+    @ContributesAndroidInjector
+    internal abstract fun dashBoardFragment(): MainFragment
 
 }

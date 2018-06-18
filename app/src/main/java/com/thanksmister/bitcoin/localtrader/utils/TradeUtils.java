@@ -383,7 +383,7 @@ public class TradeUtils {
 
     public static int determineLastSeenIcon(@NonNull String lasOnline) {
         Date now = new Date();
-        Date lastSeen = Dates.parseLastSeenDate(lasOnline);
+        Date lastSeen = DateUtils.parseLastSeenDate(lasOnline);
         long diff = now.getTime() - lastSeen.getTime();
         if ((diff > 1800000) && (diff < 10800000)) {
             return R.drawable.last_seen_shortly;

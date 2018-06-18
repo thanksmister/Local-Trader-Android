@@ -19,7 +19,6 @@ package com.thanksmister.bitcoin.localtrader.ui.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +33,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.RecentMessageItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.persistence.Method;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -151,7 +150,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
             String amount = contact.amount() + " " + contact.currency();
             //String btc =  contact.amount_btc() + context.getString(R.string.btc);
             String person = (contact.is_buying()) ? contact.seller_username() : contact.buyer_username();
-            String date = Dates.parseLocalDateStringAbbreviatedTime(contact.created_at());
+            String date = DateUtils.parseLocalDateStringAbbreviatedTime(contact.created_at());
 
             ((ContactViewHolder) viewHolder).tradeType.setText(type + " - " + amount);
             ((ContactViewHolder) viewHolder).tradeDetails.setText("With " + person + " (" + date + ")");
@@ -212,8 +211,8 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
             RecentMessageItem messageItem = (RecentMessageItem) items.get(position);
             ((MessageViewHolder) viewHolder).messageBody.setText("Message from " + messageItem.sender_username());
             ((MessageViewHolder) viewHolder).contactId.setText("Contact #" + messageItem.contact_id());
-            Date date = Dates.parseLocalDateISO(messageItem.create_at());
-            ((MessageViewHolder) viewHolder).createdAt.setText(DateUtils.getRelativeTimeSpanString(date.getTime()));
+            Date date = DateUtils.parseLocalDateISO(messageItem.create_at());
+            ((MessageViewHolder) viewHolder).createdAt.setText(android.text.format.DateUtils.getRelativeTimeSpanString(date.getTime()));
 
         } else if (viewHolder instanceof ExchangeViewHolder) {
 

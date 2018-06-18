@@ -22,6 +22,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import com.crashlytics.android.answers.Answers
+import com.crashlytics.android.answers.CustomEvent
 
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
@@ -42,12 +44,14 @@ class PromoActivity : BaseActivity() {
         })
     }
 
-    fun showLoginView() {
+    private fun showLoginView() {
+        Answers.getInstance().logCustom(CustomEvent("User Login"));
         val intent = LoginActivity.createStartIntent(this@PromoActivity)
         startActivity(intent)
     }
 
-    fun showRegistration() {
+    private fun showRegistration() {
+        Answers.getInstance().logCustom(CustomEvent("User Registration"));
         val url = Constants.REGISTRATION_URL
         try {
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))

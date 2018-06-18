@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit
 import android.content.Intent
 import android.support.v4.content.ContextCompat.startActivity
 import okhttp3.Interceptor
+import okhttp3.ResponseBody
 import java.io.IOException
 
 
@@ -97,5 +98,9 @@ class LocalBitcoinsApi(base_url:String) {
 
     fun getMethods(): Observable<TreeMap<String, Any>> {
         return service.getMethods()
+    }
+
+    fun markNotificationRead(token:String, id: String): Observable<ResponseBody> {
+        return service.markNotificationRead(token, id)
     }
 }

@@ -69,11 +69,6 @@ class ActivityModule {
     }
 
     @Provides
-    static LocationManager provideLocationManager(Application application) {
-        return (LocationManager) application.getSystemService(Context.LOCATION_SERVICE);
-    }
-
-    @Provides
     static AppPreferences provideAppPreferences(Application application) {
         return new AppPreferences(application);
     }
@@ -87,5 +82,23 @@ class ActivityModule {
     static SyncAdapter provideSyncAdapter(BaseApplication context, Preferences preferences, NotificationDao notifications,
                                           WalletDao wallet, CurrencyDao currency, MethodDao methods) {
         return new SyncAdapter(context, true, preferences, notifications, wallet, currency, methods);
+
+        /*@Provides
+    @Singleton
+    DataService provideDataService(BaseApplication app, DPreference preferences, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins) {
+        return new DataService(app, preferences, sharedPreferences, localBitcoins);
+    }
+
+    @Provides
+    @Singleton
+    NotificationService provideNotificationService(BaseApplication app) {
+        return new NotificationService(app);
+    }
+
+    @Provides
+    @Singleton
+    GeoLocationService provideGeoLocationService(BaseApplication app, LocalBitcoins localBitcoins) {
+        return new GeoLocationService(app, localBitcoins);
+    }*/
     }
 }

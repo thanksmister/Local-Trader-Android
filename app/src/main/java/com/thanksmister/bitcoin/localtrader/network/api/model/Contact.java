@@ -29,7 +29,7 @@ public class Contact {
     public String amount_btc;
     public String contact_id;
 
-    public boolean is_funded; //contacts with escrow enabled and funded
+    public boolean is_funded; //contacts_history with escrow enabled and funded
     public boolean is_selling; // you are selling
     public boolean is_buying; // you are buying
 
@@ -77,7 +77,7 @@ public class Contact {
         public String mark_as_paid_url; // ONLINE_BUY
         public String dispute_url; // if eligible for dispute
         public String cancel_url; //  if eligible for canceling
-        public String fund_url; //  contacts with escrow enabled but not funded
+        public String fund_url; //  contacts_history with escrow enabled but not funded
     }
 
     public class Account_Details {

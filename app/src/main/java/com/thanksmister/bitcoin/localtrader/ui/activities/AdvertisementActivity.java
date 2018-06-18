@@ -226,7 +226,7 @@ public class AdvertisementActivity extends BaseActivity implements SwipeRefreshL
     }
 
     @Override
-    protected void handleNetworkDisconnect() {
+    public void handleNetworkDisconnect() {
         onRefreshStop();
         snack(getString(R.string.error_no_internet), true);
     }

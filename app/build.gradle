@@ -54,22 +54,22 @@ android {
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
             versionName "${versionMajor}.${versionMinor}.${versionPatch}"
-            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() +"\""
-            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() +"\""
+            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() + "\""
+            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() + "\""
         }
         qa {
             dimension "default"
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}-QA"
-            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() +"\""
-            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() +"\""
+            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() + "\""
+            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() + "\""
         }
         prod {
             dimension "default"
             applicationId "com.thanksmister.bitcoin.localtrader"
             versionName "${versionMajor}.${versionMinor}.${versionPatch}"
-            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() +"\""
-            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() +"\""
+            buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() + "\""
+            buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() + "\""
         }
     }
 
@@ -101,6 +101,7 @@ dependencies {
 
     // LiveData + ViewModel
     implementation "android.arch.lifecycle:extensions:$versions.archVersion"
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     annotationProcessor "android.arch.lifecycle:compiler:$versions.archVersion"
     implementation "android.arch.lifecycle:reactivestreams:$versions.archVersion"
 
@@ -132,6 +133,10 @@ dependencies {
     implementation "com.facebook.stetho:stetho-okhttp3:$versions.stetho"
     implementation "com.facebook.stetho:stetho-urlconnection:$versions.stetho"
 
+    // Navigation
+    implementation "android.arch.navigation:navigation-fragment:$versions.navigation"
+    implementation "android.arch.navigation:navigation-ui:$versions.navigation"
+
     // Storage
     implementation 'net.grandcentrix.tray:tray:0.12.0'
 
@@ -142,19 +147,21 @@ dependencies {
     implementation 'com.google.guava:guava:23.0'
 
     // RxLocation
-    implementation 'pl.charmas.android:android-reactive-location:0.10@aar'
-    
+    compile 'pl.charmas.android:android-reactive-location2:2.1'
+
     // Rate app
     implementation 'io.github.kobakei:ratethisapp:1.2.0'
-    
-    // Google Play Support Libraries
-    implementation 'com.google.android.gms:play-services-location:15.0.1'
 
-    implementation('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
+    // Google Location Services
+    implementation 'com.google.android.gms:play-services-location:11.0.4'
+
+    implementation('com.crashlytics.sdk.android:crashlytics:2.9.3@aar') {
         transitive = true;
     }
 
-    implementation('com.crashlytics.sdk.android:answers:1.4.1@aar') {
+    implementation('com.crashlytics.sdk.android:answers:1.4.2@aar') {
         transitive = true;
     }
+
+    implementation 'joda-time:joda-time:2.9.9'
 }

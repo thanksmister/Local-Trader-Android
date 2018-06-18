@@ -38,6 +38,9 @@ interface WalletDao {
     @Query("SELECT * FROM Wallet")
     fun getItems(): Flowable<List<Wallet>>
 
+    @Query("SELECT * FROM Wallet")
+    fun getItemsList(): List<Wallet>
+
     /**
      * Insert a message in the database. If the message already exists, replace it.
      * @param user the message to be inserted.

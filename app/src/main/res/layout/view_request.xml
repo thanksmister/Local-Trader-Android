@@ -60,7 +60,7 @@
                         android:background="@color/gray_color"
                         android:clickable="true"/>
 
-                <com.thanksmister.bitcoin.localtrader.ui.components.AutoResizeTextView
+                <com.thanksmister.bitcoin.localtrader.ui.controls.AutoResizeTextView
                         style="@style/TextLarge.SmallAction"
                         android:id="@+id/walletAddressButton"
                         android:layout_width="match_parent"

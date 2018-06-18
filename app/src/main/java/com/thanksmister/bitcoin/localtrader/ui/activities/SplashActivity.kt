@@ -22,26 +22,18 @@ import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.*
 import android.os.Bundle
-import android.view.View
 
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter
 import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 
-import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.ui.LoginViewModel
-import com.thanksmister.bitcoin.localtrader.ui.SplashViewModel
-import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
-import kotlinx.android.synthetic.main.view_login.*
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SplashViewModel
 import timber.log.Timber
 import javax.inject.Inject
 
 @BaseActivity.RequiresAuthentication
 class SplashActivity : BaseActivity() {
-
-    @Inject lateinit var preferences: Preferences
-    @Inject lateinit var dialogUtils: DialogUtils
 
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     lateinit var viewModel: SplashViewModel
@@ -50,16 +42,11 @@ class SplashActivity : BaseActivity() {
 
     private val syncBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val syncActionType = intent.getStringExtra(SyncAdapter.EXTRA_ACTION_TYPE)!!
-            var extraErrorMessage = ""
-            var extraErrorCode = SyncAdapter.SYNC_ERROR_CODE
-            if (intent.hasExtra(SyncAdapter.EXTRA_ERROR_MESSAGE)) {
-                Timber.d("Error Message: " + intent.getStringExtra(SyncAdapter.EXTRA_ERROR_MESSAGE))
-            }
-            if (intent.hasExtra(SyncAdapter.EXTRA_ERROR_CODE)) {
-                extraErrorCode = intent.getIntExtra(SyncAdapter.EXTRA_ERROR_CODE, SyncAdapter.SYNC_ERROR_CODE)
-            }
-            handleStartSync(syncActionType, extraErrorMessage, extraErrorCode)
+            val syncActionType = intent.getStringExtra(SyncAdapter.EXTRA_ACTION_TYPE)
+            val extraErrorMessage = intent.getStringExtra(SyncAdapter.EXTRA_ERROR_MESSAGE)
+            val extraErrorCode = intent.getIntExtra(SyncAdapter.EXTRA_ERROR_CODE, 0)
+            val extraErrorStatus = intent.getIntExtra(SyncAdapter.EXTRA_ERROR_CODE, 0)
+            handleStartSync(syncActionType, extraErrorMessage, extraErrorCode, extraErrorStatus)
         }
     }
 
@@ -85,15 +72,11 @@ class SplashActivity : BaseActivity() {
             preferences.forceUpdates(false)
             SyncUtils.requestSyncNow(this)
         } else {
-            /*val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, MainActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
-            finish()*/
+            finish()
         }
-
-        Timber.d("Sync Fuck tard!")
-        preferences.forceUpdates(false)
-        SyncUtils.requestSyncNow(this)
     }
 
     override fun onResume() {
@@ -121,7 +104,7 @@ class SplashActivity : BaseActivity() {
         dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_title), getString(R.string.error_no_internet))
     }
 
-    protected fun handleStartSync(syncActionType: String, extraErrorMessage: String, extraErrorCode: Int) {
+    protected fun handleStartSync(syncActionType: String, extraErrorMessage: String, extraErrorCode: Int, extraErrorStatus: Int) {
         Timber.d("handleSyncEvent: " + syncActionType)
         when (syncActionType) {
             SyncAdapter.ACTION_TYPE_START -> {
@@ -130,14 +113,13 @@ class SplashActivity : BaseActivity() {
                 preferences.firstTime(false)
                 val intent = Intent(this, MainActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                //startActivity(intent)
-                //finish()
+                startActivity(intent)
+                finish()
             }
             SyncAdapter.ACTION_TYPE_CANCELED -> {
             }
             SyncAdapter.ACTION_TYPE_ERROR -> {
                 Timber.e("Sync error: " + extraErrorMessage + "code: " + extraErrorCode)
-                // TODO show alert with action
                 dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_sync), object:DialogInterface.OnClickListener{
                     override fun onClick(dialog: DialogInterface?, which: Int) {
                         finish()

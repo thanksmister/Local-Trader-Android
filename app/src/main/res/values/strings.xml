@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) 2018 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -233,6 +232,8 @@
     <string name="toast_search_canceled">Search canceled…</string>
     <string name="error_unable_load_payment_methods">Unable to load online payment methods.</string>
     <string name="toast_loading_methods">Error getting methods…</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string-array name="country_names">
         <item>Afghanistan</item>
@@ -480,7 +481,7 @@
         <item>Zambia</item>
         <item>Zimbabwe</item>
     </string-array>
-    
+
     <string name="hint_enter_county_city_or_address">Enter County, City or Address</string>
     <string name="text_post_update_canceled">Advertisement update canceled</string>
     <string name="error_address_title">Address Error</string>
@@ -513,7 +514,7 @@
     <string name="progress_canceling_trade">Canceling…</string>
     <string name="alert_error_deleting_advertisement">Error deleting Advertisement.</string>
     <string name="progress_deleting">Deleting…</string>
-    
+
     <string name="text_title_online_provider">Online provider</string>
     <string name="text_title_requirements">Requirements</string>
     <string name="text_title_advertisement_id">Advertisement Id</string>
@@ -658,6 +659,10 @@
     <string name="notification_bitcoin_received_description">You received %1$s BTC</string>
     <string name="notifcation_bitcoin_amount_description">You have %1$s BTC</string>
     <string name="notifcation_bitcoin_amount_title">Bitcoin Balance</string>
-
+    <string name="text_unavailable">Unavailable</string>
+    <string name="error_search_no_coordinates">To search local advertisers, enter valid latitude and longitude values.</string>
+    <string name="error_search_invalid_coordinates">Invalid longitude or latitude entered. Latitude should be between -90 and 90. Longitude should be between -180 and 180.</string>
+    <string name="list_contact_id">Contact # %1$s</string>
+    <string name="list_advertisement_id">Advertisement # %1$s</string>
 
 </resources>

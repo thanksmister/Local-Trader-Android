@@ -19,10 +19,10 @@ package com.thanksmister.bitcoin.localtrader.network.services;
 
 public class DataServiceUtils {
 
-    public static int CODE_MINUS_ONE = -1; // authorization failed
+   /* public static int CODE_MINUS_ONE = -1; // authorization failed
     public static int CODE_THREE = 3; // authorization failed
     public static int STATUS_403 = 403; // not authenticated
-    public static int STATUS_400 = 400; // service error
+    public static int STATUS_400 = 400; // service error*/
 
    /* public static boolean isNetworkError(Throwable throwable) {
         if (throwable instanceof UnknownHostException || throwable instanceof NetworkConnectionException) {

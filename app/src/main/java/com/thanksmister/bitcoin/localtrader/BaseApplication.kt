@@ -30,6 +30,9 @@ import dagger.android.DaggerApplication
 
 import io.fabric.sdk.android.Fabric
 import timber.log.Timber
+import com.crashlytics.android.answers.Answers
+
+
 
 class BaseApplication : DaggerApplication() {
 
@@ -48,6 +51,7 @@ class BaseApplication : DaggerApplication() {
                     .build())
         } else {
             Fabric.with(this, Crashlytics())
+            Fabric.with(this, Answers())
             Timber.plant(CrashlyticsTree())
         }
 

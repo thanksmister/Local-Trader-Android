@@ -122,7 +122,7 @@ public abstract class ContactItem {
 
     public abstract String amount_btc();
 
-    public abstract boolean is_funded(); //contacts with escrow enabled and funded
+    public abstract boolean is_funded(); //contacts_history with escrow enabled and funded
 
     public abstract boolean is_selling(); // you are selling
 
@@ -193,7 +193,7 @@ public abstract class ContactItem {
     public abstract String cancel_url(); //  if eligible for canceling
 
     @Nullable
-    public abstract String fund_url(); //  contacts with escrow enabled but not funded
+    public abstract String fund_url(); //  contacts_history with escrow enabled but not funded
 
     @Nullable
     public abstract String details_receiver_name();

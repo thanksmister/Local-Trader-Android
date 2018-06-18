@@ -39,6 +39,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 import timber.log.Timber;
 
 public class LocalBitcoinsFetcher {
@@ -59,33 +60,16 @@ public class LocalBitcoinsFetcher {
         String token = preferences.accessToken();
         if(TextUtils.isEmpty(token)) return Observable.empty();
         return networkApi.getMyself(token)
-                .onErrorResumeNext(new Function<Throwable, ObservableSource<? extends User>>() {
-                    @Override
-                    public ObservableSource<? extends User> apply(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                            if(networkException.getStatus() == DataServiceUtils.STATUS_403 || networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                Timber.d("refreshTokenAndRetry status: " + networkException.getStatus());
-                                if (networkException.getCode() != DataServiceUtils.CODE_THREE) {
-                                    return refreshOathTokens()
-                                            .flatMap(new Function<String, ObservableSource<User>>() {
-                                                @Override
-                                                public ObservableSource<User> apply(String newToken) throws Exception {
-                                                    return networkApi.getMyself(newToken);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
+                .onErrorResumeNext(throwable -> {
+                    NetworkException exception = ApiErrorHandler.handleError(context, throwable);
+                    if(ApiErrorHandler.isAuthenticationError(exception)) {
+                        return refreshOathTokens()
+                                .flatMap((Function<String, ObservableSource<User>>) newToken ->
+                                        networkApi.getMyself(newToken)
+                                                .subscribeOn(Schedulers.io()));
                     }
+                    return Observable.error(exception);
                 });
-    }
-
-    public Observable<OauthResponse> getOauthToken(final String code, final String key, final String secret) {
-        return networkApi.getOauthToken(AUTH_GRANT_TYPE, code, key, secret);
     }
 
     public Observable<List<Notification>> getNotifications() {
@@ -93,19 +77,15 @@ public class LocalBitcoinsFetcher {
         if(TextUtils.isEmpty(token)) return Observable.empty();
         return networkApi.getNotifications(token)
                 .onErrorResumeNext(throwable -> {
-                    Timber.d("onErrorResumeNext");
-                    Exception exception = ApiErrorHandler.handleError(context, throwable);
-                    Timber.d("exception message: " + exception.getMessage());
-                    if(exception instanceof AuthenticationException) {
-                        Timber.d("oath exception code: " + ((AuthenticationException) exception).getCode());
-                        Timber.d("oauth exception status: " + ((AuthenticationException) exception).getStatus());
+                    NetworkException exception = ApiErrorHandler.handleError(context, throwable);
+                    Timber.d("getNotifications status: " + exception.getStatus());
+                    Timber.d("getNotifications code: " + exception.getCode());
+                    if(ApiErrorHandler.isAuthenticationError(exception)) {
                         return refreshOathTokens()
                                 .flatMap((Function<String, ObservableSource<List<Notification>>>) newToken ->
                                         networkApi.getNotifications(newToken)
                                         .subscribeOn(Schedulers.io()));
                     }
-                    Timber.d("exception code: " + ((NetworkException) exception).getCode());
-                    Timber.d("exception status: " + ((NetworkException) exception).getStatus());
                     return Observable.error(exception);
                 });
     }
@@ -115,27 +95,29 @@ public class LocalBitcoinsFetcher {
         if(TextUtils.isEmpty(token)) return Observable.empty();
         return networkApi.getWalletBalance(token)
                 .onErrorResumeNext(throwable -> {
-                    NetworkException networkException = null;
-                    if (throwable instanceof NetworkException) {
-                        networkException = (NetworkException) throwable;
-                        if(networkException.getStatus() == DataServiceUtils.STATUS_403 || networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                            Timber.d("refreshTokenAndRetry status: " + networkException.getStatus());
-                            if (networkException.getCode() != DataServiceUtils.CODE_THREE) {
-                                return refreshOathTokens()
-                                        .flatMap((Function<String, ObservableSource<Wallet>>) networkApi::getWalletBalance);
-                            }
-                        }
-                        return Observable.error(networkException);
+                    NetworkException exception = ApiErrorHandler.handleError(context, throwable);
+                    if(ApiErrorHandler.isAuthenticationError(exception)) {
+                        return refreshOathTokens()
+                                .flatMap((Function<String, ObservableSource<Wallet>>) newToken ->
+                                        networkApi.getWalletBalance(newToken)
+                                                .subscribeOn(Schedulers.io()));
                     }
-                    return Observable.error(throwable);
+                    return Observable.error(exception);
                 });
     }
 
+    public Observable<OauthResponse> getOauthToken(final String code, final String key, final String secret) {
+        return networkApi.getOauthToken(AUTH_GRANT_TYPE, code, key, secret);
+    }
+
     private Observable<String> refreshOathTokens() {
+        Timber.d("refreshOathTokens");
         String refreshToken = preferences.refreshToken();
         if(TextUtils.isEmpty(refreshToken)) return Observable.empty();
         return networkApi.refreshOauthToken(REFRESH_GRANT_TYPE, refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .flatMap(oauthResponse -> {
+                    Timber.d("refreshOathTokens access: " + oauthResponse.access_token);
+                    Timber.d("refreshOathTokens refresh: " + oauthResponse.refresh_token);
                     preferences.accessToken(oauthResponse.access_token);
                     preferences.refreshToken(oauthResponse.refresh_token);
                     return Observable.just(oauthResponse.access_token);
@@ -144,6 +126,12 @@ public class LocalBitcoinsFetcher {
 
     public Observable<TreeMap<String, Object>> getCurrencies() {
         return networkApi.getCurrencies();
+    }
+
+    public Observable<ResponseBody> markNotificationRead(String id) {
+        String token = preferences.accessToken();
+        if(TextUtils.isEmpty(token)) return Observable.empty();
+        return networkApi.markNotificationRead(token, id);
     }
 
     public Observable<TreeMap<String, Object>> getMethods() {

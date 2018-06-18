@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
@@ -42,6 +43,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.persistence.Currency;
 import com.thanksmister.bitcoin.localtrader.persistence.Method;
+import com.thanksmister.bitcoin.localtrader.persistence.Rate;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1139,14 +1141,18 @@ public class Parser {
     }*/
 
     @SuppressLint("DefaultLocale")
-    public static ExchangeRate parseBitfinexExchangeRate(String response) {
+    public static ExchangeRate parseBitfinexExchangeRate(String response, String currency) {
         JSONArray jsonArray;
+        ExchangeRate exchangeRate = new ExchangeRate();
         try {
             jsonArray = new JSONArray(response);
             if (jsonArray.length() > 6) {
                 String rate = jsonArray.get(6).toString();
                 rate = String.format("%.2f", Doubles.convertToDouble(rate));
-                return new ExchangeRate("Bitfinex", rate, "");
+                exchangeRate.setDisplayName("Bitfinex");
+                exchangeRate.setRate(rate);
+                exchangeRate.setCurrency(currency);
+                return exchangeRate;
             }
         } catch (JSONException e) {
             Timber.e(e.getMessage());
@@ -1155,16 +1161,19 @@ public class Parser {
         return null;
     }
 
-    public static ExchangeRate parseCoinbaseExchangeRate(String response) {
-        JSONObject jsonObject;
+    // {"data":{"base":"BTC","currency":"USD","amount":"7578.63"}}
+    public static Rate parseCoinbaseExchangeRate(String response) {
+        Rate exchangeRate = new Rate();
         try {
-            jsonObject = new JSONObject(response);
+            JSONObject jsonObject = new JSONObject(response);
             JSONObject dataObject = jsonObject.getJSONObject("data");
-            String exchangeName = "Coinbase";
-            return new ExchangeRate(exchangeName, dataObject.getString("amount"), dataObject.getString("currency"));
+            exchangeRate.setDisplayName("Coinbase");
+            exchangeRate.setCurrency(dataObject.getString("currency"));
+            exchangeRate.setExchangeRate(dataObject.getString("amount"));
+            return exchangeRate;
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
+            return exchangeRate;
         }
     }
 

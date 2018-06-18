@@ -25,6 +25,7 @@ import com.thanksmister.bitcoin.localtrader.network.services.NotificationService
 import com.thanksmister.bitcoin.localtrader.persistence.CurrencyDao;
 import com.thanksmister.bitcoin.localtrader.persistence.MethodDao;
 import com.thanksmister.bitcoin.localtrader.persistence.NotificationDao;
+import com.thanksmister.bitcoin.localtrader.persistence.RateDao;
 import com.thanksmister.bitcoin.localtrader.persistence.UserDao;
 import com.thanksmister.bitcoin.localtrader.persistence.LocalTraderDatabase;
 import com.thanksmister.bitcoin.localtrader.persistence.WalletDao;
@@ -78,7 +79,6 @@ abstract class ApplicationModule {
         return database.methodDao();
     }
 
-
     @Singleton
     @Provides
     static NotificationDao provideNotificationDao(LocalTraderDatabase database) {
@@ -89,6 +89,12 @@ abstract class ApplicationModule {
     @Provides
     static WalletDao provideWalletDao(LocalTraderDatabase database) {
         return database.walletDao();
+    }
+
+    @Singleton
+    @Provides
+    static RateDao provideRateDao(LocalTraderDatabase database) {
+        return database.rateDao();
     }
 
     @Provides

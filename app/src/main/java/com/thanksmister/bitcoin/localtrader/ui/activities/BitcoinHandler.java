@@ -46,7 +46,7 @@ public class BitcoinHandler extends BaseActivity {
                 toast("You need to be logged in to perform that action.");
                 launchMainApplication();
             } else {
-                Intent intent = MainActivity.createStartIntent(getApplicationContext(), url);
+                Intent intent = MainActivity.Companion.createStartIntent(getApplicationContext(), url);
                 startActivity(intent);
                 finish();
             }

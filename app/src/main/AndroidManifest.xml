@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) 2015 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,34 +12,33 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
   ~ See the License for the specific language governing permissions and 
   ~ limitations under the License.
-  -->
-
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="com.thanksmister.bitcoin.localtrader">
-    
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.thanksmister.bitcoin.localtrader">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
-    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
 
     <application
         android:name=".BaseApplication"
         android:allowBackup="true"
         android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme">
         <activity
             android:name=".ui.activities.SplashActivity"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustResize"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -50,148 +48,126 @@
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="d328872540a331f2245f3d7b842d06bbb7ac1c60" />
-        
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
         <provider
-                android:name="com.thanksmister.bitcoin.localtrader.network.services.SyncProvider"
-                android:label="LocalBitcoins"
-                android:authorities="com.thanksmister.bitcoin.localtrader.provider"
-                android:exported="false"
-                android:syncable="true"/>
-
+            android:name=".network.services.SyncProvider"
+            android:authorities="com.thanksmister.bitcoin.localtrader.provider"
+            android:exported="false"
+            android:label="LocalBitcoins"
+            android:syncable="true" />
         <provider
             android:name="net.grandcentrix.tray.provider.TrayContentProvider"
             android:authorities="com.thanksmister.localtrader.authority"
             android:exported="false"
-            tools:replace="android:authorities"/>
+            tools:replace="android:authorities" />
 
         <!-- Services -->
-        <service android:name=".network.services.AuthenticatorService" >
+        <service android:name=".network.services.AuthenticatorService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
+
             <meta-data
-                    android:name="android.accounts.AccountAuthenticator"
-                    android:resource="@xml/authenticator" />
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
         </service>
-        
         <service
-                android:name=".network.services.SyncService"
-                android:exported="true"
-                android:process=":sync">
+            android:name=".network.services.SyncService"
+            android:exported="true"
+            android:process=":sync">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
 
             <meta-data
-                    android:name="android.content.SyncAdapter"
-                    android:resource="@xml/syncadapter" />
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
         </service>
 
-        <activity android:name=".ui.activities.MainActivity"
-                  android:screenOrientation="portrait"
-                  android:windowSoftInputMode="stateHidden"
-                  android:configChanges="locale"/>
-
-        <activity android:name=".ui.activities.LoginActivity"
-                  android:screenOrientation="portrait"
-                  android:windowSoftInputMode="stateHidden"
-                  android:configChanges="locale"/>
-
-        <activity android:name=".ui.activities.MessageActivity"
-                  android:screenOrientation="portrait"
-                  android:windowSoftInputMode="stateHidden"
-                  android:configChanges="locale"/>
-                
+        <activity
+            android:name=".ui.activities.MainActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".ui.activities.LoginActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".ui.activities.MessageActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".ui.activities.AdvertisementActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.ContactActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.PinCodeActivity"
+            android:configChanges="locale"
+            android:noHistory="true"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.SearchResultsActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.AdvertiserActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.QRCodeActivity"
             android:screenOrientation="portrait"
-            android:configChanges="locale">
-        </activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
+        <activity
+            android:name=".ui.activities.TradeRequestActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:name=".ui.activities.ContactsActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.EditAdvertisementActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.PromoActivity"
+            android:configChanges="locale"
+            android:noHistory="true"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ui.activities.SettingsActivity"
+            android:configChanges="locale"
+            android:label="@string/title_activity_settings"
+            android:screenOrientation="portrait"
+            android:theme="@style/PreferencesTheme"/>
+        <activity
+            android:name=".ui.activities.BitcoinHandler"
+            android:exported="true"
+            android:label="Send Bitcoins"
+            android:noHistory="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
-        <activity
-                android:name=".ui.activities.ContactActivity"
-                android:screenOrientation="portrait"
-                android:configChanges="locale">
-        </activity>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.ALTERNATIVE" />
 
-        <activity
-                android:name=".ui.activities.PinCodeActivity"
-                android:screenOrientation="portrait"
-                android:noHistory="true"
-                android:configChanges="locale">
+                <data android:scheme="bitcoin" />
+            </intent-filter>
         </activity>
-
-        <activity
-                android:name=".ui.activities.SearchResultsActivity"
-                android:screenOrientation="portrait"
-                android:configChanges="locale">
-        </activity>
-
-        <activity
-                android:name=".ui.activities.AdvertiserActivity"
-                android:screenOrientation="portrait"
-                android:configChanges="locale">
-        </activity>
-
-        <activity
-                android:name=".ui.activities.QRCodeActivity"
-                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"
-                android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-                android:name=".ui.activities.TradeRequestActivity"
-                android:windowSoftInputMode="adjustResize"
-                android:screenOrientation="portrait"
-                android:configChanges="locale">
-        </activity>
-
-        <activity
-                android:name=".ui.activities.ContactsActivity"
-                android:screenOrientation="portrait"
-                android:configChanges="locale">
-        </activity>
-
-        <activity
-                android:name=".ui.activities.EditAdvertisementActivity"
-                android:screenOrientation="portrait"
-                android:configChanges="locale">
-        </activity>
-
-        <activity
-                android:name=".ui.activities.PromoActivity"
-                android:screenOrientation="portrait"
-                android:noHistory="true"
-                android:configChanges="locale">
-        </activity>
-        
-        <activity
-                android:name=".ui.activities.SettingsActivity"
-                android:label="@string/title_activity_settings"
-                android:theme="@style/PreferencesTheme"
-                android:screenOrientation="portrait"
-                android:configChanges="locale">
-        </activity>
-
-        <activity
-               android:name=".ui.activities.BitcoinHandler"
-               android:exported="true"
-               android:label="Send Bitcoins"
-               android:noHistory="true"
-               android:screenOrientation="portrait">
-           <intent-filter>
-               <action android:name="android.intent.action.VIEW" />
-               <category android:name="android.intent.category.DEFAULT" />
-               <category android:name="android.intent.category.BROWSABLE" />
-               <category android:name="android.intent.category.ALTERNATIVE" />
-               <data android:scheme="bitcoin" />
-           </intent-filter>
-       </activity>
-        
     </application>
 
 </manifest>

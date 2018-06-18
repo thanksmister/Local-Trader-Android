@@ -19,14 +19,22 @@ package com.thanksmister.bitcoin.localtrader.network.services;
 
 import android.content.SharedPreferences;
 
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
 import com.thanksmister.bitcoin.localtrader.network.api.BitcoinAverage;
 import com.thanksmister.bitcoin.localtrader.network.api.BitfinexExchange;
 import com.thanksmister.bitcoin.localtrader.network.api.BitstampExchange;
 import com.thanksmister.bitcoin.localtrader.network.api.Coinbase;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
+
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import io.reactivex.Observable;
+import retrofit2.Response;
+
+import static com.thanksmister.bitcoin.localtrader.persistence.Preferences.COINBASE_EXCHANGE;
 
 @Singleton
 public class ExchangeService {
@@ -43,41 +51,30 @@ public class ExchangeService {
     public static final String BITFINEX_EXCHANGE = "Bitfinex";
     public static final String BITCOINAVERAGE_EXCHANGE = "BitcoinAverage";
 
-    private final Coinbase coinbase;
-    private final BitstampExchange bitstamp;
-    private final BitfinexExchange bitfinex;
-    private final BitcoinAverage bitcoinAverage;
-    private final SharedPreferences sharedPreferences;
 
     @Inject
-    public ExchangeService(SharedPreferences sharedPreferences, Coinbase coinbase, BitstampExchange bitstamp, BitfinexExchange bitfinex, BitcoinAverage bitcoinAverage) {
-        this.coinbase = coinbase;
-        this.bitstamp = bitstamp;
-        this.bitfinex = bitfinex;
-        this.bitcoinAverage = bitcoinAverage;
-        this.sharedPreferences = sharedPreferences;
+    public ExchangeService(Preferences preferences) {
+
     }
 
-
-    /*@Deprecated
+   /* @Deprecated
     public Observable<List<ExchangeCurrency>> getCurrencies() {
         return coinbase.currencies()
                 .map(new ResponseToExchangeCurrencies());
     }
-
-    public Observable<ExchangeRate> getSpotPrice() {
+*/
+    /*public Observable<ExchangeRate> getSpotPrice() {
         //if(needToRefreshExchanges()) {
-        final String currency = getExchangeCurrency();
-        if (getSelectedExchange().equals(COINBASE_EXCHANGE)) {
+        final String currency = preferences.getExchangeCurrency();
+        if (preferences.getSelectedExchange().equals(COINBASE_EXCHANGE)) {
             return coinbase.spotPrice(currency)
-                    .doOnNext(new Action1<Response>() {
+                    .doOnNext(new Function<Response>() {
                         @Override
                         public void call(Response response) {
                             setExchangeExpireTime();
                         }
-                    })
-                    .map(new ResponseToExchange());
-        } else if (getSelectedExchange().equals(BITSTAMP_EXCHANGE)) {
+                    });
+        } else if (preferences.getSelectedExchange().equals(BITSTAMP_EXCHANGE)) {
             return bitstamp.ticker("btc" + currency.toLowerCase())
                     .doOnNext(new Action1<Bitstamp>() {
                         @Override
@@ -105,7 +102,7 @@ public class ExchangeService {
                     .flatMap(new Func1<ExchangeRate, Observable<ExchangeRate>>() {
                         @Override
                         public Observable<ExchangeRate> call(ExchangeRate exchangeRate) {
-                            exchangeRate.setDisplay_name(BITFINEX_EXCHANGE);
+                            exchangeRate.setDisplayName(BITFINEX_EXCHANGE);
                             exchangeRate.setCurrency(currency);
                             return Observable.just(exchangeRate);
                         }
@@ -129,11 +126,11 @@ public class ExchangeService {
             return Observable.just(null);
         }
         //}
-    }*/
+    }
 
     public void clearExchangeExpireTime() {
         synchronized (this) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
+            SharedPreferences.Editor editor = preferences.edit();
             editor.remove(PREFS_EXCHANGE_EXPIRE_TIME).apply();
         }
     }
@@ -141,7 +138,7 @@ public class ExchangeService {
     private void setExchangeExpireTime() {
         synchronized (this) {
             long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA; // 1 hours
-            SharedPreferences.Editor editor = sharedPreferences.edit();
+            SharedPreferences.Editor editor = preferences.edit();
             editor.putLong(PREFS_EXCHANGE_EXPIRE_TIME, expire);
             editor.apply();
         }
@@ -149,8 +146,8 @@ public class ExchangeService {
 
     private boolean needToRefreshExchanges() {
         synchronized (this) {
-            long expiresAt = sharedPreferences.getLong(PREFS_EXCHANGE_EXPIRE_TIME, -1);
+            long expiresAt = preferences.getLong(PREFS_EXCHANGE_EXPIRE_TIME, -1);
             return System.currentTimeMillis() >= expiresAt;
         }
-    }
+    }*/
 }

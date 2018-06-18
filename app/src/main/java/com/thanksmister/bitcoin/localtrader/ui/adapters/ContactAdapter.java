@@ -28,7 +28,7 @@ import android.widget.TextView;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ContactItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 
 import java.util.List;
 
@@ -88,7 +88,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
 
             String amount = contact.amount() + " " + contact.currency();
             String person = (contact.is_buying()) ? contact.seller_username() : contact.buyer_username();
-            String date = Dates.parseLocaleDateTime(contact.created_at());
+            String date = DateUtils.parseLocaleDateTime(contact.created_at());
 
             ((ItemViewHolder) viewHolder).tradeType.setText(type + " - " + amount);
             ((ItemViewHolder) viewHolder).tradeDetails.setText(context.getString(R.string.text_with, person));

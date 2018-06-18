@@ -33,7 +33,7 @@ import com.thanksmister.bitcoin.localtrader.constants.Constants;
 import com.thanksmister.bitcoin.localtrader.data.database.TransactionItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.util.Collections;
@@ -129,7 +129,7 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         }
 
         if (!TextUtils.isEmpty(transaction.created_at())) {
-            ((TransactionViewHolder) viewHolder).dateText.setText(Dates.parseLocaleDate(transaction.created_at()));
+            ((TransactionViewHolder) viewHolder).dateText.setText(DateUtils.parseLocaleDate(transaction.created_at()));
         }
     }
 

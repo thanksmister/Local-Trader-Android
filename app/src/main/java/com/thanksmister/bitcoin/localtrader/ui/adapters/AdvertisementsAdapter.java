@@ -29,7 +29,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.persistence.Method;
-import com.thanksmister.bitcoin.localtrader.utils.Dates;
+import com.thanksmister.bitcoin.localtrader.utils.DateUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
@@ -154,7 +154,7 @@ public class AdvertisementsAdapter extends RecyclerView.Adapter<AdvertisementsAd
                 ((AdvertisementViewHolder) viewHolder).icon.setImageResource(R.drawable.ic_action_visibility_off_dark);
             }
 
-            String date = Dates.parseLocaleDate(advertisement.created_at());
+            String date = DateUtils.parseLocaleDate(advertisement.created_at());
             ((AdvertisementViewHolder) viewHolder).advertisementId.setText(advertisement.ad_id());
             ((AdvertisementViewHolder) viewHolder).advertisementDate.setText(date);
         }

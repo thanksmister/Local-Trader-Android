@@ -389,6 +389,13 @@
     <string name="notification_bitcoin_received_description">You received %1$s BTC</string>
     <string name="notifcation_bitcoin_amount_description">You have %1$s BTC</string>
     <string name="notifcation_bitcoin_amount_title">Bitcoin Balance</string>
+    <string name="text_unavailable">Unavailable</string>
+    <string name="error_search_no_coordinates">To search local advertisers, enter valid latitude and longitude values.</string>
+    <string name="error_search_invalid_coordinates">Invalid longitude or latitude entered. Latitude should be between -90 and 90. Longitude should be between -180 and 180.</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="list_contact_id">Contact # %1$s</string>
+    <string name="list_advertisement_id">Advertisement # %1$s</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">

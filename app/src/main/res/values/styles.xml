@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) 2018 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,48 +16,44 @@
   -->
 
 <resources>
-    
-    <style name="Base.Theme.LocalTrader" parent="Theme.AppCompat.Light.NoActionBar">
-        
+
+    <style name="Base.Theme.LocalTrader" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- colorPrimary is used, for instance, for the default ActionBar
              (but not Toolbar) background.
               We specify the same color for the toolbar background in 
               toolbar.xml.. -->
         <item name="colorPrimary">@color/colorPrimary</item>
-
         <!-- colorPrimaryDark is used for the status bar (with the
              battery, clock, etc). -->
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-
         <!-- colorAccent is used as the default value for
              colorControlActivated which is used to tint widgets. -->
         <item name="colorAccent">@color/colorAccent</item>
-
         <!-- textColorLink is used as the default value for all links -->
         <item name="android:textColorLink">@color/blue</item>
-
         <!-- Title Text Color -->
         <item name="android:textColorPrimary">@color/primary_text</item>
-
         <!-- color of the menu overflow icon (three vertical dots) -->
         <item name="android:textColorSecondary">@color/body_text_1</item>
-
         <item name="android:windowBackground">@color/window_background</item>
-
         <item name="colorControlNormal">@color/white</item>
-        
         <!--<item name="colorControlActivated">@color/white</item>
-
         <item name="colorControlHighlight">@color/white</item>-->
-
         <item name="windowActionModeOverlay">false</item>
-
         <item name="actionModeBackground">@drawable/action_mode_background</item>
-        
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
-        
         <item name="android:textColor">@color/body_text_1</item>
-        
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+
+    <style name="LinearProgress" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:background">@color/white</item>
     </style>
 
     <!-- Spinner theme. -->
@@ -101,7 +96,7 @@
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-       
+
     </style>
 
     <style name="PreferencesTheme" parent="AppBaseTheme">
@@ -123,7 +118,7 @@
     </style>
 
     <style name="DividerVertical">
-        <item name="android:layout_width"> 1px</item>
+        <item name="android:layout_width">1px</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_marginLeft">0dip</item>
         <item name="android:layout_marginRight">0dip</item>
@@ -175,7 +170,7 @@
         <item name="android:textColor">@color/blue</item>
     </style>
 
-    <style name="TextMedium.SmallAction" >
+    <style name="TextMedium.SmallAction">
         <item name="android:textSize">@dimen/text_size_medium</item>
     </style>
 
@@ -195,7 +190,7 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="TextLarge.SmallAction" >
+    <style name="TextLarge.SmallAction">
         <item name="android:textSize">@dimen/text_size_large_small_action</item>
     </style>
 
@@ -224,7 +219,7 @@
         <item name="android:textSize">@dimen/text_size_small</item>
     </style>
 
-    <style name="TextSmall.Light" >
+    <style name="TextSmall.Light">
         <item name="android:textColor">@color/body_text_3</item>
     </style>
 
@@ -252,6 +247,10 @@
         <item name="android:textColor">#fff</item>
         <item name="android:background">@drawable/button_green_small_selector</item>
     </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 
 </resources>

@@ -18,12 +18,12 @@
 package com.thanksmister.bitcoin.localtrader.network.services
 
 import android.accounts.Account
-import android.arch.lifecycle.MutableLiveData
 import android.content.*
 import android.os.Bundle
-import android.text.TextUtils
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.network.*
+import com.thanksmister.bitcoin.localtrader.network.ApiErrorHandler
+import com.thanksmister.bitcoin.localtrader.network.LocalBitcoinsApi
+import com.thanksmister.bitcoin.localtrader.network.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.persistence.*
 import com.thanksmister.bitcoin.localtrader.persistence.Currency
@@ -32,12 +32,9 @@ import com.thanksmister.bitcoin.localtrader.utils.Parser
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.util.*
-import java.util.Map
-
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.collections.ArrayList
@@ -126,7 +123,7 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
      */
     private fun printSyncMap() {
         for (o in syncMap!!.entries) {
-            val pair = o as Map.Entry<*, *>
+            val pair = o as kotlin.collections.Map.Entry<*, *>
             Timber.d("Sync Map>>>>>> " + pair.key + " = " + pair.value)
         }
     }
@@ -164,28 +161,17 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
         context.sendBroadcast(intent)
     }
 
-    private fun onSyncFailed(cause: Throwable) {
-        var code = SYNC_ERROR_CODE
-        if (cause is NetworkException) {
-            code = cause.code
-            if (code == 3) {
-                // allow refresh
-                return
-            } else {
-                code = cause.status
-            }
-        }
-
+    private fun onSyncFailed(exception: NetworkException) {
+        cancelSync();
         val intent = Intent(ACTION_SYNC)
         intent.putExtra(EXTRA_ACTION_TYPE, ACTION_TYPE_ERROR)
-        intent.putExtra(EXTRA_ERROR_MESSAGE, cause.cause)
-        intent.putExtra(EXTRA_ERROR_CODE, code)
+        intent.putExtra(EXTRA_ERROR_MESSAGE, exception.message)
+        intent.putExtra(EXTRA_ERROR_STATUS, exception.status)
+        intent.putExtra(EXTRA_ERROR_CODE, exception.code)
         context.sendBroadcast(intent)
-
-        if (cause.message != null) {
-            Timber.e("Sync Data Error: " + cause.message)
-            cause.printStackTrace()
-        }
+        Timber.e("Sync Data Error Message: " + exception.message)
+        Timber.e("Sync Data Error Code: " + exception.code)
+        Timber.e("Sync Data Error Status: " + exception.status)
     }
 
     private fun getCurrencies() {
@@ -216,11 +202,15 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
                     updateSyncMap(SYNC_CURRENCIES, false);
                     updateCurrencies(currencies)
                     preferences.setCurrencyExpireTime()
-                }, { error ->
-                    Timber.e("Error message: " + error.message)
-                    cancelSync();
-                    onSyncFailed(error);
-                    updateSyncMap(SYNC_CURRENCIES, false);
+                }, { throwable ->
+                    if (throwable is NetworkException) {
+                        onSyncFailed(throwable)
+                        updateSyncMap(SYNC_CURRENCIES, false);
+                    } else {
+                        val exception = ApiErrorHandler.handleError(context, throwable)
+                        onSyncFailed(exception)
+                        updateSyncMap(SYNC_CURRENCIES, false);
+                    }
                 }))
     }
 
@@ -260,11 +250,15 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
                     updateSyncMap(SYNC_METHODS, false);
                     updateMethods(methods)
                     preferences.setMethodsExpireTime()
-                }, { error ->
-                    Timber.e("Error message: " + error.message)
-                    cancelSync();
-                    onSyncFailed(error);
-                    updateSyncMap(SYNC_METHODS, false);
+                }, { throwable ->
+                    if (throwable is NetworkException) {
+                        onSyncFailed(throwable)
+                        updateSyncMap(SYNC_METHODS, false);
+                    } else {
+                        val exception = ApiErrorHandler.handleError(context, throwable)
+                        onSyncFailed(exception)
+                        updateSyncMap(SYNC_METHODS, false);
+                    }
                 }))
     }
 
@@ -288,11 +282,15 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
                 .subscribe({response ->
                     updateSyncMap(SYNC_NOTIFICATIONS, false);
                     updateNotifications(response)
-                }, { error ->
-                    Timber.e("Error message: " + error.message)
-                    cancelSync();
-                    onSyncFailed(error);
-                    updateSyncMap(SYNC_NOTIFICATIONS, false);
+                }, { throwable ->
+                    if (throwable is NetworkException) {
+                        onSyncFailed(throwable)
+                        updateSyncMap(SYNC_NOTIFICATIONS, false);
+                    } else {
+                        val exception = ApiErrorHandler.handleError(context, throwable)
+                        onSyncFailed(exception)
+                        updateSyncMap(SYNC_NOTIFICATIONS, false);
+                    }
                 }))
     }
 
@@ -311,28 +309,32 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
                         Timber.d("wallet: " + wallet.address)
                         updateWallet(wallet)
                         preferences.setWalletBalanceExpireTime()
-                    }, { error ->
-                        Timber.e("Error message: " + error.message)
-                        cancelSync();
-                        onSyncFailed(error);
-                        updateSyncMap(SYNC_WALLET, false);
+                    }, { throwable ->
+                        if (throwable is NetworkException) {
+                            onSyncFailed(throwable)
+                            updateSyncMap(SYNC_WALLET, false);
+                        } else {
+                            val exception = ApiErrorHandler.handleError(context, throwable)
+                            onSyncFailed(exception)
+                            updateSyncMap(SYNC_WALLET, false);
+                        }
                     }))
         }
     }
 
     private fun updateWallet(wallet: Wallet) {
         Timber.d("updateWallet")
-        disposable.add(walletData.getItems()
+        disposable.add(Completable.fromAction {
+            val items = walletData.getItemsList()
+            if(items.isNotEmpty()) {
+                val walletItem = items.get(0)
+                updateWalletBalanceAndNotify(wallet, walletItem)
+            } else {
+                insertWallet(wallet)
+            }}
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({items ->
-                    if(items.isNotEmpty()) {
-                        val walletItem = items.get(0)
-                        updateWalletBalanceAndNotify(wallet, walletItem)
-                    } else {
-                        insertWallet(wallet)
-                    }
-                }, { error -> Timber.e("Unable to get message: " + error)}))
+                .subscribe({}, { error -> Timber.e("updateNotifications error" + error.message)}))
     }
 
     private fun insertWallet(wallet: Wallet) {
@@ -375,40 +377,51 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
      */
     private fun updateNotifications(notifications: List<Notification>) {
         Timber.d("updateNotifications")
-        disposable.add(notificationData.getItems()
+        disposable.add(Completable.fromAction {
+            val items = notificationData.getItemsList()
+            if(items.isNotEmpty()) {
+                reconcileNotificationsList(notifications, items)
+            } else {
+                reconcileNotificationsList(notifications, ArrayList<Notification>())
+            }}
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({items ->
-                    if(items.isNotEmpty()) {
-                        reconcileNotificationsList(notifications, items)
-                    } else {
-                        reconcileNotificationsList(notifications, ArrayList<Notification>())
-                    }
-                }, { error -> Timber.e("Unable to get message: " + error)}))
+                .subscribe({}, { error -> Timber.e("updateNotifications error" + error.message)}))
+
     }
 
     private fun reconcileNotificationsList(newNotifications: List<Notification>, currentNotifications: List<Notification>) {
-        val insertNotifications = ArrayList<Notification>()
+        val createNotifications = ArrayList<Notification>()
+        val updateNotifications = ArrayList<Notification>()
         for(new in newNotifications) {
             var exists = false
             for (current in currentNotifications) {
                 if(current.id == new.id) {
                     exists = true
                 }
+                if(exists && current.read != new.read) {
+                    current.read = new.read
+                    updateNotifications.add(current)
+                }
             }
             if(!exists) {
-                insertNotifications.add(new)
+                updateNotifications.add(new)
+                createNotifications.add(new)
             }
         }
-
-        if (!insertNotifications.isEmpty()) {
+        Timber.d("newNotifications size ${newNotifications.size}")
+        Timber.d("updateNotifications size ${updateNotifications.size}")
+        Timber.d("createNotifications size ${createNotifications.size}")
+        if (!newNotifications.isEmpty()) {
             disposable.add(Completable.fromAction {
-                notificationData.insertAll(insertNotifications) }
+                notificationData.insertAll(updateNotifications)}
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({}, { error -> Timber.e("Database error" + error.message)}))
+        }
 
-            notificationService.createNotifications(insertNotifications);
+        if(!createNotifications.isEmpty()) {
+            notificationService.createNotifications(createNotifications);
         }
     }
 
@@ -421,10 +434,10 @@ constructor(context: Context, autoInitialize: Boolean, private val preferences: 
         const val EXTRA_ACTION_TYPE = "com.thanksmister.bitcoin.localtrader.extra.EXTRA_ACTION"
         const val EXTRA_ERROR_CODE = "com.thanksmister.bitcoin.localtrader.extra.EXTRA_ERROR_CODE"
         const val EXTRA_ERROR_MESSAGE = "com.thanksmister.bitcoin.localtrader.extra.EXTRA_ERROR_MESSAGE"
+        const val EXTRA_ERROR_STATUS = "com.thanksmister.bitcoin.localtrader.extra.EXTRA_ERROR_STATUS"
         const val SYNC_CURRENCIES = "com.thanksmister.bitcoin.localtrader.sync.SYNC_CURRENCIES"
         const val SYNC_WALLET = "com.thanksmister.bitcoin.localtrader.sync.SYNC_WALLET"
         const val SYNC_METHODS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_METHODS"
         const val SYNC_NOTIFICATIONS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_NOTIFICATIONS"
-        const val SYNC_ERROR_CODE = 9
     }
 }

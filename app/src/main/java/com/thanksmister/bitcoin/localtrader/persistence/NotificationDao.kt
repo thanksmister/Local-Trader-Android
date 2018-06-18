@@ -25,27 +25,41 @@ import io.reactivex.Flowable
 @Dao
 interface NotificationDao {
     /**
-     * Get a message by id.
-     * @return the message from the table with a specific id.
+     * Get a item by id.
+     * @return the item from the table with a specific id.
      */
     @Query("SELECT * FROM Notification WHERE id = :id")
     fun getItemById(id: String): Flowable<Notification>
 
     /**
      * Get all messages
-     * @return list of all messages
+     * @return list of all items
      */
     @Query("SELECT * FROM Notification ORDER BY created_at DESC")
     fun getItems(): Flowable<List<Notification>>
 
     /**
-     * Insert a message in the database. If the message already exists, replace it.
-     * @param user the message to be inserted.
+     * Get all messages
+     * @return list of all items
      */
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Query("SELECT * FROM Notification ORDER BY created_at DESC")
+    fun getItemsList(): List<Notification>
+
+    /**
+     * Get all unread items
+     * @return list of all unread items
+     */
+    @Query("SELECT * FROM Notification WHERE read = 0")
+    fun getUnreadItems(): Flowable<List<Notification>>
+
+    /**
+     * Insert a items in the database. If the item already exists, replace it.
+     * @param user the item to be inserted.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertItem(item: Notification):Long
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(items: List<Notification>)
 
     @Transaction

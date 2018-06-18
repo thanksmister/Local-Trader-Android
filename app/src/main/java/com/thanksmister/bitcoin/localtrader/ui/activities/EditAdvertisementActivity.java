@@ -174,7 +174,7 @@ public class EditAdvertisementActivity extends BaseActivity {
         super.onDestroy();
     }
 
-    protected void handleNetworkDisconnect() {
+    public void handleNetworkDisconnect() {
         if (NetworkUtils.isNetworkConnected(EditAdvertisementActivity.this)) {
             snack(getString(R.string.error_no_internet), false);
         }
