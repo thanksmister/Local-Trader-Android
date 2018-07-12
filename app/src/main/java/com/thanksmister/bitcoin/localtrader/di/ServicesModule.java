@@ -17,7 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.di;
 
 import android.app.Service;
-import android.content.AbstractThreadedSyncAdapter;
 
 import com.thanksmister.bitcoin.localtrader.network.services.SyncService;
 

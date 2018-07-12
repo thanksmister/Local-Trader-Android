@@ -25,7 +25,6 @@ import android.view.LayoutInflater;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
 import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncService;
 import com.thanksmister.bitcoin.localtrader.persistence.CurrencyDao;
 import com.thanksmister.bitcoin.localtrader.persistence.MethodDao;
 import com.thanksmister.bitcoin.localtrader.persistence.NotificationDao;
