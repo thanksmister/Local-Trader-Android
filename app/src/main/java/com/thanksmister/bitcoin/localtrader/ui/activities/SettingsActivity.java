@@ -31,8 +31,6 @@ import com.thanksmister.bitcoin.localtrader.ui.fragments.SettingsFragment;
 
 public class SettingsActivity extends BaseActivity {
 
-    Toolbar toolbar;
-
     public static Intent createStartIntent(Context context) {
         return new Intent(context, SettingsActivity.class);
     }
@@ -50,10 +48,11 @@ public class SettingsActivity extends BaseActivity {
     }
 
     private void setupToolBar() {
-        setSupportActionBar(toolbar);
         final ActionBar ab = getSupportActionBar();
-        ab.setTitle(R.string.title_activity_settings);
-        ab.setDisplayHomeAsUpEnabled(true);
+        if(ab != null) {
+            ab.setTitle(R.string.title_activity_settings);
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override

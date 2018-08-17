@@ -147,6 +147,11 @@
             android:noHistory="true"
             android:screenOrientation="portrait"/>
         <activity
+            android:name=".ui.activities.SearchActivity"
+            android:configChanges="locale"
+            android:noHistory="true"
+            android:screenOrientation="portrait"/>
+        <activity
             android:name=".ui.activities.SettingsActivity"
             android:configChanges="locale"
             android:label="@string/title_activity_settings"
