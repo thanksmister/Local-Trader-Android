@@ -43,7 +43,10 @@ class SplashActivity : BaseActivity() {
     private val syncBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val syncActionType = intent.getStringExtra(SyncAdapter.EXTRA_ACTION_TYPE)
-            val extraErrorMessage = intent.getStringExtra(SyncAdapter.EXTRA_ERROR_MESSAGE)
+            var extraErrorMessage: String? = null
+            if(intent.hasExtra(SyncAdapter.EXTRA_ERROR_MESSAGE)) {
+                extraErrorMessage = intent.getStringExtra(SyncAdapter.EXTRA_ERROR_MESSAGE)
+            }
             val extraErrorCode = intent.getIntExtra(SyncAdapter.EXTRA_ERROR_CODE, 0)
             val extraErrorStatus = intent.getIntExtra(SyncAdapter.EXTRA_ERROR_CODE, 0)
             handleStartSync(syncActionType, extraErrorMessage, extraErrorCode, extraErrorStatus)
@@ -104,7 +107,7 @@ class SplashActivity : BaseActivity() {
         dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_title), getString(R.string.error_no_internet))
     }
 
-    protected fun handleStartSync(syncActionType: String, extraErrorMessage: String, extraErrorCode: Int, extraErrorStatus: Int) {
+    private fun handleStartSync(syncActionType: String, extraErrorMessage: String?, extraErrorCode: Int, extraErrorStatus: Int) {
         Timber.d("handleSyncEvent: " + syncActionType)
         when (syncActionType) {
             SyncAdapter.ACTION_TYPE_START -> {

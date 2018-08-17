@@ -24,28 +24,30 @@ import android.net.Uri
 import android.os.Bundle
 import com.crashlytics.android.answers.Answers
 import com.crashlytics.android.answers.CustomEvent
+import com.thanksmister.bitcoin.localtrader.BuildConfig
 
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import kotlinx.android.synthetic.main.view_promo.*
 
-
 class PromoActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.view_promo)
-        registerButton.setOnClickListener({
+        registerButton.setOnClickListener {
             showRegistration()
-        })
-        loginButton.setOnClickListener({
+        }
+        loginButton.setOnClickListener {
             showLoginView()
-        })
+        }
     }
 
     private fun showLoginView() {
-        Answers.getInstance().logCustom(CustomEvent("User Login"));
+        if(!BuildConfig.DEBUG) {
+            Answers.getInstance().logCustom(CustomEvent("User Login"));
+        }
         val intent = LoginActivity.createStartIntent(this@PromoActivity)
         startActivity(intent)
     }
