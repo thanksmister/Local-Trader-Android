@@ -328,6 +328,7 @@ public class WalletFragment extends BaseFragment {
                     @Override
                     public void call(final Throwable throwable) {
                         Timber.e(throwable.getMessage());
+                        handleError(throwable);
                     }
                 });
     }

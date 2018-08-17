@@ -41,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
@@ -276,7 +277,26 @@ public class DashboardFragment extends BaseFragment {
                         if (throwable instanceof InterruptedIOException) {
                             Timber.d("Advertisements Error: " + throwable.getMessage());
                         } else {
-                            Timber.e("Advertisements Error: " + throwable.getMessage());
+                            handleError(throwable);
+                        }
+                    }
+                });
+
+        dataService.getContacts(DashboardType.ACTIVE)
+                .subscribe(new Action1<List<Contact>>() {
+                    @Override
+                    public void call(List<Contact> contacts) {
+                        if (contacts != null) {
+                            dbManager.insertContacts(contacts);
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        if (throwable instanceof InterruptedIOException) {
+                            Timber.d("Advertisements Error: " + throwable.getMessage());
+                        } else {
+                            handleError(throwable);
                         }
                     }
                 });

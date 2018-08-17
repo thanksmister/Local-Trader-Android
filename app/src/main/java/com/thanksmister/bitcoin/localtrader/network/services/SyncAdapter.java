@@ -81,6 +81,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public static final String ACTION_SYNC = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC";
     public static final String ACTION_TYPE_START = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_START";
     public static final String ACTION_TYPE_COMPLETE = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_COMPLETE";
+    public static final String ACTION_TYPE_REFRESH = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_TYPE_REFRESH";
     public static final String ACTION_TYPE_CANCELED = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_CANCELED";
     public static final String ACTION_TYPE_ERROR = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_ERROR";
 
@@ -143,7 +144,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             getCurrencies();
             getMethods();
             getNotifications();
-            getContacts();
+            //getContacts();
             //getAdvertisements();
             getWalletBalance();
             if (!isSyncing() && !isCanceled()) {
@@ -235,6 +236,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("onSyncComplete");
         Intent intent = new Intent(ACTION_SYNC);
         intent.putExtra(EXTRA_ACTION_TYPE, ACTION_TYPE_COMPLETE);
+        getContext().sendBroadcast(intent);
+    }
+
+    private void onSyncRefresh() {
+        Timber.d("onSyncRefresh");
+        Intent intent = new Intent(ACTION_SYNC);
+        intent.putExtra(EXTRA_ACTION_TYPE, ACTION_TYPE_REFRESH);
         getContext().sendBroadcast(intent);
     }
 
@@ -488,6 +496,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("updateNotifications newNotifications: " + newNotifications.size());
         if (!newNotifications.isEmpty()) {
             notificationService.createNotifications(newNotifications);
+            onSyncRefresh(); // we assume we have new contacts and need to refresh
         }
     }
 

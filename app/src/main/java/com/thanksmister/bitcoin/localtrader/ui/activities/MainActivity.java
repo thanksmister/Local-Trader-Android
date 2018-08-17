@@ -255,7 +255,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     public void onRefresh() {
         AuthUtils.setForceUpdate(preference, true);
         SyncUtils.requestSyncNow(MainActivity.this);
-        handleRefresh();
+        //handleRefresh();
         updateData();
     }
 
@@ -613,6 +613,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         switch (syncActionType) {
             case SyncAdapter.ACTION_TYPE_START:
                 break;
+            case SyncAdapter.ACTION_TYPE_REFRESH:
+                handleRefresh();
             case SyncAdapter.ACTION_TYPE_COMPLETE:
                 onRefreshStop();
                 break;

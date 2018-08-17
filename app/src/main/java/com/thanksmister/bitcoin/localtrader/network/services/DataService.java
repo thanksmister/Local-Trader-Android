@@ -93,7 +93,7 @@ public class DataService {
     private static final int CHECK_CURRENCY_DATA = 604800000;// // 1 week 604800000
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
     private static final int CHECK_ADVERTISEMENT_DATA = 3600000;// 1 hour
-    private static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
+    private static final int CHECK_CONTACTS_DATA = 3 * 60 * 1000;// 5 minutes
     private static final int CHECK_WALLET_DATA = 15 * 60 * 1000;// 15 minutes
     private static final int CHECK_WALLET_BALANCE_DATA = 15 * 60 * 1000;// 15 minutes
 
@@ -967,10 +967,16 @@ public class DataService {
                             }
                         });
             default:
+
+                if (!needToRefreshContacts()) {
+                    return Observable.just(null);
+                }
+
                 return getContactsObservable(accessToken)
                         .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
                             @Override
                             public Observable<? extends Response> call(Throwable throwable) {
+                                setContactsExpireTime();
                                 NetworkException networkException = null;
                                 if (throwable instanceof NetworkException) {
                                     networkException = (NetworkException) throwable;
@@ -1008,7 +1014,7 @@ public class DataService {
                         .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
                             public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                                //setContactsExpireTime();
+                                setContactsExpireTime();
                                 return Observable.just(contacts);
                             }
                         });
@@ -1066,7 +1072,6 @@ public class DataService {
     }
 
     public Observable<List<Advertisement>> getAdvertisements(boolean force) {
-
         if (!needToRefreshAdvertisements() && !force) {
             return Observable.just(null);
         }
@@ -1076,6 +1081,7 @@ public class DataService {
                     @Override
                     public Observable<? extends Response> call(Throwable throwable) {
                         NetworkException networkException = null;
+                        setAdvertisementsExpireTime();
                         if (throwable instanceof NetworkException) {
                             networkException = (NetworkException) throwable;
                         }
