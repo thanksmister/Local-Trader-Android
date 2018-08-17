@@ -43,6 +43,7 @@ import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
 import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
@@ -59,6 +60,9 @@ import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 import com.trello.rxlifecycle.ActivityEvent;
+
+import java.io.InterruptedIOException;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -267,13 +271,13 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         }
     }
 
+    @Override
+    public void launchScanner() {
+        onRefreshStop();
+        super.launchScanner();
+    }
+
     private void updateData() {
-
-        /*if(NetworkUtils.isNetworkConnected(this)) {
-            handleError(new NetworkConnectionException(getString(R.string.error_no_internet)));
-            return;
-        }*/
-
         exchangeService.getSpotPrice()
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -501,6 +505,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             switch (fragment.getTag()) {
                 case WALLET_FRAGMENT:
                     ((WalletFragment) fragment).onRefresh();
+                    break;
+                case DASHBOARD_FRAGMENT:
+                    ((DashboardFragment) fragment).onRefresh();
                     break;
             }
         }

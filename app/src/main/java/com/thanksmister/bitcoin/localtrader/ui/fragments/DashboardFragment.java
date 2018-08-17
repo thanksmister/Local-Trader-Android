@@ -40,6 +40,7 @@ import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
@@ -50,6 +51,7 @@ import com.trello.rxlifecycle.FragmentEvent;
 
 import org.json.JSONObject;
 
+import java.io.InterruptedIOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -231,6 +233,7 @@ public class DashboardFragment extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
+        updateData();
     }
 
     @Override
@@ -251,6 +254,32 @@ public class DashboardFragment extends BaseFragment {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void onRefresh() {
+        updateData();
+    }
+
+    private void updateData() {
+        toast(getString(R.string.toast_refreshing_data));
+        dataService.getAdvertisements(true)
+                .subscribe(new Action1<List<Advertisement>>() {
+                    @Override
+                    public void call(List<Advertisement> advertisements) {
+                        if (advertisements != null && !advertisements.isEmpty()) {
+                            dbManager.insertAdvertisements(advertisements);
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        if (throwable instanceof InterruptedIOException) {
+                            Timber.d("Advertisements Error: " + throwable.getMessage());
+                        } else {
+                            Timber.e("Advertisements Error: " + throwable.getMessage());
+                        }
+                    }
+                });
     }
 
     private void launchScanner() {

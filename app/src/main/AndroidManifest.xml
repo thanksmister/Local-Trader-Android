@@ -140,8 +140,7 @@
 
         <activity
                 android:name=".ui.activities.QRCodeActivity"
-                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"
-                android:screenOrientation="portrait">
+                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth">
         </activity>
 
         <activity

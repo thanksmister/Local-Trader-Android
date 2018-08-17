@@ -168,7 +168,7 @@ public class WalletFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         subscribeData();
-        updateData(false);
+        updateData();
     }
 
     @Override
@@ -216,7 +216,7 @@ public class WalletFragment extends BaseFragment {
     }
 
     public void onRefresh() {
-        updateData(true);
+        updateData();
     }
 
     private void setupToolbar() {
@@ -230,7 +230,6 @@ public class WalletFragment extends BaseFragment {
     }
 
     private void subscribeData() {
-        //dbManager.clearWallet();
         dbManager.walletQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -305,34 +304,32 @@ public class WalletFragment extends BaseFragment {
                 });
     }
 
-    private void updateData(final boolean force) {
-        if (dataService.needToRefreshWallet() && !force) {
-            showProgress();
-            toast(getString(R.string.toast_refreshing_data));
-            dataService.getWallet()
-                    .doOnUnsubscribe(new Action0() {
-                        @Override
-                        public void call() {
-                            Timber.i("Wallet update subscription safely unsubscribed");
-                        }
-                    })
-                    .compose(this.<Wallet>bindUntilEvent(FragmentEvent.PAUSE))
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<Wallet>() {
-                        @Override
-                        public void call(final Wallet wallet) {
-                            dbManager.updateWallet(wallet);
-                            dbManager.updateTransactions(wallet.getTransactions());
-                            dataService.setWalletExpireTime();
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(final Throwable throwable) {
-                            Timber.e(throwable.getMessage());
-                        }
-                    });
-        }
+    private void updateData() {
+        showProgress();
+        toast(getString(R.string.toast_refreshing_data));
+        dataService.getWallet()
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("Wallet update subscription safely unsubscribed");
+                    }
+                })
+                .compose(this.<Wallet>bindUntilEvent(FragmentEvent.PAUSE))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Wallet>() {
+                    @Override
+                    public void call(final Wallet wallet) {
+                        dbManager.updateWallet(wallet);
+                        dbManager.updateTransactions(wallet.getTransactions());
+                        dataService.setWalletExpireTime();
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(final Throwable throwable) {
+                        Timber.e(throwable.getMessage());
+                    }
+                });
     }
 
     // TODO split list by date

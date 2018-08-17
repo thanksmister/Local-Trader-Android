@@ -50,7 +50,7 @@ public class ExchangeService {
     public static final String PREFS_EXCHANGE_CURRENCY = "exchange_currency";
     public static final String PREFS_EXCHANGE = "pref_exchange";
 
-    public static final int CHECK_EXCHANGE_DATA = 2 * 60 * 1000;// 5 minutes
+    public static final int CHECK_EXCHANGE_DATA = 3 * 60 * 1000;// 3 minutes
 
     public static final String USD = "USD";
 
@@ -102,67 +102,72 @@ public class ExchangeService {
     }
 
     public Observable<ExchangeRate> getSpotPrice() {
-        //if(needToRefreshExchanges()) {
-        final String currency = getExchangeCurrency();
-        if (getSelectedExchange().equals(COINBASE_EXCHANGE)) {
-            return coinbase.spotPrice(currency)
-                    .doOnNext(new Action1<Response>() {
-                        @Override
-                        public void call(Response response) {
-                            setExchangeExpireTime();
-                        }
-                    })
-                    .map(new ResponseToExchange());
-        } else if (getSelectedExchange().equals(BITSTAMP_EXCHANGE)) {
-            return bitstamp.ticker("btc" + currency.toLowerCase())
-                    .doOnNext(new Action1<Bitstamp>() {
-                        @Override
-                        public void call(Bitstamp bitstamp) {
-                            setExchangeExpireTime();
-                        }
-                    })
-                    .flatMap(new Func1<Bitstamp, Observable<ExchangeRate>>() {
-                        @Override
-                        public Observable<ExchangeRate> call(Bitstamp bitstamp) {
-                            String currency = getExchangeCurrency();
-                            ExchangeRate exchangeRate = new ExchangeRate(BITSTAMP_EXCHANGE, bitstamp.last, currency);
-                            return Observable.just(exchangeRate);
-                        }
-                    });
-        } else if (getSelectedExchange().equals(BITFINEX_EXCHANGE)) {
-            return bitfinex.ticker("tBTC" + currency.toUpperCase())
-                    .doOnNext(new Action1<Response>() {
-                        @Override
-                        public void call(Response response) {
-                            setExchangeExpireTime();
-                        }
-                    })
-                    .map(new ResponseToBitfinex())
-                    .flatMap(new Func1<ExchangeRate, Observable<ExchangeRate>>() {
-                        @Override
-                        public Observable<ExchangeRate> call(ExchangeRate exchangeRate) {
-                            exchangeRate.setDisplay_name(BITFINEX_EXCHANGE);
-                            exchangeRate.setCurrency(currency);
-                            return Observable.just(exchangeRate);
-                        }
-                    });
-        } else if (getSelectedExchange().equals(BITCOINAVERAGE_EXCHANGE)) {
-            return bitcoinAverage.ticker()
-                    .doOnNext(new Action1<Response>() {
-                        @Override
-                        public void call(Response response) {
-                            setExchangeExpireTime();
-                        }
-                    })
-                    .flatMap(new Func1<Response, Observable<ExchangeRate>>() {
-                        @Override
-                        public Observable<ExchangeRate> call(Response response) {
-                            ExchangeRate exchangeRate = Parser.parseBitcoinAverageExchangeRate(BITCOINAVERAGE_EXCHANGE, currency, response);
-                            return Observable.just(exchangeRate);
-                        }
-                    });
-        } else {
+
+        if (!needToRefreshExchanges()){
             return Observable.just(null);
+        }
+
+        final String currency = getExchangeCurrency();
+        switch (getSelectedExchange()) {
+            case COINBASE_EXCHANGE:
+                return coinbase.spotPrice(currency)
+                        .doOnNext(new Action1<Response>() {
+                            @Override
+                            public void call(Response response) {
+                                setExchangeExpireTime();
+                            }
+                        })
+                        .map(new ResponseToExchange());
+            case BITSTAMP_EXCHANGE:
+                return bitstamp.ticker("btc" + currency.toLowerCase())
+                        .doOnNext(new Action1<Bitstamp>() {
+                            @Override
+                            public void call(Bitstamp bitstamp) {
+                                setExchangeExpireTime();
+                            }
+                        })
+                        .flatMap(new Func1<Bitstamp, Observable<ExchangeRate>>() {
+                            @Override
+                            public Observable<ExchangeRate> call(Bitstamp bitstamp) {
+                                String currency = getExchangeCurrency();
+                                ExchangeRate exchangeRate = new ExchangeRate(BITSTAMP_EXCHANGE, bitstamp.last, currency);
+                                return Observable.just(exchangeRate);
+                            }
+                        });
+            case BITFINEX_EXCHANGE:
+                return bitfinex.ticker("tBTC" + currency.toUpperCase())
+                        .doOnNext(new Action1<Response>() {
+                            @Override
+                            public void call(Response response) {
+                                setExchangeExpireTime();
+                            }
+                        })
+                        .map(new ResponseToBitfinex())
+                        .flatMap(new Func1<ExchangeRate, Observable<ExchangeRate>>() {
+                            @Override
+                            public Observable<ExchangeRate> call(ExchangeRate exchangeRate) {
+                                exchangeRate.setDisplay_name(BITFINEX_EXCHANGE);
+                                exchangeRate.setCurrency(currency);
+                                return Observable.just(exchangeRate);
+                            }
+                        });
+            case BITCOINAVERAGE_EXCHANGE:
+                return bitcoinAverage.ticker()
+                        .doOnNext(new Action1<Response>() {
+                            @Override
+                            public void call(Response response) {
+                                setExchangeExpireTime();
+                            }
+                        })
+                        .flatMap(new Func1<Response, Observable<ExchangeRate>>() {
+                            @Override
+                            public Observable<ExchangeRate> call(Response response) {
+                                ExchangeRate exchangeRate = Parser.parseBitcoinAverageExchangeRate(BITCOINAVERAGE_EXCHANGE, currency, response);
+                                return Observable.just(exchangeRate);
+                            }
+                        });
+            default:
+                return Observable.just(null);
         }
         //}
     }
@@ -176,7 +181,7 @@ public class ExchangeService {
 
     private void setExchangeExpireTime() {
         synchronized (this) {
-            long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA; // 1 hours
+            long expire = System.currentTimeMillis() + CHECK_EXCHANGE_DATA;
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putLong(PREFS_EXCHANGE_EXPIRE_TIME, expire);
             editor.apply();

@@ -144,7 +144,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             getMethods();
             getNotifications();
             getContacts();
-            getAdvertisements();
+            //getAdvertisements();
             getWalletBalance();
             if (!isSyncing() && !isCanceled()) {
                 resetSyncing();
