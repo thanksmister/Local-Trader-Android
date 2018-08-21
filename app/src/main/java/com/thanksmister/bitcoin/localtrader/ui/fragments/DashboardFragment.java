@@ -134,16 +134,22 @@ public class DashboardFragment extends BaseFragment {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
-                    fragment = AdvertisementsFragment.newInstance();
-                    getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, ADVERTISEMENTS_FRAGMENT).commit();
+                    if (getActivity() != null && !getActivity().isFinishing()) {
+                        fragment = AdvertisementsFragment.newInstance();
+                        getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, ADVERTISEMENTS_FRAGMENT).commit();
+                    }
                     return true;
                 case R.id.navigation_dashboard:
                     fragment = ContactsFragment.newInstance();
-                    getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, CONTACTS_FRAGMENT).commit();
+                    if (getActivity() != null && !getActivity().isFinishing()) {
+                        getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, CONTACTS_FRAGMENT).commit();
+                    }
                     return true;
                 case R.id.navigation_notifications:
-                    fragment = NotificationsFragment.newInstance();
-                    getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, NOTIFICATIONS_FRAGMENT).commit();
+                    if (getActivity() != null && !getActivity().isFinishing()) {
+                        fragment = NotificationsFragment.newInstance();
+                        getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, NOTIFICATIONS_FRAGMENT).commit();
+                    }
                     return true;
             }
             return false;

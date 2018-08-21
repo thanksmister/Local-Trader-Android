@@ -38,27 +38,13 @@ public class BaseApplication extends MultiDexApplication {
         if (BuildConfig.DEBUG) {
 
             Timber.plant(new Timber.DebugTree());
-            //ButterKnife.setDebug(BuildConfig.DEBUG);
-            //LeakCanary.install(this);
-            //refWatcher = LeakCanary.install(this);
-
-            Stetho.initialize(Stetho.newInitializerBuilder(this)
+            /*Stetho.initialize(Stetho.newInitializerBuilder(this)
                     .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
-                    .build());
+                    .build());*/
 
         } else {
 
             Fabric.with(this, new Crashlytics());
-            /*RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler()
-            {
-                @Override
-                public void handleError(Throwable e)
-                {
-                    Timber.e("RXJava Error", e);
-                    Crashlytics.logException(e);
-                }
-            });
-            */
             Timber.plant(new CrashlyticsTree());
         }
 

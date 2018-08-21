@@ -17,6 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,6 +37,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -161,6 +163,17 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     public void launchScanner() {
         IntentIntegrator scanIntegrator = new IntentIntegrator(BaseActivity.this);
         scanIntegrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
+    }
+
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        if (activity.getCurrentFocus() != null && activity.getCurrentFocus().getWindowToken() != null) {
+            try {
+                inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+            } catch (NullPointerException e) {
+                Timber.e(e.getMessage());
+            }
+        }
     }
 
     public void showProgressDialog(ProgressDialogEvent event) {

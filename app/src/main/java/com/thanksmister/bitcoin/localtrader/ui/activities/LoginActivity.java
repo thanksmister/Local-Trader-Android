@@ -208,8 +208,7 @@ public class LoginActivity extends BaseActivity {
         } else {
             // hide keyboard and notify
             try {
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                hideSoftKeyboard(LoginActivity.this);
             } catch (NullPointerException e) {
                 Timber.e("Error closing keyboard");
             }

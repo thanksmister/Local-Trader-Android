@@ -4,7 +4,7 @@ apply plugin: 'io.fabric'
 def versionMajor = 2
 def versionMinor = 4
 def versionPatch = 5
-def versionBuild = 1 // bump for dog food builds, public betas, etc.
+def versionBuild = 2 // bump for dog food builds, public betas, etc.
 
 def LBC_KEY() {
     Properties properties = new Properties()
@@ -19,11 +19,11 @@ def LBC_SECRET() {
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 27
     buildToolsVersion '27.0.3'
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 28
+        targetSdkVersion 27
         applicationId 'com.thanksmister.bitcoin.localtrader'
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName "${versionMajor}.${versionMinor}.${versionPatch}.${versionBuild}"
@@ -74,7 +74,7 @@ configurations.all {
 ext {
     archVersion = '1.1.0'
     archRoomVersion = '1.0.0'
-    supporVersion = "27.+"
+    supporVersion = "27.1.1"
     dagger = "2.12"
     retrofit = "2.2.0"
     stetho = "1.3.1"
@@ -86,12 +86,12 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile "com.android.support:appcompat-v7:${supporVersion}"
-    compile "com.android.support:support-v4:${supporVersion}"
-    compile "com.android.support:recyclerview-v7:${supporVersion}"
-    compile "com.android.support:design:${supporVersion}"
-    compile "com.android.support:support-annotations:${supporVersion}"
-    compile "com.android.support:support-compat:${supporVersion}"
+    compile "com.android.support:appcompat-v7:27.1.1"
+    compile "com.android.support:support-v4:27.1.1"
+    compile "com.android.support:recyclerview-v7:27.1.1"
+    compile "com.android.support:design:27.1.1"
+    compile "com.android.support:support-annotations:27.1.1"
+    compile "com.android.support:support-compat:27.1.1"
 
     compile 'com.android.support:multidex:1.0.3'
     
