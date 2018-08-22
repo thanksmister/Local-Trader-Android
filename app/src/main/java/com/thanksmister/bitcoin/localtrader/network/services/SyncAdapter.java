@@ -144,9 +144,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             getCurrencies();
             getMethods();
             getNotifications();
-            //getContacts();
-            //getAdvertisements();
             getWalletBalance();
+            if(AuthUtils.isFirstTime(preference)) {
+                getContacts();
+                getAdvertisements();
+            }
             if (!isSyncing() && !isCanceled()) {
                 resetSyncing();
                 onSyncComplete();
@@ -380,7 +382,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                             Timber.e("Advertisements Error: " + throwable.getMessage());
                         }
                         cancelSync();
-                        AuthUtils.setForceUpdate(preference, false);
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_ADVERTISEMENTS, false);
                     }
@@ -402,6 +403,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_CONTACTS, false);
                     }
@@ -423,7 +425,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        isCanceled();
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_NOTIFICATIONS, false);
                     }
@@ -445,7 +447,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        isCanceled();
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_WALLET, false);
                     }

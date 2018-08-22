@@ -57,7 +57,7 @@ public class SplashActivity extends BaseActivity {
             startActivity(intent);
             finish();
         } else if (AuthUtils.isFirstTime(preference)) {
-            AuthUtils.setForceUpdate(preference, false);
+            //AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(this);
         } else {
             Intent intent = new Intent(this, MainActivity.class);
@@ -100,7 +100,7 @@ public class SplashActivity extends BaseActivity {
                 break;
             case SyncAdapter.ACTION_TYPE_ERROR:
                 Timber.e("Sync error: " + extraErrorMessage + "code: " + extraErrorCode);
-                showAlertDialog(new AlertDialogEvent(getString(R.string.error_generic_error), getString(R.string.error_sync)), new Action0() {
+                showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_sync)), new Action0() {
                     @Override
                     public void call() {
                         finish();

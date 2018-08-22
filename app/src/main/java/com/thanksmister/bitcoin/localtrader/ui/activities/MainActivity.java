@@ -180,7 +180,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
         if (!AuthUtils.isFirstTime(preference)) {
             toast(R.string.toast_refreshing_data);
-            AuthUtils.setForceUpdate(preference, false);
+            //AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(MainActivity.this);
         }
 
@@ -254,7 +254,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     public void onRefresh() {
-        AuthUtils.setForceUpdate(preference, true);
+        //AuthUtils.setForceUpdate(preference, true);
         SyncUtils.requestSyncNow(MainActivity.this);
         //handleRefresh();
         updateData();
@@ -617,9 +617,11 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 handleRefresh();
             case SyncAdapter.ACTION_TYPE_COMPLETE:
                 onRefreshStop();
+                AuthUtils.setFirstTime(preference, false);
                 break;
             case SyncAdapter.ACTION_TYPE_CANCELED:
                 onRefreshStop();
+                AuthUtils.setFirstTime(preference, false);
                 break;
             case SyncAdapter.ACTION_TYPE_ERROR:
                 Timber.e("Sync error: " + extraErrorMessage + "code: " + extraErrorCode);
@@ -632,10 +634,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                     });
                 }
                 onRefreshStop();
+                AuthUtils.setFirstTime(preference, false);
                 break;
         }
-
-        AuthUtils.setFirstTime(preference, false);
     }
 
     private BroadcastReceiver syncBroadcastReceiver = new BroadcastReceiver() {
