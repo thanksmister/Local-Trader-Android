@@ -66,6 +66,8 @@ import timber.log.Timber;
 
 public class WalletFragment extends BaseFragment {
 
+    private static final String SYNC_WALLET = "com.thanksmister.bitcoin.localtrader.sync.SYNC_WALLET";
+
     @Inject
     DataService dataService;
 
@@ -107,6 +109,17 @@ public class WalletFragment extends BaseFragment {
     private List<TransactionItem> transactionItems;
     private ExchangeRateItem exchangeItem;
     private WalletItem walletItem;
+    private OnFragmentListener onFragmentListener;
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     */
+    public interface OnFragmentListener {
+        void updateSyncMap(String key, boolean value);
+    }
 
     public static WalletFragment newInstance() {
         return new WalletFragment();
@@ -141,6 +154,16 @@ public class WalletFragment extends BaseFragment {
     @Override
     public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnFragmentListener) {
+            onFragmentListener = (OnFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString() + " must implement OnFragmentListener");
+        }
     }
 
     @Override
@@ -305,13 +328,14 @@ public class WalletFragment extends BaseFragment {
     }
 
     private void updateData() {
-        showProgress();
         toast(getString(R.string.toast_refreshing_data));
+        onFragmentListener.updateSyncMap(SYNC_WALLET, true);
         dataService.getWallet()
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
                         Timber.i("Wallet update subscription safely unsubscribed");
+                        onFragmentListener.updateSyncMap(SYNC_WALLET, false);
                     }
                 })
                 .compose(this.<Wallet>bindUntilEvent(FragmentEvent.PAUSE))
@@ -320,6 +344,7 @@ public class WalletFragment extends BaseFragment {
                 .subscribe(new Action1<Wallet>() {
                     @Override
                     public void call(final Wallet wallet) {
+                        onFragmentListener.updateSyncMap(SYNC_WALLET, false);
                         dbManager.updateWallet(wallet);
                         dbManager.updateTransactions(wallet.getTransactions());
                         dataService.setWalletExpireTime();
@@ -327,6 +352,7 @@ public class WalletFragment extends BaseFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(final Throwable throwable) {
+                        onFragmentListener.updateSyncMap(SYNC_WALLET, false);
                         Timber.e(throwable.getMessage());
                         handleError(throwable);
                     }

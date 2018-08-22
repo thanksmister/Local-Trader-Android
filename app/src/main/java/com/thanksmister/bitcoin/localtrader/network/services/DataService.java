@@ -967,11 +967,9 @@ public class DataService {
                             }
                         });
             default:
-
                 if (!needToRefreshContacts()) {
                     return Observable.just(null);
                 }
-
                 return getContactsObservable(accessToken)
                         .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
                             @Override

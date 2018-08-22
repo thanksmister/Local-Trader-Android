@@ -649,6 +649,7 @@
     <string name="button_register">Register</string>
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">Syncing account data…</string>
+    <string name="notification_new_notifications">You have %1$s new notifications.</string>
 
 
 </resources>

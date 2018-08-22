@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
@@ -38,6 +39,7 @@ import timber.log.Timber;
 public class SplashActivity extends BaseActivity {
 
     private static IntentFilter syncIntentFilter = new IntentFilter(SyncAdapter.ACTION_SYNC);
+    private Handler firstTimeHandler;
 
     public static Intent createStartIntent(Context context) {
         return new Intent(context, SplashActivity.class);
@@ -57,8 +59,9 @@ public class SplashActivity extends BaseActivity {
             startActivity(intent);
             finish();
         } else if (AuthUtils.isFirstTime(preference)) {
-            //AuthUtils.setForceUpdate(preference, false);
             SyncUtils.requestSyncNow(this);
+            firstTimeHandler = new Handler();
+            firstTimeHandler.postDelayed(firstTimeRunnable, 30000);
         } else {
             Intent intent = new Intent(this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -77,12 +80,20 @@ public class SplashActivity extends BaseActivity {
     public void onPause() {
         super.onPause();
         unregisterReceiver(syncBroadcastReceiver);
+        AuthUtils.setFirstTime(preference, false);
     }
 
     @Override
     protected void handleNetworkDisconnect() {
         showAlertDialog(new AlertDialogEvent(getString(R.string.error_generic_error), getString(R.string.error_no_internet)));
     }
+
+    private Runnable firstTimeRunnable = new Runnable() {
+        @Override
+        public void run() {
+            AuthUtils.setFirstTime(preference, false);
+        }
+    };
 
     protected void handleStartSync(String syncActionType, String extraErrorMessage, int extraErrorCode) {
         Timber.d("handleSyncEvent: " + syncActionType);

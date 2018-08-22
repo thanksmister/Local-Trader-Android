@@ -61,6 +61,8 @@ import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.net.ssl.SSLHandshakeException;
@@ -96,6 +98,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     private AlertDialog progressDialog;
     private AlertDialog alertDialog;
     private Snackbar snackBar;
+    private HashMap<String, Boolean> syncMap = new HashMap<>(); // init sync map
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,6 +142,48 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         registerReceiver(connReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
+    /**
+     * Keep a map of all syncing calls to update sync status and
+     * broadcast when no more syncs running
+     *
+     * @param key
+     * @param value
+     */
+    public void updateSyncMap(String key, boolean value) {
+        Timber.d("updateSyncMap: " + key + " value: " + value);
+        syncMap.put(key, value);
+        if (!isSyncing()) {
+            resetSyncing();
+        }
+    }
+
+    /**
+     * Prints the sync map for debugging
+     */
+    public void printSyncMap() {
+        for (Object o : syncMap.entrySet()) {
+            Map.Entry pair = (Map.Entry) o;
+            Timber.d("Sync Map>>>>>> " + pair.getKey() + " = " + pair.getValue());
+        }
+    }
+
+    /**
+     * Checks if any active syncs are going one
+     *
+     * @return
+     */
+    public boolean isSyncing() {
+        printSyncMap();
+        Timber.d("isSyncing: " + syncMap.containsValue(true));
+        return syncMap.containsValue(true);
+    }
+
+    /**
+     * Resets the syncing map
+     */
+    private void resetSyncing() {
+        syncMap = new HashMap<>();
+    }
     /**
      * Called when network is disconnected
      */
@@ -553,11 +598,10 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         }
 
         try {
-            // TODO check for null pointer
             View view = findViewById(R.id.coordinatorLayout);
             if (view != null) {
                 snackBar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
-                TextView textView = (TextView) snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
+                TextView textView = snackBar.getView().findViewById(android.support.design.R.id.snackbar_text);
                 textView.setTextColor(getResources().getColor(R.color.white));
                 snackBar.show();
             }

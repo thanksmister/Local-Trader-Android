@@ -54,6 +54,7 @@ public class NotificationService {
             }
         }
 
+        // TODO add to translations!!
         if (notificationList.size() > 1) {
             notificationUtils.createNotification("New notifications", "You have " + notificationList.size() + " new notifications.");
         } else if (notificationList.size() == 1) {

@@ -94,7 +94,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String SYNC_ADVERTISEMENTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_ADVERTISEMENTS";
     private static final String SYNC_METHODS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_METHODS";
     private static final String SYNC_CONTACTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_CONTACTS";
-    private static final String SYNC_MESSAGES = "com.thanksmister.bitcoin.localtrader.sync.SYNC_MESSAGES";
     private static final String SYNC_NOTIFICATIONS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_NOTIFICATIONS";
 
     public static final int SYNC_ERROR_CODE = 9;
@@ -291,6 +290,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     @Override
                     public void call(Throwable throwable) {
                         Timber.e(throwable.getMessage());
+                        updateSyncMap(SYNC_CURRENCIES, false);
                     }
                 });
     }
@@ -310,6 +310,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_CURRENCIES, false);
                     }
@@ -328,6 +329,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                         fetchMethods();
                     }
                 }
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                Timber.e(throwable.getMessage());
+                updateSyncMap(SYNC_METHODS, false);
             }
         });
     }
@@ -348,6 +355,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_METHODS, false);
                     }

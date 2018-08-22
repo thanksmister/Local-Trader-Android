@@ -17,8 +17,11 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -36,6 +39,7 @@ import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
+import com.thanksmister.bitcoin.localtrader.data.database.Db;
 import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
 import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
@@ -43,7 +47,10 @@ import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.NotificationService;
+import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactsActivity;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
@@ -55,6 +62,7 @@ import org.json.JSONObject;
 import java.io.InterruptedIOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -69,6 +77,10 @@ import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class DashboardFragment extends BaseFragment {
+
+    private static final String SYNC_ADVERTISEMENTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_ADVERTISEMENTS";
+    private static final String SYNC_CONTACTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_CONTACTS";
+    private static final String SYNC_NOTIFICATIONS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_NOTIFICATIONS";
 
     private static final String ADVERTISEMENTS_FRAGMENT = "com.thanksmister.fragment.ADVERTISEMENTS_FRAGMENT";
     private static final String CONTACTS_FRAGMENT = "com.thanksmister.fragment.CONTACTS_FRAGMENT";
@@ -91,6 +103,17 @@ public class DashboardFragment extends BaseFragment {
 
     private int pagerPosition = 0;
     private Fragment fragment;
+    private OnFragmentListener onFragmentListener;
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     */
+    public interface OnFragmentListener {
+       void updateSyncMap(String key, boolean value);
+    }
 
     /**
      * Returns a new instance of this fragment for the given section
@@ -127,6 +150,16 @@ public class DashboardFragment extends BaseFragment {
         getChildFragmentManager().beginTransaction().replace(R.id.content, fragment, ADVERTISEMENTS_FRAGMENT).commit();
 
         setupToolbar();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnFragmentListener) {
+            onFragmentListener = (OnFragmentListener) context;
+        } else {
+            throw new RuntimeException(context.toString() + " must implement OnDashboardFragmentListener");
+        }
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -264,15 +297,26 @@ public class DashboardFragment extends BaseFragment {
     }
 
     public void onRefresh() {
+        Timber.d("onRefresh");
         updateData();
     }
 
     private void updateData() {
         toast(getString(R.string.toast_refreshing_data));
+        onFragmentListener.updateSyncMap(SYNC_ADVERTISEMENTS, true);
         dataService.getAdvertisements(true)
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("Advertisements update subscription safely unsubscribed");
+                        onFragmentListener.updateSyncMap(SYNC_ADVERTISEMENTS, false);
+                    }
+                })
+                .compose(this.<List<Advertisement>>bindUntilEvent(FragmentEvent.DESTROY))
                 .subscribe(new Action1<List<Advertisement>>() {
                     @Override
                     public void call(List<Advertisement> advertisements) {
+                        onFragmentListener.updateSyncMap(SYNC_ADVERTISEMENTS, false);
                         if (advertisements != null && !advertisements.isEmpty()) {
                             dbManager.insertAdvertisements(advertisements);
                         }
@@ -280,6 +324,7 @@ public class DashboardFragment extends BaseFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        onFragmentListener.updateSyncMap(SYNC_ADVERTISEMENTS, false);
                         if (throwable instanceof InterruptedIOException) {
                             Timber.d("Advertisements Error: " + throwable.getMessage());
                         } else {
@@ -288,10 +333,20 @@ public class DashboardFragment extends BaseFragment {
                     }
                 });
 
+        onFragmentListener.updateSyncMap(SYNC_CONTACTS, true);
         dataService.getContacts(DashboardType.ACTIVE)
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("Contacts update subscription safely unsubscribed");
+                        onFragmentListener.updateSyncMap(SYNC_CONTACTS, false);
+                    }
+                })
+                .compose(this.<List<Contact>>bindUntilEvent(FragmentEvent.DESTROY))
                 .subscribe(new Action1<List<Contact>>() {
                     @Override
                     public void call(List<Contact> contacts) {
+                        onFragmentListener.updateSyncMap(SYNC_CONTACTS, false);
                         if (contacts != null) {
                             dbManager.insertContacts(contacts);
                         }
@@ -299,8 +354,82 @@ public class DashboardFragment extends BaseFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        onFragmentListener.updateSyncMap(SYNC_CONTACTS, false);
                         if (throwable instanceof InterruptedIOException) {
                             Timber.d("Advertisements Error: " + throwable.getMessage());
+                        } else {
+                            handleError(throwable);
+                        }
+                    }
+                });
+
+        onFragmentListener.updateSyncMap(SYNC_NOTIFICATIONS, true);
+        dataService.getNotifications()
+                .doOnUnsubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        Timber.i("Notifications update subscription safely unsubscribed");
+                        onFragmentListener.updateSyncMap(SYNC_NOTIFICATIONS, false);
+                    }
+                })
+                .compose(this.<List<Notification>>bindUntilEvent(FragmentEvent.DESTROY))
+                .subscribe(new Action1<List<Notification>>() {
+                    @Override
+                    public void call(List<Notification> notifications) {
+                        onFragmentListener.updateSyncMap(SYNC_NOTIFICATIONS, false);
+                        if (notifications != null) {
+                            final HashMap<String, Notification> entryMap = new HashMap<>();
+                            for (Notification notification : notifications) {
+                                entryMap.put(notification.notification_id, notification);
+                            }
+
+                            if(isAdded() && getActivity() != null && getActivity().getContentResolver() != null) {
+                                synchronized (getActivity()) {
+                                    ContentResolver contentResolver = getActivity().getContentResolver();
+                                    Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, null);
+                                    if (cursor != null && cursor.getCount() > 0) {
+                                        while (cursor.moveToNext()) {
+                                            final long id = Db.getLong(cursor, NotificationItem.ID);
+                                            String notificationId = Db.getString(cursor, NotificationItem.NOTIFICATION_ID);
+                                            boolean notificationRead = Db.getBoolean(cursor, NotificationItem.READ);
+                                            String url = Db.getString(cursor, NotificationItem.URL);
+                                            Notification match = entryMap.get(notificationId);
+                                            if (match != null) {
+                                                entryMap.remove(notificationId);
+                                                if (match.read != notificationRead || !match.url.equals(url)) {
+                                                    NotificationItem.Builder builder = NotificationItem.createBuilder(match);
+                                                    contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, builder.build(), NotificationItem.ID + " = ?", new String[]{String.valueOf(id)});
+                                                }
+                                            } else {
+                                                contentResolver.delete(SyncProvider.NOTIFICATION_TABLE_URI, NotificationItem.ID + " = ?", new String[]{String.valueOf(id)});
+                                            }
+                                        }
+                                        cursor.close();
+                                    }
+
+                                    List<Notification> newNotifications = new ArrayList<>();
+                                    if (!entryMap.isEmpty()) {
+                                        for (Notification notification : entryMap.values()) {
+                                            newNotifications.add(notification);
+                                            contentResolver.insert(SyncProvider.NOTIFICATION_TABLE_URI, NotificationItem.createBuilder(notification).build());
+                                        }
+                                    }
+
+                                    Timber.d("updateNotifications newNotifications: " + newNotifications.size());
+                                    if (!newNotifications.isEmpty() && isAdded() && getActivity() != null) {
+                                        NotificationService notificationService = new NotificationService(getActivity());
+                                        notificationService.createNotifications(newNotifications);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        onFragmentListener.updateSyncMap(SYNC_NOTIFICATIONS, false);
+                        if (throwable instanceof InterruptedIOException) {
+                            Timber.d("Notifications Error: " + throwable.getMessage());
                         } else {
                             handleError(throwable);
                         }
