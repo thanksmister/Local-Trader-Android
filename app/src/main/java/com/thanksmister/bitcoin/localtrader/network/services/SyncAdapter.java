@@ -127,7 +127,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         dbManager = new DbManager(db, briteContentResolver, contentResolver);
         LocalBitcoins localBitcoins = initLocalBitcoins();
-        dataService = new DataService((BaseApplication) context.getApplicationContext(), preference, sharedPreferences, localBitcoins);
+        if(localBitcoins != null) {
+            dataService = new DataService((BaseApplication) context.getApplicationContext(), preference, sharedPreferences, localBitcoins);
+        }
     }
 
     @Override
@@ -138,7 +140,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         this.canceled.set(false);
 
-        if (!isSyncing() && hasCredentials && !isCanceled()) {
+        if (!isSyncing() && hasCredentials && !isCanceled() && dataService != null) {
             getCurrencies();
             getMethods();
             getNotifications();
@@ -560,13 +562,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private LocalBitcoins initLocalBitcoins() {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        OkClient client = new OkClient(okHttpClient);
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setEndpoint(BASE_URL)
-                .build();
-        return restAdapter.create(LocalBitcoins.class);
+        try {
+            OkHttpClient okHttpClient = new OkHttpClient();
+            OkClient client = new OkClient(okHttpClient);
+            RestAdapter restAdapter = new RestAdapter.Builder()
+                    .setClient(client)
+                    .setLogLevel(RestAdapter.LogLevel.FULL)
+                    .setEndpoint(BASE_URL)
+                    .build();
+            return restAdapter.create(LocalBitcoins.class);
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+        }
+        return null;
     }
 }
