@@ -21,9 +21,13 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.DeadObjectException;
 
 import com.thanksmister.bitcoin.localtrader.R;
+
+import timber.log.Timber;
 
 import static android.content.Context.ACCOUNT_SERVICE;
 
@@ -66,8 +70,25 @@ public class SyncUtils {
     public static Account getSyncAccount(Context context) {
         String acctType = "com.thanksmister.bitcoin.localtrader.sync";
         AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
-        Account account = new Account(context.getString(R.string.app_name), acctType);
-        accountManager.addAccountExplicitly(account, null, null);
-        return account;
+        if(accountManager != null) {
+            try {
+                Account[] accounts = accountManager.getAccountsByType(acctType);
+                if (accounts.length == 0) {
+                    Account account = new Account(context.getString(R.string.app_name), acctType);
+                    boolean accountCreated = accountManager.addAccountExplicitly(account, null, null);
+                    if (!accountCreated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                        accountManager.removeAccountExplicitly(account);
+                        accountCreated = accountManager.addAccountExplicitly(account, null, null);
+                        if (!accountCreated) {
+                            throw new IllegalStateException();
+                        }
+                    }
+                    return account;
+                }
+            } catch (Exception exception) {
+                Timber.e(exception.getMessage());
+            }
+        }
+        return null;
     }
 }

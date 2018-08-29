@@ -17,6 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader;
 
+import android.accounts.Account;
 import android.content.ContentResolver;
 import android.os.Bundle;
 import android.support.multidex.MultiDexApplication;
@@ -51,8 +52,18 @@ public class BaseApplication extends MultiDexApplication {
         Injector.init(this);
 
         // set up sync
-        ContentResolver.setIsSyncable(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, 1);
-        ContentResolver.setSyncAutomatically(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, true);
-        ContentResolver.addPeriodicSync(SyncUtils.getSyncAccount(this), SyncProvider.CONTENT_AUTHORITY, Bundle.EMPTY, SyncUtils.SYNC_FREQUENCY);
+        try {
+            Account account = SyncUtils.getSyncAccount(this);
+            if(account != null) {
+                ContentResolver.setIsSyncable(account, SyncProvider.CONTENT_AUTHORITY, 1);
+                ContentResolver.setSyncAutomatically(account, SyncProvider.CONTENT_AUTHORITY, true);
+                ContentResolver.addPeriodicSync(account, SyncProvider.CONTENT_AUTHORITY, Bundle.EMPTY, SyncUtils.SYNC_FREQUENCY);
+            }
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+            if (!BuildConfig.DEBUG) {
+                Crashlytics.log(1, "Sync Error", e.getMessage());
+            }
+        }
     }
 }

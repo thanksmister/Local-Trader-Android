@@ -106,7 +106,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private SharedPreferences sharedPreferences;
     private DPreference preference;
     private ContentResolver contentResolver;
-    private BriteContentResolver briteContentResolver;
 
     // store all ongoing syncs
     private HashMap<String, Boolean> syncMap;
@@ -124,7 +123,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         SqlBrite sqlBrite = SqlBrite.create();
         BriteDatabase db = sqlBrite.wrapDatabaseHelper(dbOpenHelper);
         contentResolver = context.getContentResolver();
-        briteContentResolver = sqlBrite.wrapContentProvider(contentResolver);
+        BriteContentResolver briteContentResolver = sqlBrite.wrapContentProvider(contentResolver);
 
         dbManager = new DbManager(db, briteContentResolver, contentResolver);
         LocalBitcoins localBitcoins = initLocalBitcoins();
