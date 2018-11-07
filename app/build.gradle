@@ -3,8 +3,8 @@ apply plugin: 'io.fabric'
 
 def versionMajor = 2
 def versionMinor = 4
-def versionPatch = 5
-def versionBuild = 4 // bump for dog food builds, public betas, etc.
+def versionPatch = 6
+def versionBuild = 1 // bump for dog food builds, public betas, etc.
 
 def LBC_KEY() {
     Properties properties = new Properties()

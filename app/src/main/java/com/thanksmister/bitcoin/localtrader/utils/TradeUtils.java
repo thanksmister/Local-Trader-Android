@@ -188,10 +188,6 @@ public class TradeUtils {
         return contact.released_at() != null;
     }
 
-    public static boolean isReleased(Contact contact) {
-        return contact.released_at != null;
-    }
-
     public static boolean isDisputed(ContactItem contact) {
         return contact.disputed_at() != null;
     }
@@ -200,18 +196,16 @@ public class TradeUtils {
         return !TextUtils.isEmpty(contact.closed_at());
     }
 
-    public static boolean isClosedTrade(Contact contact) {
-        return contact.closed_at != null;
-    }
-
     public static boolean canDisputeTrade(ContactItem contact) {
         //return isClosedTrade(contact) && !isDisputed(contact) && !TextUtils.isEmpty(contact.dispute_url());
         return !TextUtils.isEmpty(contact.dispute_url());
     }
 
+    // TODO confirm cancellation rules.  Contact must have these requirements: is buying, not closed, not released (same as closed), not canceled, and has valid url
     public static boolean canCancelTrade(ContactItem contact) {
-        //return !isClosedTrade(contact) && !isCanceledTrade(contact) && !TextUtils.isEmpty(contact.cancel_url());
-        return !TextUtils.isEmpty(contact.cancel_url());
+        return contact.is_buying() && !isClosedTrade(contact) && !isCanceledTrade(contact) && !isReleased(contact)
+                 && !TextUtils.isEmpty(contact.cancel_url());
+        //return !TextUtils.isEmpty(contact.cancel_url());
     }
 
     public static boolean canReleaseTrade(ContactItem contact) {

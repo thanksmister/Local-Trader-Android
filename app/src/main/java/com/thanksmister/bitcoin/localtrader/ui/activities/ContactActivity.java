@@ -366,15 +366,16 @@ public class ContactActivity extends BaseActivity implements LoaderManager.Loade
         return true;
     }
 
+    // TODO a trade can only be disputed one hour after being marked paid
+    // TODO investigate if you can cancel a trade (if buying) when the trade has been disputed or marked paid
     private void setMenuOptions() {
         if (contact != null) {
             int buttonTag = TradeUtils.getTradeActionButtonLabel(contact);
-            if (TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact) && disputeItem != null) {
+            if (TradeUtils.canDisputeTrade(contact) && TradeUtils.isOnlineTrade(contact) && disputeItem != null) {
                 disputeItem.setVisible(buttonTag == R.string.button_dispute);
             }
-
             if (TradeUtils.canCancelTrade(contact) && cancelItem != null) {
-                cancelItem.setVisible(buttonTag == R.string.button_cancel);
+                cancelItem.setVisible(true);
             }
         }
     }
