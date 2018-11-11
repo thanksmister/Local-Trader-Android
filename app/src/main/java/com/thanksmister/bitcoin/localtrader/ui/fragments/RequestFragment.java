@@ -472,7 +472,7 @@ public class RequestFragment extends BaseFragment {
 
             return clipText;
         } catch (Exception e) {
-            reportError(e);
+            //reportError(e);
         }
 
         return "";

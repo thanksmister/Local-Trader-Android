@@ -362,8 +362,8 @@
     <string name="advertisement_edit_margin_description">利润率是指在市场价格基础上增加或减少的比例，使用负数表示低于市场价。</string>
     <string name="hint_bitcoin_address">比特币地址</string>
     <string name="form_sendable_label">可发送金额是你账号的最大金额减去服务费。</string>
-    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s 比特币 / %2$s %3$s</font>]]></string>
-    <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s 比特币 / %2$s %3$s</font>]]></string>
+    <string name="form_balance_negative">%1$s 比特币</string>
+    <string name="form_balance_positive">%1$s 比特币</string>
     <string name="pin_code_send"><![CDATA[在释放、托管和发送比特币时需要交易口令，在Localbitecoin的 <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">账户配置</a> 页面也可以管理交易口令。]]></string>
     <string name="toast_update_visibility">可见性已更新！</string>
     <string name="trade_limit"><![CDATA[%1$s - %2$s %3$s]]></string>

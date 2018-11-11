@@ -70,7 +70,7 @@
     <string name="menu_action_cancel">Cancel</string>
     <string name="menu_action_dispute">Dispute</string>
     <string name="menu_action_blockchain">View Blockchain</string>
-    <string name="login_registration_screens_description">Local Trader works with your LocalBitcoins account to manage trades, advertisements, send messages, or to handle payments.</string>
+    <string name="login_registration_screens_description">Local Trader works with your LocalBitcoins account to manage trades, advertisements, send messages, and handle payments.</string>
     <string name="login_authorizing">Authenticating…</string>
     <string name="contact_fund_confirm">Are you sure you want to fund this trade?</string>
     <string name="contact_dispute_confirm">Are you sure you want to dispute this trade?</string>
@@ -133,10 +133,10 @@
     <string name="wallet_address_copied_toast">Address copied to clipboard!</string>
     <string name="bitcoin_request_copied_toast">Request link copied to clipboard!</string>
     <string name="hint_bitcoin_address">Bitcoin address</string>
-    <string name="form_sendable_label">The sendable amount is the maximum amount you can send minus fees.</string>
-    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
-    <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s BTC / %2$s %3$s</font>]]></string>
-    <string name="pin_code_send"><![CDATA[A PIN code is required to release, fund send bitcoin. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page.]]></string>
+    <string name="form_sendable_label">The spendable amount is the maximum amount you can send minus fees.</string>
+    <string name="form_balance_negative">%1$s BTC</string>
+    <string name="form_balance_positive">%1$s BTC</string>
+    <string name="pin_code_send"><![CDATA[A PIN code is required to release, fund, or send bitcoin. Manage PIN code at your <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Account Profile</a> page.]]></string>
     <string name="toast_transaction_success">Bitcoins sent!</string>
     <string name="progress_sending_transaction">Sending bitcoins…</string>
     <string name="toast_pin_code_canceled">PIN code canceled</string>
@@ -203,7 +203,7 @@
     <string name="error_device_softare_description">This device has an outdated version of the Android OS (4.2.2), a software update is required for this application to work properly.</string>
     <string name="error_device_title">Device Error</string>
     <string name="wallet_account_balance">ACCOUNT BALANCE</string>
-    <string name="text_account_balance">Sendable amount:</string>
+    <string name="text_account_balance">Spendable amount</string>
     <string name="send_confirmation_description">Send <b>%1$s BTC</b> to address <b>%2$s</b>.</string>
     <string name="alert_permission_required">Permission Required</string>
     <string name="require_location_permission">Creating, updating, or search for advertisements requires permission to check your location.</string>
@@ -233,6 +233,20 @@
     <string name="toast_search_canceled">Search canceled…</string>
     <string name="error_unable_load_payment_methods">Unable to load online payment methods.</string>
     <string name="toast_loading_methods">Error getting methods…</string>
+
+    <string name="error_generic_server_down" translatable="false">Service temporarily down or unreachable.</string>
+    <string name="error_resource_not_found" translatable="false">Resource not found on server.</string>
+    <string name="error_server_time_out" translatable="false">Call to the service timed out.</string>
+    <string name="error_generic_permission" translatable="false">You do not have permission to access this feature.</string>
+    <string name="error_network_http_error" translatable="false">HTTP Error</string>
+
+    <string name="exception_message_no_connection" translatable="false">No internet connection</string>
+    <string name="warning_no_location" translatable="false">Couldn\'t determine current location, please relocate and try again…</string>
+
+    <string name="error_network_disconnected" translatable="false">Network disconnected</string>
+    <string name="error_data_refresh" translatable="false">No data refresh required</string>
+    <string name="error_permissions_security" translatable="false">The application does not have the required permissions.</string>
+
 
     <string-array name="country_names">
         <item>Afghanistan</item>
@@ -511,7 +525,7 @@
     <string name="alert_release_trade_title">Release Trade</string>
     <string name="alert_cancel_trade_title">Cancel Trade</string>
     <string name="progress_canceling_trade">Canceling…</string>
-    <string name="alert_error_deleting_advertisement">Error deleting Advertisement.</string>
+    <string name="alert_error_deleting_advertisement">Online SelleError deleting Advertisement.</string>
     <string name="progress_deleting">Deleting…</string>
     
     <string name="text_title_online_provider">Online provider</string>
@@ -625,7 +639,7 @@
     <string name="pref_market_currency_title">Market currency</string>
     <string name="alert_token_expired_title">Token Expired</string>
     <string name="alert_change_endpoint">Changing the service end point requires an application restart. Do you want to update the end point and restart now?</string>
-    <string name="alert_valid_endpoint">The service end point should not be a valid URL.</string>
+    <string name="alert_valid_endpoint">The service end point should be a valid URL.</string>
     <string name="alert_authentication_error_title">Authentication Error</string>
     <string name="error_cannot_open_links">Can\'t open external links from authentication flow.</string>
     <string name="error_security_error_title">Security Error</string>
@@ -649,6 +663,24 @@
     <string name="button_register">Register</string>
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">Syncing account data…</string>
+    <string name="notification_new_notifications">You have %1$s new notifications.</string>
+    <string name="toast_camera_denied">Camera permission denied…</string>
+    <string name="text_confirm_transaction">Confirm Transaction</string>
+    <string name="text_location_title">Location</string>
+    <string name="text_enter_bank_name">Enter Bank name</string>
+    <string name="dialog_localbitcoins_website_login">You will be taken to LocalBitcoins website for authenticating this application, all information you enter will be private. Do you wish to continue?</string>
+    <string name="text_national_bank_transfer">National Bank transfer</string>
+    <string name="text_common_with">%1$s with %2$s</string>
+    <string name="text_bank_transfer">Bank transfer</string>
+    <string name="text_cash_deposit">Cash deposit</string>
+    <string name="text_with_int">With %1$s  in %2$s</string>
+    <string name="text_buy_your">buy your</string>
+    <string name="text_online_seller">Online Seller</string>
+    <string name="text_online_buyer">Online Buyer</string>
+    <string name="text_local_seller">Local Seller</string>
+    <string name="text_local_buyer">Local Buyer</string>
+    <string name="text_item_contact_num">Contact #%1$s</string>
+    <string name="text_item_advertisement_number">Advertisement #%1$s</string>
 
 
 </resources>

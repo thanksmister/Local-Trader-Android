@@ -1,272 +1,203 @@
-<!--
-  ~ Copyright (c) 2018 ThanksMister LLC
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software distributed
-  ~ under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  ~
-  -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-<android.support.design.widget.CoordinatorLayout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/coordinatorLayout"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent">
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
-    <LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:orientation="vertical">
 
-        <android.support.design.widget.AppBarLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-            <android.support.v7.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:background="?attr/colorPrimary"
-                    app:popupTheme="@style/Theme.AppCompat.Light"/>
-
-        </android.support.design.widget.AppBarLayout>
-
-
-        <android.support.v4.widget.NestedScrollView
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fillViewport="true">
-
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:orientation="vertical">
-                
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/text_account_balance"/>
-
-                    <android.support.v4.widget.Space
-                            android:layout_width="match_parent"
-                            android:layout_height="8dp"/>
-
-                    <TextView
-                            android:id="@+id/balanceText"
-                            android:textIsSelectable="true"
-                            android:textStyle="bold"
-                            android:textSize="15sp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="4dp"
-                            android:layout_marginRight="4dp"
-                            android:layout_gravity="left"
-                            android:textColor="@color/text_green"
-                            tools:text=".011626091 BTC / 275.89 USD"
-                            style="@style/TextLarge.SmallAction"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="8dp"/>
-
-                    <TextView
-                            style="@style/SmallText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/form_sendable_label"/>
-
-                </LinearLayout>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="16dp"/>
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/form_send_to"/>
-
-                    <View
-                            android:layout_width="match_parent"
-                            android:layout_height="6dp"/>
-
-                    <EditText
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/address"
-                            style="@style/TextMedium"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/hint_bitcoin_address"
-                            android:nextFocusDown="@+id/amountText"/>
-
-                </LinearLayout>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"/>
-
-                <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="8dp"
-                            android:orientation="vertical">
-
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/form_bitcoin_amount"/>
-
-                        <View
-                                android:layout_width="match_parent"
-                                android:layout_height="8dp"/>
-
-                        <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                            <EditText
-                                    android:id="@+id/amountText"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    style="@style/TextMedium"
-                                    android:inputType="numberDecimal"
-                                    android:digits="0123456789."
-                                    android:layout_weight="1"
-                                    android:gravity="left"
-                                    android:theme="@style/EditTextTheme"
-                                    android:hint="@string/hint_bitcoin"
-                                    android:nextFocusDown="@+id/buttonLayout"/>
-
-                            <View
-                                    android:layout_width="8dp"
-                                    android:layout_height="match_parent"/>
-
-                            <TextView
-                                    android:id="@android:id/button1"
-                                    style="@style/TextLarge.SmallAction.White"
-                                    android:minWidth="50dp"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="28dp"
-                                    android:background="@drawable/button_blue_selector"
-                                    android:clickable="true"
-                                    android:text="@string/btc"
-                                    android:layout_gravity="center"
-                                    android:gravity="center"
-                                    android:layout_weight="0"
-                                    android:layout_marginBottom="2dp"/>
-
-                        </LinearLayout>
-
-                        <View
-                                android:layout_width="match_parent"
-                                android:layout_height="8dp"/>
-
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/form_fiat_amount"/>
-
-                        <View
-                                android:layout_width="match_parent"
-                                android:layout_height="8dp"/>
-
-                        <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-
-                            <EditText
-                                    android:id="@+id/fiatEditText"
-                                    android:theme="@style/EditTextTheme"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    style="@style/TextMedium"
-                                    android:inputType="numberDecimal"
-                                    android:digits="0123456789."
-                                    android:layout_weight="1"
-                                    android:gravity="left"
-                                    android:hint="@string/hint_amount"
-                                    android:nextFocusForward="@+id/buttonLayout"/>
-
-                            <View
-                                    android:layout_width="8dp"
-                                    android:layout_height="match_parent"/>
-
-                            <TextView
-                                    style="@style/TextLarge.SmallAction.White"
-                                    android:id="@+id/currencyText"
-                                    android:minWidth="50dp"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="28dp"
-                                    android:background="@drawable/button_blue_selector"
-                                    android:clickable="true"
-                                    android:text="@string/usd"
-                                    android:layout_gravity="center"
-                                    android:gravity="center"
-                                    android:layout_weight="0"
-                                    android:layout_marginBottom="2dp"/>
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-                
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"/>
+                android:padding="@dimen/activity_horizontal_margin"
+                android:layout_weight="0"
+                android:background="@color/red"
+                android:gravity="center"
+                android:orientation="vertical">
 
                 <TextView
-                        android:id="@+id/sendDescription"
-                        style="@style/SmallText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:linksClickable="true"
-                        android:text="@string/pin_code_send"/>
+                    style="@style/TextLarge.SmallAction.White"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/text_account_balance"
+                    android:textAllCaps="true" />
 
-                <android.support.v4.widget.Space
-                        android:layout_width="match_parent"
-                        android:layout_height="16dp"/>
+                <TextView
+                    android:id="@+id/balanceText"
+                    style="@style/TextAppearance.AppCompat.Headline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white"
+                    android:textIsSelectable="true"
+                    android:textStyle="bold"
+                    tools:text=".011626091 BTC" />
 
-                <Button
-                        style="@style/ButtonGreen.Small"
-                        android:id="@+id/sendButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/button_send"/>
+                <TextView
+                    style="@style/TextSmall.White"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Transaction Fee (0.00005 BTC)"
+                    android:textAllCaps="false" />
 
             </LinearLayout>
 
-        </android.support.v4.widget.NestedScrollView>
-        
-        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:orientation="vertical">
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <AutoCompleteTextView
+                    android:id="@+id/addressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/hint_bitcoin_address"
+                    android:inputType="textEmailAddress"
+                    android:maxLines="1"
+                    android:singleLine="true" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/amountText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="@string/hint_bitcoin"
+                        android:inputType="textEmailAddress"
+                        android:maxLines="1"
+                        android:singleLine="true" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@android:id/button1"
+                    style="@style/TextLarge.SmallAction.White"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="2dp"
+                    android:layout_weight="0"
+                    android:background="@drawable/button_blue_selector"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minWidth="50dp"
+                    android:text="@string/btc" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/fiatEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_amount"
+                        android:inputType="textEmailAddress"
+                        android:maxLines="1"
+                        android:singleLine="true" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/currencyText"
+                    style="@style/TextLarge.SmallAction.White"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="2dp"
+                    android:layout_weight="0"
+                    android:background="@drawable/button_blue_selector"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minWidth="50dp"
+                    android:text="@string/usd" />
+
+            </LinearLayout>
+
+            <android.support.v4.widget.Space
+                android:layout_width="match_parent"
+                android:layout_height="16dp" />
+
+            <TextView
+                android:id="@+id/sendDescription"
+                style="?android:textAppearanceSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:linksClickable="true"
+                android:text="@string/pin_code_send"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:padding="16dp"
+        android:orientation="vertical">
+
+        <View
+            android:background="?android:attr/dividerHorizontal"
+            android:layout_height="1dp"
+            android:layout_width="match_parent"/>
+
+        <Button
+            android:id="@+id/sendButton"
+            style="@style/ButtonGreen.Small"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/button_send"
+            android:textAllCaps="true"/>
+
     </LinearLayout>
 
-</android.support.design.widget.CoordinatorLayout>
+</LinearLayout>

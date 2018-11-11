@@ -22,7 +22,10 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Actions;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
@@ -35,164 +38,105 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Profile;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Total;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.User;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import retrofit.client.Response;
 import timber.log.Timber;
+
+import static com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes.NO_ERROR_CODE;
+
 
 public class Parser {
 
-    public static Authorization parseAuthorization(String response) {
+   /* public static Authorization parseAuthorization(String response) {
         JSONObject jsonObject;
         Authorization authorization = new Authorization();
         try {
             jsonObject = new JSONObject(response);
-            authorization.access_token = jsonObject.getString("access_token");
-            authorization.refresh_token = jsonObject.getString("refresh_token");
-            authorization.expires_in = jsonObject.getString("expires_in");
+            authorization.accessToken =  jsonObject.getString("accessToken");
+            authorization.refreshToken = jsonObject.getString("refreshToken");
+            authorization.expiresInn = jsonObject.getString("expiresInn");
             return authorization;
-
         } catch (JSONException e) {
             Timber.e(e.getMessage());
             return null;
         }
-    }
+    }*/
 
-    public static String parseRetrofitResponse(Response response) throws Throwable {
-        if (response == null || response.getBody() == null)
-            throw new Exception("Error connecting to service.");
 
-        BufferedReader reader = null;
-        StringBuilder sb = new StringBuilder();
-        try {
-            reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
-            String line;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return "";
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
-
-        return sb.toString();
-    }
-
-    public static boolean containsError(JSONObject jsonObject) {
-        String response = jsonObject.toString();
-        return containsError(response);
-    }
-
-    private static boolean containsError(String response) {
-        return response.contains("error_code") && response.contains("error");
-    }
-
-    public static JSONObject parseResponseToJsonObject(Response response) {
-        //Try to get response body
-        BufferedReader reader = null;
-        StringBuilder sb = new StringBuilder();
-        try {
-            reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
-            String line;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+    public static ExchangeRate parseExchangeRate(String response) {
         JSONObject jsonObject;
+        Timber.d("Response" + response);
         try {
-            jsonObject = new JSONObject(sb.toString());
-            return jsonObject;
+            jsonObject = new JSONObject(response);
+            JSONObject dataObject = jsonObject.getJSONObject("data");
+            String exchangeName = "Coinbase";
+
+            ExchangeRate exchangeRate = new ExchangeRate();
+            exchangeRate.setCurrency(dataObject.getString("currency"));
+            exchangeRate.setRate(dataObject.getString("amount"));
+            exchangeRate.setName(exchangeName);
+            return exchangeRate;
         } catch (JSONException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return new JSONObject();
     }
 
-    public static RetroError parseError(JSONObject jsonObject) {
+    public static boolean containsError(String response) {
+        if (response.contains("error_code") && response.contains("error")) {
+            return true;
+        }
+        return false;
+    }
+
+    public static NetworkException parseError(String response) {
+        JSONObject jsonObject;
         try {
+            jsonObject = new JSONObject(response);
             JSONObject errorObj = jsonObject.getJSONObject("error");
-            int error_code = errorObj.getInt("error_code");
-            String error_message = errorObj.getString("message"); // TODO this is too generic
+
+            int error_code = NO_ERROR_CODE;
+            if (errorObj.has("error_code")) {
+                error_code = errorObj.getInt("error_code");
+            }
+
+            StringBuilder error_message = new StringBuilder(errorObj.getString("message"));
+
             if (errorObj.has("errors")) {
-                error_message = "";
+                error_message = new StringBuilder();
                 JSONObject errors = errorObj.getJSONObject("errors");
                 Iterator<?> keys = errors.keys();
                 while (keys.hasNext()) {
                     String key = (String) keys.next();
                     String message = errors.getString(key);
-                    error_message += Strings.convertCamelCase(key) + " " + message + " ";
+                    error_message.append(StringUtils.convertCamelCase(key)).append(" ").append(message).append(" ");
                 }
             }
 
-            return new RetroError(error_message, error_code);
+            return new NetworkException(error_message.toString(), error_code);
 
         } catch (JSONException e) {
             Timber.e(e.getMessage());
-            return parseInvalidGrantError(jsonObject.toString());
-        }
-    }
-
-    // Error handling specifically for invalid grants because yet again we have a
-    // different error type from LBC {"error_description": "* refresh_token\n  * Invalid grant", "error": "invalid_grant"}
-    public static RetroError parseError(String response) {
-        JSONObject jsonObject;
-        try {
-            jsonObject = new JSONObject(response);
-            JSONObject errorObj = jsonObject.getJSONObject("error");
-            int error_code = errorObj.getInt("error_code");
-            String error_message = errorObj.getString("message");
-            return new RetroError(error_message, error_code);
-        } catch (JSONException e) {
-            return parseInvalidGrantError(response);
-        }
-    }
-
-    /**
-     * Bit of a mess here but this is what an invalid grant response looks like from the API
-     * {
-     * "error_description":"* error\n  * i\n  * n\n  * v\n  * a\n  * l\n  * i\n  * d\n  * _\n  * g\n  * r\n  * a\n  * n\n  * t",
-     * "error":"invalid_grant"
-     * }
-     *
-     * @param response
-     * @return
-     */
-    private static RetroError parseInvalidGrantError(String response) {
-        if (response.contains("invalid_grant")) {
-            return new RetroError("Invalid refresh token, access denied.", 403);
-        } else {
-            return new RetroError("Unknown error has occurred. If this continues try logging in again.", 400);
+            return new NetworkException(e.getMessage(), NO_ERROR_CODE);
         }
     }
 
@@ -208,19 +152,19 @@ public class Parser {
         try {
             User user = new User();
             JSONObject object = jsonObject.getJSONObject("data");
-            user.username = (object.getString("username"));
-            user.age_text = (object.getString("age_text"));
-            user.feedback_count = (Integer.parseInt(object.getString("feedback_count")));
-            user.has_common_trades = ((object.getString("has_common_trades").equals("true")));
-            user.confirmed_trade_count_text = (object.getString("confirmed_trade_count_text"));
-            user.trade_volume_text = (object.getString("trade_volume_text"));
-            user.blocked_count = (Integer.parseInt(object.getString("blocked_count")));
-            user.feedback_score = (object.getString("feedback_score"));
-            user.feedbacks_unconfirmed_count = (Integer.parseInt(object.getString("feedbacks_unconfirmed_count")));
-            user.trading_partners_count = (Integer.parseInt(object.getString("trading_partners_count")));
-            user.trusted_count = (Integer.parseInt(object.getString("trusted_count")));
-            user.url = (object.getString("url"));
-            user.created_at = (object.getString("created_at"));
+            user.setUsername((object.getString("username")));
+            user.setAgeText((object.getString("age_text")));
+            user.setFeedbackCount((Integer.parseInt(object.getString("feedback_count"))));
+            user.setHasCommonTrades(((object.getString("has_common_trades").equals("true"))));
+            user.setConfirmedTradeCountText((object.getString("confirmed_trade_count_text")));
+            user.setTradeVolumeText((object.getString("trade_volume_text")));
+            user.setBlockedCount((Integer.parseInt(object.getString("blocked_count"))));
+            user.setFeedbackScore((object.getString("feedback_score")));
+            user.setFeedbacksUnconfirmedCount((Integer.parseInt(object.getString("feedbacks_unconfirmed_count"))));
+            user.setTradingPartnersCount((Integer.parseInt(object.getString("trading_partners_count"))));
+            user.setTrustedCount((Integer.parseInt(object.getString("trusted_count"))));
+            user.setUrl((object.getString("url")));
+            user.setCreatedAt((object.getString("created_at")));
             return user;
         } catch (JSONException e) {
             Timber.e(e.getMessage());
@@ -258,6 +202,7 @@ public class Parser {
         return items;
     }
 
+    @Deprecated
     public static Contact parseContact(String response) {
         JSONObject jsonObject;
 
@@ -271,6 +216,7 @@ public class Parser {
         return createContact(jsonObject);
     }
 
+    @Deprecated
     private static Contact createContact(JSONObject object) {
         Contact item = new Contact();
 
@@ -278,60 +224,60 @@ public class Parser {
             JSONObject data = object.getJSONObject("data");
 
             JSONObject buyer = data.getJSONObject("buyer");
-            item.buyer.username = (buyer.getString("username"));
-            item.buyer.feedback_score = (buyer.getString("feedback_score"));
-            item.buyer.last_online = (buyer.getString("last_online"));
-            item.buyer.trade_count = (buyer.getString("trade_count"));
-            item.buyer.name = (buyer.getString("name"));
+            item.getBuyer().setUsername(buyer.getString("username"));
+            item.getBuyer().setFeedbackScore(buyer.getInt("feedback_score"));
+            item.getBuyer().setLastOnline(buyer.getString("last_online"));
+            item.getBuyer().setTradeCount(buyer.getString("trade_count"));
+            item.getBuyer().setName(buyer.getString("name"));
 
             JSONObject seller = data.getJSONObject("seller");
-            item.seller.username = (seller.getString("username"));
-            item.seller.feedback_score = (seller.getString("feedback_score"));
-            item.seller.last_online = (seller.getString("last_online"));
-            item.seller.trade_count = (seller.getString("trade_count"));
-            item.seller.name = (seller.getString("name"));
+            item.getSeller().setUsername(seller.getString("username"));
+            item.getSeller().setFeedbackScore(seller.getInt("feedback_score"));
+            item.getSeller().setLastOnline(seller.getString("last_online"));
+            item.getSeller().setTradeCount(seller.getString("trade_count"));
+            item.getSeller().setName(seller.getString("name"));
 
-            item.is_buying = (data.getString("is_buying").equals("true"));
-            item.is_selling = (data.getString("is_selling").equals("true"));
+            item.setBuying(data.getString("is_buying").equals("true"));
+            item.setSelling(data.getString("is_selling").equals("true"));
 
-            item.amount = (data.getString("amount"));
-            item.contact_id = (data.getString("contact_id"));
-            item.amount_btc = (data.getString("amount_btc"));
-            item.created_at = (data.getString("created_at"));
+            item.setAmount(data.getString("amount"));
+            item.setContactId(data.getInt("contact_id"));
+            item.setAmountBtc(data.getString("amount_btc"));
+            item.setCreatedAt(data.getString("created_at"));
 
             if (!data.isNull("released_at"))
-                item.released_at = (data.getString("released_at"));
+                item.setReleasedAt(data.getString("released_at"));
 
             if (!data.isNull("disputed_at"))
-                item.disputed_at = (data.getString("disputed_at"));
+                item.setDisputedAt(data.getString("disputed_at"));
 
             if (!data.isNull("closed_at"))
-                item.closed_at = (data.getString("closed_at"));
+                item.setClosedAt(data.getString("closed_at"));
 
             if (!data.isNull("escrowed_at"))
-                item.escrowed_at = (data.getString("escrowed_at"));
+                item.setEscrowedAt(data.getString("escrowed_at"));
 
             if (!data.isNull("canceled_at"))
-                item.canceled_at = (data.getString("canceled_at"));
+                item.setCanceledAt(data.getString("canceled_at"));
 
             if (!data.isNull("funded_at")) {
-                item.funded_at = (data.getString("funded_at"));
-                item.is_funded = true;
+                item.setFundedAt(data.getString("funded_at"));
+                item.setFunded(true);
             }
 
             if (data.has("payment_completed_at") && !data.isNull("payment_completed_at")) {
-                item.payment_completed_at = (data.getString("payment_completed_at"));
+                item.setPaymentCompletedAt(data.getString("payment_completed_at"));
             }
 
             if (data.has("currency")) {
-                item.currency = data.getString("currency");
+                item.setCurrency(data.getString("currency"));
             }
 
             if (data.has("exchange_rate_updated_at")) {
-                item.exchange_rate_updated_at = (data.getString("exchange_rate_updated_at"));
+                item.setExchangeRateUpdatedAt(data.getString("exchange_rate_updated_at"));
             }
             if (data.has("reference_code")) {
-                item.reference_code = (data.getString("reference_code"));
+                item.setReferenceCode(data.getString("reference_code"));
             }
 
             if (!data.isNull("account_details") && data.has("account_details")) {
@@ -339,57 +285,57 @@ public class Parser {
                 JSONObject account_details = data.getJSONObject("account_details");
 
                 if (account_details.has("receiver_name")) {
-                    item.account_details.receiver_name = account_details.getString("receiver_name");
+                    item.getAccountDetails().setReceiverName(account_details.getString("receiver_name"));
                 }
 
                 if (account_details.has("receiver_email")) {
-                    item.account_details.receiver_email = account_details.getString("receiver_email");
+                    item.getAccountDetails().setReceiverEmail(account_details.getString("receiver_email"));
                 }
 
                 if (account_details.has("iban")) {
-                    item.account_details.iban = account_details.getString("iban");
+                    item.getAccountDetails().setIban(account_details.getString("iban"));
                 }
 
                 if (account_details.has("swift_bic")) {
-                    item.account_details.swift_bic = account_details.getString("swift_bic");
+                    item.getAccountDetails().setSwiftBic(account_details.getString("swift_bic"));
                 }
 
                 if (account_details.has("reference")) {
-                    item.account_details.reference = account_details.getString("reference");
+                    item.getAccountDetails().setReference(account_details.getString("reference"));
                 }
 
                 if (account_details.has("ethereum_address")) {
-                    item.account_details.ethereum_address = account_details.getString("ethereum_address");
+                    item.getAccountDetails().setEthereumAddress(account_details.getString("ethereum_address"));
                 }
 
                 if (account_details.has("phone_number")) {
-                    item.account_details.phone_number = account_details.getString("phone_number");
+                    item.getAccountDetails().setPhoneNumber(account_details.getString("phone_number"));
                 }
 
                 if (account_details.has("bsb")) {
-                    item.account_details.bsb = account_details.getString("bsb");
+                    item.getAccountDetails().setBsb(account_details.getString("bsb"));
                 }
 
                 if (account_details.has("biller_code")) {
-                    item.account_details.biller_code = account_details.getString("biller_code");
+                    item.getAccountDetails().setBillerCode(account_details.getString("biller_code"));
                 }
 
                 if (account_details.has("account_number")) {
-                    item.account_details.account_number = account_details.getString("account_number");
+                    item.getAccountDetails().setAccountNumber( account_details.getString("account_number"));
                 }
 
                 if (account_details.has("sort_code")) {
-                    item.account_details.sort_code = account_details.getString("sort_code");
+                    item.getAccountDetails().setSortCode(account_details.getString("sort_code"));
                 }
             }
 
             JSONObject advertisement = data.getJSONObject("advertisement");
             if (advertisement.has("id")) {
-                item.advertisement.id = (advertisement.getString("id"));
+                item.getAdvertisement().setId(advertisement.getInt("id"));
             }
 
             if (advertisement.has("payment_method")) {
-                item.advertisement.payment_method = (advertisement.getString("payment_method"));
+                item.getAdvertisement().setPaymentMethod(advertisement.getString("payment_method"));
             }
 
             if (advertisement.has("trade_type")) {
@@ -398,63 +344,64 @@ public class Parser {
                         || trade_type.equals(TradeType.LOCAL_SELL.name())
                         || trade_type.equals(TradeType.ONLINE_BUY.name())
                         || trade_type.equals(TradeType.ONLINE_SELL.name())) {
-                    item.advertisement.trade_type = (TradeType.valueOf(trade_type));
+                    item.getAdvertisement().setTradeType(trade_type);
                 } else {
                     if (BuildConfig.DEBUG) {
                         Crashlytics.setString("contact_data_key", data.toString());
                         Crashlytics.logException(new Throwable("Found invalid trade type for contact: " + trade_type));
                     }
-                    item.advertisement.trade_type = TradeType.NONE;
+                    item.getAdvertisement().setTradeType(TradeType.NONE.name());
                 }
             }
 
             JSONObject advertiser = advertisement.getJSONObject("advertiser");
-            item.advertisement.advertiser.username = (advertiser.getString("username"));
-            item.advertisement.advertiser.feedback_score = (advertiser.getString("feedback_score"));
-            item.advertisement.advertiser.last_online = (advertiser.getString("last_online"));
-            item.advertisement.advertiser.trade_count = (advertiser.getString("trade_count"));
-            item.advertisement.advertiser.name = (advertiser.getString("name"));
+            item.getAdvertisement().getAdvertiser().setUsername(advertiser.getString("username"));
+            item.getAdvertisement().getAdvertiser().setFeedbackScore(advertiser.getInt("feedback_score"));
+            item.getAdvertisement().getAdvertiser().setLastOnline(advertiser.getString("last_online"));
+            item.getAdvertisement().getAdvertiser().setTradeCount(advertiser.getString("trade_count"));
+            item.getAdvertisement().getAdvertiser().setName(advertiser.getString("name"));
 
             if (data.has("is_funded")) { //Boolean signaling if the escrow is enabled and not funded.
-                item.is_funded = (data.getBoolean("is_funded"));
+                item.setFunded(data.getBoolean("is_funded"));
             }
 
             JSONObject actions = object.getJSONObject("actions");
+            Actions actionsList = new Actions();
 
             if (actions.has("release_url")) {
-                item.actions.release_url = (actions.getString("release_url"));
+                actionsList.setReleaseUrl(actions.getString("release_url"));
             }
 
             if (actions.has("cancel_url")) {
-                item.actions.cancel_url = (actions.getString("cancel_url"));
+                actionsList.setCancelUrl(actions.getString("cancel_url"));
             }
 
             if (actions.has("mark_as_paid_url")) {
-                item.actions.mark_as_paid_url = (actions.getString("mark_as_paid_url"));
+                actionsList.setMarkAsPaidUrl(actions.getString("mark_as_paid_url"));
             }
 
             if (actions.has("dispute_url")) {
-                item.actions.dispute_url = (actions.getString("dispute_url"));
+                actionsList.setDisputeUrl(actions.getString("dispute_url"));
             }
 
             if (actions.has("fund_url")) {
-                item.actions.fund_url = (actions.getString("fund_url"));
+                actionsList.setFundUrl(actions.getString("fund_url"));
             }
 
             if (actions.has("advertisement_public_view")) {
-                item.actions.advertisement_public_view = actions.getString("advertisement_public_view");
+                actionsList.setAdvertisementPublicView(actions.getString("advertisement_public_view"));
             }
 
             if (actions.has("messages_url")) {
-                item.actions.messages_url = actions.getString("messages_url");
+                actionsList.setMessagesUrl(actions.getString("messages_url"));
             }
 
             if (actions.has("message_post_url")) {
-                item.actions.message_post_url = actions.getString("message_post_url");
+                actionsList.setMessagePostUrl(actions.getString("message_post_url"));
             }
 
+            item.setActions(actionsList);
             return item;
-
 
         } catch (JSONException e) {
             if (!BuildConfig.DEBUG) {
@@ -494,16 +441,16 @@ public class Parser {
     private static Notification parseNotification(JSONObject jsonObject) {
         Notification notification = new Notification();
         try {
-            if (jsonObject.has("url")) notification.url = (jsonObject.getString("url"));
+            if (jsonObject.has("url")) notification.setUrl((jsonObject.getString("url")));
             if (jsonObject.has("created_at"))
-                notification.created_at = (jsonObject.getString("created_at"));
+                notification.setCreatedAt((jsonObject.getString("created_at")));
             if (jsonObject.has("contact_id"))
-                notification.contact_id = (jsonObject.getString("contact_id"));
+                notification.setContactId((jsonObject.getInt("contact_id")));
             if (jsonObject.has("advertisement_id"))
-                notification.advertisement_id = (jsonObject.getString("advertisement_id"));
-            if (jsonObject.has("read")) notification.read = (jsonObject.getBoolean("read"));
-            if (jsonObject.has("msg")) notification.msg = jsonObject.getString("msg");
-            if (jsonObject.has("id")) notification.notification_id = (jsonObject.getString("id"));
+                notification.setAdvertisementId((jsonObject.getInt("advertisement_id")));
+            if (jsonObject.has("read")) notification.setRead((jsonObject.getBoolean("read")));
+            if (jsonObject.has("msg")) notification.setMessage(jsonObject.getString("msg"));
+            if (jsonObject.has("id")) notification.setNotificationId((jsonObject.getInt("id")));
             return notification;
         } catch (JSONException e) {
             Timber.e("Error Parsing Notification: " + e.getMessage());
@@ -512,6 +459,7 @@ public class Parser {
         return null;
     }
 
+    @Deprecated
     public static ArrayList<Message> parseMessages(String response) {
         JSONObject jsonObject;
         ArrayList<Message> results = new ArrayList<Message>();
@@ -539,34 +487,31 @@ public class Parser {
         return results;
     }
 
+    @Deprecated
     private static Message parseMessage(JSONObject messageObj) {
         Message message = new Message();
-
         try {
-
             JSONObject sender = messageObj.getJSONObject("sender");
-            if (sender.has("username")) message.sender.username = (sender.getString("username"));
-            if (sender.has("name")) message.sender.name = (sender.getString("name"));
+            if (sender.has("username")) message.getSender().setUsername(sender.getString("username"));
+            if (sender.has("name")) message.getSender().setName(sender.getString("name"));
             if (sender.has("trade_count"))
-                message.sender.trade_count = (sender.getString("trade_count"));
+                message.getSender().setTradeCount(sender.getString("trade_count"));
             if (sender.has("last_online"))
-                message.sender.last_seen_on = (sender.getString("last_online"));
+                message.getSender().setLastOnline(sender.getString("last_online"));
             if (messageObj.has("contact_id"))
-                message.contact_id = (messageObj.getString("contact_id"));
+                message.setContactId((messageObj.getInt("contact_id")));
             if (messageObj.has("created_at"))
-                message.created_at = (messageObj.getString("created_at"));
-            if (messageObj.has("msg")) message.msg = (Uri.decode(messageObj.getString("msg")));
+                message.setCreatedAt((messageObj.getString("created_at")));
+            if (messageObj.has("msg")) message.setMessage(Uri.decode(messageObj.getString("msg")));
             if (messageObj.has("is_admin"))
-                message.is_admin = (Boolean.valueOf(messageObj.getString("is_admin")));
+                message.setAdmin((Boolean.valueOf(messageObj.getString("is_admin"))));
             if (messageObj.has("attachment_name"))
-                message.attachment_name = (messageObj.getString("attachment_name"));
+                message.setAttachmentName((messageObj.getString("attachment_name")));
             if (messageObj.has("attachment_type"))
-                message.attachment_type = (messageObj.getString("attachment_type"));
+                message.setAttachmentType((messageObj.getString("attachment_type")));
             if (messageObj.has("attachment_url"))
-                message.attachment_url = (messageObj.getString("attachment_url"));
-
+                message.setAttachmentUrl((messageObj.getString("attachment_url")));
             return message;
-
         } catch (JSONException e) {
             if (!BuildConfig.DEBUG) {
                 Crashlytics.setString("Message", "Parsing error discovered");
@@ -584,110 +529,90 @@ public class Parser {
             Timber.e(e.getMessage());
             return null;
         }
-
         Wallet wallet = new Wallet();
-
         try {
-
             JSONObject data = jsonObject.getJSONObject("data");
-
-            wallet.message = (data.getString("message"));
-            wallet.address = data.getString("receiving_address");
-
+            wallet.setMessage((data.getString("message")));
+            wallet.setReceivingAddress(data.getString("receiving_address"));
             JSONObject total = data.getJSONObject("total");
-
-            wallet.balance = (total.getString("balance"));
-            wallet.sendable = (total.getString("sendable"));
-
-            if (TextUtils.isEmpty(wallet.balance) || wallet.balance.equals("0E-8")) {
-                wallet.balance = "0";
+            Total walletTotal = new Total();
+            walletTotal.setBalance(total.getString("balance"));
+            walletTotal.setSendable(total.getString("sendable"));
+            if (TextUtils.isEmpty(walletTotal.getBalance()) || walletTotal.getBalance().equals("0E-8")) {
+                walletTotal.setBalance("0");
             }
+            wallet.setTotal(walletTotal);
 
             JSONArray sent_transactions = data.getJSONArray("sent_transactions_30d");
 
             ArrayList<Transaction> sentTransactions = new ArrayList<>();
             for (int i = 0; i < sent_transactions.length(); i++) {
-
                 JSONObject object = (JSONObject) sent_transactions.get(i);
-
                 Transaction transaction = new Transaction();
-                transaction.type = (TransactionType.SENT);
-                transaction.created_at = (object.getString("created_at"));
-
+                //transaction.setType((TransactionType.SENT));
+                transaction.setCreatedAt((object.getString("created_at")));
                 if (object.has("tx_type") && !object.isNull("tx_type"))
-                    transaction.tx_type = object.getString("tx_type");
-
+                    transaction.setTxType(object.getString("tx_type"));
                 if (object.has("txid") && !object.isNull("txid")) {
-                    transaction.txid = (object.getString("txid"));
+                    transaction.setTxid((object.getString("txid")));
                 } else {
-                    transaction.txid = transaction.created_at;
+                    transaction.setTxid(transaction.getCreatedAt());
                 }
-
                 if (object.has("amount"))
-                    transaction.amount = (object.getString("amount"));
-
+                    transaction.setAmount((object.getString("amount")));
                 if (object.has("description"))
-                    transaction.description = (object.getString("description"));
+                    transaction.setDescription((object.getString("description")));
 
+                /*if (transaction.getDescription() != null && transaction.getDescription().toLowerCase().contains("fee")) {
+                    transaction.setType((TransactionType.FEE));
+                } else if (transaction.getDescription() != null && (transaction.getDescription().toLowerCase().contains("contact")
+                        || transaction.getDescription().toLowerCase().contains("bitcoin sell"))) {
+                    transaction.setType((TransactionType.CONTACT_SENT));
 
-                if (transaction.description != null && transaction.description.toLowerCase().contains("fee")) {
-                    transaction.type = (TransactionType.FEE);
-                } else if (transaction.description != null && (transaction.description.toLowerCase().contains("contact")
-                        || transaction.description.toLowerCase().contains("bitcoin sell"))) {
-                    transaction.type = (TransactionType.CONTACT_SENT);
-
-                } else if (transaction.description != null && transaction.description.toLowerCase().contains("internal")) {
-                    transaction.type = (TransactionType.INTERNAL);
-                } else if (transaction.description != null && transaction.description.toLowerCase().contains("reserve")) {
-                    transaction.type = (TransactionType.SENT);
-                }
-
+                } else if (transaction.getDescription() != null && transaction.getDescription().toLowerCase().contains("internal")) {
+                    transaction.setType((TransactionType.INTERNAL));
+                } else if (transaction.getDescription() != null && transaction.getDescription().toLowerCase().contains("reserve")) {
+                    transaction.setType((TransactionType.SENT));
+                }*/
                 sentTransactions.add(transaction);
             }
 
-            wallet.sent_transactions = sentTransactions;
+            wallet.setSentTransactions(sentTransactions);
 
             JSONArray received_transactions = data.getJSONArray("received_transactions_30d");
             ArrayList<Transaction> receivedTransactions = new ArrayList<>();
             for (int i = 0; i < received_transactions.length(); i++) {
-
                 JSONObject object = (JSONObject) received_transactions.get(i);
-
                 Transaction transaction = new Transaction();
-                transaction.type = (TransactionType.RECEIVED);
-                transaction.created_at = (object.getString("created_at"));
-
-
+                transaction.setCreatedAt((object.getString("created_at")));
                 if (object.has("tx_type") && !object.isNull("tx_type"))
-                    transaction.tx_type = object.getString("tx_type");
-
-
+                    transaction.setTxType(object.getString("tx_type"));
                 if (object.has("txid") && !object.isNull("txid")) {
-                    transaction.txid = (object.getString("txid"));
+                    transaction.setTxid((object.getString("txid")));
                 } else {
-                    transaction.txid = transaction.created_at;
+                    transaction.setTxid(transaction.getCreatedAt());
                 }
 
                 if (object.has("amount"))
-                    transaction.amount = (object.getString("amount"));
+                    transaction.setAmount((object.getString("amount")));
 
                 if (object.has("description"))
-                    transaction.description = (object.getString("description"));
+                    transaction.setDescription((object.getString("description")));
 
-                if (transaction.description != null && transaction.description.toLowerCase().contains("contact")) {
-                    transaction.type = (TransactionType.CONTACT_RECEIVE);
-                } else if (transaction.description != null && transaction.description.toLowerCase().contains("internal")) {
-                    transaction.type = (TransactionType.INTERNAL);
-                } else if (transaction.description != null && transaction.description.toLowerCase().contains("reserve")) {
-                    transaction.type = (TransactionType.RESERVE);
-                } else if (transaction.description != null && transaction.description.toLowerCase().contains("affiliate")) {
-                    transaction.type = (TransactionType.AFFILIATE);
-                }
+                /*if (transaction.getDescription() != null && transaction.getDescription().toLowerCase().contains("contact")) {
+                    transaction.setType((TransactionType.CONTACT_RECEIVE));
+                } else if (transaction.getDescription() != null && transaction.getDescription().toLowerCase().contains("internal")) {
+                    transaction.setType((TransactionType.INTERNAL));
+                } else if (transaction.getDescription() != null && transaction.getDescription().toLowerCase().contains("reserve")) {
+                    transaction.setType((TransactionType.RESERVE));
+                } else if (transaction.getDescription() != null && transaction.getDescription().toLowerCase().contains("affiliate")) {
+                    transaction.setType((TransactionType.AFFILIATE));
+                }*/
 
                 receivedTransactions.add(transaction);
             }
 
-            wallet.receiving_transactions = receivedTransactions;
+            wallet.setReceivingTransactions(receivedTransactions);
 
             // just get the first address
             /*JSONArray receiving_address_list = data.getJSONArray("receiving_address_list");
@@ -718,31 +643,26 @@ public class Parser {
         }
 
         Wallet wallet = new Wallet();
-
         try {
-
             JSONObject data = jsonObject.getJSONObject("data");
-            wallet.message = (data.getString("message"));
-            wallet.address = (data.getString("receiving_address"));
-
+            wallet.setMessage((data.getString("message")));
+            wallet.setReceivingAddress((data.getString("receiving_address")));
             JSONObject total = data.getJSONObject("total");
-
-            wallet.balance = (total.getString("balance"));
-            wallet.sendable = (total.getString("sendable"));
-
-            if (TextUtils.isEmpty(wallet.balance) || wallet.balance.equals("0E-8")) {
-                wallet.balance = "0";
+            Total walletTotal = new Total();
+            walletTotal.setBalance(total.getString("balance"));
+            walletTotal.setSendable(total.getString("sendable"));
+            if (TextUtils.isEmpty(walletTotal.getBalance()) || walletTotal.getBalance().equals("0E-8")) {
+                walletTotal.setBalance("0");
             }
-
+            wallet.setTotal(walletTotal);
             return wallet;
-
         } catch (JSONException e) {
             Timber.e(e.getMessage());
         }
-
         return null;
     }
 
+    @Deprecated
     public static List<Advertisement> parseAdvertisements(String response) {
         JSONObject jsonObject;
         try {
@@ -775,6 +695,22 @@ public class Parser {
         return items;
     }
 
+    public static List<Method> parseMethods(TreeMap<String, Object> treeMap) {
+        ArrayList<Method> methods = new ArrayList<Method>();
+        for (Object o : treeMap.entrySet()) {
+            Map.Entry entry = (Map.Entry) o;
+            LinkedTreeMap linkedTreeMap = (LinkedTreeMap) entry.getValue();
+            Method method = new Method();
+            method.setCode((String) linkedTreeMap.get("code"));
+            method.setName((String) linkedTreeMap.get("name"));
+            method.setCurrencies((ArrayList<String>) linkedTreeMap.get("currencies"));
+            methods.add(method);
+        }
+        Collections.sort(methods, new MethodNameComparator());
+        return methods;
+    }
+
+
     public static List<Method> parseMethods(String response) {
         JSONObject jsonObject;
         JSONObject dataObject;
@@ -790,10 +726,10 @@ public class Parser {
                 String key = (String) keys.next();
                 try {
                     if (methodsObject.get(key) instanceof JSONObject) {
-                        method.key = key;
+                        method.setKey(key);
                         JSONObject obj = (JSONObject) methodsObject.get(key);
-                        if (obj.has("code")) method.code = (obj.getString("code"));
-                        if (obj.has("name")) method.name = (obj.getString("name"));
+                        if (obj.has("code")) method.setCode((obj.getString("code")));
+                        if (obj.has("name")) method.setName((obj.getString("name")));
                         methods.add(method);
                     }
                 } catch (JSONException e) {
@@ -813,7 +749,7 @@ public class Parser {
     private static class MethodNameComparator implements Comparator<Method> {
         @Override
         public int compare(Method o1, Method o2) {
-            return o1.name.toLowerCase().compareTo(o2.name.toLowerCase());
+            return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
         }
     }
 
@@ -839,6 +775,7 @@ public class Parser {
         }
     }
 
+    @Deprecated
     private static Advertisement parseAdvertisement(JSONObject object, String nextUrl) {
         Advertisement item = new Advertisement();
 
@@ -846,125 +783,121 @@ public class Parser {
             JSONObject data = object.getJSONObject("data");
             JSONObject actions = object.getJSONObject("actions");
 
-            item.ad_id = (data.getString("ad_id"));
-            item.created_at = (data.getString("created_at"));
+            item.setAdId(data.getInt("ad_id"));
+            item.setCreatedAt(data.getString("created_at"));
 
             if (data.has("atm_model") && !data.isNull("atm_model")) {
-                item.atm_model = (data.getString("atm_model"));
+                item.setAtmModel(data.getString("atm_model"));
             }
 
-            item.visible = (data.getBoolean("visible"));
-            item.temp_price = ((data.getString("temp_price")));
-            item.temp_price_usd = ((data.getString("temp_price_usd")));
-
-            item.temp_price_usd = ((data.getString("temp_price_usd")));
-            item.temp_price_usd = ((data.getString("temp_price_usd")));
+            item.setVisible(data.getBoolean("visible"));
+            item.setTempPrice(data.getString("temp_price"));
+            item.setTempPriceUsd(data.getString("temp_price_usd"));
 
             if (data.has("require_feedback_score"))
-                item.require_feedback_score = ((data.getString("require_feedback_score")));
+                item.setRequireFeedbackScore(data.getString("require_feedback_score"));
 
             if (data.has("require_trade_volume"))
-                item.require_trade_volume = data.getString("require_trade_volume");
+                item.setRequireTradeVolume( data.getString("require_trade_volume"));
 
             if (data.has("first_time_limit_btc") && !data.getString("first_time_limit_btc").equals("null"))
-                item.first_time_limit_btc = (data.getString("first_time_limit_btc"));
+                item.setFirstTimeLimitBtc(data.getString("first_time_limit_btc"));
 
             if (data.has("require_identification"))
-                item.require_identification = (data.getBoolean("require_identification"));
+                item.setRequireIdentification(data.getBoolean("require_identification"));
 
             if (data.has("email")) {
-                item.email = (data.getString("email"));
+                item.setEmail(data.getString("email"));
             }
 
-            item.location = (data.getString("location_string"));
+            item.setLocation(data.getString("locationString"));
 
-            item.country_code = (data.getString("countrycode"));
-            Timber.d("Country Code: " + item.country_code);
-
-            item.city = (data.getString("city"));
+            item.setCountryCode(data.getString("countrycode"));
+            item.setCity(data.getString("city"));
 
             String trade_type = data.getString("trade_type");
-            item.trade_type = (TradeType.valueOf(trade_type));
-            item.online_provider = (data.getString("online_provider"));
+            item.setTradeType(trade_type);
+            item.setOnlineProvider(data.getString("online_provider"));
 
             if (data.has("price_equation"))
-                item.price_equation = (data.getString("price_equation"));
+                item.setPriceEquation(data.getString("price_equation"));
 
             if (data.has("reference_type"))
-                item.reference_type = (data.getString("reference_type"));
+                item.setReferenceType(data.getString("reference_type"));
 
             if (data.has("track_max_amount"))
-                item.track_max_amount = (data.getBoolean("track_max_amount"));
+                item.setTrackMaxAmount(data.getBoolean("track_max_amount"));
             if (data.has("trusted_required"))
-                item.trusted_required = (data.getBoolean("trusted_required"));
+                item.setTrustedRequired(data.getBoolean("trusted_required"));
             if (data.has("sms_verification_required"))
-                item.sms_verification_required = (data.getBoolean("sms_verification_required"));
+                item.setSmsVerificationRequired(data.getBoolean("sms_verification_required"));
 
-            item.currency = (data.getString("currency"));
+            item.setCurrency(data.getString("currency"));
 
             if (data.has("account_info")) {
-                item.account_info = data.getString("account_info");
-                //Timber.d("Account Info: " + data.getString("account_info"));
+                item.setAccountInfo(data.getString("account_info"));
             }
 
-            item.lat = (Float.parseFloat(data.getString("lat")));
-            item.lon = (Float.parseFloat(data.getString("lon")));
+            item.setLat(Float.parseFloat(data.getString("lat")));
+            item.setLon(Float.parseFloat(data.getString("lon")));
 
             if (data.has("distance"))
-                item.distance = (data.getString("distance")); // for public searches only
+                item.setDistance(data.getString("distance")); // for public searches only
 
             if (data.has("bank_name") && !data.isNull("bank_name")) {
-                item.bank_name = (data.getString("bank_name"));
+                item.setBankName(data.getString("bank_name"));
             }
 
             if (data.has("msg") && !data.isNull("msg")) {
                 //message = message.replace("\n", "").replace("\r", "<br>");
-                item.message = (data.getString("msg"));
+                item.setMessage(data.getString("msg"));
             }
 
             if (data.has("min_amount") && !data.isNull("min_amount")) {
                 String min_amount = data.getString("min_amount");
                 String min[] = min_amount.split(".");
-                item.min_amount = ((min.length > 0) ? min[0] : data.getString("min_amount"));
+                item.setMinAmount((min.length > 0) ? min[0] : data.getString("min_amount"));
             }
 
             if (data.has("max_amount") && !data.isNull("max_amount")) {
                 String max_amount = data.getString("max_amount");
                 String max[] = max_amount.split(".");
-                item.max_amount = ((max.length > 0) ? max[0] : data.getString("max_amount"));
+                item.setMaxAmount((max.length > 0) ? max[0] : data.getString("max_amount"));
             }
             if (data.has("max_amount_available") && !data.isNull("max_amount_available")) {
-                item.max_amount_available = data.getString("max_amount_available");
+                item.setMaxAmountAvailable( data.getString("max_amount_available"));
             }
 
             if (actions.has("public_view")) {
-                item.actions.public_view = (actions.getString("public_view"));
+                Actions actionsList = new Actions();
+                actionsList.setAdvertisementPublicView(actions.getString("public_view"));
+                item.setActions(actionsList);
             }
 
             if (data.has("profile")) {
+                Profile profileItem = new Profile();
                 JSONObject profile = data.getJSONObject("profile");
                 if (profile.has("last_online"))
-                    item.profile.last_online = (profile.getString("last_online"));
-                item.profile.name = (profile.getString("name"));
-                item.profile.username = (profile.getString("username"));
+                    profileItem.setLastOnline((profile.getString("last_online")));
+                profileItem.setName((profile.getString("name")));
+                profileItem.setUsername((profile.getString("username")));
                 if (profile.has("feedback_score"))
-                    item.profile.feedback_score = (profile.getString("feedback_score"));
+                    profileItem.setFeedbackScore(profile.getInt("feedback_score"));
                 if (profile.has("trade_count"))
-                    item.profile.trade_count = (profile.getString("trade_count"));
+                    profileItem.setTradeCount(profile.getString("trade_count"));
+
+                item.setProfile(profileItem);
             }
-
-            if (nextUrl != null)
-                item.nextUrl = nextUrl;
-
+            if (nextUrl != null) {
+                item.setNextUrl(nextUrl);
+            }
             return item;
-
         } catch (JSONException e) {
             if (!BuildConfig.DEBUG) {
                 Crashlytics.setString("Advertisement", "Parsing error discovered");
                 Crashlytics.logException(new Throwable("Error parsing advertisement: " + object.toString()));
             }
         }
-
         return null;
     }
 
@@ -977,9 +910,9 @@ public class Parser {
             JSONArray places = data.getJSONArray("places");
             if (places.length() > 0) {
                 JSONObject placeObject = (JSONObject) places.get(0);
-                place.location_string = (placeObject.getString("location_string"));
-                place.buy_local_url = (placeObject.getString("buy_local_url"));
-                place.sell_local_url = (placeObject.getString("sell_local_url"));
+                place.locationString = (placeObject.getString("locationString"));
+                place.buyLocalUrl = (placeObject.getString("buyLocalUrl"));
+                place.sellLocalUrl = (placeObject.getString("sellLocalUrl"));
                 place.url = (placeObject.getString("url"));
                 place.lon = (placeObject.getString("lon"));
                 place.lat = (placeObject.getString("lat"));
@@ -995,32 +928,35 @@ public class Parser {
 
     public static ContactRequest parseContactRequest(String response) {
         ContactRequest contactRequest = new ContactRequest();
-
         try {
             JSONObject jsonObject = new JSONObject(response);
             JSONObject data = jsonObject.getJSONObject("data");
-            contactRequest.contact_id = (data.getString("contact_id"));
+            contactRequest.contactId = data.getString("contact_id");
             return contactRequest;
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
-    public static class ExchangeNameComparator implements Comparator<Currency> {
-        @Override
-        public int compare(Currency o1, Currency o2) {
-            return o1.ticker.toLowerCase().compareTo(o2.ticker.toLowerCase());
+    public static List<Currency> parseCurrencies(TreeMap<String, Object> treeMap) {
+        ArrayList<Currency> currencies = new ArrayList<Currency>();
+        for (Object o : treeMap.entrySet()) {
+            Map.Entry entry = (Map.Entry) o;
+            LinkedTreeMap linkedTreeMap = (LinkedTreeMap) entry.getValue();
+            Currency currency = new Currency();
+            currency.setCode((String) entry.getKey());
+            currency.setName((String) linkedTreeMap.get("name"));
+            currency.setAltcoin((Boolean) linkedTreeMap.get("altcoin"));
+            currencies.add(currency);
         }
+        Collections.sort(currencies, new CurrencyComparator());
+        return currencies;
     }
 
-    public static List<ExchangeCurrency> parseExchangeCurrencies(String response) {
-
+    public static List<Currency> parseCurrencies(String response) {
         JSONObject jsonObject;
-        ArrayList<ExchangeCurrency> currencies = new ArrayList<>();
-
+        ArrayList<Currency> currencies = new ArrayList<>();
         try {
             jsonObject = new JSONObject(response);
             JSONObject dataObject = jsonObject.getJSONObject("data");
@@ -1028,8 +964,14 @@ public class Parser {
             Iterator<?> keys = currenciesObject.keys();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                ExchangeCurrency currency = new ExchangeCurrency(key);
-                currencies.add(currency);
+                Currency currency = new Currency();
+                if(currenciesObject.get("key") instanceof JSONObject) {
+                    currency.setCode(key);
+                    JSONObject obj = (JSONObject) currenciesObject.get(key);
+                    if (obj.has("code")) currency.setAltcoin(obj.getBoolean("altcoin"));
+                    if (obj.has("name")) currency.setName(obj.getString("name"));
+                    currencies.add(currency);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1040,10 +982,10 @@ public class Parser {
         return currencies;
     }
 
-    public static class CurrencyComparator implements Comparator<ExchangeCurrency> {
+    public static class CurrencyComparator implements Comparator<Currency> {
         @Override
-        public int compare(ExchangeCurrency o1, ExchangeCurrency o2) {
-            return o1.getCurrency().toLowerCase().compareTo(o2.getCurrency().toLowerCase());
+        public int compare(Currency o1, Currency o2) {
+            return o1.getCode().toLowerCase().compareTo(o2.getCode().toLowerCase());
         }
     }
 
@@ -1065,25 +1007,7 @@ public class Parser {
         }
     }
 
-    public static ExchangeRate parseBitcoinAverageExchangeRate(String exchangeName, String currency, Response response) {
-        // Read the body
-        BufferedReader reader = null;
-        StringBuilder sb = new StringBuilder();
-        try {
-            reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
-            String line;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String result = sb.toString();
-
+    public static ExchangeRate parseBitcoinAverageExchangeRate(String exchangeName, String currency, String result) {
         try {
             JSONObject jsonObject;
             jsonObject = new JSONObject(result);
@@ -1098,7 +1022,11 @@ public class Parser {
                         rate = exchangeObj.getString("avg_1h");
                     }
                     if (currency.equals(key)) {
-                        return new ExchangeRate(exchangeName, rate, currency);
+                        ExchangeRate exchangeRate = new ExchangeRate();
+                        exchangeRate.setCurrency(currency);
+                        exchangeRate.setRate(rate);
+                        exchangeRate.setName(exchangeName);
+                        return exchangeRate;
                     }
                 }
             }
@@ -1116,7 +1044,10 @@ public class Parser {
             if (jsonArray.length() > 6) {
                 String rate = jsonArray.get(6).toString();
                 rate = String.format("%.2f", Doubles.convertToDouble(rate));
-                return new ExchangeRate("Bitfinex", rate, "");
+                ExchangeRate exchangeRate = new ExchangeRate();
+                exchangeRate.setRate(rate);
+                exchangeRate.setName("Bitfinex");
+                return exchangeRate;
             }
         } catch (JSONException e) {
             Timber.e(e.getMessage());
@@ -1131,7 +1062,11 @@ public class Parser {
             jsonObject = new JSONObject(response);
             JSONObject dataObject = jsonObject.getJSONObject("data");
             String exchangeName = "Coinbase";
-            return new ExchangeRate(exchangeName, dataObject.getString("amount"), dataObject.getString("currency"));
+            ExchangeRate exchangeRate = new ExchangeRate();
+            exchangeRate.setCurrency(dataObject.getString("currency"));
+            exchangeRate.setRate(dataObject.getString("amount"));
+            exchangeRate.setName(exchangeName);
+            return exchangeRate;
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -1143,21 +1078,17 @@ public class Parser {
         JSONObject jsonObject;
         try {
             jsonObject = new JSONObject(response);
-
             String ask = "";
             String bid = "";
             String last = "";
             String display_name = "BitcoinAverage";
             String source = "http://www.bitcoinaverage.com";
             String created_at = "";
-
             ask = jsonObject.getString("ask");
             bid = jsonObject.getString("bid");
             last = jsonObject.getString("last");
             created_at = jsonObject.getString("timestamp");
-
             return new Exchange(display_name, ask, bid, last, source, created_at);
-
         } catch (JSONException e) {
             e.printStackTrace();
             return null;

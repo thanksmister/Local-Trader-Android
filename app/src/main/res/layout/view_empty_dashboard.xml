@@ -30,8 +30,7 @@
             android:layout_gravity="center">
         
         <TextView
-                style="@style/TextLarge.SmallAction"
-                android:textColor="@color/body_text_1"
+                style="@style/TextAppearance.AppCompat.Headline"
                 android:layout_marginBottom="8dp"
                 android:layout_marginTop="16dp"
                 android:layout_width="match_parent"
@@ -41,7 +40,7 @@
                 android:text="@string/text_title_getting_started"/>
 
         <TextView
-                style="@style/TextMedium"
+                style="@style/TextAppearance.AppCompat.Body1"
                 android:layout_margin="16dp"
                 android:paddingBottom="8dp"
                 android:layout_width="match_parent"

@@ -133,8 +133,8 @@
     <string name="bitcoin_request_copied_toast">Solicitar enlace copiado al portapapeles!</string>
     <string name="hint_bitcoin_address">Dirección de Bitcoi</string>
     <string name="form_sendable_label">La cantidad que se puede enviar es la cantidad máxima que puede enviar menos los cargos.</string>
-    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
-    <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s BTC / %2$s %3$s</font>]]></string>
+    <string name="form_balance_negative">%1$s BTC</string>
+    <string name="form_balance_positive">%1$s BTC</string>
     <string name="pin_code_send"><![CDATA[Se requiere un código PIN para liberar, el fondo envía bitcoin. Administra el código PIN en la página <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Perfil de la cuenta</a>.]]></string>
     <string name="toast_transaction_success">¡Bitcoins enviados!</string>
     <string name="progress_sending_transaction">Enviando bitcoins…</string>

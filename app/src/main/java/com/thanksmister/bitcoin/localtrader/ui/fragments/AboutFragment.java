@@ -19,15 +19,14 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
 import android.util.AndroidRuntimeException;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +36,6 @@ import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
@@ -45,23 +43,13 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
 
 import java.lang.reflect.Field;
 
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import timber.log.Timber;
 
 import static com.thanksmister.bitcoin.localtrader.constants.Constants.BITCOIN_ADDRESS;
 
 public class AboutFragment extends BaseFragment {
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
 
-    @Inject
-    SharedPreferences sharedPreferences;
-
-    @OnClick(R.id.guidesButton)
+    /*@OnClick(R.id.guidesButton)
     public void guidesButtonClicked() {
         guides();
     }
@@ -94,9 +82,7 @@ public class AboutFragment extends BaseFragment {
     @OnClick(R.id.donateButton)
     public void donateButtonClicked() {
         donateBitcoin();
-    }
-
-    private String versionText;
+    }*/
 
     public static AboutFragment newInstance() {
         return new AboutFragment();
@@ -111,9 +97,8 @@ public class AboutFragment extends BaseFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.view_about, container, false);
-        ButterKnife.bind(this, fragmentView);
         return fragmentView;
     }
 
@@ -121,10 +106,12 @@ public class AboutFragment extends BaseFragment {
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(fragmentView, savedInstanceState);
         try {
-            PackageInfo packageInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
-            versionText = " v" + packageInfo.versionName;
-            TextView versionName = (TextView) getActivity().findViewById(R.id.versionName);
-            versionName.setText(versionText);
+            if(getActivity() != null) {
+                PackageInfo packageInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+                String versionText = " v" + packageInfo.versionName;
+                TextView versionName = (TextView) getActivity().findViewById(R.id.versionName);
+                versionName.setText(versionText);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Timber.e(e.getMessage());
         }
@@ -152,13 +139,14 @@ public class AboutFragment extends BaseFragment {
     }
 
     private void setupToolbar() {
-        if(getActivity() != null) {
-            ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+        /*if(getActivity() != null) {
             final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
-            ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
-            ab.setTitle(getString(R.string.view_title_about));
-            ab.setDisplayHomeAsUpEnabled(true);
-        }
+            if(ab != null) {
+                ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
+                ab.setTitle(getString(R.string.view_title_about));
+                ab.setDisplayHomeAsUpEnabled(true);
+            }
+        }*/
     }
 
     protected void rate() {
@@ -211,7 +199,7 @@ public class AboutFragment extends BaseFragment {
 
     protected void showLicense() {
         if(getActivity() != null) {
-            ((BaseActivity) getActivity()).showAlertDialog(new AlertDialogEvent("License", getString(R.string.license)));
+            ((BaseActivity) getActivity()).showAlertDialog("License", getString(R.string.license));
         }
     }
 

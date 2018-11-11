@@ -15,94 +15,78 @@
   ~
   -->
 
-<LinearLayout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:orientation="vertical"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent">
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <android.support.design.widget.AppBarLayout
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/walletRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fitsSystemWindows="true">
-
-        <android.support.design.widget.CollapsingToolbarLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fitsSystemWindows="true"
-                app:contentScrim="?attr/colorPrimary"
-                app:titleEnabled="false">
+            android:orientation="vertical">
 
             <LinearLayout
-                    android:id="@+id/bitcoinLayout"
-                    android:layout_width="match_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/activity_horizontal_margin"
+                android:layout_weight="0"
+                android:background="@color/red"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/bitcoinTitle"
+                    style="@style/TextLarge.SmallAction.White"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="bottom"
-                    android:layout_marginTop="64dp"
-                    android:layout_marginBottom="16dp"
-                    android:paddingLeft="72dp">
+                    android:text="@string/wallet_account_balance"
+                    android:layout_marginBottom="4dp"/>
 
                 <TextView
-                        android:id="@+id/bitcoinTitle"
-                        style="@style/TextLarge.SmallAction.White"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/wallet_account_balance"/>
+                    android:id="@+id/bitcoinPrice"
+                    style="@style/TextAppearance.AppCompat.Headline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textIsSelectable="true"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    tools:text="0.0 BTC" />
 
                 <TextView
-                        android:id="@+id/bitcoinPrice"
-                        style="@style/TextExtraLarge.White"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textIsSelectable="true"
-                        tools:text="0.0 BTC"/>
-
-                <TextView
-                        android:id="@+id/bitcoinValue"
-                        style="@style/TextMedium.SmallAction.White"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        tools:text="~ 2783.89 USD (Coinbase)"/>
+                    android:id="@+id/bitcoinValue"
+                    style="@style/TextSmall.White"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="~ 2783.89 USD (Coinbase)" />
 
             </LinearLayout>
 
-            <android.support.v7.widget.Toolbar
-                    android:id="@+id/toolbar"
+            <View
+                style="@style/DividerHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+
+            <android.support.v4.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/transactionRecycleView"
                     android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:background="?attr/colorPrimary"
-                    app:popupTheme="@style/Theme.AppCompat.Light"
-                    tools:text="Local Trader"
-                    app:layout_collapseMode="none"/>
+                    android:layout_height="wrap_content"/>
 
-        </android.support.design.widget.CollapsingToolbarLayout>
+            </android.support.v4.widget.NestedScrollView>
 
-    </android.support.design.widget.AppBarLayout>
-    
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        </LinearLayout>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycleView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-        <include
-                android:id="@+id/resultsProgress"
-                layout="@layout/view_progress"
-                android:visibility="visible"
-                tools:visibility="visible"/>
-
-        <include layout="@layout/view_empty"
-                 android:id="@+id/emptyLayout"
-                 tools:visibility="visible"
-                 android:visibility="gone"/>
-
-    </FrameLayout>
-
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

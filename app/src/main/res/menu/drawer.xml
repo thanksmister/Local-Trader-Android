@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) 2018 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,44 +16,50 @@
   -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
     <group android:checkableBehavior="single">
-        
-        <item
-                android:id="@+id/navigationItemDashboard"
-                android:checked="true"
-                android:icon="@drawable/dashboard_small"
-                android:title="@string/view_title_dashboard"/>
 
         <item
-                android:id="@+id/navigationItemSearch"
-                android:icon="@drawable/search_small"
-                android:title="@string/view_title_search"/>
+            android:id="@+id/navigationItemDashboard"
+            android:checkable="false"
+            android:icon="@drawable/dashboard_small"
+            android:title="@string/view_title_dashboard" />
 
         <item
-                android:id="@+id/navigationItemSend"
-                android:icon="@drawable/send_small"
-                android:title="@string/view_title_send"/>
+            android:id="@+id/navigationItemSearch"
+            android:checkable="false"
+            android:icon="@drawable/search_small"
+            android:title="@string/view_title_search" />
 
         <item
-                android:id="@+id/navigationItemReceive"
-                android:icon="@drawable/receive_small"
-                android:title="@string/view_title_request"/>
+            android:id="@+id/navigationItemSend"
+            android:checkable="false"
+            android:icon="@drawable/send_small"
+            android:title="@string/view_title_send" />
 
         <item
-                android:id="@+id/navigationItemWallet"
-                android:icon="@drawable/wallet_small"
-                android:title="@string/view_title_wallet"/>
-        
-        <item
-                android:id="@+id/navigationItemAbout"
-                android:icon="@drawable/info_small"
-                android:title="@string/view_title_about"/>
+            android:id="@+id/navigationItemReceive"
+            android:icon="@drawable/receive_small"
+            android:checkable="false"
+            android:title="@string/view_title_request" />
 
         <item
-                android:id="@+id/navigationItemSettings"
-                android:icon="@drawable/settings_small"
-                android:title="@string/view_title_settings"/>
+            android:id="@+id/navigationItemWallet"
+            android:icon="@drawable/wallet_small"
+            android:checkable="false"
+            android:title="@string/view_title_wallet" />
+
+        <item
+            android:id="@+id/navigationItemAbout"
+            android:icon="@drawable/info_small"
+            android:checkable="false"
+            android:title="@string/view_title_about" />
+
+        <item
+            android:id="@+id/navigationItemSettings"
+            android:icon="@drawable/settings_small"
+            android:checkable="false"
+            android:title="@string/view_title_settings" />
     </group>
-    
+
 </menu>
