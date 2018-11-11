@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.location.Address
 import android.text.TextUtils
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
-import dpreference.DPreference
 import net.grandcentrix.tray.AppPreferences
 import org.json.JSONException
 import org.json.JSONObject

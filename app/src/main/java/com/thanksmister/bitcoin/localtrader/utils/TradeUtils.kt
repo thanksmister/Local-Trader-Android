@@ -47,8 +47,7 @@ class TradeUtils {
         const val ALTCOIN_ETH = "ALTCOIN_ETH"
         const val INTERNATIONAL_WIRE_SWIFT = "INTERNATIONAL_WIRE_SWIFT"
         const val GIFT_CARD_CODE = "GIFT_CARD_CODE"
-        @JvmField
-        val NATIONAL_BANK = "NATIONAL_BANK"
+        const val NATIONAL_BANK = "NATIONAL_BANK"
         const val CASH_DEPOSIT = "CASH_DEPOSIT"
         const val SPECIFIC_BANK = "SPECIFIC_BANK"
         const val OTHER = "OTHER"

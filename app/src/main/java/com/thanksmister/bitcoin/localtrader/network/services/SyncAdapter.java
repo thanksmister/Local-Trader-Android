@@ -52,7 +52,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Singleton;
 
-import dpreference.DPreference;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
