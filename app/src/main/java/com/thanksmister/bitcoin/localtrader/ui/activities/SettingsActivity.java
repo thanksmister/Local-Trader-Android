@@ -20,20 +20,14 @@ package com.thanksmister.bitcoin.localtrader.ui.activities;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.ui.fragments.SettingsFragment;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class SettingsActivity extends BaseActivity {
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
 
     public static Intent createStartIntent(Context context) {
         return new Intent(context, SettingsActivity.class);
@@ -45,30 +39,22 @@ public class SettingsActivity extends BaseActivity {
 
         setContentView(R.layout.activity_settings);
 
-        ButterKnife.bind(this);
-
         // Display the fragment as the main content
         getFragmentManager().beginTransaction().replace(R.id.content, new SettingsFragment()).commit();
 
-        setupToolBar();
-    }
-
-    private void setupToolBar() {
-        setSupportActionBar(toolbar);
-        final ActionBar ab = getSupportActionBar();
-        ab.setTitle(R.string.title_activity_settings);
-        ab.setDisplayHomeAsUpEnabled(true);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(R.string.title_activity_settings);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
         if (id == android.R.id.home) {
             finish();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }

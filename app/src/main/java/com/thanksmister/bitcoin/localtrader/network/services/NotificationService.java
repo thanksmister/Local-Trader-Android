@@ -46,24 +46,25 @@ public class NotificationService {
 
         List<Notification> notificationList = new ArrayList<Notification>();
         for (Notification notification : notifications) {
-            boolean read = notification.read;
-            boolean support = notification.url.contains("support");
-            boolean feedback = notification.url.contains("feedback");
+            boolean read = notification.getRead();
+            boolean support = notification.getUrl().contains("support");
+            boolean feedback = notification.getUrl().contains("feedback");
             if (!read && !feedback && !support) {
                 notificationList.add(notification);
             }
         }
 
+        // TODO add to translations!!
         if (notificationList.size() > 1) {
             notificationUtils.createNotification("New notifications", "You have " + notificationList.size() + " new notifications.");
         } else if (notificationList.size() == 1) {
             Notification notification = notificationList.get(0);
-            if (notification.contact_id != null) {
-                notificationUtils.createNotification("Trade notification", notification.msg);
-            } else if (notification.advertisement_id != null) {
-                notificationUtils.createNotification("Advertisement notification", notification.msg);
+            if (notification.getContactId() != null) {
+                notificationUtils.createNotification("Trade notification", notification.getMessage());
+            } else if (notification.getAdvertisementId() != null) {
+                notificationUtils.createNotification("Advertisement notification", notification.getMessage());
             } else {
-                notificationUtils.createNotification("Notification", notification.msg);
+                notificationUtils.createNotification("Notification", notification.getMessage());
             }
         }
     }

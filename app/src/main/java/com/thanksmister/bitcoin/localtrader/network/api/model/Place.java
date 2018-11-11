@@ -18,9 +18,9 @@
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
 public class Place {
-    public String sell_local_url;
-    public String buy_local_url;
-    public String location_string;
+    public String sellLocalUrl;
+    public String buyLocalUrl;
+    public String locationString;
     public String url;
     public String lon;
     public String lat;

@@ -19,14 +19,9 @@ package com.thanksmister.bitcoin.localtrader.ui.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,82 +34,47 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem;
-import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
-import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.NetworkUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-import com.trello.rxlifecycle.ActivityEvent;
 
-import org.json.JSONObject;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import timber.log.Timber;
 
-public class EditAdvertisementActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class EditAdvertisementActivity extends BaseActivity {
 
-    private static final int ADVERTISEMENT_LOADER_ID = 1;
     public static final String EXTRA_ADVERTISEMENT_ID = "com.thanksmister.extras.EXTRA_ADVERTISEMENT_ID";
     public static final String EXTRA_EDITED_ADVERTISEMENT = "com.thanksmister.extras.EXTRA_EDITED_ADVERTISEMENT";
 
     public static final int REQUEST_CODE = 10937;
     public static final int RESULT_UPDATED = 72322;
 
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
-
-    @BindView(R.id.nextButton)
     Button nextButton;
 
-    @BindView(R.id.editMaximumAmountCurrency)
     TextView editMaximumAmountCurrency;
 
-    @BindView(R.id.editMinimumAmountCurrency)
     TextView editMinimumAmountCurrency;
 
-    @BindView(R.id.editMaximumAmount)
     EditText editMaximumAmount;
 
-    @BindView(R.id.editMinimumAmount)
     EditText editMinimumAmount;
 
-    @BindView(R.id.editPriceEquation)
     EditText editPriceEquation;
 
-    @BindView(R.id.editMessageText)
     EditText editMessageText;
 
-    @BindView(R.id.activeCheckBox)
     CheckBox activeCheckBox;
 
-    @Inject
-    public DataService dataService;
 
-    @OnClick(R.id.nextButton)
     public void nextButtonClicked() {
         validateChangesAndCommit(editAdvertisement);
     }
 
-    private AdvertisementItem advertisement;
+    private Advertisement advertisement;
     private Advertisement editAdvertisement;
     private String adId;
 
-    public static Intent createStartIntent(Context context, String adId) {
+    public static Intent createStartIntent(Context context, int adId) {
         Intent intent = new Intent(context, EditAdvertisementActivity.class);
         intent.putExtra(EXTRA_ADVERTISEMENT_ID, adId);
         return intent;
@@ -127,23 +87,17 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
         setContentView(R.layout.activity_edit_advertisement);
 
-        ButterKnife.bind(this);
-
         if (savedInstanceState == null) {
             adId = getIntent().getStringExtra(EXTRA_ADVERTISEMENT_ID);
         } else {
             adId = savedInstanceState.getString(EXTRA_ADVERTISEMENT_ID);
         }
 
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                getSupportActionBar().setHomeButtonEnabled(true);
-            }
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
         }
 
-        getSupportLoaderManager().restartLoader(ADVERTISEMENT_LOADER_ID, null, this);
         toggleNavButtons(getString(R.string.button_save_changes));
     }
 
@@ -155,7 +109,6 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
     @Override
     public void onPause() {
         super.onPause();
-        getSupportLoaderManager().destroyLoader(ADVERTISEMENT_LOADER_ID);
     }
 
     @Override
@@ -188,9 +141,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (toolbar != null) {
-            toolbar.inflateMenu(R.menu.edit);
-        }
+       getMenuInflater().inflate(R.menu.edit, menu);
         return true;
     }
 
@@ -201,11 +152,11 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
     protected void handleNetworkDisconnect() {
         if (NetworkUtils.isNetworkConnected(EditAdvertisementActivity.this)) {
-            snack(getString(R.string.error_no_internet), false);
+            toast(getString(R.string.error_no_internet));
         }
     }
 
-    private void setInitialAdvertisementViews(Advertisement editAdvertisement, AdvertisementItem advertisement) {
+    private void setInitialAdvertisementViews(Advertisement editAdvertisement, Advertisement advertisement) {
         this.advertisement = advertisement;
         this.editAdvertisement = editAdvertisement;
         setAdvertisementOnView(editAdvertisement);
@@ -213,36 +164,37 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
     public void setAdvertisementOnView(@NonNull Advertisement editAdvertisement) {
 
-        activeCheckBox.setChecked(editAdvertisement.visible);
+        activeCheckBox.setChecked(editAdvertisement.getVisible());
 
-        if (TradeUtils.ALTCOIN_ETH.equals(editAdvertisement.online_provider)) {
+
+        if (TradeUtils.ALTCOIN_ETH.equals(editAdvertisement.getOnlineProvider())) {
             editMinimumAmountCurrency.setText(getString(R.string.eth));
             editMaximumAmountCurrency.setText(getString(R.string.eth));
         } else {
-            editMinimumAmountCurrency.setText(editAdvertisement.currency);
-            editMaximumAmountCurrency.setText(editAdvertisement.currency);
+            editMinimumAmountCurrency.setText(editAdvertisement.getCurrency());
+            editMaximumAmountCurrency.setText(editAdvertisement.getCurrency());
         }
 
-        if (!TextUtils.isEmpty(editAdvertisement.min_amount)) {
-            editMinimumAmount.setText(editAdvertisement.min_amount);
+        if (!TextUtils.isEmpty(editAdvertisement.getMinAmount())) {
+            editMinimumAmount.setText(editAdvertisement.getMinAmount());
         }
 
-        if (!TextUtils.isEmpty(editAdvertisement.max_amount)) {
-            editMaximumAmount.setText(editAdvertisement.max_amount);
+        if (!TextUtils.isEmpty(editAdvertisement.getMaxAmount())) {
+            editMaximumAmount.setText(editAdvertisement.getMaxAmount());
         }
 
-        if (!TextUtils.isEmpty(editAdvertisement.price_equation)) {
-            editPriceEquation.setText(editAdvertisement.price_equation);
+        if (!TextUtils.isEmpty(editAdvertisement.getPriceEquation())) {
+            editPriceEquation.setText(editAdvertisement.getPriceEquation());
         }
 
-        if (!TextUtils.isEmpty(editAdvertisement.message)) {
-            editMessageText.setText(editAdvertisement.message);
+        if (!TextUtils.isEmpty(editAdvertisement.getMessage())) {
+            editMessageText.setText(editAdvertisement.getMessage());
         }
     }
 
     public boolean validateChanges() {
 
-        editAdvertisement.visible = activeCheckBox.isChecked();
+        editAdvertisement.setVisible(activeCheckBox.isChecked());
 
         String min = editMinimumAmount.getText().toString();
         String max = editMaximumAmount.getText().toString();
@@ -259,14 +211,15 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
             return false;
         }
 
-        editAdvertisement.message = editMessageText.getText().toString();
-        editAdvertisement.price_equation = equation;
-        editAdvertisement.min_amount = String.valueOf(TradeUtils.convertCurrencyAmount(min));
-        editAdvertisement.max_amount = String.valueOf(TradeUtils.convertCurrencyAmount(max));
+        editAdvertisement.setMessage(editMessageText.getText().toString());
+        editAdvertisement.setPriceEquation(equation);
+        editAdvertisement.setMinAmount(String.valueOf(TradeUtils.Companion.convertCurrencyAmount(min)));
+        editAdvertisement.setMaxAmount(String.valueOf(TradeUtils.Companion.convertCurrencyAmount(max)));
 
         return true;
     }
 
+    /*@Deprecated
     public Advertisement getEditAdvertisement() {
         Advertisement advertisement = new Advertisement();
         String advertisementJson = preference.getString("editAdvertisement", null);
@@ -276,12 +229,13 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         }
         return advertisement;
     }
-
-    public void setEditAdvertisement(Advertisement advertisement) {
+*/
+    // TODO save this in the view model
+    /*public void setEditAdvertisement(Advertisement advertisement) {
         String editString = new Gson().toJson(advertisement);
         Timber.d("setEditAdvertisement: " + editString);
         preference.putString("editAdvertisement", editString);
-    }
+    }*/
 
     private void toggleNavButtons(String nextButtonTitle) {
         nextButton.setText(nextButtonTitle);
@@ -299,13 +253,13 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         boolean commitChanges = false;
         if (advertisement != null) {
             try {
-                if ((editAdvertisement.account_info != null && !editAdvertisement.account_info.equals(advertisement.account_info()))
-                        || (editAdvertisement.price_equation != null && !editAdvertisement.price_equation.equals(advertisement.price_equation()))
-                        || (editAdvertisement.bank_name != null && !editAdvertisement.bank_name.equals(advertisement.bank_name()))
-                        || (editAdvertisement.message != null && !editAdvertisement.message.equals(advertisement.message()))
-                        || (editAdvertisement.min_amount != null && !editAdvertisement.min_amount.equals(advertisement.min_amount()))
-                        || (editAdvertisement.max_amount != null && !editAdvertisement.max_amount.equals(advertisement.max_amount()))
-                        || editAdvertisement.visible != advertisement.visible()) {
+                if ((editAdvertisement.getAccountInfo() != null && !editAdvertisement.getAccountInfo().equals(advertisement.getAccountInfo()))
+                        || (editAdvertisement.getPriceEquation() != null && !editAdvertisement.getPriceEquation().equals(advertisement.getPriceEquation()))
+                        || (editAdvertisement.getBankName() != null && !editAdvertisement.getBankName().equals(advertisement.getBankName()))
+                        || (editAdvertisement.getMessage() != null && !editAdvertisement.getMessage().equals(advertisement.getMessage()))
+                        || (editAdvertisement.getMinAmount() != null && !editAdvertisement.getMinAmount().equals(advertisement.getMinAmount()))
+                        || (editAdvertisement.getMaxAmount() != null && !editAdvertisement.getMaxAmount().equals(advertisement.getMaxAmount()))
+                        || editAdvertisement.getVisible() != advertisement.getVisible()) {
                     commitChanges = true;
                 }
             } catch (NullPointerException e) {
@@ -325,40 +279,39 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         Timber.d("\n\n\neditAdvertisement: " + new Gson().toJson(editAdvertisement));
 
         if (commitChanges) {
-            showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_saving_changes)), true);
-            dataService.updateAdvertisement(editAdvertisement)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
-                    .subscribe(new Action1<JSONObject>() {
-                        @Override
-                        public void call(final JSONObject jsonObject) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    hideProgressDialog();
-                                    advertisementSaved();
-                                }
-                            });
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(final Throwable throwable) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    hideProgressDialog();
-                                    showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), throwable.getMessage()), new Action0() {
-                                        @Override
-                                        public void call() {
-                                            advertisementCanceled();
-                                        }
-                                    });
-                                }
-                            });
-
-                        }
-                    });
+            showProgressDialog(getString(R.string.dialog_saving_changes), true);
+//            dataService.updateAdvertisement(editAdvertisement)
+//                    .subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(new Action1<JSONObject>() {
+//                        @Override
+//                        public void call(final JSONObject jsonObject) {
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    hideProgressDialog();
+//                                    advertisementSaved();
+//                                }
+//                            });
+//                        }
+//                    }, new Action1<Throwable>() {
+//                        @Override
+//                        public void call(final Throwable throwable) {
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    hideProgressDialog();
+//                                    showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), throwable.getMessage()), new Action0() {
+//                                        @Override
+//                                        public void call() {
+//                                            advertisementCanceled();
+//                                        }
+//                                    });
+//                                }
+//                            });
+//
+//                        }
+//                    });
         } else {
             advertisementCanceled();
         }
@@ -383,7 +336,7 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         finish();
     }
 
-    @NonNull
+    /*@NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(EditAdvertisementActivity.this, SyncProvider.ADVERTISEMENT_TABLE_URI, null, AdvertisementItem.AD_ID + " = ?", new String[]{adId}, null);
@@ -394,10 +347,10 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
         switch (loader.getId()) {
             case ADVERTISEMENT_LOADER_ID:
                 if (cursor != null && cursor.getCount() > 0) {
-                    AdvertisementItem advertisement = AdvertisementItem.getModel(cursor);
+                    Advertisement advertisement = Advertisement.getModel(cursor);
                     if (advertisement != null) {
-                        Advertisement editAdvertisement = new Advertisement().convertAdvertisementItemToAdvertisement(advertisement);
-                        setInitialAdvertisementViews(editAdvertisement, advertisement);
+
+                        setInitialAdvertisementViews(advertisement, advertisement);
                     }
                 }
                 break;
@@ -408,5 +361,5 @@ public class EditAdvertisementActivity extends BaseActivity implements LoaderMan
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-    }
+    }*/
 }

@@ -38,7 +38,6 @@
             android:layout_marginLeft="@dimen/activity_padding"
             android:layout_marginRight="@dimen/activity_padding"
             android:hint="@string/text_trade_terms_hint"
-            android:theme="@style/EditTextTheme"
             android:minLines="3"/>
 
     <View

@@ -45,7 +45,7 @@
                     android:text="7000 ARS"/>
 
             <TextView
-                    android:id="@+id/tradeLimit"
+                    android:id="@+id/adTradeLimit"
                     style="@style/TextMedium.Secondary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

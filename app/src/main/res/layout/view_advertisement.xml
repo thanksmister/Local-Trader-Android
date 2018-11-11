@@ -22,25 +22,10 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
-    <android.support.design.widget.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true">
-
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/advertisementToolBar"
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:minHeight="?android:attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
-
-    </android.support.design.widget.AppBarLayout>
-
     <!-- Your Scrollable View -->
     <android.support.v4.widget.SwipeRefreshLayout
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:id="@+id/swipeLayout"
+            android:id="@+id/advertisementSwipeLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -117,7 +102,7 @@
                                 android:text="@string/text_title_current_price"/>
 
                         <TextView
-                                android:id="@+id/tradePrice"
+                                android:id="@+id/advertismentTradePrice"
                                 style="@style/TextMedium"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -149,7 +134,7 @@
                                 android:text="@string/text_title_deal_amount"/>
 
                         <TextView
-                                android:id="@+id/tradeLimit"
+                                android:id="@+id/advertisementTradeLimit"
                                 style="@style/TextMedium"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -273,7 +258,7 @@
                         android:background="@color/white">
 
                     <TextView
-                            android:id="@+id/tradeTerms"
+                            android:id="@+id/advertisementTradeTerms"
                             style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -290,7 +275,7 @@
                         android:layout_marginBottom="@dimen/activity_padding"/>
 
                 <LinearLayout
-                        android:id="@+id/requirementsLayout"
+                        android:id="@+id/advertisementRequirementsLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
@@ -306,7 +291,7 @@
                             android:text="@string/text_title_requirements"/>
 
                     <TextView
-                            android:id="@+id/trustedTextView"
+                            android:id="@+id/advertisementTrustedTextView"
                             style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -318,7 +303,7 @@
                             android:layout_gravity="center_vertical"/>
 
                     <TextView
-                            android:id="@+id/identifiedTextView"
+                            android:id="@+id/advertisementIdentifiedTextView"
                             style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -330,7 +315,7 @@
                             android:layout_gravity="center_vertical"/>
 
                     <TextView
-                            android:id="@+id/smsTextView"
+                            android:id="@+id/advertisementSmsTextView"
                             style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -342,7 +327,7 @@
                             android:layout_gravity="center_vertical"/>
 
                     <TextView
-                            android:id="@+id/feedbackText"
+                            android:id="@+id/advertisementFeedbackText"
                             style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -354,7 +339,7 @@
                             android:layout_gravity="center_vertical"/>
 
                     <TextView
-                            android:id="@+id/limitText"
+                            android:id="@+id/advertisementLimitText"
                             style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -366,7 +351,7 @@
                             android:layout_gravity="center_vertical"/>
 
                     <TextView
-                            android:id="@+id/volumeText"
+                            android:id="@+id/advertisementVolumeText"
                             style="@style/TextMedium"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

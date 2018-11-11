@@ -620,7 +620,7 @@
     <string name="pref_market_currency_title">Moneda del mercado</string>
     <string name="alert_token_expired_title">Token caducado</string>
     <string name="alert_change_endpoint">Cambiar el punto final del servicio requiere reiniciar la aplicación. ¿Desea actualizar el punto final y reiniciar ahora?</string>
-    <string name="alert_valid_endpoint">El punto final del servicio no debe ser una URL válida.</string>
+    <string name="alert_valid_endpoint">El punto final del servicio debe ser una URL válida.</string>
     <string name="alert_authentication_error_title">Error de autenticación</string>
     <string name="error_cannot_open_links">No se pueden abrir enlaces externos desde el flujo de autenticación.</string>
     <string name="error_security_error_title">Error de seguridad</string>
@@ -644,5 +644,23 @@
     <string name="button_register">Register</string>
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">Sincronización de datos...</string>
+    <string name="notification_new_notifications">Tienes %1$s nuevas notificaciones.</string>
+    <string name="toast_camera_denied">Camera permission denied…</string>
+    <string name="text_confirm_transaction">Confirm Transaction</string>
+    <string name="text_location_title">Location</string>
+    <string name="text_enter_bank_name">Enter Bank name</string>
+    <string name="dialog_localbitcoins_website_login">You will be taken to LocalBitcoins website for authenticating this application, all information you enter will be private. Do you wish to continue?</string>
+    <string name="text_national_bank_transfer">National Bank transfer</string>
+    <string name="text_common_with">%1$s con %2$s</string>
+    <string name="text_bank_transfer">Bank transfer</string>
+    <string name="text_cash_deposit">Cash deposit</string>
+    <string name="text_with_int">With %1$s  in %2$s</string>
+    <string name="text_buy_your">buy your</string>
+    <string name="text_online_seller">Online Seller</string>
+    <string name="text_online_buyer">Online Buyer</string>
+    <string name="text_local_seller">Local Seller</string>
+    <string name="text_local_buyer">Local Buyer</string>
+    <string name="text_item_contact_num">Contact #%1$s</string>
+    <string name="text_item_advertisement_number">Advertisement #%1$s</string>
 
 </resources>

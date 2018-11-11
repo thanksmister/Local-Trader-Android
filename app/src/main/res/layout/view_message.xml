@@ -42,15 +42,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingRight="16dp"
-                android:paddingLeft="16dp"
-                android:theme="@style/EditTextTheme">
+                android:paddingLeft="16dp">
 
             <EditText
                     android:id="@+id/editMessageText"
                     style="@style/TextLarge.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:theme="@style/EditTextTheme"
                     android:minLines="3"
                     android:gravity="left|top"
                     android:scrollHorizontally="false"

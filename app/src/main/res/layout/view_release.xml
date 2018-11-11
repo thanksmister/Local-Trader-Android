@@ -24,20 +24,6 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         android:background="@color/colorPrimaryDark"
         android:orientation="vertical">
-   
-    <android.support.design.widget.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true">
-
-    <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.AppCompat.Light"/>
-        
-    </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
             android:orientation="vertical"

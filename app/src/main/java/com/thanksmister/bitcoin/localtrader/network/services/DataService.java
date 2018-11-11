@@ -17,92 +17,33 @@
 
 package com.thanksmister.bitcoin.localtrader.network.services;
 
-import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.text.TextUtils;
-
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.BuildConfig;
-import com.thanksmister.bitcoin.localtrader.network.NetworkException;
-import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
-import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.network.api.model.User;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAd;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAds;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAuthorize;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToContact;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToContactRequest;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToContacts;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToCurrencies;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToJSONObject;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToMessages;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToMethod;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToNotifications;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToUser;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToWallet;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToWalletBalance;
-import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
-import com.thanksmister.bitcoin.localtrader.utils.Parser;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
-
-import org.json.JSONObject;
-
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import dpreference.DPreference;
-import retrofit.client.Response;
-import retrofit.mime.TypedFile;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import timber.log.Timber;
 
-
+@Deprecated
 @Singleton
 public class DataService {
 
-    private static final String PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire";
+    /*private static final String PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire";
     private static final String PREFS_CURRENCY_EXPIRE_TIME = "pref_currency_expire";
     private static final String PREFS_EXCHANGE_EXPIRE_TIME = "pref_exchange_expire";
     private static final String PREFS_ADVERTISEMENT_EXPIRE_TIME = "pref_ads_expire";
     private static final String PREFS_WALLET_EXPIRE_TIME = "pref_wallet_expire";
     private static final String PREFS_WALLET_BALANCE_EXPIRE_TIME = "pref_wallet_balance_expire";
     private static final String PREFS_CONTACTS_EXPIRE_TIME = "pref_contacts_expire";
-
     private static final int CHECK_CURRENCY_DATA = 604800000;// // 1 week 604800000
     private static final int CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
     private static final int CHECK_ADVERTISEMENT_DATA = 3600000;// 1 hour
-    private static final int CHECK_CONTACTS_DATA = 5 * 60 * 1000;// 5 minutes
+    private static final int CHECK_CONTACTS_DATA = 3 * 60 * 1000;// 5 minutes
     private static final int CHECK_WALLET_DATA = 15 * 60 * 1000;// 15 minutes
     private static final int CHECK_WALLET_BALANCE_DATA = 15 * 60 * 1000;// 15 minutes
 
-    private final LocalBitcoins localBitcoins;
+    private final LocalBitcoinsService localBitcoins;
     private final SharedPreferences sharedPreferences;
     private final DPreference preference;
 
     @Inject
-    public DataService(BaseApplication baseApplication, DPreference preference, SharedPreferences sharedPreferences, LocalBitcoins localBitcoins) {
+    public DataService(BaseApplication baseApplication, DPreference preference, SharedPreferences sharedPreferences, LocalBitcoinsService localBitcoins) {
         this.localBitcoins = localBitcoins;
         this.sharedPreferences = sharedPreferences;
         this.preference = preference;
@@ -120,85 +61,25 @@ public class DataService {
     public Observable<Authorization> getAuthorization(String code) {
         return localBitcoins.getAuthorization("authorization_code", code, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .map(new ResponseToAuthorize());
-
     }
 
-    /*@Deprecated // because it does not pass the updated token
-    private <T> Func1<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
-        Timber.d("refreshTokenAndRetry");
-        return new Func1<Throwable, Observable<? extends T>>() {
-            @Override
-            public Observable<? extends T> call(Throwable throwable) {
-                Timber.d("refreshTokenAndRetry " + throwable.getMessage());
-                NetworkException networkException = null;
-                if (throwable instanceof NetworkException) {
-                    networkException = (NetworkException) throwable;
-                    throwable = networkException.getCause();
-                }
-
-                if (DataServiceUtils.isHttp403Error(throwable)) {
-                    Timber.d("refreshTokenAndRetry 403: " + DataServiceUtils.isHttp403Error(throwable));
-                    return refreshTokens()
-                            .flatMap(new Func1<String, Observable<? extends T>>() {
-                                @Override
-                                public Observable<? extends T> call(String token) {
-                                    Timber.d("new token: " + token);
-                                    return toBeResumed;
-                                }
-                            });
-                } else if (DataServiceUtils.isHttp400Error(throwable)) {
-                    Timber.d("refreshTokenAndRetry 400: " + DataServiceUtils.isHttp400Error(throwable));
-                    RetroError error = DataServiceUtils.createRetroError(throwable);
-                    if (error.getCode() == DataServiceUtils.CODE_THREE) {
-                        return refreshTokens()
-                                .flatMap(new Func1<String, Observable<? extends T>>() {
-                                    @Override
-                                    public Observable<? extends T> call(String token) {
-                                        Timber.d("new token: " + token);
-                                        return toBeResumed;
-                                    }
-                                });
-                    } else {
-                        return Observable.error(throwable);
-                    }
-                } else if (networkException != null) {
-                    Timber.d("refreshTokenAndRetry code : " + networkException.getCode());
-                    if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                        return refreshTokens()
-                                .flatMap(new Func1<String, Observable<? extends T>>() {
-                                    @Override
-                                    public Observable<? extends T> call(String token) {
-                                        Timber.d("new token: " + token);
-                                        return toBeResumed;
-                                    }
-                                });
-                    } else {
-                        return Observable.error(throwable);
-                    }
-                }
-                // re-throw this error because it's not recoverable from here
-                return Observable.error(throwable);
-            }
-        };
-    }
-*/
     private Observable<String> refreshTokens() {
         final String refreshToken = AuthUtils.getRefreshToken(preference, sharedPreferences);
-        return localBitcoins.refreshToken("refresh_token", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
+        return localBitcoins.refreshToken("refreshToken", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .map(new ResponseToAuthorize())
                 .flatMap(new Func1<Authorization, Observable<? extends String>>() {
                     @Override
                     public Observable<? extends String> call(Authorization authorization) {
-                        Timber.d("Access token " + authorization.access_token);
-                        Timber.d("Refresh token " + authorization.refresh_token);
-                        AuthUtils.setAccessToken(preference, authorization.access_token);
-                        AuthUtils.setRefreshToken(preference, authorization.refresh_token);
-                        return Observable.just(authorization.access_token);
+                        Timber.d("Access token " + authorization.accessToken);
+                        Timber.d("Refresh token " + authorization.refreshToken);
+                        AuthUtils.setAccessToken(preference, authorization.accessToken);
+                        AuthUtils.setRefreshToken(preference, authorization.refreshToken);
+                        return Observable.just(authorization.accessToken);
                     }
                 });
     }
 
-    public Observable<List<ExchangeCurrency>> getCurrencies() {
+    public Observable<List<Currency>> getCurrencies() {
         return localBitcoins.getCurrencies()
                 .map(new ResponseToCurrencies());
     }
@@ -265,7 +146,7 @@ public class DataService {
 
         if (tradeType == TradeType.ONLINE_BUY) {
             switch (onlineProvider) {
-                case TradeUtils.NATIONAL_BANK:
+                case TradeUtils.INSTANCE.getNATIONAL_BANK():
                     switch (countryCode) {
                         case "UK":
                             return localBitcoins.createContactNational_UK(accessToken, adId, amount, name, sortCode, reference, accountNumber, message);
@@ -276,35 +157,35 @@ public class DataService {
                         default:
                             return localBitcoins.createContactNational(accessToken, adId, amount, message);
                     }
-                case TradeUtils.VIPPS:
-                case TradeUtils.EASYPAISA:
-                case TradeUtils.HAL_CASH:
-                case TradeUtils.QIWI:
-                case TradeUtils.LYDIA:
-                case TradeUtils.SWISH:
+                case TradeUtils.INSTANCE.getVIPPS():
+                case TradeUtils.INSTANCE.getEASYPAISA():
+                case TradeUtils.INSTANCE.getHAL_CASH():
+                case TradeUtils.INSTANCE.getQIWI():
+                case TradeUtils.INSTANCE.getLYDIA():
+                case TradeUtils.INSTANCE.getSWISH():
                     return localBitcoins.createContactPhone(accessToken, adId, amount, phone, message);
-                case TradeUtils.PAYPAL:
-                case TradeUtils.NETELLER:
-                case TradeUtils.INTERAC:
-                case TradeUtils.ALIPAY:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
+                case TradeUtils.INSTANCE.getPAYPAL():
+                case TradeUtils.INSTANCE.getNETELLER():
+                case TradeUtils.INSTANCE.getINTERAC():
+                case TradeUtils.INSTANCE.getALIPAY():
+                case TradeUtils.INSTANCE.getMOBILEPAY_DANSKE_BANK():
+                case TradeUtils.INSTANCE.getMOBILEPAY_DANSKE_BANK_DK():
+                case TradeUtils.INSTANCE.getMOBILEPAY_DANSKE_BANK_NO():
                     return localBitcoins.createContactEmail(accessToken, adId, amount, email, message);
-                case TradeUtils.SEPA:
+                case TradeUtils.INSTANCE.getSEPA():
                     return localBitcoins.createContactSepa(accessToken, adId, amount, name, iban, bic, reference, message);
-                case TradeUtils.ALTCOIN_ETH:
+                case TradeUtils.INSTANCE.getALTCOIN_ETH():
                     return localBitcoins.createContactEthereumAddress(accessToken, adId, amount, ethereumAddress, message);
-                case TradeUtils.BPAY:
+                case TradeUtils.INSTANCE.getBPAY():
                     return localBitcoins.createContactBPay(accessToken, adId, amount, billerCode, reference, message);
             }
         } else if (tradeType == TradeType.ONLINE_SELL) {
             switch (onlineProvider) {
-                case TradeUtils.QIWI:
-                case TradeUtils.SWISH:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
+                case TradeUtils.INSTANCE.getQIWI():
+                case TradeUtils.INSTANCE.getSWISH():
+                case TradeUtils.INSTANCE.getMOBILEPAY_DANSKE_BANK():
+                case TradeUtils.INSTANCE.getMOBILEPAY_DANSKE_BANK_DK():
+                case TradeUtils.INSTANCE.getMOBILEPAY_DANSKE_BANK_NO():
                     return localBitcoins.createContactPhone(accessToken, adId, amount, phone, message);
 
             }
@@ -580,18 +461,18 @@ public class DataService {
 
     private Observable<Response> updateAdvertisementObservable(final String accessToken, final Advertisement advertisement) {
         final String city;
-        if (Strings.isBlank(advertisement.city)) {
-            city = advertisement.location;
+        if (Strings.isBlank(advertisement.getCity())) {
+            city = advertisement.getLocation();
         } else {
-            city = advertisement.city;
+            city = advertisement.getCity();
         }
         return localBitcoins.updateAdvertisement(
-                accessToken, advertisement.ad_id, advertisement.account_info, advertisement.bank_name, city, advertisement.country_code, advertisement.currency,
-                String.valueOf(advertisement.lat), advertisement.location, String.valueOf(advertisement.lon), advertisement.max_amount, advertisement.min_amount,
-                advertisement.message, advertisement.price_equation, String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.sms_verification_required),
-                String.valueOf(advertisement.track_max_amount), String.valueOf(advertisement.visible), String.valueOf(advertisement.require_identification),
-                advertisement.require_feedback_score, advertisement.require_trade_volume, advertisement.first_time_limit_btc,
-                advertisement.phone_number, advertisement.opening_hours);
+                accessToken, String.valueOf(advertisement.getAd_id()), advertisement.getAccount_info(), advertisement.getBank_name(), city, advertisement.getCountry_code(), advertisement.getCurrency(),
+                String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMax_amount(), advertisement.getMin_amount(),
+                advertisement.getMessage(), advertisement.getPrice_equation(), String.valueOf(advertisement.getTrusted_required()), String.valueOf(advertisement.getSms_verification_required()),
+                String.valueOf(advertisement.getTrack_max_amount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequire_identification()),
+                advertisement.getRequire_feedback_score(), advertisement.getRequire_trade_volume(), advertisement.getFirst_time_limit_btc(),
+                advertisement.getPhone_number(), advertisement.getOpening_hours());
     }
 
     public Observable<JSONObject> createAdvertisement(final Advertisement advertisement) {
@@ -638,21 +519,21 @@ public class DataService {
 
     private Observable<Response> createAdvertisementObservable(final String accessToken, final Advertisement advertisement) {
         String city;
-        if (TextUtils.isEmpty(advertisement.city)) {
-            city = advertisement.location;
+        if (TextUtils.isEmpty(advertisement.getCity())) {
+            city = advertisement.getLocation();
         } else {
-            city = advertisement.city;
+            city = advertisement.getCity();
         }
 
-        return localBitcoins.createAdvertisement(accessToken, advertisement.min_amount,
-                advertisement.max_amount, advertisement.price_equation, advertisement.trade_type.name(), advertisement.online_provider,
-                String.valueOf(advertisement.lat), String.valueOf(advertisement.lon),
-                city, advertisement.location, advertisement.country_code, advertisement.account_info, advertisement.bank_name,
-                String.valueOf(advertisement.sms_verification_required), String.valueOf(advertisement.track_max_amount),
-                String.valueOf(advertisement.trusted_required), String.valueOf(advertisement.require_identification),
-                advertisement.require_feedback_score, advertisement.require_trade_volume,
-                advertisement.first_time_limit_btc, advertisement.message, advertisement.currency,
-                advertisement.phone_number, advertisement.opening_hours);
+        return localBitcoins.createAdvertisement(accessToken, advertisement.getMin_amount(),
+                advertisement.getMax_amount(), advertisement.getPrice_equation(), advertisement.getTrade_type(), advertisement.getOnline_provider(),
+                String.valueOf(advertisement.getLat()), String.valueOf(advertisement.getLon()),
+                city, advertisement.getLocation(), advertisement.getCountry_code(), advertisement.getAccount_info(), advertisement.getBank_name(),
+                String.valueOf(advertisement.getSms_verification_required()), String.valueOf(advertisement.getTrack_max_amount()),
+                String.valueOf(advertisement.getTrusted_required()), String.valueOf(advertisement.getRequire_identification()),
+                advertisement.getRequire_feedback_score(), advertisement.getRequire_trade_volume(),
+                advertisement.getFirst_time_limit_btc(), advertisement.getMessage(), advertisement.getCurrency(),
+                advertisement.getPhone_number(), advertisement.getOpening_hours());
     }
 
     public Observable<JSONObject> postMessage(final String contact_id, final String message) {
@@ -798,13 +679,13 @@ public class DataService {
                 .flatMap(new Func1<Contact, Observable<? extends Contact>>() {
                     @Override
                     public Observable<? extends Contact> call(final Contact contact) {
-                        return getContactMessagesObservable(contact.contact_id)
+                        return getContactMessagesObservable(String.valueOf(contact.getContact_id()))
                                 .map(new ResponseToMessages())
                                 .map(new Func1<List<Message>, Contact>() {
                                     @Override
                                     public Contact call(List<Message> messages) {
                                         if (messages != null) {
-                                            contact.messages = messages;
+                                            contact.setMessages(messages);
                                         }
                                         return contact;
                                     }
@@ -967,10 +848,14 @@ public class DataService {
                             }
                         });
             default:
+                if (!needToRefreshContacts()) {
+                    return Observable.just(null);
+                }
                 return getContactsObservable(accessToken)
                         .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
                             @Override
                             public Observable<? extends Response> call(Throwable throwable) {
+                                setContactsExpireTime();
                                 NetworkException networkException = null;
                                 if (throwable instanceof NetworkException) {
                                     networkException = (NetworkException) throwable;
@@ -1008,7 +893,7 @@ public class DataService {
                         .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
                             @Override
                             public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                                //setContactsExpireTime();
+                                setContactsExpireTime();
                                 return Observable.just(contacts);
                             }
                         });
@@ -1066,7 +951,6 @@ public class DataService {
     }
 
     public Observable<List<Advertisement>> getAdvertisements(boolean force) {
-
         if (!needToRefreshAdvertisements() && !force) {
             return Observable.just(null);
         }
@@ -1076,6 +960,7 @@ public class DataService {
                     @Override
                     public Observable<? extends Response> call(Throwable throwable) {
                         NetworkException networkException = null;
+                        setAdvertisementsExpireTime();
                         if (throwable instanceof NetworkException) {
                             networkException = (NetworkException) throwable;
                         }
@@ -1123,7 +1008,7 @@ public class DataService {
     }
 
     public Observable<JSONObject> updateAdvertisementVisibility(final Advertisement advertisement, final boolean visible) {
-        advertisement.visible = visible;
+        advertisement.setVisible(visible);
         final String accessToken = AuthUtils.getAccessToken(preference, sharedPreferences);
         return updateAdvertisementObservable(accessToken, advertisement)
                 .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
@@ -1359,5 +1244,5 @@ public class DataService {
 
     private void resetWalletExpireTime() {
         preference.removePreference(PREFS_WALLET_EXPIRE_TIME);
-    }
+    }*/
 }

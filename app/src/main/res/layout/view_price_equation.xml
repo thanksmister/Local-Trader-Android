@@ -44,7 +44,6 @@
             android:inputType="textMultiLine|textNoSuggestions"
             android:lines="2"
             android:minLines="1"
-            android:theme="@style/EditTextTheme"
             android:gravity="left|bottom"/>
 
     <View

@@ -24,7 +24,7 @@ import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.thanksmister.bitcoin.localtrader.data.prefs.StringPreference;
+import com.thanksmister.bitcoin.localtrader.persistence.StringPreference;
 
 import dpreference.DPreference;
 import timber.log.Timber;

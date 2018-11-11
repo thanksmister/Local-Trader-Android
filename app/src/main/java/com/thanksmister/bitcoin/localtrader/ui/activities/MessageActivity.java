@@ -27,7 +27,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.View;
@@ -37,13 +36,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.thanksmister.bitcoin.localtrader.R;
-import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
-import com.thanksmister.bitcoin.localtrader.network.services.DataService;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Strings;
-import com.trello.rxlifecycle.ActivityEvent;
-
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -52,17 +46,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 import timber.log.Timber;
 
 import static android.view.View.GONE;
@@ -78,52 +61,49 @@ public class MessageActivity extends BaseActivity {
     public static final int GALLERY_INTENT_CALLED = 112;
     public static final int GALLERY_KITKAT_INTENT_CALLED = 113;
 
-    @Inject
-    DataService dataService;
-
-    @BindView((R.id.messageTitle))
+    //@BindView((R.id.messageTitle))
     TextView messageTitle;
 
-    @BindView((R.id.editMessageText))
+    //@BindView((R.id.editMessageText))
     EditText messageText;
 
     private String contactId;
     private String contactName;
 
-    @OnClick(R.id.messageButton)
+    //@OnClick(R.id.messageButton)
     public void sendMessageButton() {
         validateMessage();
     }
 
-    @BindView((R.id.attachmentLayout))
+    //@BindView((R.id.attachmentLayout))
     View attachmentLayout;
 
-    @BindView((R.id.attachButton))
+    //@BindView((R.id.attachButton))
     View attachButton;
 
     @Nullable
-    @BindView((R.id.attachmentName))
+    //@BindView((R.id.attachmentName))
     TextView attachmentName;
 
-    @BindView((R.id.removeAttachmentButton))
+    //@BindView((R.id.removeAttachmentButton))
     ImageButton removeAttachmentButton;
 
-    @OnClick(R.id.attachButton)
+    //@OnClick(R.id.attachButton)
     public void attacheButtonClicked() {
         attachFile();
     }
 
-    @OnClick(R.id.removeAttachmentButton)
+    //@OnClick(R.id.removeAttachmentButton)
     public void removeAttachmentButtonClicked() {
         removeAttachment();
     }
 
-    private Subscription subscription = Subscriptions.empty();
+   // private Subscription subscription = Subscriptions.empty();
     private String message;
     private Uri mUri;
     private String mFileName;
 
-    public static Intent createStartIntent(@NonNull Context context, @NonNull String contactId, @NonNull String contactName) {
+    public static Intent createStartIntent(Context context,  int contactId, String contactName) {
         Intent intent = new Intent(context, MessageActivity.class);
         intent.putExtra(EXTRA_ID, contactId);
         intent.putExtra(EXTRA_NAME, contactName);
@@ -135,8 +115,6 @@ public class MessageActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.view_message);
-
-        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             contactId = getIntent().getStringExtra(EXTRA_ID);
@@ -163,7 +141,6 @@ public class MessageActivity extends BaseActivity {
     @Override
     public void onPause() {
         super.onPause();
-        subscription.unsubscribe();
     }
 
     @Override
@@ -210,7 +187,7 @@ public class MessageActivity extends BaseActivity {
         }
 
         if (mUri != null) {
-            showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_send_message)));
+            showProgressDialog(getString(R.string.dialog_send_message));
             getBitmapFromStream(mUri);
         } else {
             postMessage(message);
@@ -233,16 +210,15 @@ public class MessageActivity extends BaseActivity {
     }
 
     private void postMessage(String message) {
-        showProgressDialog(new ProgressDialogEvent(getString(R.string.dialog_send_message)));
+        showProgressDialog(getString(R.string.dialog_send_message));
 
-        dataService.postMessage(contactId, message)
+        /*dataService.postMessage(contactId, message)
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
                         Timber.i("Post message subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<JSONObject>() {
@@ -267,18 +243,17 @@ public class MessageActivity extends BaseActivity {
                             }
                         });
                     }
-                });
+                });*/
     }
 
     private void postMessageWithAttachment(final String message, final File file) {
-        dataService.postMessageWithAttachment(contactId, message, file)
+        /*dataService.postMessageWithAttachment(contactId, message, file)
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
                         Timber.i("Post message subscription safely unsubscribed");
                     }
                 })
-                .compose(this.<JSONObject>bindUntilEvent(ActivityEvent.PAUSE))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<JSONObject>() {
@@ -303,7 +278,7 @@ public class MessageActivity extends BaseActivity {
                             }
                         });
                     }
-                });
+                });*/
     }
 
     private void removeAttachment() {

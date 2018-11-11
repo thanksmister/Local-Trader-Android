@@ -29,21 +29,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.sqlbrite.BriteContentResolver;
-import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.SqlBrite;
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.data.database.CurrencyItem;
-import com.thanksmister.bitcoin.localtrader.data.database.Db;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.DbOpenHelper;
-import com.thanksmister.bitcoin.localtrader.data.database.MethodItem;
-import com.thanksmister.bitcoin.localtrader.data.database.NotificationItem;
-import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.network.NetworkConnectionException;
-import com.thanksmister.bitcoin.localtrader.network.NetworkException;
-import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
@@ -51,6 +37,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.utils.AuthUtils;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
@@ -66,11 +53,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Singleton;
 
 import dpreference.DPreference;
-import retrofit.RestAdapter;
-import retrofit.client.OkClient;
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action1;
 import timber.log.Timber;
 
 import static android.content.Context.MODE_PRIVATE;
@@ -81,6 +63,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public static final String ACTION_SYNC = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC";
     public static final String ACTION_TYPE_START = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_START";
     public static final String ACTION_TYPE_COMPLETE = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_COMPLETE";
+    public static final String ACTION_TYPE_REFRESH = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_TYPE_REFRESH";
     public static final String ACTION_TYPE_CANCELED = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_CANCELED";
     public static final String ACTION_TYPE_ERROR = "com.thanksmister.bitcoin.localtrader.data.services.ACTION_SYNC_ERROR";
 
@@ -93,20 +76,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String SYNC_ADVERTISEMENTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_ADVERTISEMENTS";
     private static final String SYNC_METHODS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_METHODS";
     private static final String SYNC_CONTACTS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_CONTACTS";
-    private static final String SYNC_MESSAGES = "com.thanksmister.bitcoin.localtrader.sync.SYNC_MESSAGES";
     private static final String SYNC_NOTIFICATIONS = "com.thanksmister.bitcoin.localtrader.sync.SYNC_NOTIFICATIONS";
 
     public static final int SYNC_ERROR_CODE = 9;
 
     private static final String BASE_URL = "https://localbitcoins.com/";
 
-    private DataService dataService;
-    private DbManager dbManager;
     private NotificationService notificationService;
     private SharedPreferences sharedPreferences;
-    private DPreference preference;
+    private Preferences preferences;
     private ContentResolver contentResolver;
-    private BriteContentResolver briteContentResolver;
 
     // store all ongoing syncs
     private HashMap<String, Boolean> syncMap;
@@ -117,23 +96,25 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         syncMap = new HashMap<>(); // init sync map
 
-        preference = new DPreference(getContext().getApplicationContext(), "LocalTraderPref");
+        /*preference = new DPreference(getContext().getApplicationContext(), "LocalTraderPref");
         sharedPreferences = getContext().getApplicationContext().getSharedPreferences("com.thanksmister.bitcoin.localtrader", MODE_PRIVATE);
         notificationService = new NotificationService(context);
         DbOpenHelper dbOpenHelper = new DbOpenHelper(context.getApplicationContext());
         SqlBrite sqlBrite = SqlBrite.create();
         BriteDatabase db = sqlBrite.wrapDatabaseHelper(dbOpenHelper);
         contentResolver = context.getContentResolver();
-        briteContentResolver = sqlBrite.wrapContentProvider(contentResolver);
+        BriteContentResolver briteContentResolver = sqlBrite.wrapContentProvider(contentResolver);
 
         dbManager = new DbManager(db, briteContentResolver, contentResolver);
-        LocalBitcoins localBitcoins = initLocalBitcoins();
-        dataService = new DataService((BaseApplication) context.getApplicationContext(), preference, sharedPreferences, localBitcoins);
+        LocalBitcoinsService localBitcoins = initLocalBitcoins();
+        if(localBitcoins != null) {
+            dataService = new DataService((BaseApplication) context.getApplicationContext(), preference, sharedPreferences, localBitcoins);
+        }*/
     }
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-        boolean hasCredentials = AuthUtils.hasCredentials(preference, sharedPreferences);
+        boolean hasCredentials = preferences.hasCredentials();
         Timber.d("onPerformSync hasCredentials: " + hasCredentials);
         Timber.d("onPerformSync isSyncing: " + isSyncing());
 
@@ -143,9 +124,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             getCurrencies();
             getMethods();
             getNotifications();
-            getContacts();
-            getAdvertisements();
             getWalletBalance();
+            if(preferences.isFirstTime()) {
+                getContacts();
+                getAdvertisements();
+            }
             if (!isSyncing() && !isCanceled()) {
                 resetSyncing();
                 onSyncComplete();
@@ -238,9 +221,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         getContext().sendBroadcast(intent);
     }
 
+    private void onSyncRefresh() {
+        Timber.d("onSyncRefresh");
+        Intent intent = new Intent(ACTION_SYNC);
+        intent.putExtra(EXTRA_ACTION_TYPE, ACTION_TYPE_REFRESH);
+        getContext().sendBroadcast(intent);
+    }
+
     private void onSyncFailed(Throwable cause) {
         int code = SYNC_ERROR_CODE;
-        if(cause instanceof NetworkException) {
+      /*  if(cause instanceof NetworkException) {
             NetworkException networkException = (NetworkException) cause;
             code = (networkException.getCode());
             if(code == 3) {
@@ -250,7 +240,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 code = networkException.getStatus();
             }
         }
-
+*/
         Intent intent = new Intent(ACTION_SYNC);
         intent.putExtra(EXTRA_ACTION_TYPE, ACTION_TYPE_ERROR);
         intent.putExtra(EXTRA_ERROR_MESSAGE, cause.getCause());
@@ -265,7 +255,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void getCurrencies() {
         Timber.d("getCurrencies");
-        dbManager.currencyQuery()
+        /*dbManager.currencyQuery()
                 .subscribe(new Action1<List<CurrencyItem>>() {
                     @Override
                     public void call(List<CurrencyItem> currencyItems) {
@@ -281,13 +271,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     @Override
                     public void call(Throwable throwable) {
                         Timber.e(throwable.getMessage());
+                        updateSyncMap(SYNC_CURRENCIES, false);
                     }
-                });
+                });*/
     }
 
     private void fetchCurrencies() {
         updateSyncMap(SYNC_CURRENCIES, true);
-        dataService.getCurrencies()
+        /*dataService.getCurrencies()
                 .subscribe(new Action1<List<ExchangeCurrency>>() {
                     @Override
                     public void call(List<ExchangeCurrency> currencies) {
@@ -300,15 +291,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_CURRENCIES, false);
                     }
-                });
+                });*/
     }
 
     private void getMethods() {
         Timber.d("getMethods");
-        dbManager.methodQuery().subscribe(new Action1<List<MethodItem>>() {
+       /* dbManager.methodQuery().subscribe(new Action1<List<MethodItem>>() {
             @Override
             public void call(List<MethodItem> methodItems) {
                 if (methodItems == null || methodItems.isEmpty()) {
@@ -319,13 +311,19 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     }
                 }
             }
-        });
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                Timber.e(throwable.getMessage());
+                updateSyncMap(SYNC_METHODS, false);
+            }
+        });*/
     }
 
     private void fetchMethods() {
         Timber.d("getMethods");
         updateSyncMap(SYNC_METHODS, true);
-        dataService.getMethods()
+        /*dataService.getMethods()
                 .subscribe(new Action1<List<Method>>() {
                     @Override
                     public void call(List<Method> methods) {
@@ -338,10 +336,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_METHODS, false);
                     }
-                });
+                });*/
     }
 
     private void getAdvertisements() {
@@ -350,10 +349,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         updateSyncMap(SYNC_ADVERTISEMENTS, true);
 
-        boolean force = AuthUtils.getForceUpdate(preference);
+        boolean force = false;
         Timber.d("getAdvertisements force: " + force);
 
-        dataService.getAdvertisements(force)
+        /*dataService.getAdvertisements(force)
                 .subscribe(new Action1<List<Advertisement>>() {
                     @Override
                     public void call(List<Advertisement> advertisements) {
@@ -372,17 +371,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                             Timber.e("Advertisements Error: " + throwable.getMessage());
                         }
                         cancelSync();
-                        AuthUtils.setForceUpdate(preference, false);
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_ADVERTISEMENTS, false);
                     }
-                });
+                });*/
     }
 
     private void getContacts() {
         Timber.d("getContacts");
         updateSyncMap(SYNC_CONTACTS, true);
-        dataService.getContacts(DashboardType.ACTIVE)
+        /*dataService.getContacts(DashboardType.ACTIVE)
                 .subscribe(new Action1<List<Contact>>() {
                     @Override
                     public void call(List<Contact> contacts) {
@@ -394,16 +392,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_CONTACTS, false);
                     }
-                });
+                });*/
     }
 
     private void getNotifications() {
         Timber.d("getNotifications");
         updateSyncMap(SYNC_NOTIFICATIONS, true);
-        dataService.getNotifications()
+        /*dataService.getNotifications()
                 .subscribe(new Action1<List<Notification>>() {
                     @Override
                     public void call(List<Notification> notifications) {
@@ -415,17 +414,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        isCanceled();
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_NOTIFICATIONS, false);
                     }
-                });
+                });*/
     }
 
     private void getWalletBalance() {
         Timber.d("getWalletBalance");
         updateSyncMap(SYNC_WALLET, true);
-        dataService.getWalletBalance()
+        /*dataService.getWalletBalance()
                 .subscribe(new Action1<Wallet>() {
                     @Override
                     public void call(Wallet wallet) {
@@ -437,11 +436,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        isCanceled();
+                        cancelSync();
                         onSyncFailed(throwable);
                         updateSyncMap(SYNC_WALLET, false);
                     }
-                });
+                });*/
     }
 
     /**
@@ -451,9 +450,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private void updateNotifications(final List<Notification> notifications) {
         Timber.d("updateNotifications : " + notifications.size());
 
-        final HashMap<String, Notification> entryMap = new HashMap<>();
+        /*final HashMap<String, Notification> entryMap = new HashMap<>();
         for (Notification notification : notifications) {
-            entryMap.put(notification.notification_id, notification);
+            entryMap.put(notification.getNotification_id(), notification);
         }
 
         Cursor cursor = contentResolver.query(SyncProvider.NOTIFICATION_TABLE_URI, null, null, null, null);
@@ -466,7 +465,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 Notification match = entryMap.get(notificationId);
                 if (match != null) {
                     entryMap.remove(notificationId);
-                    if (match.read != notificationRead || !match.url.equals(url)) {
+                    if (match.getRead() != notificationRead || !match.getUrl().equals(url)) {
                         NotificationItem.Builder builder = NotificationItem.createBuilder(match);
                         contentResolver.update(SyncProvider.NOTIFICATION_TABLE_URI, builder.build(), NotificationItem.ID + " = ?", new String[]{String.valueOf(id)});
                     }
@@ -488,24 +487,25 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Timber.d("updateNotifications newNotifications: " + newNotifications.size());
         if (!newNotifications.isEmpty()) {
             notificationService.createNotifications(newNotifications);
-        }
+            onSyncRefresh(); // we assume we have new contacts and need to refresh
+        }*/
     }
 
     private void updateWalletBalance(final Wallet wallet) {
 
         Timber.d("updateWalletBalance");
 
-        Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
+        /*Cursor cursor = contentResolver.query(SyncProvider.WALLET_TABLE_URI, null, null, null, null);
         if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
             final long id = Db.getLong(cursor, WalletItem.ID);
             String address = Db.getString(cursor, WalletItem.ADDRESS);
             String balance = Db.getString(cursor, WalletItem.BALANCE);
-            if (!address.equals(wallet.address) || !balance.equals(wallet.balance)) {
+            if (!address.equals(wallet.getAddress()) || !balance.equals(wallet.getBalance())) {
                 WalletItem.Builder builder = WalletItem.createBuilder(wallet);
                 contentResolver.update(SyncProvider.WALLET_TABLE_URI, builder.build(), WalletItem.ID + " = ?", new String[]{String.valueOf(id)});
                 try {
-                    double newBalance = Doubles.convertToDouble(wallet.balance);
+                    double newBalance = Doubles.convertToDouble(wallet.getBalance());
                     double oldBalance = Doubles.convertToDouble(balance);
                     String diff = Conversions.formatBitcoinAmount(newBalance - oldBalance);
                     Timber.d("updateWalletBalance newBalance: " + newBalance);
@@ -521,13 +521,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         } else {
             WalletItem.Builder builder = WalletItem.createBuilder(wallet);
             contentResolver.insert(SyncProvider.WALLET_TABLE_URI, builder.build());
-            Timber.d("updateWalletBalance Init Balance: " + wallet.balance);
-            notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.balance + " BTC");
-        }
+            Timber.d("updateWalletBalance Init Balance: " + wallet.getBalance());
+            notificationService.balanceUpdateNotification("Bitcoin Balance", "Bitcoin balance...", "You have " + wallet.getBalance() + " BTC");
+        }*/
     }
 
     // TODO save this to local disk to access later for faster render time
-    private Observable<Bitmap> generateBitmap(final String address) {
+    /*private Observable<Bitmap> generateBitmap(final String address) {
         return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
             public void call(Subscriber<? super Bitmap> subscriber) {
@@ -539,16 +539,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }
             }
         });
-    }
+    }*/
 
-    private LocalBitcoins initLocalBitcoins() {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        OkClient client = new OkClient(okHttpClient);
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setClient(client)
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setEndpoint(BASE_URL)
-                .build();
-        return restAdapter.create(LocalBitcoins.class);
-    }
+    /*private LocalBitcoinsService initLocalBitcoins() {
+        try {
+            OkHttpClient okHttpClient = new OkHttpClient();
+            OkClient client = new OkClient(okHttpClient);
+            RestAdapter restAdapter = new RestAdapter.Builder()
+                    .setClient(client)
+                    .setLogLevel(RestAdapter.LogLevel.FULL)
+                    .setEndpoint(BASE_URL)
+                    .build();
+            return restAdapter.create(LocalBitcoinsService.class);
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+        }
+        return null;
+    }*/
 }

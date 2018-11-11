@@ -18,38 +18,16 @@
 package com.thanksmister.bitcoin.localtrader.network.services;
 
 import android.content.Context;
-import android.location.Address;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Bundle;
-import android.os.Looper;
-import android.support.annotation.NonNull;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoins;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
-import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToAds;
-import com.thanksmister.bitcoin.localtrader.network.api.transforms.ResponseToPlace;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
 
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
-import javax.inject.Inject;
-
-import pl.charmas.android.reactivelocation.ReactiveLocationProvider;
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Func1;
-import rx.subscriptions.Subscriptions;
-import timber.log.Timber;
+import io.reactivex.Observable;
 
 public class GeoLocationService {
     public final static int MAX_ADDRESSES = 5;
@@ -60,18 +38,17 @@ public class GeoLocationService {
     private Observable<Location> locationObservable;
 
     private BaseApplication application;
-    private LocalBitcoins localBitcoins;
+    private LocalBitcoinsService localBitcoins;
     private LocationManager locationManager;
 
-    @Inject
-    public GeoLocationService(BaseApplication application, LocalBitcoins localBitcoins) {
+    public GeoLocationService(BaseApplication application, LocalBitcoinsService localBitcoins) {
         this.application = application;
         this.localBitcoins = localBitcoins;
         this.locationManager = (LocationManager) application.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        this.locationObservable = createLocationObservable();
+        //this.locationObservable = createLocationObservable();
     }
 
-    private Observable<Location> createLocationObservable() {
+    /*private Observable<Location> createLocationObservable() {
         return Observable.create(new Observable.OnSubscribe<Location>() {
             @Override
             public void call(final Subscriber<? super Location> subscriber) {
@@ -118,11 +95,11 @@ public class GeoLocationService {
             }
         }).publish().refCount();
     }
-
+*/
     /**
      * @return Observable that observes on UI Thread.
      */
-    public Observable<Location> getLocationObservable() {
+    /*public Observable<Location> getLocationObservable() {
         return locationObservable.observeOn(AndroidSchedulers.mainThread());
     }
 
@@ -148,20 +125,13 @@ public class GeoLocationService {
                         return getAdvertisementsInPlace(place, tradeType);
                     }
                 });
-    }
+    }*/
 
 
     /**
      * Get a list of online advertisements using currency, payment method, country code and country name.
-     *
-     * @param type
-     * @param countryName
-     * @param countryCode
-     * @param currency
-     * @param paymentMethod
-     * @return
      */
-    public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final TradeType type,
+    /*public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final TradeType type,
                                                                    @NonNull final String countryName,
                                                                    @NonNull final String countryCode,
                                                                    @NonNull final String currency,
@@ -248,10 +218,10 @@ public class GeoLocationService {
                         }
                     });
         }
-    }
+    }*/
 
     @Deprecated
-    public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final String countryCode, @NonNull final String countryName,
+    /*public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final String countryCode, @NonNull final String countryName,
                                                                    @NonNull final TradeType type, @NonNull final String paymentMethod) {
         String url;
         if (type == TradeType.ONLINE_BUY) {
@@ -286,25 +256,25 @@ public class GeoLocationService {
                         }
                     });
         }
-    }
+    }*/
 
-    public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type) {
+    /*public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type) {
         String url = "";
         if (type == TradeType.LOCAL_BUY) {
-            if (place.buy_local_url.contains("https://localbitcoins.com/")) {
-                url = place.buy_local_url.replace("https://localbitcoins.com/", "");
-            } else if (place.buy_local_url.contains("https://localbitcoins.net/")) {
-                url = place.buy_local_url.replace("https://localbitcoins.net/", "");
+            if (place.buyLocalUrl.contains("https://localbitcoins.com/")) {
+                url = place.buyLocalUrl.replace("https://localbitcoins.com/", "");
+            } else if (place.buyLocalUrl.contains("https://localbitcoins.net/")) {
+                url = place.buyLocalUrl.replace("https://localbitcoins.net/", "");
             } else {
-                url = place.buy_local_url;
+                url = place.buyLocalUrl;
             }
         } else if (type == TradeType.LOCAL_SELL) {
-            if (place.sell_local_url.contains("https://localbitcoins.com/")) {
-                url = place.sell_local_url.replace("https://localbitcoins.com/", "");
-            } else if (place.sell_local_url.contains("https://localbitcoins.net/")) {
-                url = place.sell_local_url.replace("https://localbitcoins.net/", "");
+            if (place.sellLocalUrl.contains("https://localbitcoins.com/")) {
+                url = place.sellLocalUrl.replace("https://localbitcoins.com/", "");
+            } else if (place.sellLocalUrl.contains("https://localbitcoins.net/")) {
+                url = place.sellLocalUrl.replace("https://localbitcoins.net/", "");
             } else {
-                url = place.sell_local_url;
+                url = place.sellLocalUrl;
             }
         }
 
@@ -318,7 +288,7 @@ public class GeoLocationService {
                         return Observable.just(advertisements);
                     }
                 });
-    }
+    }*/
 
     /**
      * Compares distance as a double value to list advertisements by shortest to longest distance from user
@@ -327,7 +297,7 @@ public class GeoLocationService {
         @Override
         public int compare(Advertisement a1, Advertisement a2) {
             try {
-                return Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance));
+                return Double.compare(Doubles.convertToDouble(a1.getDistance()), Doubles.convertToDouble(a2.getDistance()));
             } catch (Exception e) {
                 return 0;
             }

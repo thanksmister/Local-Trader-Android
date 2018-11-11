@@ -55,7 +55,7 @@ public class MethodSearchAdapter extends ArrayAdapter<Method> {
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).name);
+        spinnerTarget.setText(items.get(position).getName());
 
         return convertView;
     }
@@ -68,7 +68,7 @@ public class MethodSearchAdapter extends ArrayAdapter<Method> {
         }
 
         TextView spinnerTarget = (TextView) convertView.findViewById(R.id.spinnerTarget);
-        spinnerTarget.setText(items.get(position).name);
+        spinnerTarget.setText(items.get(position).getName());
 
         return convertView;
     }

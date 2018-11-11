@@ -102,6 +102,20 @@ public class Dates {
         return new Date();
     }
 
+    public static Date parseDate(String dateString) {
+        return parseISODate(dateString);
+    }
+
+    // Parsing this shit 2016-07-13T16:00:58+00:00
+    public static Date parseISODate(String dateTime) {
+        try {
+            DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+            return df1.parse(dateTime);
+        } catch (ParseException e) {
+            throw new IllegalStateException("Unsupported date format." + e.getMessage());
+        }
+    }
+
     public static String createISODate() {
         return ISO8601.now();
     }

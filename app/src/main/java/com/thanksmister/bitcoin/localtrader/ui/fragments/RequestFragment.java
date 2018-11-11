@@ -29,8 +29,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AndroidRuntimeException;
 import android.view.LayoutInflater;
@@ -45,86 +45,51 @@ import android.widget.Toast;
 
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.constants.Constants;
-import com.thanksmister.bitcoin.localtrader.data.database.DbManager;
-import com.thanksmister.bitcoin.localtrader.data.database.ExchangeRateItem;
-import com.thanksmister.bitcoin.localtrader.data.database.WalletItem;
-import com.thanksmister.bitcoin.localtrader.network.services.ExchangeService;
+import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment;
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity;
-import com.thanksmister.bitcoin.localtrader.ui.activities.QRCodeActivity;
+import com.thanksmister.bitcoin.localtrader.ui.activities.ShareQrCodeActivity;
 import com.thanksmister.bitcoin.localtrader.ui.components.AutoResizeTextView;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
 import com.thanksmister.bitcoin.localtrader.utils.Doubles;
-import com.thanksmister.bitcoin.localtrader.utils.Strings;
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils;
-import com.trello.rxlifecycle.FragmentEvent;
 
 import java.lang.reflect.Field;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
 public class RequestFragment extends BaseFragment {
 
-    @Inject
-    ExchangeService exchangeService;
-
-    @Inject
-    DbManager dbManager;
-
-    @BindView(R.id.toolbar)
-    Toolbar toolbar;
-
-    @BindView(R.id.amountText)
+    ExchangeApi exchangeService;
+    
     TextView amountText;
-
-    @BindView(R.id.currencyText)
+    
     TextView currencyText;
 
-    @BindView(R.id.fiatEditText)
     TextView fiatEditText;
-
-    @OnClick(R.id.qrButton)
+    
     public void qrButtonClicked() {
         validateForm(walletItem);
     }
-
-    @BindView(R.id.codeImage)
+    
     ImageView qrCodeImage;
-
-    @BindView(R.id.walletAddressButton)
+    
     AutoResizeTextView addressButton;
-
-    @OnClick(R.id.codeImage)
+    
     public void codeButtonClicked() {
         setAddressOnClipboard(addressButton.getText().toString());
     }
-
-    @OnClick(R.id.walletAddressButton)
+    
     public void addressButtonClicked() {
         setAddressOnClipboard(addressButton.getText().toString());
     }
 
-    private WalletItem walletItem;
-    private ExchangeRateItem exchangeItem;
+    private Wallet walletItem;
+    private ExchangeRate exchangeItem;
     private Bitmap qrImage;
-
-    CompositeSubscription subscriptions = new CompositeSubscription();
-    CompositeSubscription updateSubscriptions = new CompositeSubscription();
-
+    
 
     public static RequestFragment newInstance() {
         return new RequestFragment();
@@ -158,12 +123,12 @@ public class RequestFragment extends BaseFragment {
                 return true;
             case R.id.action_share:
                 if (walletItem != null) {
-                    shareAddress(walletItem.address());
+                    shareAddress(walletItem.getAddress());
                 }
                 return true;
             case R.id.action_blockchain:
                 if (walletItem != null) {
-                    viewBlockChain(walletItem.address());
+                    viewBlockChain(walletItem.getAddress());
                 }
                 return true;
             default:
@@ -173,16 +138,15 @@ public class RequestFragment extends BaseFragment {
     }
 
     private void setCurrency() {
-        String currency = exchangeService.getExchangeCurrency();
+        String currency = preferences.getExchangeCurrency();
         if (currencyText != null) {
             currencyText.setText(currency);
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.view_request, container, false);
-        ButterKnife.bind(this, view);
         return view;
     }
 
@@ -243,8 +207,6 @@ public class RequestFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        subscriptions.unsubscribe();
-        updateSubscriptions.unsubscribe();
     }
 
     @Override
@@ -263,21 +225,21 @@ public class RequestFragment extends BaseFragment {
     }
 
     private void setupToolbar() {
-        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
-        final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
-        if (ab != null) {
-            ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
-            ab.setTitle(getString(R.string.view_title_request));
-            ab.setDisplayHomeAsUpEnabled(true);
+        if(getActivity() != null) {
+            final ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
+            if (ab != null) {
+                ab.setHomeAsUpIndicator(R.drawable.ic_action_navigation_menu);
+                ab.setTitle(getString(R.string.view_title_request));
+                ab.setDisplayHomeAsUpEnabled(true);
+            }
         }
     }
 
     private void subscribeData() {
 
-        dbManager.exchangeQuery()
+        /*dbManager.exchangeQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<ExchangeRateItem>bindUntilEvent(FragmentEvent.PAUSE))
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -302,7 +264,6 @@ public class RequestFragment extends BaseFragment {
         dbManager.walletQuery()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<WalletItem>bindUntilEvent(FragmentEvent.PAUSE))
                 .doOnUnsubscribe(new Action0() {
                     @Override
                     public void call() {
@@ -322,14 +283,13 @@ public class RequestFragment extends BaseFragment {
                     public void call(Throwable throwable) {
                         reportError(throwable);
                     }
-                });
+                });*/
     }
 
-    public void setWallet(final WalletItem item) {
-        generateBitmap(item.address())
+    public void setWallet(final Wallet item) {
+        /*generateBitmap(item.address())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<Bitmap>bindUntilEvent(FragmentEvent.PAUSE))
                 .subscribe(new Observer<Bitmap>() {
                     @Override
                     public void onCompleted() {
@@ -337,7 +297,7 @@ public class RequestFragment extends BaseFragment {
 
                     @Override
                     public void onError(final Throwable e) {
-                        if (isAdded()) {
+                        if (isAdded() && getActivity() != null) {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -350,7 +310,7 @@ public class RequestFragment extends BaseFragment {
 
                     @Override
                     public void onNext(final Bitmap data) {
-                        if (isAdded()) {
+                        if (isAdded() && getActivity() != null) {
                             getActivity().runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -360,61 +320,10 @@ public class RequestFragment extends BaseFragment {
                             });
                         }
                     }
-                });
-        
-        /*Observable.defer(new Func0<Observable<Bitmap>>() {
-            
-            @Override
-            public Observable<Bitmap> call() {
-                        try {
-                            return generateBitmap(item.address());
-                        } catch (Exception e) {
-                            Timber.e("Error reading wallet QR Code data: " + e.getLocalizedMessage());
-                            return null;
-                        }
-                    }
-                })
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Bitmap subscription safely unsubscribed");
-                    }
-                })
-                .compose(this.<Bitmap>bindUntilEvent(FragmentEvent.PAUSE))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Bitmap>() {
-                    @Override
-                    public void onCompleted() {
-                    }
-                    @Override
-                    public void onError(final Throwable e) {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    setupWallet(walletItem, qrImage);
-                                    reportError(e);
-                                }
-                            });
-                        }
-                    }
-                    @Override
-                    public void onNext(final Bitmap bitmap) {
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    qrImage = bitmap;
-                                    setupWallet(walletItem, qrImage);
-                                }
-                            });
-                        }
-                    }
                 });*/
     }
 
-    private Observable<Bitmap> generateBitmap(final String address) {
+    /*private Observable<Bitmap> generateBitmap(final String address) {
         return Observable.create(new Observable.OnSubscribe<Bitmap>() {
             @Override
             public void call(Subscriber<? super Bitmap> subscriber) {
@@ -426,13 +335,12 @@ public class RequestFragment extends BaseFragment {
                 }
             }
         });
-    }
+    }*/
 
-    private void setupWallet(WalletItem walletItem, Bitmap qrImage) {
-        if (walletItem.address() != null) {
-            addressButton.setText(walletItem.address());
+    private void setupWallet(Wallet walletItem, Bitmap qrImage) {
+        if (walletItem.getAddress() != null) {
+            addressButton.setText(walletItem.getAddress());
         }
-
         if (qrImage != null) {
             qrCodeImage.setImageBitmap(qrImage);
         }
@@ -440,18 +348,18 @@ public class RequestFragment extends BaseFragment {
 
     private void showGeneratedQrCodeActivity(String bitcoinAddress, String bitcoinAmount) {
         assert bitcoinAddress != null;
-        Intent intent = QRCodeActivity.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
-        startActivity(intent);
+        if(getActivity() != null) {
+            Intent intent = ShareQrCodeActivity.Companion.createStartIntent(getActivity(), bitcoinAddress, bitcoinAmount);
+            startActivity(intent);
+        }
     }
 
     public void setAmountFromClipboard() {
-
         String clipText = getClipboardText();
-        if (Strings.isBlank(clipText)) {
+        if (TextUtils.isEmpty(clipText)) {
             toast(R.string.toast_clipboard_empty);
             return;
         }
-
         if (WalletUtils.validAmount(clipText)) {
             setAmount(WalletUtils.parseBitcoinAmount(clipText));
         } else {
@@ -479,21 +387,21 @@ public class RequestFragment extends BaseFragment {
     }
 
     public void setAmount(String bitcoinAmount) {
-        if (!Strings.isBlank(bitcoinAmount)) {
+        if (!TextUtils.isEmpty(bitcoinAmount)) {
             amountText.setText(bitcoinAmount);
             calculateCurrencyAmount(bitcoinAmount);
         }
     }
 
     public void setCurrencyAmount() {
-        if (Strings.isBlank(amountText.getText())) {
+        if (TextUtils.isEmpty(amountText.getText())) {
             calculateCurrencyAmount("0.00");
         } else {
             calculateCurrencyAmount(amountText.getText().toString());
         }
     }
 
-    protected void validateForm(WalletItem walletItem) {
+    protected void validateForm(Wallet walletItem) {
         if (walletItem == null) {
             toast(getString(R.string.toast_no_valid_address_bitcoin));
             return;
@@ -502,13 +410,13 @@ public class RequestFragment extends BaseFragment {
         String amount = "";
         if (amountText != null) {
             amount = amountText.getText().toString();
-            if (Strings.isBlank(amount)) {
+            if (TextUtils.isEmpty(amount)) {
                 toast(getString(R.string.error_missing_amount));
                 return;
             }
         }
         String bitcoinAmount = Conversions.formatBitcoinAmount(amount);
-        showGeneratedQrCodeActivity(walletItem.address(), bitcoinAmount);
+        showGeneratedQrCodeActivity(walletItem.getAddress(), bitcoinAmount);
     }
 
     // TODO move to unit tests and utility classes
@@ -524,7 +432,7 @@ public class RequestFragment extends BaseFragment {
             return;
         }
 
-        String rate = exchangeItem.rate();
+        String rate = exchangeItem.getRate();
         double btc = Math.abs(Doubles.convertToDouble(requestAmount) / Doubles.convertToDouble(rate));
         String amount = Conversions.formatBitcoinAmount(btc);
         if (amountText != null)
@@ -542,40 +450,46 @@ public class RequestFragment extends BaseFragment {
             return;
         }
 
-        String rate = exchangeItem.rate();
+        String rate = exchangeItem.getRate();
         String value = Calculations.computedValueOfBitcoin(rate, bitcoin);
         if (fiatEditText != null)
             fiatEditText.setText(value);
     }
 
-    private void setAddressOnClipboard(@NonNull String address) {
-        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText(getActivity().getString(R.string.wallet_address_clipboard_title), address);
-        clipboard.setPrimaryClip(clip);
-        Toast.makeText(getActivity(), getActivity().getString(R.string.wallet_address_copied_toast), Toast.LENGTH_SHORT).show();
+    private void setAddressOnClipboard(String address) {
+        if(!TextUtils.isEmpty(address)) {
+            ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText(getActivity().getString(R.string.wallet_address_clipboard_title), address);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getActivity(), getActivity().getString(R.string.wallet_address_copied_toast), Toast.LENGTH_SHORT).show();
+        }
     }
 
-    protected void viewBlockChain(@NonNull String address) {
-        Intent blockChainIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BLOCKCHAIN_INFO_ADDRESS + address));
-        startActivity(blockChainIntent);
+    protected void viewBlockChain(String address) {
+        if(!TextUtils.isEmpty(address)) {
+            Intent blockChainIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BLOCKCHAIN_INFO_ADDRESS + address));
+            startActivity(blockChainIntent);
+        }
     }
 
-    protected void shareAddress(@NonNull String address) {
-        Intent sendIntent;
-        try {
-            sendIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(WalletUtils.generateBitCoinURI(address)));
-            sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(sendIntent);
-        } catch (ActivityNotFoundException ex) {
+    protected void shareAddress(String address) {
+        if(!TextUtils.isEmpty(address)) {
+            Intent sendIntent;
             try {
-                sendIntent = new Intent(Intent.ACTION_SEND);
-                sendIntent.setType("text/plain");
+                sendIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(WalletUtils.generateBitCoinURI(address)));
                 sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                sendIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.wallet_my_address_share));
-                sendIntent.putExtra(Intent.EXTRA_TEXT, address);
-                startActivity(Intent.createChooser(sendIntent, getString(R.string.share_using)));
-            } catch (AndroidRuntimeException e) {
-                Timber.e(e.getMessage());
+                startActivity(sendIntent);
+            } catch (ActivityNotFoundException ex) {
+                try {
+                    sendIntent = new Intent(Intent.ACTION_SEND);
+                    sendIntent.setType("text/plain");
+                    sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    sendIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.wallet_my_address_share));
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, address);
+                    startActivity(Intent.createChooser(sendIntent, getString(R.string.share_using)));
+                } catch (AndroidRuntimeException e) {
+                    Timber.e(e.getMessage());
+                }
             }
         }
     }

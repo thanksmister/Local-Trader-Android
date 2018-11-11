@@ -18,8 +18,8 @@
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
 public class ContactRequest {
-    public String contact_id;
-    public String contact_url;
+    public String contactId;
+    public String contactUrl;
     public boolean funded;
     public String message;
 }

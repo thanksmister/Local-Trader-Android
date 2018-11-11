@@ -51,7 +51,6 @@
                 android:hint="0"
                 android:inputType="numberDecimal"
                 android:digits="0123456789"
-                android:theme="@style/EditTextTheme"
                 android:layout_weight="1"/>
 
         <View
@@ -105,7 +104,6 @@
                 android:hint="0"
                 android:digits="0123456789"
                 android:inputType="numberDecimal"
-                android:theme="@style/EditTextTheme"
                 android:layout_weight="1"/>
 
         <View

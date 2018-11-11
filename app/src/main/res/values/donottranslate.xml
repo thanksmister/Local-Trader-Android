@@ -28,6 +28,8 @@
     <string name="list_unit_mi" translatable="false">mi</string>
     <string name="pref_key_distance" translatable="false">distance_units</string>
     <string name="pref_key_api" translatable="false">api_endpoint</string>
+    <string name="pref_key_exchange" translatable="false">exchange</string>
+    <string name="pref_key_exchange_currency" translatable="false">exchange_currency</string>
 
     <string-array name="list_types_spinner">
         <item>@string/spinner_buy</item>
