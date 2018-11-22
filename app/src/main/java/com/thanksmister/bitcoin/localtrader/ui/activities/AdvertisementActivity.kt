@@ -384,6 +384,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     private fun updateAdvertisementVisibility(advertisement: Advertisement?) {
         if(advertisement != null) {
             dialogUtils.showProgressDialog(this@AdvertisementActivity, getString(R.string.dialog_updating_visibility))
+            advertisement.visible = !advertisement.visible
             viewModel.updateAdvertisement(advertisement)
         }
     }
