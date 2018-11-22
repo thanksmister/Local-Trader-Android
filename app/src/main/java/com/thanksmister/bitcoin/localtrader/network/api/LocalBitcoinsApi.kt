@@ -111,14 +111,14 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
                             currency: String, lat: String, location: String?, lon: String, max_amount: String?, min_amount: String?,
                             message: String?, price_equation: String?, trust : String, sms: String, trackMax: String, visible:
                             String, identification: String, require_feedback_score: String?, require_trade_volume:
-                            String?, first_time_limit_btc: String?, phone_number: String?, opening_hours: String?): Observable<JsonElement> {
+                            String?, first_time_limit_btc: String?, phone_number: String?): Observable<JsonElement> {
         return service.updateAdvertisement(
                 adId, accessToken, account_info, bank_name, city, country_code, currency,
                 lat, location, lon, max_amount, min_amount,
                 message, price_equation, trust, sms,
                 trackMax, visible, identification,
                 require_feedback_score, require_trade_volume, first_time_limit_btc,
-                phone_number, opening_hours);
+                phone_number);
     }
 
     fun contactMessagePost(accessToken: String, contactId: String, message: String): Observable<JsonElement> {

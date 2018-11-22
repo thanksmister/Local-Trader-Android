@@ -53,7 +53,7 @@ class DialogUtils(base: Context?) : ContextWrapper(base), LifecycleObserver {
         hideProgressDialog()
     }
 
-    fun showProgressDialog(context: Context, message: String, cancelable: Boolean = false) {
+    fun showProgressDialog(context: Context, message: String, cancelable: Boolean = true) {
         if (progressDialog != null) {
             progressDialog!!.dismiss()
             progressDialog = null

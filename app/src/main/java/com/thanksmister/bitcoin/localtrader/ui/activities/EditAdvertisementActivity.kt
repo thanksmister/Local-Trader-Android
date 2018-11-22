@@ -108,20 +108,27 @@ class EditAdvertisementActivity : BaseActivity() {
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message?.message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@EditAdvertisementActivity, message.message!!)
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
-                hideProgressDialog()
+                dialogUtils.hideProgressDialog()
                 dialogUtils.showAlertDialog(this@EditAdvertisementActivity, message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null) {
-                hideProgressDialog()
+                dialogUtils.hideProgressDialog()
                 Toast.makeText(this@EditAdvertisementActivity, message, Toast.LENGTH_LONG).show()
             }
         })
         viewModel.getAdvertisementUpdated().observe(this, Observer { updated ->
             if(updated != null && updated) {
+                dialogUtils.hideProgressDialog()
                 advertisementSaved()
             }
         })
@@ -162,6 +169,7 @@ class EditAdvertisementActivity : BaseActivity() {
     }
 
     private fun advertisementError() {
+        dialogUtils.hideProgressDialog()
         toast(getString(R.string.toast_error_update_advertisement))
         val returnIntent = intent
         setResult(RESULT_CANCELED, returnIntent)
@@ -240,7 +248,7 @@ class EditAdvertisementActivity : BaseActivity() {
 
         Timber.d("commitChanges: $commitChanges")
         if (commitChanges) {
-            dialogUtils.showProgressDialog(this@EditAdvertisementActivity, getString(R.string.dialog_saving_changes), false)
+            dialogUtils.showProgressDialog(this@EditAdvertisementActivity, getString(R.string.dialog_saving_changes))
             viewModel.updateAdvertisement(advertisement!!)
         } else {
             advertisementCanceled()
@@ -248,7 +256,7 @@ class EditAdvertisementActivity : BaseActivity() {
     }
 
     private fun advertisementCanceled() {
-        hideProgressDialog()
+        dialogUtils.hideProgressDialog()
         toast(getString(R.string.text_post_update_canceled))
         val returnIntent = intent
         setResult(RESULT_CANCELED, returnIntent)
@@ -256,7 +264,7 @@ class EditAdvertisementActivity : BaseActivity() {
     }
 
     private fun advertisementSaved() {
-        hideProgressDialog()
+        dialogUtils.hideProgressDialog()
         toast(getString(R.string.message_advertisement_changed))
         val returnIntent = intent
         setResult(RESULT_UPDATED, returnIntent)

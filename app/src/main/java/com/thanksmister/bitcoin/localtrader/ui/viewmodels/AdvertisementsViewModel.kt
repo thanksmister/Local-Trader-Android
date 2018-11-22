@@ -36,6 +36,7 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.AdvertisementsDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
+import com.thanksmister.bitcoin.localtrader.utils.Parser
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.Completable
 import io.reactivex.Flowable
@@ -208,9 +209,9 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
                     Timber.d("json: ${it.toString()}")
+                    //val response = Parser.parseDataMessage(it.toString(), defaultResponse)
                     insertAdvertisement(advertisement)
-                    // TODO move to view showToastMessage(getApplication<BaseApplication>().getString(R.string.toast_update_visibility))
-                    setAdvertisementDeleted(true)
+                    setAdvertisementUpdated(true)
                 }, {
                     error -> Timber.e("Error updating advertisement  ${error.message}")
                     if(error is NetworkException) {

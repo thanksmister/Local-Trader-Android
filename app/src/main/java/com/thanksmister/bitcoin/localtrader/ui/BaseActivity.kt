@@ -146,6 +146,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
         //startActivity(new Intent(BaseActivity.this, BarcodeCaptureActivity.class));
     }
 
+    @Deprecated ("Moved to utils")
     @JvmOverloads
     fun showProgressDialog(message: String, cancelable: Boolean = false) {
         if (progressDialog != null) {
@@ -167,6 +168,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
                 .show()
     }
 
+    @Deprecated ("Moved to utils")
     fun hideProgressDialog() {
         if (progressDialog != null) {
             progressDialog!!.dismiss()

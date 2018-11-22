@@ -194,13 +194,14 @@ public class LocalBitcoinsFetcher {
         } else {
             city = advertisement.getCity();
         }
+        Timber.d("opening hours: " + advertisement.getOpeningHours());
         return networkApi.updateAdvertisement(
                 accessToken, String.valueOf(advertisement.getAdId()), advertisement.getAccountInfo(), advertisement.getBankName(), city, advertisement.getCountryCode(), advertisement.getCurrency(),
                 String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMaxAmount(), advertisement.getMinAmount(),
                 advertisement.getMessage(), advertisement.getPriceEquation(), String.valueOf(advertisement.getTrustedRequired()), String.valueOf(advertisement.getSmsVerificationRequired()),
                 String.valueOf(advertisement.getTrackMaxAmount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequireIdentification()),
                 advertisement.getRequireFeedbackScore(), advertisement.getRequireTradeVolume(), advertisement.getFirstTimeLimitBtc(),
-                advertisement.getPhoneNumber(), advertisement.getOpeningHours());
+                advertisement.getPhoneNumber());
     }
 
     public Observable<JsonElement> deleteAdvertisement(final int adId) {

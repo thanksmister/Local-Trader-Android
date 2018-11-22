@@ -276,8 +276,7 @@ public interface LocalBitcoinsService {
                                                 @Field("require_feedback_score") String require_feedback_score,
                                                 @Field("require_trade_volume") String require_trade_volume,
                                                 @Field("first_time_limit_btc") String first_time_limit_btc,
-                                                @Field("phone_number") String phone_number,
-                                                @Field("opening_hours") String opening_hours);
+                                                @Field("phone_number") String phone_number);
 
     @POST(DELETE_AD + "{ad_id}/")
     Observable<JsonElement> deleteAdvertisement(@Path("ad_id") int ad_id,

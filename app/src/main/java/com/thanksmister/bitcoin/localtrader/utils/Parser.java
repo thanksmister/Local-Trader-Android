@@ -108,6 +108,22 @@ public class Parser {
         return false;
     }
 
+    public static String parseDataMessage(String response, String defaultResponse) {
+        JSONObject jsonObject;
+        try {
+            jsonObject = new JSONObject(response);
+            JSONObject dataObj = jsonObject.getJSONObject("data");
+            if (dataObj.has("message")) {
+                return dataObj.getString("message");
+            } else {
+                return defaultResponse;
+            }
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+            return defaultResponse;
+        }
+    }
+
     public static NetworkException parseError(String response) {
         JSONObject jsonObject;
         try {

@@ -162,25 +162,31 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message?.message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@AdvertisementActivity, message.message!!)
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
-                hideProgressDialog()
+                dialogUtils.hideProgressDialog()
                 dialogUtils.showAlertDialog(this@AdvertisementActivity, message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            hideProgressDialog()
+            dialogUtils.hideProgressDialog()
             Toast.makeText(this@AdvertisementActivity, message, Toast.LENGTH_LONG).show()
         })
         viewModel.getAdvertisementUpdated().observe(this, Observer { updated ->
             if(updated != null && updated) {
-                hideProgressDialog()
+                dialogUtils.hideProgressDialog()
                 Toast.makeText(this@AdvertisementActivity, getString(R.string.toast_update_visibility), Toast.LENGTH_LONG).show()
             }
         })
         viewModel.getAdvertisementDeleted().observe(this, Observer { updated ->
             if(updated != null && updated) {
-                hideProgressDialog()
+                dialogUtils.hideProgressDialog()
                 Toast.makeText(this@AdvertisementActivity, getString(R.string.toast_advertisement_deleted), Toast.LENGTH_LONG).show()
                 finish()
             }
@@ -209,7 +215,8 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                     onRefreshStop()
                 }))
 
-        toast(getString(R.string.toast_refreshing_data))
+        // TODO fetch new data
+       // toast(getString(R.string.toast_refreshing_data))
     }
 
     override fun onRefresh() {
@@ -369,14 +376,14 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
 
     private fun deleteAdvertisementConfirmed(advertisement: Advertisement?) {
         if(advertisement != null) {
-            showProgressDialog(getString(R.string.progress_deleting))
+            dialogUtils.showProgressDialog(this@AdvertisementActivity, getString(R.string.progress_deleting))
             viewModel.deleteAdvertisement(advertisement)
         }
     }
 
     private fun updateAdvertisementVisibility(advertisement: Advertisement?) {
         if(advertisement != null) {
-            showProgressDialog(getString(R.string.dialog_updating_visibility))
+            dialogUtils.showProgressDialog(this@AdvertisementActivity, getString(R.string.dialog_updating_visibility))
             viewModel.updateAdvertisement(advertisement)
         }
     }
