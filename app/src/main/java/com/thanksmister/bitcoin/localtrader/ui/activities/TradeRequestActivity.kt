@@ -17,7 +17,11 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.TextInputLayout
@@ -28,59 +32,32 @@ import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.crashlytics.android.Crashlytics
+import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SearchViewModel
 import com.thanksmister.bitcoin.localtrader.utils.Calculations
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.Doubles
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.view_trade_request.*
 import timber.log.Timber
+import javax.inject.Inject
 
 class TradeRequestActivity : BaseActivity() {
 
-    internal var editAmountText: EditText? = null
-    internal var editBitcoinText: EditText? = null
-    internal var tradeAmountTitle: TextView? = null
-    internal var tradeLimit: TextView? = null
-    internal var tradeCurrency: TextView? = null
-    internal var detailsEthereumAddress: EditText? = null
-    internal var detailsSortCode: EditText? = null
-    internal var detailsBSB: EditText? = null
-    internal var detailsAccountNumber: EditText? = null
-    internal var detailsBillerCode: EditText? = null
-    internal var detailsEthereumAddressLayout: TextInputLayout? = null
-    internal var detailsSortCodeLayout: TextInputLayout? = null
-    internal var detailsBSBLayout: TextInputLayout? = null
-    internal var detailsAccountNumberLayout: TextInputLayout? = null
-    internal var detailsBillerCodeLayout: TextInputLayout? = null
-    internal var detailsPhoneNumberLayout: TextInputLayout? = null
-    internal var detailsPhoneNumber: EditText? = null
-    internal var detailsReceiverEmailLayout: TextInputLayout? = null
-    internal var detailsReceiverEmail: EditText? = null
-    internal var detailsReceiverNameLayout: TextInputLayout? = null
-    internal var detailsReceiverName: EditText? = null
-    internal var detailsIbanLayout: TextInputLayout? = null
-    internal var detailsIbanName: EditText? = null
-    internal var detailsSwiftBicLayout: View? = null
-    internal var detailsSwiftBic: EditText? = null
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var viewModel: SearchViewModel
 
-    internal var detailsReferenceLayout: View? = null
-
-    internal var detailsReference: EditText? = null
-
-    internal var tradeMessage: EditText? = null
-
-    internal var tradeMessageLayout: TextInputLayout? = null
-
-    internal var editEtherAmountText: EditText? = null
-
-    internal var bitcoinLayout: LinearLayout? = null
-
-    internal var ethereumLayout: LinearLayout? = null
-
-    internal var fiatLayout: LinearLayout? = null
-
+    private val disposable = CompositeDisposable()
     private var adId: String? = null
     private var adPrice: String? = null
     private var adMin: String? = null
@@ -90,10 +67,6 @@ class TradeRequestActivity : BaseActivity() {
     private var tradeType: TradeType? = TradeType.NONE
     private var countryCode: String? = null
     private var onlineProvider: String? = null
-
-    fun sendButtonClicked() {
-        validateChangesAndSend()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -130,16 +103,13 @@ class TradeRequestActivity : BaseActivity() {
         }
 
         if (tradeType == null || TradeType.NONE.name == tradeType!!.name) {
-            /*showAlertDialog(new AlertDialogEvent(getString(R.string.error_title), getString(R.string.error_invalid_trade_type)), new Action0() {
-                @Override
-                public void call() {
-                    if (!BuildConfig.DEBUG) {
-                        Crashlytics.logException(new Throwable("Bad trade type for requested trade: " + tradeType + " advertisement Id: " + adId));
-                    }
-                    finish();
+            dialogUtils.showAlertDialog(this@TradeRequestActivity, getString(R.string.error_invalid_trade_type), DialogInterface.OnClickListener { dialog, which ->
+                if (!BuildConfig.DEBUG) {
+                    Crashlytics.logException(Throwable("Bad trade type for requested trade: " + tradeType + " advertisement Id: " + adId));
                 }
-            });
-            return;*/
+                finish();
+            })
+            return
         }
 
         if (supportActionBar != null) {
@@ -147,56 +117,51 @@ class TradeRequestActivity : BaseActivity() {
             supportActionBar!!.title = getString(R.string.text_trade_with, profileName)
         }
 
-        val tradeDescription = findViewById<View>(R.id.tradeDescription) as TextView
-        tradeDescription.text = Html.fromHtml(getString(R.string.trade_request_description))
-        tradeDescription.movementMethod = LinkMovementMethod.getInstance()
-
-        tradeAmountTitle!!.text = getString(R.string.trade_request_title, currency)
+        requestDescription.text = Html.fromHtml(getString(R.string.trade_request_description))
+        requestDescription.movementMethod = LinkMovementMethod.getInstance()
+        requestAmountTitle.text = getString(R.string.trade_request_title, currency)
 
         if (adMin == null) {
-            tradeLimit!!.text = ""
+            requestLimit.text = ""
         } else if (adMax == null) {
-            tradeLimit!!.text = getString(R.string.trade_limit_min, adMin, currency)
+            requestLimit.text = getString(R.string.trade_limit_min, adMin, currency)
         } else { // no maximum set
-            tradeLimit!!.text = getString(R.string.trade_limit, adMin, adMax, currency)
+            requestLimit.text = getString(R.string.trade_limit, adMin, adMax, currency)
         }
 
-        tradeCurrency!!.text = currency
+        requestButton.setOnClickListener {
+            validateChangesAndSend()
+        }
 
-        editAmountText!!.filters = arrayOf<InputFilter>(Calculations.DecimalPlacesInputFilter(2))
-        editAmountText!!.addTextChangedListener(object : TextWatcher {
+        requestCurrency.text = currency
+        requestAmountText.filters = arrayOf<InputFilter>(Calculations.DecimalPlacesInputFilter(2))
+        requestAmountText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
-
             override fun onTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
-
             override fun afterTextChanged(editable: Editable) {
-                if (editAmountText!!.hasFocus()) {
+                if (requestAmountText.hasFocus()) {
                     val amount = editable.toString()
                     calculateBitcoinAmount(amount)
                 }
             }
         })
 
-        editBitcoinText!!.filters = arrayOf<InputFilter>(Calculations.DecimalPlacesInputFilter(8))
-        editBitcoinText!!.addTextChangedListener(object : TextWatcher {
+        requestBitcoinText.filters = arrayOf<InputFilter>(Calculations.DecimalPlacesInputFilter(8))
+        requestBitcoinText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
-
             override fun onTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
-
             override fun afterTextChanged(editable: Editable) {
-
-                if (editBitcoinText!!.hasFocus()) {
+                if (requestBitcoinText!!.hasFocus()) {
                     val bitcoin = editable.toString()
                     if (onlineProvider == TradeUtils.ALTCOIN_ETH) {
                         val ether = Calculations.calculateBitcoinToEther(bitcoin, adPrice)
                         val withinRange = Calculations.calculateEthereumWithinRange(ether, adMin, adMax)
                         if (!withinRange) {
-                            editEtherAmountText!!.setTextColor(resources.getColorStateList(R.color.red_light_up))
+                            requestEthereumAmount.setTextColor(resources.getColorStateList(R.color.red_light_up))
                         } else {
-                            editEtherAmountText!!.setTextColor(resources.getColorStateList(R.color.light_green))
+                            requestEthereumAmount.setTextColor(resources.getColorStateList(R.color.light_green))
                         }
-                        editEtherAmountText!!.setText(ether)
-
+                        requestEthereumAmount.setText(ether)
                     } else {
                         calculateCurrencyAmount(bitcoin)
                     }
@@ -204,28 +169,62 @@ class TradeRequestActivity : BaseActivity() {
             }
         })
 
-        editEtherAmountText!!.filters = arrayOf<InputFilter>(Calculations.DecimalPlacesInputFilter(18))
-        editEtherAmountText!!.addTextChangedListener(object : TextWatcher {
+        requestEthereumAmount.filters = arrayOf<InputFilter>(Calculations.DecimalPlacesInputFilter(18))
+        requestEthereumAmount.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
-
             override fun onTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
-
             override fun afterTextChanged(editable: Editable) {
-                if (editEtherAmountText!!.hasFocus()) {
+                if (requestEthereumAmount.hasFocus()) {
                     val ether = editable.toString()
                     val withinRange = Calculations.calculateEthereumWithinRange(ether, adMin, adMax)
                     if (!withinRange) {
-                        editEtherAmountText!!.setTextColor(resources.getColorStateList(R.color.red_light_up))
+                        requestEthereumAmount.setTextColor(resources.getColorStateList(R.color.red_light_up))
                     } else {
-                        editEtherAmountText!!.setTextColor(resources.getColorStateList(R.color.light_green))
+                        requestEthereumAmount.setTextColor(resources.getColorStateList(R.color.light_green))
                     }
                     val bitcoin = Calculations.calculateEtherToBitcoin(ether, adPrice)
-                    editBitcoinText!!.setText(bitcoin)
+                    requestBitcoinText.setText(bitcoin)
                 }
             }
         })
 
         showOptions()
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SearchViewModel::class.java)
+        observeViewModel(viewModel)
+    }
+
+    private fun observeViewModel(viewModel: SearchViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@TradeRequestActivity, message.message!!)
+            }
+        })
+        viewModel.getAlertMessage().observe(this, Observer { message ->
+            if (message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@TradeRequestActivity, message, DialogInterface.OnClickListener { dialog, which ->
+                    finish()
+                })
+            }
+        })
+        viewModel.getToastMessage().observe(this, Observer { message ->
+            if (message != null) {
+                toast(message)
+            }
+        })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -254,63 +253,62 @@ class TradeRequestActivity : BaseActivity() {
             when (onlineProvider) {
                 TradeUtils.NATIONAL_BANK -> when (countryCode) {
                     "UK" -> {
-                        detailsAccountNumberLayout!!.visibility = View.VISIBLE
-                        detailsSortCodeLayout!!.visibility = View.VISIBLE
-                        detailsReceiverNameLayout!!.visibility = View.VISIBLE
-                        detailsReferenceLayout!!.visibility = View.VISIBLE
+                        requestAccountNumberLayout.visibility = View.VISIBLE
+                        requestSortCodeLayout.visibility = View.VISIBLE
+                        requestReceiverNameLayout.visibility = View.VISIBLE
+                        requestReferenceLayout.visibility = View.VISIBLE
                     }
                     "AU" -> {
-                        detailsAccountNumberLayout!!.visibility = View.VISIBLE
-                        detailsBSBLayout!!.visibility = View.VISIBLE
-                        detailsReceiverNameLayout!!.visibility = View.VISIBLE
-                        detailsReferenceLayout!!.visibility = View.VISIBLE
+                        requestAccountNumberLayout.visibility = View.VISIBLE
+                        requestBSBLayout.visibility = View.VISIBLE
+                        requestReceiverNameLayout.visibility = View.VISIBLE
+                        requestReferenceLayout.visibility = View.VISIBLE
                     }
                     "FI" -> {
-                        detailsAccountNumberLayout!!.visibility = View.VISIBLE
-                        detailsIbanLayout!!.visibility = View.VISIBLE
-                        detailsSwiftBicLayout!!.visibility = View.VISIBLE
-                        detailsReceiverNameLayout!!.visibility = View.VISIBLE
-                        detailsReferenceLayout!!.visibility = View.VISIBLE
+                        requestAccountNumberLayout!!.visibility = View.VISIBLE
+                        requestIbanLayout.visibility = View.VISIBLE
+                        requestSwiftBicLayout.visibility = View.VISIBLE
+                        requestReceiverNameLayout.visibility = View.VISIBLE
+                        requestReferenceLayout.visibility = View.VISIBLE
                     }
                 }
-                TradeUtils.VIPPS, TradeUtils.EASYPAISA, TradeUtils.HAL_CASH, TradeUtils.QIWI, TradeUtils.LYDIA, TradeUtils.SWISH -> detailsPhoneNumberLayout!!.visibility = View.VISIBLE
-                TradeUtils.PAYPAL, TradeUtils.NETELLER, TradeUtils.INTERAC, TradeUtils.ALIPAY -> detailsReceiverEmailLayout!!.visibility = View.VISIBLE
+                TradeUtils.VIPPS, TradeUtils.EASYPAISA, TradeUtils.HAL_CASH, TradeUtils.QIWI, TradeUtils.LYDIA, TradeUtils.SWISH -> requestPhoneNumberLayout!!.visibility = View.VISIBLE
+                TradeUtils.PAYPAL, TradeUtils.NETELLER, TradeUtils.INTERAC, TradeUtils.ALIPAY -> requestReceiverEmailLayout!!.visibility = View.VISIBLE
                 TradeUtils.SEPA -> {
-                    detailsReceiverNameLayout!!.visibility = View.VISIBLE
-                    detailsIbanLayout!!.visibility = View.VISIBLE
-                    detailsSwiftBicLayout!!.visibility = View.VISIBLE
-                    detailsReferenceLayout!!.visibility = View.VISIBLE
+                    requestReceiverNameLayout.visibility = View.VISIBLE
+                    requestIbanLayout.visibility = View.VISIBLE
+                    requestSwiftBicLayout.visibility = View.VISIBLE
+                    requestReferenceLayout.visibility = View.VISIBLE
                 }
                 TradeUtils.BPAY -> {
-                    detailsBillerCodeLayout!!.visibility = View.VISIBLE
-                    detailsReferenceLayout!!.visibility = View.VISIBLE
+                    requestBillerCodeLayout.visibility = View.VISIBLE
+                    requestReferenceLayout.visibility = View.VISIBLE
                 }
-                TradeUtils.PAYTM -> detailsPhoneNumberLayout!!.visibility = View.VISIBLE
+                TradeUtils.PAYTM -> requestPhoneNumberLayout.visibility = View.VISIBLE
                 TradeUtils.ALTCOIN_ETH -> {
-                    fiatLayout!!.visibility = View.GONE
-                    ethereumLayout!!.visibility = View.VISIBLE
-                    detailsEthereumAddressLayout!!.visibility = View.VISIBLE
+                    requestFiatLayout.visibility = View.GONE
+                    requestEthereumLayout.visibility = View.VISIBLE
+                    requestEthereumAddressLayout.visibility = View.VISIBLE
                 }
-                TradeUtils.MOBILEPAY_DANSKE_BANK, TradeUtils.MOBILEPAY_DANSKE_BANK_DK, TradeUtils.MOBILEPAY_DANSKE_BANK_NO -> detailsPhoneNumberLayout!!.visibility = View.VISIBLE
+                TradeUtils.MOBILEPAY_DANSKE_BANK, TradeUtils.MOBILEPAY_DANSKE_BANK_DK, TradeUtils.MOBILEPAY_DANSKE_BANK_NO -> requestPhoneNumberLayout.visibility = View.VISIBLE
             }
         } else if (tradeType == TradeType.ONLINE_SELL) {
             when (onlineProvider) {
-                TradeUtils.PAYTM, TradeUtils.QIWI, TradeUtils.SWISH -> detailsPhoneNumberLayout!!.visibility = View.VISIBLE
-                TradeUtils.MOBILEPAY_DANSKE_BANK, TradeUtils.MOBILEPAY_DANSKE_BANK_DK, TradeUtils.MOBILEPAY_DANSKE_BANK_NO -> detailsPhoneNumberLayout!!.visibility = View.VISIBLE
+                TradeUtils.PAYTM, TradeUtils.QIWI, TradeUtils.SWISH -> requestPhoneNumberLayout.visibility = View.VISIBLE
+                TradeUtils.MOBILEPAY_DANSKE_BANK, TradeUtils.MOBILEPAY_DANSKE_BANK_DK, TradeUtils.MOBILEPAY_DANSKE_BANK_NO -> requestPhoneNumberLayout.visibility = View.VISIBLE
                 TradeUtils.ALTCOIN_ETH -> {
-                    fiatLayout!!.visibility = View.GONE
-                    ethereumLayout!!.visibility = View.VISIBLE
-                    detailsEthereumAddressLayout!!.visibility = View.VISIBLE
+                    requestFiatLayout.visibility = View.GONE
+                    requestEthereumLayout.visibility = View.VISIBLE
+                    requestEthereumAddressLayout.visibility = View.VISIBLE
                 }
             }
         }
     }
 
     private fun validateChangesAndSend() {
-
-        var amount = editAmountText!!.text.toString()
+        var amount = requestAmountText.text.toString()
         if (onlineProvider == TradeUtils.ALTCOIN_ETH) {
-            amount = editEtherAmountText!!.text.toString()
+            amount = requestEthereumAmount.text.toString()
         }
         var cancel = false
         try {
@@ -329,17 +327,17 @@ class TradeRequestActivity : BaseActivity() {
             cancel = true
         }
 
-        val phone = detailsPhoneNumber!!.text.toString()
-        val receiverEmail = detailsReceiverEmail!!.text.toString()
-        val receiverName = detailsReceiverName!!.text.toString()
-        val reference = detailsReference!!.text.toString()
-        val bic = detailsSwiftBic!!.text.toString()
-        val iban = detailsIbanName!!.text.toString()
-        val ethereumAddress = detailsEthereumAddress!!.text.toString()
-        val accountNumber = detailsAccountNumber!!.text.toString()
-        val sortCode = detailsSortCode!!.text.toString()
-        val billerCode = detailsBillerCode!!.text.toString()
-        val bsb = detailsBSB!!.text.toString()
+        val phone = requestPhoneNumber.text.toString()
+        val receiverEmail = requestReceiverEmail.text.toString()
+        val receiverName = requestReceiverName.text.toString()
+        val reference = requestReference.text.toString()
+        val bic = requestSwiftBic.text.toString()
+        val iban = requestIbanName.text.toString()
+        val ethereumAddress = requestEthereumAddress.text.toString()
+        val accountNumber = requestAccountNumber.text.toString()
+        val sortCode = requestSortCode.text.toString()
+        val billerCode = requestBillerCode.text.toString()
+        val bsb = requestBSB.text.toString()
 
         if (tradeType == TradeType.ONLINE_BUY) {
             when (onlineProvider) {
@@ -399,61 +397,27 @@ class TradeRequestActivity : BaseActivity() {
             }
         }
         var message = ""
-        if (!TextUtils.isEmpty(tradeMessage!!.text.toString())) {
-            message = tradeMessage!!.text.toString()
+        if (!TextUtils.isEmpty(requestMessage.text.toString())) {
+            message = requestMessage.text.toString()
         }
 
-        if (!cancel) {
-            sendTradeRequest(adId, amount, receiverName, phone, receiverEmail, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
+        if (!cancel && adId != null) {
+            sendTradeRequest(adId!!, amount, receiverName, phone, receiverEmail, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
         }
     }
 
-    fun sendTradeRequest(adId: String?, amount: String, name: String, phone: String,
+    private fun sendTradeRequest(adId: String, amount: String, name: String, phone: String,
                          email: String, iban: String, bic: String, reference: String, message: String,
                          sortCode: String, billerCode: String, accountNumber: String, bsb: String, ethereumAddress: String) {
-
-        showProgressDialog(getString(R.string.progress_sending_trade_request))
-
-        //        dataService.createContact(
-        //                adId, tradeType, countryCode, onlineProvider,
-        //                amount, name, phone, email,
-        //                iban, bic, reference, message,
-        //                sortCode, billerCode, accountNumber,
-        //                bsb, ethereumAddress)
-        //
-        //                .subscribeOn(Schedulers.newThread())
-        //                .observeOn(AndroidSchedulers.mainThread())
-        //                .subscribe(new Action1<ContactRequest>() {
-        //                    @Override
-        //                    public void call(ContactRequest contactRequest) {
-        //                        runOnUiThread(new Runnable() {
-        //                            @Override
-        //                            public void run() {
-        //                                hideProgressDialog();
-        //                                toast(getString(R.string.toast_trade_request_sent) + profileName + "!");
-        //                                finish();
-        //                            }
-        //                        });
-        //                    }
-        //                }, new Action1<Throwable>() {
-        //                    @Override
-        //                    public void call(final Throwable throwable) {
-        //                        runOnUiThread(new Runnable() {
-        //                            @Override
-        //                            public void run() {
-        //                                reportError(throwable);
-        //                                handleError(throwable);
-        //                            }
-        //                        });
-        //                    }
-        //
-        //                });
+        dialogUtils.showProgressDialog(this@TradeRequestActivity, getString(R.string.progress_sending_trade_request))
+        viewModel.createContact(tradeType, countryCode, onlineProvider, adId, amount, name, phone, email,
+                iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
     }
 
     private fun calculateBitcoinAmount(amount: String) {
         try {
             if (TextUtils.isEmpty(amount) || amount == "0") {
-                editBitcoinText!!.setText("")
+                requestBitcoinText.setText("")
                 return
             }
         } catch (e: Exception) {
@@ -463,12 +427,11 @@ class TradeRequestActivity : BaseActivity() {
 
         try {
             val value = Doubles.convertToDouble(amount) / Doubles.convertToDouble(adPrice)
-            editBitcoinText!!.setText(Conversions.formatBitcoinAmount(value))
-
+            requestBitcoinText.setText(Conversions.formatBitcoinAmount(value))
             if (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin) || Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
-                editAmountText!!.setTextColor(resources.getColorStateList(R.color.red_light_up))
+                requestBitcoinText.setTextColor(resources.getColorStateList(R.color.red_light_up))
             } else {
-                editAmountText!!.setTextColor(resources.getColorStateList(R.color.light_green))
+                requestBitcoinText.setTextColor(resources.getColorStateList(R.color.light_green))
             }
         } catch (e: Exception) {
             Timber.e(e.message)
@@ -478,19 +441,19 @@ class TradeRequestActivity : BaseActivity() {
 
     private fun calculateCurrencyAmount(bitcoin: String) {
         if (TextUtils.isEmpty(bitcoin) || bitcoin == "0") {
-            editAmountText!!.setText("")
+            requestAmountText.setText("")
             return
         }
 
         try {
             val value = Doubles.convertToDouble(bitcoin) * Doubles.convertToDouble(adPrice)
             val amount = Conversions.formatCurrencyAmount(value)
-            editAmountText!!.setText(amount)
+            requestAmountText.setText(amount)
 
             if (Doubles.convertToDouble(amount) < Doubles.convertToDouble(adMin) || Doubles.convertToDouble(amount) > Doubles.convertToDouble(adMax)) {
-                editAmountText!!.setTextColor(resources.getColorStateList(R.color.red_light_up))
+                requestAmountText.setTextColor(resources.getColorStateList(R.color.red_light_up))
             } else {
-                editAmountText!!.setTextColor(resources.getColorStateList(R.color.light_green))
+                requestAmountText.setTextColor(resources.getColorStateList(R.color.light_green))
             }
         } catch (e: Exception) {
             Timber.e(e.message)
@@ -499,20 +462,17 @@ class TradeRequestActivity : BaseActivity() {
     }
 
     companion object {
-
-        val EXTRA_AD_ID = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ID"
-        val EXTRA_AD_PRICE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PRICE"
-        val EXTRA_AD_COUNTRY_CODE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_COUNTRY_CODE"
-        val EXTRA_AD_ONLINE_PROVIDER = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ONLINE_PROVIDER"
-        val EXTRA_AD_TRADE_TYPE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_TRADE_TYPE"
-        val EXTRA_AD_MIN_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MIN_AMOUNT"
-        val EXTRA_AD_MAX_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MAX_AMOUNT"
-        val EXTRA_AD_CURRENCY = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_CURRENCY"
-        val EXTRA_AD_PROFILE_NAME = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PROFILE_NAME"
-
-        fun createStartIntent(context: Context, adId: Int, tradeType: String?, countryCode: String?, onlineProvider: String?,
+        const val EXTRA_AD_ID = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ID"
+        const val EXTRA_AD_PRICE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PRICE"
+        const val EXTRA_AD_COUNTRY_CODE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_COUNTRY_CODE"
+        const val EXTRA_AD_ONLINE_PROVIDER = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_ONLINE_PROVIDER"
+        const val EXTRA_AD_TRADE_TYPE = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_TRADE_TYPE"
+        const val EXTRA_AD_MIN_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MIN_AMOUNT"
+        const val EXTRA_AD_MAX_AMOUNT = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_MAX_AMOUNT"
+        const val EXTRA_AD_CURRENCY = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_CURRENCY"
+        const val EXTRA_AD_PROFILE_NAME = "com.thanksmister.bitcoin.localtrader.EXTRA_AD_PROFILE_NAME"
+        fun createStartIntent(context: Context, adId: Int, tradeType: String, countryCode: String?, onlineProvider: String?,
                               adPrice: String?, adMin: String?, adMax: String?, currency: String?, profileName: String?): Intent {
-
             val intent = Intent(context, TradeRequestActivity::class.java)
             intent.putExtra(EXTRA_AD_ID, adId)
             intent.putExtra(EXTRA_AD_TRADE_TYPE, tradeType)

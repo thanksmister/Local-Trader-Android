@@ -29,7 +29,7 @@
 
 
     <ImageView
-            android:id="@android:id/icon"
+            android:id="@+id/advertisementIcon"
             android:contentDescription="@string/desc"
             android:layout_width="72dp"
             android:layout_height="wrap_content"

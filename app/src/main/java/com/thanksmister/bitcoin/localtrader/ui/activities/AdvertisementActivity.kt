@@ -33,8 +33,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import com.crashlytics.android.Crashlytics
-import com.thanksmister.bitcoin.localtrader.BuildConfig
 
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
@@ -45,10 +43,9 @@ import com.thanksmister.bitcoin.localtrader.ui.viewmodels.AdvertisementsViewMode
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.functions.BiFunction
+import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_advertisement.*
-import kotlinx.android.synthetic.main.view_advertiser.*
 
 import timber.log.Timber
 import javax.inject.Inject
@@ -64,11 +61,6 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     private var adId: Int = 0
     private var menu: Menu? = null
     private var advertisement: Advertisement? = null
-
-    private inner class AdvertisementData {
-        var advertisement: Advertisement? = null
-        var method: Method? = null
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,11 +82,12 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         advertisementSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
 
         if (adId == 0) {
-            dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.error_title), getString(R.string.error_no_advertisement),
+            dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.error_no_advertisement),
                     DialogInterface.OnClickListener { _, _ ->
                         finish();
                     })
         }
+
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(AdvertisementsViewModel::class.java)
         observeViewModel(viewModel)
     }
@@ -109,7 +102,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent) {
         if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
             if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
-                updateAdvertisement(true) // update the new editAdvertisement
+                updateAdvertisement() // update the new editAdvertisement
             }
         }
     }
@@ -159,92 +152,81 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
 
     override fun onDestroy() {
         super.onDestroy()
-        disposable.dispose()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
+                hideProgressDialog()
                 dialogUtils.showAlertDialog(this@AdvertisementActivity, message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
+            hideProgressDialog()
             Toast.makeText(this@AdvertisementActivity, message, Toast.LENGTH_LONG).show()
         })
-        viewModel.fetchAdvertisment(adId)
-        updateAdvertisement(true)
+        viewModel.getAdvertisementUpdated().observe(this, Observer { updated ->
+            if(updated != null && updated) {
+                hideProgressDialog()
+                Toast.makeText(this@AdvertisementActivity, getString(R.string.toast_update_visibility), Toast.LENGTH_LONG).show()
+            }
+        })
+        viewModel.getAdvertisementDeleted().observe(this, Observer { updated ->
+            if(updated != null && updated) {
+                hideProgressDialog()
+                Toast.makeText(this@AdvertisementActivity, getString(R.string.toast_advertisement_deleted), Toast.LENGTH_LONG).show()
+                finish()
+            }
+        })
+        disposable.add(viewModel.getAdvertisementData(adId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe( { data->
+                    if(data != null) {
+                        advertisement = data.advertisement
+                        setTradeRequirements(advertisement)
+                        if (TradeUtils.isOnlineTrade(advertisement!!)) {
+                            setAdvertisement(advertisement, data.method)
+                        } else {
+                            setAdvertisement(advertisement, null)
+                        }
+                        advertisementContentLayout.visibility = View.VISIBLE
+                        onRefreshStop()
+                    }
+                }, { error ->
+                    Timber.e(error.message)
+                    dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.error_title),
+                            getString(R.string.toast_error_opening_advertisement), DialogInterface.OnClickListener { _, _ ->
+                        finish()
+                    })
+                    onRefreshStop()
+                }))
+
+        toast(getString(R.string.toast_refreshing_data))
     }
 
     override fun onRefresh() {
-        Timber.d("onRefresh")
-        updateAdvertisement(false)
+        updateAdvertisement()
     }
 
     private fun onRefreshStop() {
         advertisementSwipeLayout.isRefreshing = false
     }
 
-    private fun onRefreshStart() {
-        advertisementSwipeLayout.isRefreshing = true
-    }
-
-    override fun handleNetworkDisconnect() {
-        onRefreshStop()
-        toast(getString(R.string.error_no_internet))
-    }
-
-    public override fun handleRefresh() {
-        onRefreshStart()
-        updateAdvertisement(false)
-    }
-
-    private fun updateAdvertisement(showRefreshToast: Boolean) {
-        if(showRefreshToast) {
-            toast(getString(R.string.toast_refreshing_data))
-        }
-        disposable.add(
-                viewModel.getAdvertisement(adId)
-                        .zipWith(viewModel.getMethods(), BiFunction { advertisement: Advertisement, methods: List<Method> ->
-                            val method = TradeUtils.getMethodForAdvertisement(advertisement, methods)
-                            val data = AdvertisementData()
-                            data.advertisement = advertisement
-                            data.method = method
-                            data
-                        })
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe( { data ->
-                            if (data.advertisement != null && data.method != null) {
-                                advertisement = data.advertisement
-                                setTradeRequirements(advertisement)
-                                setTradeRequirements(advertisement)
-                                if (TradeUtils.isOnlineTrade(advertisement!!)) {
-                                    setAdvertisement(advertisement, data.method);
-                                } else {
-                                    setAdvertisement(advertisement, null);
-                                }
-                                advertiserContent.visibility = View.VISIBLE
-                            }
-                            onRefreshStop()
-                        }, { error ->
-                            Timber.e("Advertisement error: $error")
-                            runOnUiThread {
-                                dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.error_title),
-                                        getString(R.string.toast_error_opening_advertisement), DialogInterface.OnClickListener { _, _ ->
-                                    finish()
-                                })
-                            }
-                            if (!BuildConfig.DEBUG) {
-                                Crashlytics.setString("advertisement", adId.toString())
-                                Crashlytics.logException(error)
-                            }
-                            onRefreshStop()
-                        }))
+    private fun updateAdvertisement() {
+        viewModel.fetchAdvertisement(adId)
     }
 
     private fun setAdvertisement(advertisement: Advertisement?, method: Method?) {
         if(advertisement != null) {
-            advertismentTradePrice.text = getString(R.string.trade_price, advertisement.tempPrice, advertisement.currency)
+            advertisementTradePrice.text = getString(R.string.trade_price, advertisement.tempPrice, advertisement.currency)
             val price = advertisement.currency
             val tradeType = TradeType.valueOf(advertisement.tradeType)
             var title = ""
@@ -273,7 +255,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                 else -> // no maximum set
                     advertisementTradeLimit.text = getString(R.string.trade_limit, advertisement.minAmount, advertisement.maxAmount, advertisement.currency)
             }
-            priceEquation!!.text = advertisement.priceEquation
+            priceEquation.text = advertisement.priceEquation
             if (!TextUtils.isEmpty(advertisement.message)) {
                 advertisementTradeTerms.text = advertisement.message!!.trim { it <= ' ' }
             } else {
@@ -281,23 +263,23 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
             }
             if (TradeUtils.isOnlineTrade(advertisement)) {
                 val paymentMethod = TradeUtils.getPaymentMethodName(advertisement, method)
-                onlineProvider!!.text = paymentMethod
+                onlineProvider.text = paymentMethod
                 if (!TextUtils.isEmpty(advertisement.bankName)) {
-                    bankName!!.text = advertisement.bankName
+                    bankName.text = advertisement.bankName
                 } else {
-                    bankNameLayout!!.visibility = View.GONE
+                    bankNameLayout.visibility = View.GONE
                 }
                 if (!TextUtils.isEmpty(advertisement.accountInfo)) {
-                    paymentDetails!!.text = advertisement.accountInfo!!.trim { it <= ' ' }
+                    paymentDetails.text = advertisement.accountInfo!!.trim { it <= ' ' }
                 } else {
-                    paymentDetailsLayout!!.visibility = View.GONE
+                    paymentDetailsLayout.visibility = View.GONE
                 }
             } else {
-                onlinePaymentLayout!!.visibility = View.GONE
-                paymentDetailsLayout!!.visibility = View.GONE
-                bankNameLayout!!.visibility = View.GONE
+                onlinePaymentLayout.visibility = View.GONE
+                paymentDetailsLayout.visibility = View.GONE
+                bankNameLayout.visibility = View.GONE
             }
-            advertisementId!!.setText(advertisement.adId)
+            advertisementId.text = advertisement.adId.toString()
             setTradeRequirements(advertisement)
             updateAdvertisementNote(advertisement)
         }
@@ -309,7 +291,6 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
             if (advertisement.trustedRequired
                     || advertisement.smsVerificationRequired
                     || advertisement.requireIdentification) {
-
                 showLayout = true
             }
 
@@ -322,7 +303,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                 advertisementFeedbackText.text = Html.fromHtml(getString(R.string.trade_request_minimum_feedback_score, advertisement.requireFeedbackScore))
                 showLayout = true
             } else {
-                advertisementFeedbackText!!.visibility = View.GONE
+                advertisementFeedbackText.visibility = View.GONE
             }
 
             if (!TextUtils.isEmpty(advertisement.requireTradeVolume) && TradeUtils.isOnlineTrade(advertisement)) {
@@ -330,15 +311,15 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                 advertisementVolumeText.text = Html.fromHtml(getString(R.string.trade_request_minimum_volume, advertisement.requireTradeVolume))
                 showLayout = true
             } else {
-                volumeText!!.visibility = View.GONE
+                advertisementVolumeText.visibility = View.GONE
             }
 
             if (!TextUtils.isEmpty(advertisement.firstTimeLimitBtc) && TradeUtils.isOnlineTrade(advertisement)) {
-                advertisementLimitText!!.visibility = View.VISIBLE
-                advertisementLimitText!!.text = Html.fromHtml(getString(R.string.trade_request_new_buyer_limit, advertisement.firstTimeLimitBtc))
+                advertisementLimitText.visibility = View.VISIBLE
+                advertisementLimitText.text = Html.fromHtml(getString(R.string.trade_request_new_buyer_limit, advertisement.firstTimeLimitBtc))
                 showLayout = true
             } else {
-                advertisementLimitText!!.visibility = View.GONE
+                advertisementLimitText.visibility = View.GONE
             }
 
             advertisementRequirementsLayout.visibility = if (showLayout) View.VISIBLE else View.GONE
@@ -368,7 +349,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     private fun viewOnlineAdvertisement(advertisement: Advertisement?) {
         if(advertisement != null) {
             try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(advertisement!!.actions.publicView))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.actions.publicView))
                 startActivity(intent)
             } catch (e: ActivityNotFoundException) {
                 showAlertDialog(getString(R.string.toast_error_no_installed_ativity))
@@ -381,76 +362,22 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
             dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.advertisement_delete_confirm),
                     DialogInterface.OnClickListener {
                         dialog, which ->
-                        deleteAdvertisementConfirmed(advertisement.adId);
+                        deleteAdvertisementConfirmed(advertisement);
                     })
         }
     }
 
-    private fun deleteAdvertisementConfirmed(adId: Int) {
-        showProgressDialog(getString(R.string.progress_deleting))
-        // TODO move this to model
-        /*dataService.deleteAdvertisement(adId)
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Delete editAdvertisement safely unsubscribed");
-                    }
-                })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(final Boolean deleted) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressDialog();
-                                if (deleted) {
-                                    dbManager.deleteAdvertisement(adId);
-                                    toast(getString(R.string.toast_advertisement_deleted));
-                                    setResult(RESULT_DELETED);
-                                    finish();
-                                } else {
-                                    showAlertDialog(getString(R.string.alert_error_deleting_advertisement));
-                                }
-                            }
-                        });
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(final Throwable throwable) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                hideProgressDialog();
-                                //showAlertDialog(getString(R.string.alert_error_deleting_advertisement));
-                                showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), throwable.getMessage()));
-                            }
-                        });
-                    }
-                });*/
+    private fun deleteAdvertisementConfirmed(advertisement: Advertisement?) {
+        if(advertisement != null) {
+            showProgressDialog(getString(R.string.progress_deleting))
+            viewModel.deleteAdvertisement(advertisement)
+        }
     }
 
     private fun updateAdvertisementVisibility(advertisement: Advertisement?) {
         if(advertisement != null) {
             showProgressDialog(getString(R.string.dialog_updating_visibility))
-            /* dataService.updateAdvertisementVisibility(editAdvertisement, visible)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<JSONObject>() {
-                    @Override
-                    public void call(JSONObject jsonObject) {
-                        hideProgressDialog();
-                        dbManager.updateAdvertisementVisibility(String.valueOf(adId), visible);
-                        toast(getString(R.string.toast_update_visibility));
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        hideProgressDialog();
-                        showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), throwable.getMessage()));
-                    }
-                });*/
+            viewModel.updateAdvertisement(advertisement)
         }
     }
 
@@ -491,7 +418,6 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         }
     }
 
-    // TODO set edit advertisement into the model
     private fun editAdvertisement(advertisement: Advertisement?) {
         if(advertisement != null) {
             val intent = EditAdvertisementActivity.createStartIntent(this@AdvertisementActivity, advertisement.adId)

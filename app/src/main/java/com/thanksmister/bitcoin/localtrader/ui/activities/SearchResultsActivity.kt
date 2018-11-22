@@ -17,48 +17,46 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
-import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import android.widget.ListView
-import android.widget.TextView
-
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
-import com.thanksmister.bitcoin.localtrader.network.services.GeoLocationService
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertiseAdapter
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SearchViewModel
 import com.thanksmister.bitcoin.localtrader.utils.SearchUtils
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
-
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.view_empty.*
+import kotlinx.android.synthetic.main.view_search_results.*
+import timber.log.Timber
 import javax.inject.Inject
 
 class SearchResultsActivity : BaseActivity() {
 
-    //@Inject
-    lateinit var geoLocationService: GeoLocationService
-
     @Inject
-    lateinit var sharedPreferences: SharedPreferences
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var viewModel: SearchViewModel
 
-    internal var content: ListView? = null
-    internal var progress: View? = null
-    internal var emptyLayout: View? = null
-    internal var emptyText: TextView? = null
-
+    private val disposable = CompositeDisposable()
     private var adapter: AdvertiseAdapter? = null
     private var tradeType = TradeType.NONE
+    private var methods: List<Method> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.view_search_results)
 
@@ -66,21 +64,67 @@ class SearchResultsActivity : BaseActivity() {
 
         if (supportActionBar != null) {
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            supportActionBar!!.setTitle(getHeader(tradeType))
+            supportActionBar!!.title = getHeader(tradeType)
         }
 
-        content!!.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
+        searchResultsList.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
             val advertisement = adapterView.adapter.getItem(i) as Advertisement
             showAdvertiser(advertisement)
         }
 
         adapter = AdvertiseAdapter(this)
         setAdapter(adapter!!)
-        updateData()
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SearchViewModel::class.java)
+        observeViewModel(viewModel)
     }
 
-    public override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+    private fun observeViewModel(viewModel: SearchViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@SearchResultsActivity, message.message!!)
+                showEmpty()
+            }
+        })
+        viewModel.getAlertMessage().observe(this, Observer { message ->
+            if (message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@SearchResultsActivity, message)
+                showEmpty()
+            }
+        })
+        viewModel.getToastMessage().observe(this, Observer { message ->
+            if (message != null) {
+                toast(message)
+            }
+        })
+        viewModel.getAdvertisements().observe(this, Observer { advertisements ->
+            dialogUtils.hideProgressDialog()
+            if (advertisements != null && !advertisements.isEmpty() && !methods.isEmpty()) {
+                setData(advertisements, methods)
+                showContent()
+            } else {
+                showEmpty()
+            }
+        })
+        dialogUtils.showProgressDialog(this@SearchResultsActivity, getString(R.string.toast_searching))
+        disposable.add(viewModel.getMethods()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe( { data ->
+                    if(data != null) {
+                        methods = data
+                    }
+                }, { error ->
+                    Timber.e(error.message)
+                }))
+
+        if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
+            viewModel.getPlaces(tradeType)
+        } else {
+            viewModel.getOnlineAdvertisements(tradeType)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -88,7 +132,6 @@ class SearchResultsActivity : BaseActivity() {
             finish()
             return true
         }
-
         return super.onOptionsItemSelected(item)
     }
 
@@ -97,135 +140,43 @@ class SearchResultsActivity : BaseActivity() {
         return true
     }
 
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    public override fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
-    }
-
-    public override fun handleRefresh() {
-        updateData()
-    }
-
-
-    fun showContent() {
-        if (content != null && progress != null && emptyLayout != null) {
-            content!!.visibility = View.VISIBLE
-            emptyLayout!!.visibility = View.GONE
-            progress!!.visibility = View.GONE
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
         }
     }
 
-    fun showEmpty() {
-        if (content != null && progress != null && emptyLayout != null) {
-            content!!.visibility = View.GONE
-            emptyLayout!!.visibility = View.VISIBLE
-            progress!!.visibility = View.GONE
-            emptyText!!.setText(R.string.text_no_advertisers)
-        }
+    private fun showContent() {
+        searchResultsList.visibility = View.VISIBLE
+        searchResultsEmpty.visibility = View.GONE
     }
 
-    fun showProgress() {
-        if (content != null && progress != null && emptyLayout != null) {
-            content!!.visibility = View.GONE
-            emptyLayout!!.visibility = View.GONE
-            progress!!.visibility = View.VISIBLE
-        }
+    private fun showEmpty() {
+        searchResultsList.visibility = View.GONE
+        searchResultsEmpty.visibility = View.VISIBLE
+        emptyText.setText(R.string.text_no_advertisers)
     }
 
-    protected fun updateData() {
-
-        val currency = SearchUtils.getSearchCurrency(sharedPreferences!!)
-        val paymentMethod = SearchUtils.getSearchPaymentMethod(sharedPreferences!!)
-        val country = SearchUtils.getSearchCountryName(sharedPreferences!!)
-        val code = SearchUtils.getSearchCountryCode(sharedPreferences!!)
-        val latitude = SearchUtils.getSearchLatitude(sharedPreferences!!)
-        val longitude = SearchUtils.getSearchLongitude(sharedPreferences!!)
-
-        toast(getString(R.string.toast_searching))
-        showProgress()
-
-        if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
-            /*geoLocationService.getLocalAdvertisements(latitude, longitude, tradeType)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<List<Advertisement>>() {
-                        @Override
-                        public void call(final List<Advertisement> advertisements) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    setData(advertisements, null);
-                                }
-                            });
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(final Throwable throwable) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showEmpty();
-                                }
-                            });
-                        }
-                    });*/
-        } else {
-            /*dbManager.methodQuery().cache()
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<List<MethodItem>>() {
-                        @Override
-                        public void call(final List<MethodItem> methodItems) {
-                            String method = TradeUtils.INSTANCE.getPaymentMethod(paymentMethod, methodItems);
-                            geoLocationService.getOnlineAdvertisements(tradeType, country, code, currency, method)
-                                    .subscribe(new Action1<List<Advertisement>>() {
-                                        @Override
-                                        public void call(final List<Advertisement> advertisements) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    setData(advertisements, methodItems);
-                                                }
-                                            });
-                                        }
-                                    }, new Action1<Throwable>() {
-                                        @Override
-                                        public void call(final Throwable throwable) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    toast(throwable.getMessage());
-                                                    showEmpty();
-                                                }
-                                            });
-                                        }
-                                    });
-                        }
-                    });*/
-        }
-    }
-
-    private fun setData(advertisements: List<Advertisement>, methodItems: List<Method>?) {
-        if (advertisements.isEmpty()) {
+    private fun setData(advertisements: List<Advertisement>, methodItems: List<Method>) {
+        getAdapter()!!.replaceWith(advertisements, methodItems)
+        /*if (advertisements.isEmpty()) {
             showEmpty()
-        } else if ((tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL) && methodItems == null) {
+        } else if ((tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL)) { // TODO wtf was this for?
             showEmpty()
             toast(getString(R.string.toast_error_advertisers))
         } else {
-            showContent()
-            getAdapter()!!.replaceWith(advertisements, methodItems)
-        }
+
+
+        }*/
     }
 
     private fun setAdapter(adapter: AdvertiseAdapter) {
-        content!!.adapter = adapter
+        searchResultsList.adapter = adapter
     }
 
     private fun getAdapter(): AdvertiseAdapter? {
@@ -242,20 +193,21 @@ class SearchResultsActivity : BaseActivity() {
             TradeType.LOCAL_SELL -> header = getString(R.string.search_local_buyers_header)
             TradeType.ONLINE_BUY -> header = getString(R.string.search_online_sellers_header)
             TradeType.ONLINE_SELL -> header = getString(R.string.search_online_buyers_header)
+            else -> {
+                // na-da
+            }
         }
 
         header = getString(R.string.text_results_for, header)
         return header
     }
 
-    fun showAdvertiser(advertisement: Advertisement) {
+    private fun showAdvertiser(advertisement: Advertisement) {
         val intent = AdvertiserActivity.createStartIntent(this, advertisement.adId)
         startActivity(intent)
     }
 
     companion object {
-
-
         fun createStartIntent(context: Context): Intent {
             return Intent(context, SearchResultsActivity::class.java)
         }

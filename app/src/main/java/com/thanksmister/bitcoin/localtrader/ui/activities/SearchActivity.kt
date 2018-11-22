@@ -23,6 +23,7 @@ import android.view.MenuItem
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.fragments.AboutFragment
+import com.thanksmister.bitcoin.localtrader.ui.fragments.SearchFragment
 
 class SearchActivity : BaseActivity() {
 
@@ -38,7 +39,7 @@ class SearchActivity : BaseActivity() {
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                    .replace(R.id.searchContainer, AboutFragment.newInstance())
+                    .replace(R.id.searchContainer, SearchFragment.newInstance())
                     .commitNow()
         }
     }

@@ -21,86 +21,71 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
+import com.thanksmister.bitcoin.localtrader.architecture.MessageData
+import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
 import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
+import com.thanksmister.bitcoin.localtrader.network.api.model.Message
+import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
+import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
+import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.ContactsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
+import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import javax.inject.Inject
 
-class ContactViewModel @Inject
-constructor(application: Application, private val contactsDao: ContactsDao, private val preferences: Preferences) : AndroidViewModel(application) {
+class ContactsViewModel @Inject
+constructor(application: Application, private val contactsDao: ContactsDao, private val preferences: Preferences) : BaseViewModel(application) {
 
-    private val toastText = ToastMessage()
-    private val alertText = AlertMessage()
-    private val adId = MutableLiveData<Int>()
-    private val advertisement = MutableLiveData<Advertisement>()
-    private val disposable = CompositeDisposable()
+    private val contactId = MutableLiveData<Int>()
+    private val contact = MutableLiveData<Contact>()
 
-    fun getToastMessage(): ToastMessage {
-        return toastText
+    fun getContactId(): LiveData<Int> {
+        return contactId
     }
 
-    fun getAlertMessage(): AlertMessage {
-        return alertText
+    private fun setContactId(value: Int) {
+        this.contactId.value = value
     }
 
-    fun getAdId(): LiveData<Int> {
-        return adId
+    fun getContact(): LiveData<Contact> {
+        return contact
     }
 
-    private fun setAdId(value: Int) {
-        this.adId.value = value
-    }
-
-    fun getAdvertisement(): LiveData<Advertisement> {
-        return advertisement
-    }
-
-    private fun setAdvertisement(value: Advertisement) {
-        this.advertisement.value = value
+    private fun setContact(value: Contact) {
+        this.contact.value = value
     }
 
     init {
     }
 
-    public override fun onCleared() {
-        Timber.d("onCleared")
-        //prevents memory leaks by disposing pending observable objects
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
-    }
-
-    private fun showAlertMessage(message: String?) {
-        Timber.d("showAlertMessage")
-        alertText.value = message
-    }
-
-    private fun showToastMessage(message: String?) {
-        Timber.d("showToastMessage")
-        toastText.value = message
-    }
-
-    /**
-     * Get the item.
-     * @return a [Flowable] that will emit every time the item have been updated.
-     */
     fun getContact(contactId: Int):Flowable<Contact> {
         return contactsDao.getItemById(contactId)
+    }
+
+    fun getContacts():Flowable<List<Contact>> {
+        return contactsDao.getItems()
+                .map { contactList  ->
+                    val contacts = ArrayList<Contact>()
+                    contactList.forEach() {
+                        if (it.closedAt != null && it.canceledAt != null && TradeUtils.tradeIsActive(it.closedAt!!, it.canceledAt!!)) {
+                            contacts.add(it);
+                        }
+                    }
+                    contacts
+                }
     }
 
     fun fetchContact(contactId: Int) {
@@ -114,8 +99,24 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                     insertContact(it)
                 }, {
                     error -> Timber.e("Contact Error" + error.message)
-                    showAlertMessage(error.message)
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(error.message)
+                    }
                 }))
+    }
+
+    fun fetchMessages(contactId: Int): Observable<List<Message>> {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
+        return fetcher.getContactMessages(contactId)
+
     }
 
     private fun insertContact(item: Contact) {

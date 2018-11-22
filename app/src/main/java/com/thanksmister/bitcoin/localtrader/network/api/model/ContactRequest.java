@@ -17,9 +17,10 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ContactRequest {
+
+    @SerializedName("contact_id")
     public String contactId;
-    public String contactUrl;
-    public boolean funded;
-    public String message;
 }

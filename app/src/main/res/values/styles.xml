@@ -1,36 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--<style name="Base.Theme.LocalTrader" parent="Theme.AppCompat.Light.NoActionBar">
-        &lt;!&ndash; colorPrimary is used, for instance, for the default ActionBar
-             (but not Toolbar) background.
-              We specify the same color for the toolbar background in
-              toolbar.xml.. &ndash;&gt;
-        <item name="colorPrimary">@color/colorPrimary</item>
-        &lt;!&ndash; colorPrimaryDark is used for the status bar (with the
-             battery, clock, etc). &ndash;&gt;
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        &lt;!&ndash; colorAccent is used as the default value for
-             colorControlActivated which is used to tint widgets. &ndash;&gt;
-        <item name="colorAccent">@color/colorAccent</item>
-        &lt;!&ndash; textColorLink is used as the default value for all links &ndash;&gt;
-        <item name="android:textColorLink">@color/blue</item>
-        &lt;!&ndash; Title Text Color &ndash;&gt;
-        <item name="android:textColorPrimary">@color/primary_text</item>
-        &lt;!&ndash; color of the menu overflow icon (three vertical dots) &ndash;&gt;
-        <item name="android:textColorSecondary">@color/body_text_1</item>
-        <item name="android:windowBackground">@color/window_background</item>
-        <item name="colorControlNormal">@color/white</item>
-        <item name="windowActionModeOverlay">false</item>
-        <item name="actionModeBackground">@drawable/action_mode_background</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
-        <item name="android:textColor">@color/body_text_1</item>
-    </style>-->
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="alertDialogTheme">@style/CustomAlertDialog</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">

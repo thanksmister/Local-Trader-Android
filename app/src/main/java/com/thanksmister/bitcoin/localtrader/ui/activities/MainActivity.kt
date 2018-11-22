@@ -21,9 +21,11 @@ import android.annotation.SuppressLint
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.NavigationView
@@ -36,6 +38,8 @@ import android.widget.TextView
 import android.widget.Toast
 import com.kobakei.ratethisapp.RateThisApp
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.constants.Constants
+import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.User
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.fragments.*
@@ -44,19 +48,22 @@ import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.drawer_header.*
 import timber.log.Timber
+import java.lang.Exception
 import javax.inject.Inject
 
-class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
-        NavigationView.OnNavigationItemSelectedListener, DashboardFragment.OnFragmentListener {
+class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, NavigationView.OnNavigationItemSelectedListener {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject
     lateinit var viewModel: DashboardViewModel
 
+    private var connectionLiveData: ConnectionLiveData? = null
     private val disposable = CompositeDisposable()
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
@@ -79,10 +86,9 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         try {
             setContentView(R.layout.activity_main)
-        } catch (e: NoClassDefFoundError) {
+        } catch (e: Exception) {
             dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_device_softare_description),
                     DialogInterface.OnClickListener { dialog, which ->
                         finish()
@@ -134,6 +140,19 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
         observeViewModel(viewModel)
     }
 
+    override fun onStart() {
+        super.onStart()
+        connectionLiveData = ConnectionLiveData(this@MainActivity)
+        connectionLiveData?.observe(this, Observer { connected ->
+            if(!connected!!) {
+                Toast.makeText(this@MainActivity, getString(R.string.error_network_disconnected), Toast.LENGTH_SHORT).show()
+                onRefreshStop()
+            } else {
+                // na-da
+            }
+        })
+    }
+
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START)
@@ -181,8 +200,8 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.navigationItemSearch -> {
-                startActivity(SearchActivity.createStartIntent(this@MainActivity))
                 onRefreshStop()
+                startActivity(SearchActivity.createStartIntent(this@MainActivity))
             }
             R.id.navigationItemSend -> {
                 onRefreshStop()
@@ -212,10 +231,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
         return true
     }
 
-    override fun handleNetworkDisconnect() {
-        toast(getString(R.string.error_no_internet))
-    }
-
     override fun onRefresh() {
         viewModel.getDashboardData()
     }
@@ -226,10 +241,21 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
 
     override fun onDestroy() {
         super.onDestroy()
-        disposable.dispose()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
     }
 
     private fun observeViewModel(viewModel: DashboardViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if(message?.message != null) {
+                dialogUtils.showAlertDialog(this@MainActivity, message.message!!)
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if(message != null)
                 dialogUtils.showAlertDialog(this@MainActivity, message)
@@ -275,91 +301,16 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
     }
 
     private fun createAdvertisementScreen() {
-        // TODO dialog
-        /*showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
-            @Override
-            public void call() {
-                try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
-                } catch (android.content.ActivityNotFoundException ex) {
-                    Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
-                }
-            }
-        }, new Action0() {
-            @Override
-            public void call() {
-                // na-da
-            }
-        });*/
-    }
-
-    private fun updateData() {
-        /*
-        exchangeService.getSpotPrice()
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Update Exchange subscription safely unsubscribed");
+        dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.dialog_edit_advertisements),
+                DialogInterface.OnClickListener { _, _ ->
+                    try {
+                        startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
+                    } catch (ex: ActivityNotFoundException) {
+                        Toast.makeText(this@MainActivity, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
                     }
-                })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<ExchangeRate>() {
-                    @Override
-                    public void call(final ExchangeRate exchange) {
-                        updateSyncMap(SYNC_EXCHANGE_PRICE, false);
-                        if (exchange != null) {
-                            MainActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    setHeaderItem(exchange.getRate(), exchange.getCurrency(), exchange.getDisplay_name());
-                                }
-                            });
-                            dbManager.updateExchange(exchange);
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        updateSyncMap(SYNC_EXCHANGE_PRICE, false);
-                        if(throwable instanceof NetworkConnectionException) {
-                            //onRefreshStop();
-                        } else {
-                            snackError(getString(R.string.error_update_exchange_rate));
-                        }
-                    }
-                });*/
-    }
-
-    private fun subscribeData() {
-        Timber.d("subscribeData")
-        /*dbManager.exchangeQuery()
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Exchange subscription safely unsubscribed");
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<ExchangeRateItem>() {
-                    @Override
-                    public void call(final ExchangeRateItem exchange) {
-                        if (exchange != null) {
-                            MainActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    setHeaderItem(exchange.rate(), exchange.currency(), exchange.exchange());
-                                }
-                            });
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        reportError(throwable);
-                    }
-                });*/
+                }, DialogInterface.OnClickListener { _, _ ->
+            // na-da
+        })
     }
 
     private fun launchPromoScreen() {
@@ -370,39 +321,24 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
     }
 
     private fun setupNavigationView(user: User) {
-        val headerView = navigationView!!.getHeaderView(0)
-        val userName = headerView.findViewById<View>(R.id.userName) as TextView
-        val tradeCount = headerView.findViewById<View>(R.id.userTradeCount) as TextView
-        val feedbackScore = headerView.findViewById<View>(R.id.userTradeFeedback) as TextView
-        userName.text = user.username
-        tradeCount.text = user.confirmedTradeCountText
-        feedbackScore.text = user.feedbackScore
-
-      /*drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
-            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
-            override fun onDrawerOpened(drawerView: View) {
-                BaseActivity.Companion.hideSoftKeyboard(this@MainActivity)
+        try {
+            val headerView = navigationView.getHeaderView(0)
+            if (headerView != null) {
+                //val userName = headerView.findViewById<TextView>(R.id.userName)
+                //val tradeCount = headerView.findViewById<TextView>(R.id.userTradeCount)
+                //val feedbackScore = headerView.findViewById<TextView>(R.id.userTradeFeedback)
+                drawerUserName.text = user.username
+                drawerTradeCount.text = user.confirmedTradeCountText
+                drawerTradeFeedback.text = user.feedbackScore
             }
-            override fun onDrawerClosed(drawerView: View) {}
-            override fun onDrawerStateChanged(newState: Int) {}
-        })*/
+        } catch (e: Exception) {
+            System.out.print(e.message)
+            Timber.d(e.message)
+        }
     }
 
     private fun startSendActivity(bitcoinAddress: String?, bitcoinAmount: String?) {
         startActivity(SendActivity.createStartIntent(this, bitcoinAddress, bitcoinAmount))
-    }
-
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent) {
-       /* else if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
-            if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
-                onRefresh();
-            }
-        } else if (requestCode == AdvertisementActivity.Companion.getREQUEST_CODE()) {
-            if (resultCode == AdvertisementActivity.Companion.RESULT_DELETED()) {
-                onRefresh();
-            }
-        }*/
-        super.onActivityResult(requestCode, resultCode, intent)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -445,13 +381,12 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener,
     }
 
     companion object {
-        private val ADVERTISEMENTS_FRAGMENT = "com.thanksmister.fragment.ADVERTISEMENTS_FRAGMENT"
-        private val CONTACTS_FRAGMENT = "com.thanksmister.fragment.CONTACTS_FRAGMENT"
-        private val NOTIFICATIONS_FRAGMENT = "com.thanksmister.fragment.NOTIFICATIONS_FRAGMENT"
+        const val ADVERTISEMENTS_FRAGMENT = "com.thanksmister.fragment.ADVERTISEMENTS_FRAGMENT"
+        const val CONTACTS_FRAGMENT = "com.thanksmister.fragment.CONTACTS_FRAGMENT"
+        const val NOTIFICATIONS_FRAGMENT = "com.thanksmister.fragment.NOTIFICATIONS_FRAGMENT"
         const val BITCOIN_URI = "com.thanksmister.extra.BITCOIN_URI"
         const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
         const val EXTRA_NOTIFICATION_TYPE = "extra_notification_type"
-        const val REQUEST_SCAN = 49374
         fun createStartIntent(context: Context, bitcoinUri: String): Intent {
             val intent = Intent(context, MainActivity::class.java)
             intent.putExtra(BITCOIN_URI, bitcoinUri)

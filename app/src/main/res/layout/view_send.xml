@@ -89,7 +89,7 @@
                         android:id="@+id/amountText"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:hint="@string/hint_bitcoin"
+                        android:hint="@string/form_bitcoin_amount"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:singleLine="true" />
@@ -131,7 +131,7 @@
                         android:id="@+id/fiatEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_amount"
+                        android:hint="@string/form_fiat_amount"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:singleLine="true" />
@@ -178,17 +178,18 @@
 
     </android.support.v4.widget.NestedScrollView>
 
+    <View
+        style="@style/DividerHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="0" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:padding="16dp"
         android:orientation="vertical">
-
-        <View
-            android:background="?android:attr/dividerHorizontal"
-            android:layout_height="1dp"
-            android:layout_width="match_parent"/>
 
         <Button
             android:id="@+id/sendButton"

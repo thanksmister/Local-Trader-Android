@@ -93,16 +93,17 @@
                 android:visibility="visible">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_action_guides" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_library_books" />
 
                 <TextView
                     style="@style/TextMedium.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left|center_vertical"
-                    android:paddingLeft="8dp"
+                    android:paddingLeft="16dp"
                     android:text="@string/text_getting_started_guides" />
 
             </LinearLayout>
@@ -119,16 +120,17 @@
                 android:visibility="visible">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_action_contact" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_contact_mail" />
 
                 <TextView
                     style="@style/TextMedium.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left|center_vertical"
-                    android:paddingLeft="8dp"
+                    android:paddingLeft="16dp"
                     android:text="@string/text_localbitcoins_support" />
 
             </LinearLayout>
@@ -136,7 +138,7 @@
             <View style="@style/DividerHorizontal" />
 
             <LinearLayout
-                android:id="@+id/sendFeedbackButton"
+                android:id="@+id/projectButton"
                 style="@style/BorderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -145,8 +147,8 @@
                 android:visibility="visible">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:src="@drawable/ic_github"
                     android:tint="@color/gray" />
 
@@ -155,7 +157,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left|center_vertical"
-                    android:paddingLeft="8dp"
+                    android:paddingLeft="16dp"
                     android:text="@string/text_application_feedback" />
 
             </LinearLayout>
@@ -171,67 +173,18 @@
                 android:padding="@dimen/view_padding">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_action_rating" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_rate_review" />
 
                 <TextView
                     style="@style/TextMedium.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left|center_vertical"
-                    android:paddingLeft="8dp"
+                    android:paddingLeft="16dp"
                     android:text="@string/text_rate_application" />
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal" />
-
-            <LinearLayout
-                android:id="@+id/joinCommunityButton"
-                style="@style/BorderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginLeft="8dp"
-                    android:src="@drawable/ic_icon_reddit" />
-
-                <TextView
-                    style="@style/TextMedium.SmallAction"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="left|center_vertical"
-                    android:paddingLeft="8dp"
-                    android:text="@string/text_join_community" />
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal" />
-
-            <LinearLayout
-                android:id="@+id/donateButton"
-                style="@style/BorderlessButtonStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/view_padding">
-
-                <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_donate_bitcoin" />
-
-                <TextView
-                    style="@style/TextMedium.SmallAction"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="left|center_vertical"
-                    android:paddingLeft="8dp"
-                    android:text="@string/text_donate_button" />
 
             </LinearLayout>
 
@@ -246,16 +199,17 @@
                 android:padding="@dimen/view_padding">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_action_license" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_info_outline" />
 
                 <TextView
                     style="@style/TextMedium.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="left|center_vertical"
-                    android:paddingLeft="8dp"
+                    android:paddingLeft="16dp"
                     android:text="@string/text_license_information" />
 
             </LinearLayout>

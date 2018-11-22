@@ -414,6 +414,7 @@ public class Parser {
     }
 
     public static ArrayList<Notification> parseNotifications(String response) {
+        Timber.d("Notification json: " + response);
         JSONObject jsonObject;
         ArrayList<Notification> results = new ArrayList<Notification>();
         try {
@@ -422,10 +423,8 @@ public class Parser {
             Timber.e(e.getMessage());
             return results;
         }
-
         try {
             JSONArray notifications_list = jsonObject.getJSONArray("data");
-
             for (int i = 0; i < notifications_list.length(); i++) {
                 JSONObject notificationObj = notifications_list.getJSONObject(i);
                 Notification notification = parseNotification(notificationObj);
@@ -434,7 +433,6 @@ public class Parser {
         } catch (JSONException e) {
             Timber.e(e.getMessage());
         }
-
         return results;
     }
 
@@ -450,7 +448,7 @@ public class Parser {
                 notification.setAdvertisementId((jsonObject.getInt("advertisement_id")));
             if (jsonObject.has("read")) notification.setRead((jsonObject.getBoolean("read")));
             if (jsonObject.has("msg")) notification.setMessage(jsonObject.getString("msg"));
-            if (jsonObject.has("id")) notification.setNotificationId((jsonObject.getInt("id")));
+            if (jsonObject.has("id")) notification.setNotificationId((jsonObject.getString("id")));
             return notification;
         } catch (JSONException e) {
             Timber.e("Error Parsing Notification: " + e.getMessage());
@@ -701,6 +699,7 @@ public class Parser {
             Map.Entry entry = (Map.Entry) o;
             LinkedTreeMap linkedTreeMap = (LinkedTreeMap) entry.getValue();
             Method method = new Method();
+            method.setKey((String) entry.getKey());
             method.setCode((String) linkedTreeMap.get("code"));
             method.setName((String) linkedTreeMap.get("name"));
             method.setCurrencies((ArrayList<String>) linkedTreeMap.get("currencies"));
@@ -901,9 +900,8 @@ public class Parser {
         return null;
     }
 
-    public static Place parsePlace(String responseString) {
+    /*public static Place parsePlace(String responseString) {
         Place place = new Place();
-
         try {
             JSONObject jsonObject = new JSONObject(responseString);
             JSONObject data = jsonObject.getJSONObject("data");
@@ -918,13 +916,11 @@ public class Parser {
                 place.lat = (placeObject.getString("lat"));
                 return place;
             }
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         return null;
-    }
+    }*/
 
     public static ContactRequest parseContactRequest(String response) {
         ContactRequest contactRequest = new ContactRequest();

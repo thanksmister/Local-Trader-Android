@@ -23,19 +23,14 @@ import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification
 import com.thanksmister.bitcoin.localtrader.utils.Dates
+import kotlinx.android.synthetic.main.adapter_dashboard_notification_list.view.*
+import kotlinx.android.synthetic.main.view_empty_notifications.view.*
 
-import java.util.Date
-
-
-class NotificationAdapter(private val context: Context, private val onItemClickListener: OnItemClickListener) : RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
+class NotificationAdapter(private val context: Context, private val onItemClickListener: OnItemClickListener): RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
 
     private var items = emptyList<Notification>()
 
@@ -49,13 +44,9 @@ class NotificationAdapter(private val context: Context, private val onItemClickL
         notifyDataSetChanged()
     }
 
-    // Create new views (invoked by the layout manager)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationAdapter.ViewHolder {
         val itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false)
-        if (viewType == TYPE_ITEM) {
-            return ItemViewHolder(itemLayoutView)
-        }
-        return EmptyViewHolder(itemLayoutView)
+        return ViewHolder(itemLayoutView)
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -69,56 +60,51 @@ class NotificationAdapter(private val context: Context, private val onItemClickL
         return if (items.isNotEmpty()) items.size else 1
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
-    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        if (viewHolder is ItemViewHolder) {
-            val item = items[position]
-            viewHolder.messageBody!!.text = item.message!!.trim { it <= ' ' }
-            viewHolder.contactId!!.visibility = View.VISIBLE
-            if (item.contactId != null) {
-                viewHolder.contactId!!.text = context.getString(R.string.text_item_contact_num, item.contactId.toString())
-            } else if (item.advertisementId != null) {
-                viewHolder.contactId!!.text = context.getString(R.string.text_item_advertisement_number, item.advertisementId.toString())
-            } else {
-                viewHolder.contactId!!.visibility = View.GONE
-            }
-            val date = Dates.parseLocalDateISO(item.createdAt)
-            viewHolder.createdAt!!.text = DateUtils.getRelativeTimeSpanString(date.time)
-            if (item.read) {
-                viewHolder.icon!!.setImageResource(R.drawable.ic_action_notification)
-            } else {
-                viewHolder.icon!!.setImageResource(R.drawable.ic_action_notification_new)
-            }
-        }
-    }
-
     fun getItemAt(position: Int): Notification? {
         return if (!items.isEmpty() && items.size > position) {
             items[position]
         } else null
     }
 
-    open class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-
-    inner class ItemViewHolder internal constructor(itemView: View) : ViewHolder(itemView) {
-        var messageBody: TextView? = null
-        var icon: ImageView? = null
-        var contactId: TextView? = null
-        var createdAt: TextView? = null
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+        if(items.isEmpty()) {
+            viewHolder.bindEmpty(onItemClickListener)
+        } else {
+            viewHolder.bindItems(items[position])
+        }
     }
 
-    // TODO kotlin replacement
-    inner class EmptyViewHolder(itemView: View) : ViewHolder(itemView) {
-        fun advertiseButtonClicked() {
-            onItemClickListener.onAdvertiseButtonClicked()
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bindItems(item: Notification) {
+            itemView.notificationsMessageBody.text = item.message!!.trim { it <= ' ' }
+            itemView.notificationsContactId.visibility = View.VISIBLE
+            if (item.contactId != null) {
+                itemView.notificationsContactId.text = itemView.context.getString(R.string.text_item_contact_num, item.contactId.toString())
+            } else if (item.advertisementId != null) {
+                itemView.notificationsContactId.text = itemView.context.getString(R.string.text_item_advertisement_number, item.advertisementId.toString())
+            } else {
+                itemView.notificationsContactId.visibility = View.GONE
+            }
+            val date = Dates.parseLocalDateISO(item.createdAt)
+            itemView.notificationsCreatedAt.text = DateUtils.getRelativeTimeSpanString(date.time)
+            if (item.read) {
+                itemView.notificationsItemIcon.setImageResource(R.drawable.ic_action_notification)
+            } else {
+                itemView.notificationsItemIcon.setImageResource(R.drawable.ic_action_notification_new)
+            }
         }
-        fun searchButtonClicked() {
-            onItemClickListener.onSearchButtonClicked()
+        fun bindEmpty(onItemClickListener: OnItemClickListener) {
+            itemView.notificationsAdvertiseButton.setOnClickListener {
+                onItemClickListener.onAdvertiseButtonClicked()
+            }
+            itemView.notificationsSearchButton.setOnClickListener {
+                onItemClickListener.onSearchButtonClicked()
+            }
         }
     }
 
     companion object {
-        private val TYPE_EMPTY = R.layout.view_empty_dashboard
-        private val TYPE_ITEM = R.layout.adapter_dashboard_notification_list
+        const val TYPE_EMPTY = R.layout.view_empty_notifications
+        const val TYPE_ITEM = R.layout.adapter_dashboard_notification_list
     }
 }

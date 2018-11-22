@@ -27,7 +27,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.*
  * The Room database
  */
 @Database(entities = arrayOf(Advertisement::class, Contact::class, Wallet::class, Notification::class,
-        Method::class, User::class, Currency::class, Message::class, ExchangeRate::class), version = 3, exportSchema = false)
+        Method::class, User::class, Currency::class, Message::class, ExchangeRate::class), version = 6, exportSchema = false)
 
 @TypeConverters(AdvertisementConverter::class, BuyerConverter::class, TotalConverter::class, TransactionConverter::class,
         SellerConverter::class, AccountDetailsConverter::class, ProfileConverter::class, ActionsConverter::class,

@@ -38,7 +38,7 @@
                 android:text="LocalBitcoins"/>
 
         <TextView
-                android:id="@+id/userName"
+                android:id="@+id/drawerUserName"
                 style="@style/TextLarge.White"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
                     android:layout_gravity="right|center_vertical"/>
 
             <TextView
-                    android:id="@+id/userTradeFeedback"
+                    android:id="@+id/drawerTradeFeedback"
                     style="@style/TextMedium.Secondary"
                     android:textColor="@color/white"
                     android:layout_width="wrap_content"
@@ -87,7 +87,7 @@
                     android:layout_gravity="right|center_vertical"/>
 
             <TextView
-                    android:id="@+id/userTradeCount"
+                    android:id="@+id/drawerTradeCount"
                     style="@style/TextMedium.Secondary"
                     android:textColor="@color/white"
                     android:layout_width="wrap_content"

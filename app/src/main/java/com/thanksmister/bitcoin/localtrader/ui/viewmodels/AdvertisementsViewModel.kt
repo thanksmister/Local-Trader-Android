@@ -20,49 +20,57 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import com.thanksmister.bitcoin.localtrader.BaseApplication
+import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
+import com.thanksmister.bitcoin.localtrader.architecture.MessageData
+import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
 import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
+import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
+import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
+import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.AdvertisementsDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
+import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import javax.inject.Inject
 
 class AdvertisementsViewModel @Inject
 constructor(application: Application, private val advertisementsDao: AdvertisementsDao, private val methodsDao: MethodsDao,
-            private val preferences: Preferences) : AndroidViewModel(application) {
+            private val preferences: Preferences) : BaseViewModel(application) {
 
-    private val toastText = ToastMessage()
-    private val alertText = AlertMessage()
-    private val adId = MutableLiveData<Int>()
+    private val advertisementDeleted = MutableLiveData<Boolean>()
+    private val advertisementUpdated = MutableLiveData<Boolean>()
     private val advertisement = MutableLiveData<Advertisement>()
-    private val disposable = CompositeDisposable()
+    private var fetcher: LocalBitcoinsFetcher? = null
 
-
-    fun getToastMessage(): ToastMessage {
-        return toastText
+    fun getAdvertisementUpdated(): LiveData<Boolean> {
+        return advertisementUpdated
     }
 
-    fun getAlertMessage(): AlertMessage {
-        return alertText
+    private fun setAdvertisementUpdated(value: Boolean) {
+        this.advertisementUpdated.value = value
     }
 
-    fun getAdId(): LiveData<Int> {
-        return adId
+    fun getAdvertisementDeleted (): LiveData<Boolean> {
+        return advertisementDeleted
     }
 
-    private fun setAdId(value: Int) {
-        this.adId.value = value
+    private fun setAdvertisementDeleted (value: Boolean) {
+        this.advertisementDeleted.value = value
     }
 
     fun getAdvertisement(): LiveData<Advertisement> {
@@ -73,96 +81,164 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
         this.advertisement.value = value
     }
 
+    inner class AdvertisementsData {
+        var advertisements = emptyList<Advertisement>()
+        var methods = emptyList<Method>()
+    }
+
+    inner class AdvertisementData {
+        var advertisement = Advertisement()
+        var method = Method()
+    }
+
+    inner class AdvertiserData {
+        var advertisement = Advertisement()
+        var method = Method()
+    }
+
     init {
+        setAdvertisementUpdated(false)
+        setAdvertisementDeleted(false)
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 
-    public override fun onCleared() {
-        Timber.d("onCleared")
-        //prevents memory leaks by disposing pending observable objects
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+    fun getAdvertisementData(adId: Int): Flowable<AdvertisementData> {
+        Timber.d("getAdvertisementData $adId")
+        return Flowable.combineLatest(getAdvertisement(adId), getMethods(),
+                BiFunction { advertisement, methods  ->
+                    val data = AdvertisementData()
+                    data.advertisement = advertisement
+                    val method = TradeUtils.getMethodForAdvertisement(advertisement, methods)
+                    if (method != null) {
+                        data.method = method
+                    }
+                    data
+                })
     }
 
-    private fun showAlertMessage(message: String?) {
-        Timber.d("showAlertMessage")
-        alertText.value = message
-    }
-
-    private fun showToastMessage(message: String?) {
-        Timber.d("showToastMessage")
-        toastText.value = message
-    }
-
-    /**
-     * Get the item.
-     * @return a [Flowable] that will emit every time the item have been updated.
-     */
-    fun getAdvertisement(adId: Int):Flowable<Advertisement> {
+    private fun getAdvertisement(adId: Int):Flowable<Advertisement> {
         return advertisementsDao.getItemById(adId)
     }
 
-    fun getMethods(): Flowable<List<Method>> {
+    private fun getMethods(): Flowable<List<Method>> {
         return methodsDao.getItems()
     }
 
-    /**
-     * Get the item.
-     * @return a [Flowable] that will emit every time the item have been updated.
-     */
-    fun getAdvertisments(): Flowable<List<Advertisement>> {
+    fun getAdvertisementsData(): Flowable<AdvertisementsData> {
+        return Flowable.combineLatest(getAdvertisements(), getMethods(),
+                BiFunction { advertisements, methods  ->
+                    val data = AdvertisementsData()
+                    data.advertisements = advertisements
+                    data.methods = methods
+                    data
+                })
+    }
+
+    private fun getAdvertisements(): Flowable<List<Advertisement>> {
         return advertisementsDao.getItems()
                 .filter {items -> items.isNotEmpty()}
     }
 
-    fun fetchAdvertisment(adId: Int) {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable.add(fetcher.getAdvertisement(adId)
+    fun fetchAdvertisement(adId: Int) {
+        Timber.d("fetchAdvertisement $adId")
+        disposable.add(fetcher!!.getAdvertisement(adId)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    insertAdvertisement(it)
+                    if(!it.isEmpty()) {
+                        insertAdvertisement(it[0])
+                    }
                 }, {
                     error -> Timber.e("Error" + error.message)
-                    showAlertMessage(error.message)
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(error.message)
+                    }
                 }))
     }
 
-    fun fetchAdvertisments() {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable.add(fetcher.advertisements
+    fun fetchAdvertiser(adId: Int): Observable<AdvertiserData> {
+        return Observable.combineLatest(fetcher!!.getAdvertisement(adId), getMethods().toObservable(),
+                BiFunction { advertisements, methods  ->
+                    val data = AdvertiserData()
+                    if(!advertisements.isEmpty()) {
+                        val advertisement = advertisements[0]
+                        data.advertisement = advertisement
+                        val method = TradeUtils.getMethodForAdvertisement(advertisement, methods)
+                        if (method != null) {
+                            data.method = method
+                        }
+                    }
+                    data
+                })
+    }
+
+    fun deleteAdvertisement(advertisement: Advertisement) {
+        disposable.add(fetcher!!.deleteAdvertisement(advertisement.adId)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    insertAdvertisements(it)
+                    Timber.d("json: ${it.toString()}")
+                    deleteAdvertisementItem(advertisement)
+                    setAdvertisementDeleted(true)
                 }, {
-                    error -> Timber.e("Error getting user" + error.message)
-                    showAlertMessage(error.message)
+                    error -> Timber.e("Error deleting advertisement  ${error.message}")
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(error.message)
+                    }
                 }))
     }
 
-    private fun insertAdvertisements(items: List<Advertisement>) {
-        disposable.add(Completable.fromAction {
-            advertisementsDao.insertItems(items)
-        }
-                .subscribeOn(Schedulers.io())
+    fun updateAdvertisement(advertisement: Advertisement) {
+        disposable.add(fetcher!!.updateAdvertisement(advertisement)
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                }, { error -> Timber.e("User insert error" + error.message)}))
+                .subscribe ({
+                    Timber.d("json: ${it.toString()}")
+                    insertAdvertisement(advertisement)
+                    // TODO move to view showToastMessage(getApplication<BaseApplication>().getString(R.string.toast_update_visibility))
+                    setAdvertisementDeleted(true)
+                }, {
+                    error -> Timber.e("Error updating advertisement  ${error.message}")
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(error.message)
+                    }
+                }))
     }
 
     private fun insertAdvertisement(item: Advertisement) {
         disposable.add(Completable.fromAction {
                 advertisementsDao.insertItem(item)
             }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("User insert error" + error.message)}))
+    }
+
+    private fun deleteAdvertisementItem(item: Advertisement) {
+        disposable.add(Completable.fromAction {
+            advertisementsDao.deleteItem(item)
+        }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({

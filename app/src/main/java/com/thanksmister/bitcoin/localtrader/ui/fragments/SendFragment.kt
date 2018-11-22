@@ -30,10 +30,7 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.view.*
-import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.PinCodeActivity
@@ -49,6 +46,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.view_request.*
 import kotlinx.android.synthetic.main.view_send.*
 import timber.log.Timber
 import javax.inject.Inject
@@ -63,13 +61,9 @@ class SendFragment : BaseFragment() {
     private val disposable = CompositeDisposable()
     private var address: String? = null
     private var amount: String? = null
-    private var walletData: WalletData? = null
+    private var balance: String? = null
+    private var rate: String? = null
     private var confirming: Boolean = false
-
-    private inner class WalletData {
-        var wallet: Wallet? = null
-        var exchange: ExchangeRate? = null
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,9 +74,8 @@ class SendFragment : BaseFragment() {
             address = savedInstanceState.getString(SendActivity.EXTRA_QR_ADDRESS)
             amount = savedInstanceState.getString(SendActivity.EXTRA_QR_AMOUNT)
         }
+
         setHasOptionsMenu(true)
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
-        observeViewModel(viewModel)
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {
@@ -90,7 +83,7 @@ class SendFragment : BaseFragment() {
             if (message != null && activity != null) {
                 if(confirming) {
                     confirming = false
-                    hideProgressDialog()
+                    dialogUtils.hideProgressDialog()
                 }
                 dialogUtils.showAlertDialog(activity!!, message)
             }
@@ -101,32 +94,30 @@ class SendFragment : BaseFragment() {
             }
         })
         viewModel.getShowProgress().observe(this, Observer { show ->
-            if(show!! && !confirming) {
-                showProgressDialog(getString(R.string.progress_sending_transaction))
+            if(show!! && !confirming && activity != null) {
+                dialogUtils.showAlertDialog(activity!!, getString(R.string.progress_sending_transaction))
             } else if(confirming && activity != null) {
-                hideProgressDialog()
+                dialogUtils.hideProgressDialog()
                 toast(R.string.toast_transaction_success)
                 activity!!.finish()
             }
         })
-        disposable.add(
-                viewModel.getWallet()
-                        .zipWith(viewModel.getExchange(), BiFunction { wallet: Wallet, exchange: ExchangeRate ->
-                            val data = WalletData()
-                            data.wallet = wallet
-                            data.exchange = exchange
-                            data
-                        })
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe( { data ->
-                            if(data != null) {
-                                walletData = data
-                                computeBalance(0.0)
-                            }
-                        }, { error ->
-                            Timber.e(error.message)
-                        }))
+        disposable.add(viewModel.getWalletData()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe( { data ->
+                    Timber.d("wallet updated!!")
+                    Timber.d("data $data")
+                    if (data != null) {
+                        rate = data.rate
+                        balance = data.balance
+                        setWallet()
+                    } else {
+                        computeBalance(0.0)
+                    }
+                }, { error ->
+                    Timber.e(error.message)
+                }))
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -170,6 +161,17 @@ class SendFragment : BaseFragment() {
         return false
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.view_send, container, false)
     }
@@ -177,6 +179,7 @@ class SendFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("onViewCreated")
+
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -191,7 +194,7 @@ class SendFragment : BaseFragment() {
         }
         sendDescription.text = Html.fromHtml(getString(R.string.pin_code_send))
         sendDescription.movementMethod = LinkMovementMethod.getInstance()
-        addressText.setOnTouchListener { arg0, arg1 ->
+        addressText.setOnTouchListener { _, _ ->
             if (TextUtils.isEmpty(addressText.text.toString())) {
                 setAddressFromClipboardTouch()
             }
@@ -224,16 +227,18 @@ class SendFragment : BaseFragment() {
         }
         val currency = preferences.exchangeCurrency
         currencyText.text = currency
+
+        computeBalance(0.0)
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
+        observeViewModel(viewModel)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
+    private fun setWallet() {
+        computeBalance(0.0);
+        if (TextUtils.isEmpty(amountText.text.toString())) {
+            calculateCurrencyAmount("0.00");
+        } else {
+            calculateCurrencyAmount(amountText.text.toString());
         }
     }
 
@@ -378,7 +383,7 @@ class SendFragment : BaseFragment() {
     }
 
     private fun calculateCurrencyAmount(bitcoin: String) {
-        if (walletData == null) return
+
         try {
             if (bitcoin.toDouble() == 0.0) {
                 fiatEditText.setText("")
@@ -391,8 +396,8 @@ class SendFragment : BaseFragment() {
         }
         try {
             computeBalance(bitcoin.toDouble())
-            if(walletData != null && walletData?.exchange != null) {
-                val value = Calculations.computedValueOfBitcoin(walletData!!.exchange!!.rate, bitcoin)
+            if(rate != null) {
+                val value = Calculations.computedValueOfBitcoin(rate, bitcoin)
                 fiatEditText.setText(value)
             }
         } catch (e: Exception) {
@@ -401,21 +406,21 @@ class SendFragment : BaseFragment() {
     }
 
     private fun computeBalance(btcAmount: Double) {
-        if(walletData != null && walletData!!.wallet != null && walletData!!.exchange != null) {
-            val balanceAmount = Conversions.convertToDouble(walletData!!.wallet!!.total.balance)
+        Timber.d("computeBalance")
+        if(balance != null) {
+            val balanceAmount = Conversions.convertToDouble(balance)
             val btcBalance = Conversions.formatBitcoinAmount(balanceAmount - btcAmount)
-            val value = Calculations.computedValueOfBitcoin(walletData!!.exchange!!.rate, walletData!!.wallet!!.total.balance)
-            val currency = preferences.exchangeCurrency
             if (balanceAmount < btcAmount) {
                 balanceText.text = getString(R.string.form_balance_negative, btcBalance)
             } else {
                 balanceText.text = getString(R.string.form_balance_positive, btcBalance)
             }
+        } else {
+            balanceText.text = getString(R.string.form_balance_positive, btcAmount.toString())
         }
     }
 
     private fun calculateBitcoinAmount(fiat: String) {
-        if (walletData == null) return
         try {
             if (Doubles.convertToDouble(fiat) == 0.0) {
                 computeBalance(0.0)
@@ -427,9 +432,8 @@ class SendFragment : BaseFragment() {
             Timber.e(e.message)
             return
         }
-        if(walletData != null && walletData!!.exchange != null) {
-            val exchangeValue = walletData?.exchange!!.rate
-            val btc = Math.abs(Doubles.convertToDouble(fiat) / Doubles.convertToDouble(exchangeValue))
+        if(rate!= null) {
+            val btc = Math.abs(Doubles.convertToDouble(fiat) / Doubles.convertToDouble(rate))
             amount = Conversions.formatBitcoinAmount(btc)
             amountText.setText(amount) // set bitcoin amount
             computeBalance(btc)

@@ -137,6 +137,7 @@ public class RetrofitErrorHandler {
     }
     
     public NetworkException create(Throwable throwable) {
+
         if (throwable instanceof NetworkException) {
             return (NetworkException) throwable;
         } else if (throwable instanceof SocketTimeoutException) {
@@ -212,11 +213,11 @@ public class RetrofitErrorHandler {
 
     // authorization error
     private static boolean isHttp403Error(Throwable throwable) {
-        return (((HttpException) throwable).code() == 403);
+        return (((HttpException) throwable).code() == ExceptionCodes.AUTHENTICATION_ERROR_CODE);
     }
 
     public static boolean isHttp403Error(int code) {
-        return (code == 403);
+        return (code == ExceptionCodes.AUTHENTICATION_ERROR_CODE);
     }
 
     // bad request
@@ -243,15 +244,11 @@ public class RetrofitErrorHandler {
     }
 
     private static boolean isHttp404Error(Throwable throwable) {
-        return (((HttpException) throwable).code() == 404);
+        return (((HttpException) throwable).code() == ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE);
     }
 
     private static boolean isHttp409Error(Throwable throwable) {
         return (((HttpException) throwable).code() == 409);
-    }
-
-    public static boolean isInvalidNonce(int code) {
-        return (code == 42);
     }
 
     private static class ErrorResponse {

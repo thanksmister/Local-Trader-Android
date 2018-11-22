@@ -18,53 +18,69 @@
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
 
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.EditTextPreference
-import android.preference.ListPreference
-import android.preference.Preference
-import android.preference.PreferenceFragment
+import android.support.v7.preference.EditTextPreference
+import android.support.v7.preference.ListPreference
+import android.support.v7.preference.Preference
+import android.support.v7.preference.PreferenceFragmentCompat
 import android.text.TextUtils
 import android.util.Patterns
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ListView
-
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.ui.activities.SettingsActivity
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SettingsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.CurrencyUtils
-
-import java.util.ArrayList
-
+import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
+import dagger.android.support.AndroidSupportInjection
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
+import java.util.*
 import javax.inject.Inject
 
-class SettingsFragment : PreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
+class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
     @Inject
-    lateinit var sharedPreferences: SharedPreferences
-
+    lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject
-    lateinit var preferences: Preferences
+    lateinit var viewModel: SettingsViewModel
 
+    @Inject lateinit var sharedPreferences: SharedPreferences
+    @Inject lateinit var dialogUtils: DialogUtils
+    @Inject lateinit var preferences: Preferences
+
+    private val disposable = CompositeDisposable()
     private var marketCurrencyPreference: ListPreference? = null
     private var exchangePreference: ListPreference? = null
     private var unitsPreference: ListPreference? = null
     private var apiPreference: EditTextPreference? = null
     private var currencyPreference: ListPreference? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onAttach(context: Context) {
+        AndroidSupportInjection.inject(this)
+        super.onAttach(context)
+    }
+
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.preferences)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val resetPreference = findPreference("reset")
         resetPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             logOut()
             true
         }
-
 
         val endpoint = preferences.getServiceEndpoint()
         apiPreference = findPreference(getString(R.string.pref_key_api)) as EditTextPreference
@@ -90,12 +106,26 @@ class SettingsFragment : PreferenceFragment(), SharedPreferences.OnSharedPrefere
         marketCurrencyPreference!!.setDefaultValue("0")
         marketCurrencyPreference!!.entryValues = currencyValues
 
-        currencyPreference = findPreference("currency") as ListPreference
+        currencyPreference = findPreference(getString(R.string.pref_key_exchange_currency)) as ListPreference
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SettingsViewModel::class.java)
+        observeViewModel(viewModel)
+    }
+
+    private fun observeViewModel(viewModel: SettingsViewModel) {
+        disposable.add(
+                viewModel.getCurrencies()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe( { currencies ->
+                            updateCurrencies(currencies)
+                        }, { error ->
+                            Timber.e(error.message)
+                        }))
     }
 
     override fun onResume() {
         super.onResume()
-        subscribeData()
         preferenceScreen.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
     }
 
@@ -106,15 +136,13 @@ class SettingsFragment : PreferenceFragment(), SharedPreferences.OnSharedPrefere
 
     override fun onDestroy() {
         super.onDestroy()
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val v = super.onCreateView(inflater, container, savedInstanceState)
-        if (v != null) {
-            val lv = v.findViewById<View>(android.R.id.list) as ListView
-            lv.setPadding(0, 0, 0, 0)
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
         }
-        return v
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
@@ -129,11 +157,11 @@ class SettingsFragment : PreferenceFragment(), SharedPreferences.OnSharedPrefere
                 marketCurrencyPreference!!.title = "Market currency (" + marketCurrencyPreference!!.entry + ")"
                 preferences.exchangeCurrency = marketCurrency
             }
-        } else if (key == "distance_units") {
+        } else if (key == getString(R.string.pref_key_distance)) {
             val units = unitsPreference!!.value
             unitsPreference!!.title = if (units == "0") "Kilometers (km)" else "Miles (mi)"
         } else if (key == getString(R.string.pref_key_api)) {
-            val endpoint = apiPreference!!.editText.text.toString()
+            val endpoint = apiPreference!!.text.toString()
             val currentEndpoint = preferences.getServiceEndpoint()
             if (TextUtils.isEmpty(endpoint)) {
                 (activity as SettingsActivity).showAlertDialog("The service end point should be a valid URL.")
@@ -148,30 +176,11 @@ class SettingsFragment : PreferenceFragment(), SharedPreferences.OnSharedPrefere
         }
     }
 
-    // TODO move this to model
-
-    private fun subscribeData() {
-        /* db.currencyQuery()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<CurrencyItem>>() {
-                    @Override
-                    public void call(List<CurrencyItem> currencyItems) {
-                        List<ExchangeCurrency> exchangeCurrencies = new ArrayList<ExchangeCurrency>();
-                        exchangeCurrencies = ExchangeCurrencyItem.getCurrencies(currencyItems);
-                        updateCurrencies(exchangeCurrencies);
-                    }
-                });*/
-    }
-
     private fun updateCurrencies(currencies: List<Currency>) {
-
         val currenciesSorted = CurrencyUtils.sortCurrencies(currencies)
-
         val currencyList = ArrayList<String>()
         val currencyValues = ArrayList<String>()
         val exchangeCurrency = preferences.exchangeCurrency
-
         if (currenciesSorted.isEmpty()) {
             val exchangeRate = Currency()
             exchangeRate.code = getString(R.string.usd)
@@ -193,11 +202,9 @@ class SettingsFragment : PreferenceFragment(), SharedPreferences.OnSharedPrefere
 
         var stringExchanges = arrayOfNulls<String>(currencyList.size)
         stringExchanges = currencyList.toTypedArray<String?>()
-
         var stringValues = arrayOfNulls<String>(currencyValues.size)
         stringValues = currencyValues.toTypedArray<String?>()
 
-        //preferences.clearExchangeExpireTime();
         marketCurrencyPreference!!.entries = stringExchanges
         marketCurrencyPreference!!.setDefaultValue("0")
         marketCurrencyPreference!!.entryValues = stringValues

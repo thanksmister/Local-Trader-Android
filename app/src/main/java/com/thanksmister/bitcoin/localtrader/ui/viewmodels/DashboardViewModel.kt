@@ -19,12 +19,15 @@ package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
+import com.thanksmister.bitcoin.localtrader.architecture.MessageData
+import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
 import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
+import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
@@ -40,45 +43,20 @@ import javax.inject.Inject
 class DashboardViewModel @Inject
 constructor(application: Application, private val advertisementsDao: AdvertisementsDao,  private val contactsDao: ContactsDao,
             private val notificationsDao: NotificationsDao, private val methodsDao: MethodsDao, private val exchangeRateDao: ExchangeRateDao,
-            private val userDao: UserDao, private val preferences: Preferences) : AndroidViewModel(application) {
+            private val userDao: UserDao, private val preferences: Preferences) : BaseViewModel(application) {
 
-    private val toastText = ToastMessage()
-    private val alertText = AlertMessage()
-    private val disposable = CompositeDisposable()
-
-    fun getToastMessage(): ToastMessage {
-        return toastText
-    }
-
-    fun getAlertMessage(): AlertMessage {
-        return alertText
-    }
+    private var fetcher: LocalBitcoinsFetcher? = null
 
     init {
-    }
-
-    public override fun onCleared() {
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
-    }
-
-    private fun showAlertMessage(message: String?) {
-        alertText.value = message
-    }
-
-    private fun showToastMessage(message: String?) {
-        toastText.value = message
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 
     fun getDashboardData() {
-        //fetchContacts()
-        //fetchNotifications()
-        //fetchAdvertisements()
+        fetchContacts()
+        fetchNotifications()
+        fetchAdvertisements()
         fetchExchange()
     }
 
@@ -94,25 +72,6 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                 .map { items -> items[0] }
     }
 
-    fun getMethods(): Flowable<List<Method>> {
-        return methodsDao.getItems()
-    }
-
-    fun getAdvertisements(): Flowable<List<Advertisement>> {
-        return advertisementsDao.getItems()
-                .filter {items -> items.isNotEmpty()}
-    }
-
-    fun getContacts(): Flowable<List<Contact>> {
-        return contactsDao.getItems()
-                .filter {items -> items.isNotEmpty()}
-    }
-
-    fun getNotifications(): Flowable<List<Notification>> {
-        return notificationsDao.getItems()
-                .filter {items -> items.isNotEmpty()}
-    }
-
     private fun fetchExchange() {
         Timber.d("fetchExchange")
         val api = ExchangeApi(preferences)
@@ -124,18 +83,12 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     insertExchange(it)
                 }, {
                     error -> Timber.e("Error fetching exchange ${error.message}")
-                    if(error is NetworkException) {
-
-                    }
                     showAlertMessage(error.message)
                 }))
     }
 
     private fun fetchContacts() {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable.add(fetcher.contacts
+        disposable.add(fetcher!!.contacts
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -144,18 +97,18 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     error -> Timber.e("Error fetching contacts ${error.message}")
                     if(error is NetworkException) {
                         if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            // TODO we have authentication error
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
                         }
+                    } else {
+                        showAlertMessage(error.message)
                     }
-                    showAlertMessage(error.message)
                 }))
     }
 
     private fun fetchAdvertisements() {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable.add(fetcher.advertisements
+        disposable.add(fetcher!!.advertisements
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -164,30 +117,36 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     error -> Timber.e("Error fetching advertisement ${error.message}")
                     if(error is NetworkException) {
                         if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            // TODO we have authentication error
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
                         }
+                    } else {
+                        showAlertMessage(error.message)
                     }
-                    showAlertMessage(error.message)
                 }))
     }
 
     private fun fetchNotifications() {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable.add(fetcher.notifications
+        disposable.add(fetcher!!.notifications
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    insertNotifications(it)
+                    if(it != null) {
+                        Timber.d("Notifications: ${it}")
+                        insertNotifications(it)
+                    }
                 }, {
                     error -> Timber.e("Error fetching notification ${error.message}")
                     if(error is NetworkException) {
                         if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            // TODO we have authentication error
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
                         }
+                    } else {
+                        showAlertMessage(error.message)
                     }
-                    showAlertMessage(error.message)
                 }))
     }
 

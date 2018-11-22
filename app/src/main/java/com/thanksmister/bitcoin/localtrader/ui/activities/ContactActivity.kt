@@ -42,13 +42,14 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Message
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter
-import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactViewModel
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.Dates
 import com.thanksmister.bitcoin.localtrader.utils.Strings
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_contact.*
 import timber.log.Timber
@@ -59,7 +60,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject
-    lateinit var viewModel: ContactViewModel
+    lateinit var viewModel: ContactsViewModel
 
     private val disposable = CompositeDisposable()
 
@@ -132,7 +133,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
         if (supportActionBar != null) {
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            supportActionBar!!.setTitle("")
+            supportActionBar!!.title = ""
         }
 
         contactSwipeLayout.setOnRefreshListener(this)
@@ -218,7 +219,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             })
         }
 
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactsViewModel::class.java)
         observeViewModel(viewModel)
     }
 
@@ -226,12 +227,17 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         super.onResume()
         onRefreshStart()
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-        updateData()
-        updateContact()
     }
 
-    public override fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
         unregisterReceiver(receiver)
     }
 
@@ -277,7 +283,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         return true
     }
 
-    private fun observeViewModel(viewModel: ContactViewModel) {
+    private fun observeViewModel(viewModel: ContactsViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
                 dialogUtils.showAlertDialog(this@ContactActivity, message)
@@ -286,7 +292,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.getToastMessage().observe(this, Observer { message ->
             Toast.makeText(this@ContactActivity, message, Toast.LENGTH_LONG).show()
         })
-        viewModel.fetchContact(contactId)
         disposable.add(viewModel.getContact(contactId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -296,10 +301,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                        setTitle(data)
                        setContact(data)
                        showOnlineOptions(data)
-                       /*List<MessageItem> messageItems = MessageItem.getModelList(cursor);
-                       if (!messageItems.isEmpty()) {
-                           getAdapter().replaceWith(messageItems);
-                       }*/
                        contactList.visibility = View.VISIBLE
                    }
                 }, { error ->
@@ -315,6 +316,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                         Crashlytics.logException(error)
                     }
                 }))
+        updateData()
     }
 
     private fun setMenuOptions(contact: Contact?) {
@@ -330,15 +332,10 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     override fun onRefresh() {
-        updateContact()
+        updateData()
     }
 
-    public override fun handleRefresh() {
-        onRefreshStart()
-        updateContact()
-    }
-
-    override fun handleNetworkDisconnect() {
+    private fun handleNetworkDisconnect() {
         onRefreshStop()
         Toast.makeText(this@ContactActivity, getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show()
     }
@@ -358,45 +355,30 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         } else if (resultCode == PinCodeActivity.RESULT_CANCELED) {
             toast(R.string.toast_pin_code_canceled)
         } else if (resultCode == MessageActivity.RESULT_MESSAGE_SENT) {
-            updateContact()
+            updateData()
         } else if (resultCode == MessageActivity.RESULT_MESSAGE_CANCELED) {
             toast(getString(R.string.toast_message_canceled))
         }
     }
 
-    private fun updateContact() {
-
+    private fun updateData() {
         toast(getString(R.string.toast_refreshing_data))
-
-        /*dataService.getContactInfo(contactId)
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Update contact subscription safely unsubscribed");
-                    }
-                })
+        viewModel.fetchContact(contactId)
+        disposable.add(viewModel.fetchMessages(contactId)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Contact>() {
-                    @Override
-                    public void call(Contact contact) {
-                        if (contact != null) {
-                            final int messageCount = contact.messages.size();
-                            dbManager.updateContact(contact, messageCount, false);
-                            dbManager.updateMessages(contact.contact_id, contact.messages);
+                .subscribe( { data ->
+                    if(data != null) {
+                        if (!data.isEmpty() && adapter != null) {
+                            adapter!!.replaceWith(data)
                         }
-                        onRefreshStop();
                     }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        handleError(throwable, true);
-                        onRefreshStop();
-                    }
-                });*/
+                }, { error ->
+                    Timber.e("Messages error: $error")
+                }))
     }
 
-    private fun updateData() {
+    private fun whatTheHeck() {
         /*dbManager.notificationsQuery()
                 .doOnUnsubscribe(new Action0() {
                     @Override
@@ -447,10 +429,9 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                 });*/
     }
 
-    fun setContact(contact: Contact) {
+    private fun setContact(contact: Contact) {
 
         this.contact = contact
-
         val date = Dates.parseLocalDateStringAbbreviatedTime(contact.createdAt)
         val amount = contact.amount + " " + contact.currency
         var type = ""
@@ -463,6 +444,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                 paymentMethod = paymentMethod.replace("_", " ")
                 type = if (contact.isBuying) getString(R.string.contact_list_buying_online, amount, paymentMethod, date) else getString(R.string.contact_list_selling_online, amount, paymentMethod, date)
             }
+            TradeType.NONE -> TODO()
         }
 
         tradeType!!.text = Html.fromHtml(type)
@@ -557,10 +539,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         }
     }
 
-    private fun getAdapter(): MessageAdapter? {
-        return adapter
-    }
-
     private fun setAdapter(adapter: MessageAdapter) {
         contactList.adapter = adapter
     }
@@ -600,7 +578,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         } catch (exception: ActivityNotFoundException) {
             showAlertDialog(getString(R.string.toast_error_no_installed_ativity))
         }
-
     }
 
     private fun disputeContact() {
@@ -646,16 +623,13 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun createAlert(title: String, message: String, contactId: Int, pinCode: String?, action: ContactAction) {
-
         // TODO dialogutils
-
         /*ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
             @Override
             public void call() {
                 contactAction(contactId, pinCode, action);
             }
         });
-
         showConfirmationDialog(event);*/
     }
 
@@ -734,7 +708,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             } catch (e: ActivityNotFoundException) {
                 showAlertDialog(getString(R.string.toast_error_no_installed_ativity))
             }
-
         }
     }
 

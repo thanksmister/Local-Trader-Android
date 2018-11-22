@@ -31,8 +31,8 @@ class Advertisement {
     @NonNull
     var adId: Int = 0
 
-    @SerializedName("createdAt")
-    @ColumnInfo(name = "created_at")
+    @SerializedName("created_at")
+    @ColumnInfo(name = "createdAt")
     var createdAt: String? = null
 
     @SerializedName("visible")
@@ -44,8 +44,12 @@ class Advertisement {
     var email: String? = null
 
     @ColumnInfo(name = "locationString")
-    @SerializedName("locationString")
+    @SerializedName("location_string")
     var location: String? = null
+
+    @ColumnInfo(name = "limitToFiatAmount")
+    @SerializedName("limit_to_fiat_amounts")
+    var limitToFiatAmount: String? = null
 
     @ColumnInfo(name = "countryCode")
     @SerializedName("countrycode")

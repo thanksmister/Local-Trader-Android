@@ -20,6 +20,8 @@ import android.arch.persistence.room.Entity
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
+import timber.log.Timber
 
 @Entity
 class Transaction() : Parcelable {
@@ -53,6 +55,10 @@ class Transaction() : Parcelable {
              return TransactionType.INTERNAL
          } else if (description != null && description!!.toLowerCase().contains("reserve")) {
              return TransactionType.SENT
+         } else if (description != null && description!!.toLowerCase().contains("payout")) {
+             return TransactionType.AFFILIATE
+         } else if (description != null && WalletUtils.validBitcoinAddress(description)) {
+             return TransactionType.RECEIVED
          }
          return TransactionType.SENT
      }

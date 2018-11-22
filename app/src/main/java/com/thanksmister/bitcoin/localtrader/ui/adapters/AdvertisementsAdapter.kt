@@ -23,15 +23,16 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.utils.Dates
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
+import kotlinx.android.synthetic.main.adapter_advertisement_list.view.*
+import kotlinx.android.synthetic.main.adapter_dashboard_advertisement_list.view.*
+import kotlinx.android.synthetic.main.view_empty_advertisement.view.*
+import timber.log.Timber
 
 class AdvertisementsAdapter(private val context: Context, private val onItemClickListener: OnItemClickListener) : RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder>() {
 
@@ -49,14 +50,9 @@ class AdvertisementsAdapter(private val context: Context, private val onItemClic
         notifyDataSetChanged()
     }
 
-    // Create new views (invoked by the layout manager)
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdvertisementsAdapter.ViewHolder {
-        // create a new view
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false)
-        if (viewType == TYPE_ITEM) {
-            return AdvertisementViewHolder(itemLayoutView)
-        }
-        return EmptyViewHolder(itemLayoutView)
+        return ViewHolder(itemLayoutView)
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -70,52 +66,67 @@ class AdvertisementsAdapter(private val context: Context, private val onItemClic
         return if (items.isNotEmpty()) items.size else 1
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        if (viewHolder is AdvertisementViewHolder) {
-            val advertisement = items[position]
+        if(items.isEmpty()) {
+            viewHolder.bindEmpty(onItemClickListener)
+        } else {
+            viewHolder.bindItems(items[position], methods)
+        }
+    }
+
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bindItems(advertisement: Advertisement, methods: List<Method>) {
             val tradeType = TradeType.valueOf(advertisement.tradeType)
-            var type = ""
-            when (tradeType) {
-                TradeType.LOCAL_BUY -> type = context.getString(R.string.text_advertisement_item_local_buy)
-                TradeType.LOCAL_SELL -> type = context.getString(R.string.text_advertisement_item_local_sale)
-                TradeType.ONLINE_BUY -> type = context.getString(R.string.text_advertisement_item_online_buy)
-                TradeType.ONLINE_SELL -> type = context.getString(R.string.text_advertisement_item_online_sale)
+            val type = when (tradeType) {
+                TradeType.LOCAL_BUY -> itemView.context.getString(R.string.text_advertisement_item_local_buy)
+                TradeType.LOCAL_SELL -> itemView.context.getString(R.string.text_advertisement_item_local_sale)
+                TradeType.ONLINE_BUY -> itemView.context.getString(R.string.text_advertisement_item_online_buy)
+                TradeType.ONLINE_SELL -> itemView.context.getString(R.string.text_advertisement_item_online_sale)
                 TradeType.NONE -> TODO()
             }
-
             val price = advertisement.tempPrice + " " + advertisement.currency
             val location = advertisement.location
             if (TradeType.LOCAL_SELL == tradeType || TradeType.LOCAL_BUY == tradeType) {
                 if (TradeUtils.isAtm(advertisement)) {
-                    viewHolder.advertisementType!!.text = context.getString(R.string.text_atm)
+                    itemView.advertisementsType!!.text = itemView.context.getString(R.string.text_atm)
                 } else {
-                    viewHolder.advertisementType!!.text = "$type $price"
-                    viewHolder.advertisementDetails!!.text = context.getString(R.string.text_in_caps, location)
+                    itemView.advertisementsType.text = "$type $price"
+                    itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_in_caps, location)
                 }
-
             } else {
-
                 val adLocation = if (TradeUtils.isOnlineTrade(advertisement)) advertisement.location else advertisement.city
-                val paymentMethod = TradeUtils.getPaymentMethodFromItems(context, advertisement, methods)
+                Timber.d("Ad location $adLocation")
+                val paymentMethod = TradeUtils.getPaymentMethod(itemView.context, advertisement, methods)
+                Timber.d("Payment onlineProvider ${advertisement.onlineProvider}")
+                Timber.d("Payment method $paymentMethod")
                 if (TextUtils.isEmpty(paymentMethod)) {
-                    viewHolder.advertisementDetails!!.text = context.getString(R.string.text_in_caps, adLocation)
+                    itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_in_caps, adLocation)
                 } else {
-                    viewHolder.advertisementDetails!!.text = context.getString(R.string.text_with_int, paymentMethod, adLocation)
+                    itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_with_int, paymentMethod, adLocation)
                 }
-
-                viewHolder.advertisementType!!.text = "$type $price"
+                itemView.advertisementsType.text = "$type $price"
             }
 
             if (advertisement.visible) {
-                viewHolder.icon!!.setImageResource(R.drawable.ic_action_visibility_dark)
+                itemView.advertisementsIcon.setImageResource(R.drawable.ic_action_visibility_dark)
             } else {
-                viewHolder.icon!!.setImageResource(R.drawable.ic_action_visibility_off_dark)
+                itemView.advertisementsIcon.setImageResource(R.drawable.ic_action_visibility_off_dark)
             }
 
-            val date = Dates.parseLocaleDate(advertisement.createdAt)
-            viewHolder.advertisementId!!.setText(advertisement.adId)
-            viewHolder.advertisementDate!!.text = date
+            if(advertisement.createdAt != null) {
+                val date = Dates.parseLocaleDate(advertisement.createdAt)
+                itemView.advertisementsDate.text = date
+            }
+            itemView.advertisementsId.text = advertisement.adId.toString()
+        }
+
+        fun bindEmpty(onItemClickListener: OnItemClickListener) {
+            itemView.advertisementsAdvertiseButton.setOnClickListener {
+                onItemClickListener.onAdvertiseButtonClicked()
+            }
+            itemView.advertisementsSearchButton.setOnClickListener {
+                onItemClickListener.onSearchButtonClicked()
+            }
         }
     }
 
@@ -125,30 +136,8 @@ class AdvertisementsAdapter(private val context: Context, private val onItemClic
         } else null
     }
 
-    open class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-
-    inner class AdvertisementViewHolder(itemView: View) : ViewHolder(itemView) {
-        var row: View? = null
-        var advertisementType: TextView? = null
-        var icon: ImageView? = null
-        var advertisementDetails: TextView? = null
-        var advertisementId: TextView? = null
-        var advertisementDate: TextView? = null
-    }
-
-    // TODO kotlin replacement
-    inner class EmptyViewHolder(itemView: View) : ViewHolder(itemView) {
-        fun advertiseButtonClicked() {
-            onItemClickListener.onAdvertiseButtonClicked()
-        }
-        fun searchButtonClicked() {
-            onItemClickListener.onSearchButtonClicked()
-        }
-    }
-
     companion object {
-        private val TYPE_EMPTY = R.layout.view_empty_dashboard
-        private val TYPE_ITEM = R.layout.adapter_dashboard_advertisement_list
+        const val TYPE_EMPTY = R.layout.view_empty_advertisement
+        const val TYPE_ITEM = R.layout.adapter_dashboard_advertisement_list
     }
 }
-

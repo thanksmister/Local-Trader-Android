@@ -44,6 +44,9 @@ interface NotificationsDao {
     @Query("SELECT * FROM Notifications ORDER BY createdAt DESC")
     fun getItems(): Flowable<List<Notification>>
 
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    fun updateItem(item: Notification)
+
     /**
      * Insert an item in the database. If the item already exists, replace it.
      * @param item the item to be inserted.

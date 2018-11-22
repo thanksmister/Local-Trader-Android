@@ -25,15 +25,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Notifications {
-    
+
     @SerializedName("data")
     @Expose
     public List<Notification> items = new ArrayList<Notification>();
-    
+
     public Notifications(@NonNull final List<Notification> items) {
         this.items = items;
     }
-    
+
     public List<Notification> getItems() {
         if(items == null) {
             items = new ArrayList<>();

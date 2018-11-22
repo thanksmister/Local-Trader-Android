@@ -36,20 +36,9 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class LoginViewModel @Inject
-constructor(application: Application, private val userDao: UserDao, private val preferences: Preferences) : AndroidViewModel(application) {
+constructor(application: Application, private val userDao: UserDao, private val preferences: Preferences) : BaseViewModel(application) {
 
-    private val toastText = ToastMessage()
-    private val alertText = AlertMessage()
     private val authorized = MutableLiveData<Boolean>()
-    private val disposable = CompositeDisposable()
-
-    fun getToastMessage(): ToastMessage {
-        return toastText
-    }
-
-    fun getAlertMessage(): AlertMessage {
-        return alertText
-    }
 
     fun getAuthorized(): LiveData<Boolean> {
         return authorized
@@ -61,28 +50,6 @@ constructor(application: Application, private val userDao: UserDao, private val 
 
     init {
         setAuthorized(false)
-    }
-
-    public override fun onCleared() {
-        Timber.d("onCleared")
-        //prevents memory leaks by disposing pending observable objects
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
-    }
-
-    private fun showAlertMessage(message: String?) {
-        Timber.d("showAlertMessage")
-        alertText.value = message
-    }
-
-    private fun showToastMessage(message: String?) {
-        Timber.d("showToastMessage")
-        toastText.value = message
     }
 
     fun setAuthorizationCode(code: String, endpoint: String) {

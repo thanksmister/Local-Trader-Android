@@ -88,32 +88,32 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
     }
 
     fun releaseContactPinCode(accessToken: String, contactId: String, pinCode: String): Observable<JsonElement> {
-        return service.releaseContactPinCode(accessToken, contactId, pinCode)
+        return service.releaseContactPinCode(contactId, accessToken, pinCode)
     }
 
     fun contactCancel(accessToken: String, contactId: String): Observable<JsonElement> {
-        return service.contactCancel(accessToken, contactId)
+        return service.contactCancel(contactId, accessToken)
     }
 
     fun contactDispute(accessToken: String, contactId: String): Observable<JsonElement> {
-        return service.contactDispute(accessToken, contactId)
+        return service.contactDispute(contactId, accessToken)
     }
 
     fun markAsPaid(accessToken: String, contactId: String): Observable<JsonElement> {
-        return service.markAsPaid(accessToken, contactId)
+        return service.markAsPaid(contactId, accessToken)
     }
 
     fun contactFund(accessToken: String, contactId: String): Observable<JsonElement> {
-        return service.contactFund(accessToken, contactId)
+        return service.contactFund(contactId, accessToken)
     }
 
-    fun updateAdvertisement(accessToken: String, s: String, account_info: String, bank_name: String, city: String, country_code: String,
-                            currency: String, lat: String, location: String, lon: String, max_amount: String, min_amount: String,
-                            message: String, price_equation: String, trust : String, sms: String, trackMax: String, visible:
-                            String, identification: String, require_feedback_score: String, require_trade_volume:
-                            String, first_time_limit_btc: String, phone_number: String, opening_hours: String): Observable<JsonElement> {
+    fun updateAdvertisement(accessToken: String, adId: String, account_info: String?, bank_name: String?, city: String?, country_code: String?,
+                            currency: String, lat: String, location: String?, lon: String, max_amount: String?, min_amount: String?,
+                            message: String?, price_equation: String?, trust : String, sms: String, trackMax: String, visible:
+                            String, identification: String, require_feedback_score: String?, require_trade_volume:
+                            String?, first_time_limit_btc: String?, phone_number: String?, opening_hours: String?): Observable<JsonElement> {
         return service.updateAdvertisement(
-                accessToken, s, account_info, bank_name, city, country_code, currency,
+                adId, accessToken, account_info, bank_name, city, country_code, currency,
                 lat, location, lon, max_amount, min_amount,
                 message, price_equation, trust, sms,
                 trackMax, visible, identification,
@@ -121,8 +121,8 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
                 phone_number, opening_hours);
     }
 
-    fun contactMessagePost(accessToken: String, contact_id: String, message: String): Observable<JsonElement> {
-        return service.contactMessagePost(accessToken, contact_id, message)
+    fun contactMessagePost(accessToken: String, contactId: String, message: String): Observable<JsonElement> {
+        return service.contactMessagePost(contactId, accessToken, message)
     }
 
   /*  fun contactMessagePostWithAttachment(accessToken: String, contact_id: String, params: LinkedHashMap<String, String>, typedFile: TypedFile): Observable<Response> {
@@ -134,11 +134,11 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
     }
 
     fun getContactInfo(accessToken: String, contactId: Int): Observable<Contact> {
-        return service.getContactInfo(accessToken, contactId)
+        return service.getContactInfo(contactId, accessToken)
     }
 
-    fun contactMessages(accessToken: String, contact_id: String): Observable<Messages> {
-        return service.contactMessages(accessToken, contact_id)
+    fun contactMessages(accessToken: String, contactId: Int): Observable<Messages> {
+        return service.contactMessages(contactId, accessToken)
     }
 
     fun getNotifications(accessToken: String): Observable<Notifications> {
@@ -146,7 +146,7 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
     }
 
     fun markNotificationRead(accessToken: String, notificationId: String): Observable<JsonElement> {
-        return service.markNotificationRead(accessToken, notificationId)
+        return service.markNotificationRead(notificationId, accessToken)
     }
 
     fun getDashboard(accessToken: String): Observable<Dashboard> {
@@ -154,15 +154,15 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
     }
 
     fun getDashboard(accessToken: String, type: String): Observable<Dashboard> {
-        return service.getDashboard(accessToken, type)
+        return service.getDashboard(type, accessToken)
     }
 
-    fun getAdvertisement(accessToken: String, adId: Int): Observable<Advertisement> {
-        return service.getAdvertisement(accessToken, adId)
+    fun getAdvertisement(accessToken: String, adId: Int): Observable<Advertisements> {
+        return service.getAdvertisement(adId, accessToken)
     }
 
-    fun deleteAdvertisement(accessToken: String, adId: String): Observable<JsonElement> {
-        return service.deleteAdvertisement(accessToken, adId)
+    fun deleteAdvertisement(accessToken: String, adId: Int): Observable<JsonElement> {
+        return service.deleteAdvertisement(adId, accessToken)
     }
 
     fun createAdvertisement(accessToken: String, min_amount: String, max_amount: String, price_equation: String, name: String,
@@ -184,44 +184,44 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
         return service.onlineProviders
     }
 
-    fun createContactEmail(accessToken: String, adId: String, amount: String, email: String, message: String): Observable<JsonElement> {
-        return service.createContactEmail(accessToken, adId, amount, email, message)
+    fun createContactEmail(accessToken: String, adId: String, amount: String, email: String, message: String): Observable<ContactRequest> {
+        return service.createContactEmail(adId, accessToken, amount, email, message)
     }
 
-    fun createContact(accessToken: String, adId: String, amount: String, message: String): Observable<JsonElement> {
-        return service.createContact(accessToken, adId, amount, message)
+    fun createContact(accessToken: String, adId: String, amount: String, message: String): Observable<ContactRequest> {
+        return service.createContact(adId, accessToken, amount, message)
     }
 
-    fun createContactPhone(accessToken: String, adId: String, amount: String, phone: String, message: String): Observable<JsonElement> {
-        return service.createContactPhone(accessToken, adId, amount, phone, message)
+    fun createContactPhone(accessToken: String, adId: String, amount: String, phone: String, message: String): Observable<ContactRequest> {
+        return service.createContactPhone(adId, accessToken, amount, phone, message)
     }
 
-    fun createContactBPay(accessToken: String, adId: String, amount: String, billerCode: String, reference: String, message: String): Observable<JsonElement> {
-        return service.createContactBPay(accessToken, adId, amount, billerCode, reference, message)
+    fun createContactBPay(accessToken: String, adId: String, amount: String, billerCode: String, reference: String, message: String): Observable<ContactRequest> {
+        return service.createContactBPay(adId, accessToken, amount, billerCode, reference, message)
     }
 
-    fun createContactSepa(accessToken: String, adId: String, amount: String, name: String, iban: String, bic: String, reference: String, message: String): Observable<JsonElement> {
-        return service.createContactSepa(accessToken, adId, amount, name, iban, bic, reference, message)
+    fun createContactSepa(accessToken: String, adId: String, amount: String, name: String, iban: String, bic: String, reference: String, message: String): Observable<ContactRequest> {
+        return service.createContactSepa(adId, accessToken, amount, name, iban, bic, reference, message)
     }
 
-    fun createContactEthereumAddress(accessToken: String, adId: String, amount: String, ethereumAddress: String, message: String): Observable<JsonElement> {
-        return service.createContactEthereumAddress(accessToken, adId, amount, ethereumAddress, message)
+    fun createContactEthereumAddress(accessToken: String, adId: String, amount: String, ethereumAddress: String, message: String): Observable<ContactRequest> {
+        return service.createContactEthereumAddress(adId, accessToken, amount, ethereumAddress, message)
     }
 
-    fun createContactNational(accessToken: String, adId: String, amount: String, message: String): Observable<JsonElement> {
-        return service.createContactNational(accessToken, adId, amount, message)
+    fun createContactNational(accessToken: String, adId: String, amount: String, message: String): Observable<ContactRequest> {
+        return service.createContactNational(adId, accessToken, amount, message)
     }
 
-    fun createContactNationalFI(accessToken: String, adId: String, amount: String, name: String, iban: String, bic: String, reference: String, message: String): Observable<JsonElement> {
-        return service.createContactNational_FI(accessToken, adId, amount, name, iban, bic, reference, message)
+    fun createContactNationalFI(accessToken: String, adId: String, amount: String, name: String, iban: String, bic: String, reference: String, message: String): Observable<ContactRequest> {
+        return service.createContactNational_FI(adId, accessToken, amount, name, iban, bic, reference, message)
     }
 
-    fun createContactNationalAU(accessToken: String, adId: String, amount: String, name: String, bsb: String, reference: String, accountNumber: String, message: String): Observable<JsonElement> {
-        return service.createContactNational_AU(accessToken, adId, amount, name, bsb, reference, accountNumber, message)
+    fun createContactNationalAU(accessToken: String, adId: String, amount: String, name: String, bsb: String, reference: String, accountNumber: String, message: String): Observable<ContactRequest> {
+        return service.createContactNational_AU(adId, accessToken, amount, name, bsb, reference, accountNumber, message)
     }
 
-    fun createContactNationalUK(accessToken: String, adId: String, amount: String, name: String, sortCode: String, reference: String, accountNumber: String, message: String): Observable<JsonElement> {
-        return service.createContactNational_UK(accessToken, adId, amount, name, sortCode, reference, accountNumber, message)
+    fun createContactNationalUK(accessToken: String, adId: String, amount: String, name: String, sortCode: String, reference: String, accountNumber: String, message: String): Observable<ContactRequest> {
+        return service.createContactNational_UK(adId, accessToken, amount, name, sortCode, reference, accountNumber, message)
     }
 
     fun walletSendPin(accessToken: String, pinCode: String, address: String, amount: String): Observable<JsonElement> {
@@ -232,5 +232,39 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
         return service.getWalletBalance(accessToken);
     }
 
+    fun getPlaces(lat: Double, lon: Double):Observable<Places> {
+        return service.getPlaces(lat, lon)
+    }
 
+    fun searchAdsByPlace(type: String, num: String, location: String):Observable<Advertisements> {
+        return service.searchAdsByPlace(type, num, location)
+    }
+
+    fun searchOnlineAds(type: String, countryName: String, countryCode: String):Observable<Advertisements> {
+        return service.searchOnlineAds(type, countryName, countryCode)
+    }
+
+    fun searchOnlineAds(type: String, countryName: String, countryCode: String, paymentMethod: String):Observable<Advertisements> {
+        return service.searchOnlineAds(type, countryName, countryCode, paymentMethod)
+    }
+
+    fun searchOnlineAdsCurrency(type: String, currency: String):Observable<Advertisements> {
+        return service.searchOnlineAdsCurrency(type, currency)
+    }
+
+    fun searchOnlineAdsCurrency(type: String, currency: String,  paymentMethod: String):Observable<Advertisements> {
+        return service.searchOnlineAdsCurrencyPayment(type, currency, paymentMethod)
+    }
+
+    fun searchOnlineAdsPayment(type: String, paymentMethod: String):Observable<Advertisements> {
+        return service.searchOnlineAdsPayment(type, paymentMethod)
+    }
+
+    fun searchOnlineAdsCurrencyPayment(type: String, currency: String, paymentMethod: String):Observable<Advertisements> {
+        return service.searchOnlineAdsCurrencyPayment(type, currency, paymentMethod)
+    }
+
+    fun searchOnlineAdsAll(type: String):Observable<Advertisements> {
+        return service.searchOnlineAdsAll(type)
+    }
 }

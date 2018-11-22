@@ -30,6 +30,8 @@
             android:layout_height="match_parent">
 
         <android.support.v4.widget.NestedScrollView
+            android:id="@+id/advertisementContentLayout"
+                android:visibility="invisible"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -102,7 +104,7 @@
                                 android:text="@string/text_title_current_price"/>
 
                         <TextView
-                                android:id="@+id/advertismentTradePrice"
+                                android:id="@+id/advertisementTradePrice"
                                 style="@style/TextMedium"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -249,13 +251,12 @@
                         android:paddingBottom="@dimen/view_padding_small"
                         android:text="@string/text_terms_of_trade"/>
 
-
                 <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingLeft="@dimen/activity_padding"
                         android:paddingRight="@dimen/activity_padding"
-                        android:background="@color/white">
+                        >
 
                     <TextView
                             android:id="@+id/advertisementTradeTerms"
@@ -391,7 +392,7 @@
                             android:paddingLeft="16dp"
                             android:paddingRight="16dp"
                             android:layout_gravity="center_vertical"
-                            android:background="@color/white">
+                            >
 
                         <TextView
                                 android:id="@+id/onlineProvider"
@@ -434,7 +435,7 @@
                                 android:paddingLeft="16dp"
                                 android:paddingRight="16dp"
                                 android:layout_gravity="center_vertical"
-                                android:background="@color/white">
+                                >
 
                             <TextView
                                     android:id="@+id/bankName"
@@ -478,7 +479,7 @@
                                 android:layout_height="wrap_content"
                                 android:paddingLeft="@dimen/activity_padding"
                                 android:paddingRight="@dimen/activity_padding"
-                                android:background="@color/white">
+                                >
 
                             <TextView
                                     android:id="@+id/paymentDetails"

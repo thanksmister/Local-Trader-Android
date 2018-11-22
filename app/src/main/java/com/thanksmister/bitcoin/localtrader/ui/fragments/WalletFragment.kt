@@ -23,7 +23,6 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.LinearLayoutManager
@@ -32,15 +31,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.network.api.model.*
+import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
+import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
+import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
+import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
-import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity
-import com.thanksmister.bitcoin.localtrader.ui.activities.WalletActivity
-import com.thanksmister.bitcoin.localtrader.ui.adapters.SectionRecycleViewAdapter
 import com.thanksmister.bitcoin.localtrader.ui.adapters.TransactionsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
-import com.thanksmister.bitcoin.localtrader.utils.Calculations
-import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -49,29 +46,33 @@ import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_wallet.*
 import timber.log.Timber
-import java.util.*
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 
 class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
 
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject lateinit var viewModel: WalletViewModel
+    private var connectionLiveData: ConnectionLiveData? = null
 
     private val disposable = CompositeDisposable()
     private var adapter: TransactionsAdapter? = null
-    private var sectionRecycleViewAdapter: SectionRecycleViewAdapter? = null
-
-    private inner class WalletData {
-        var wallet: Wallet? = null
-        var exchange: ExchangeRate? = null
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val ns = Context.NOTIFICATION_SERVICE
         val notificationManager = activity!!.getSystemService(ns) as NotificationManager
         notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_BALANCE)
+
+        connectionLiveData = ConnectionLiveData(activity!!)
+        connectionLiveData?.observe(this, Observer { connected ->
+            if(!connected!! && activity != null) {
+                Toast.makeText(activity, getString(R.string.error_network_disconnected), Toast.LENGTH_SHORT).show()
+                onRefreshStop()
+            } else {
+                toast(getString(R.string.toast_refreshing_data))
+                viewModel.fetchNetworkData()
+            }
+        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -92,10 +93,9 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
         walletRefreshLayout.setColorSchemeColors(resources.getColor(R.color.red))
 
         adapter = TransactionsAdapter(activity!!)
-        sectionRecycleViewAdapter = createAdapter()
-        transactionRecycleView.adapter = sectionRecycleViewAdapter
+        transactionRecycleView.adapter = adapter
 
-        setAppBarText("0", "0", "-")
+        setAppBarText("0.000000", "0.00", preferences.exchangeCurrency, preferences.selectedExchange)
 
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
         observeViewModel(viewModel)
@@ -109,33 +109,29 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             Toast.makeText(activity!!, message, Toast.LENGTH_LONG).show()
+            onRefreshStop()
         })
+        disposable.add(viewModel.getWalletData()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe( { data ->
+                    Timber.d("wallet updated!!")
+                    if (data != null) {
+                        Timber.d("data $data")
+                        setAppBarText(data.bitcoinAmount, data.bitcoinValue, data.currency, data.exchange)
+                        setupList(data.transactions)
+                        transactionRecycleView.visibility = View.VISIBLE
+                    } else {
+                        setAppBarText("0", "0", "-", "-")
+                    }
+                    onRefreshStop()
+                }, { error ->
+                    Timber.e(error.message)
+                    onRefreshStop()
+                }))
+
         toast(getString(R.string.toast_refreshing_data))
-        viewModel.fetchWallet()
-        disposable.add(
-                viewModel.getWallet()
-                        .zipWith(viewModel.getExchange(), BiFunction { wallet: Wallet, exchange: ExchangeRate ->
-                            val data = WalletData()
-                            data.wallet = wallet
-                            data.exchange = exchange
-                            data
-                        })
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe( { data ->
-                            if (data.wallet != null) {
-                                if(data.exchange != null) {
-                                    setAppBarText(data.wallet!!.total.balance, data.exchange!!.rate, data.exchange!!.rate)
-                                } else {
-                                    setAppBarText(data.wallet!!.total.balance, "", "-")
-                                }
-                                setupList(data.wallet!!.transactions)
-                                transactionRecycleView.visibility = View.VISIBLE
-                            }
-                            onRefreshStop()
-                        }, { error ->
-                            Timber.e(error.message)
-                        }))
+        viewModel.fetchNetworkData()
     }
 
     override fun onDestroy() {
@@ -150,7 +146,7 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     override fun onRefresh() {
-        viewModel.fetchWallet()
+        viewModel.fetchNetworkData()
     }
 
     private fun onRefreshStop() {
@@ -161,40 +157,18 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
         val itemAdapter = adapter
         if (!transactionItems!!.isEmpty()) {
             itemAdapter!!.replaceWith(transactionItems)
-            val sections = ArrayList<SectionRecycleViewAdapter.Section>()
-            sections.add(SectionRecycleViewAdapter.Section(1, getString(R.string.wallet_recent_activity_header)))
-            if (!sectionRecycleViewAdapter!!.hasSections()) {
-                addAdapterSection(sections)
-            }
         } else {
             itemAdapter!!.replaceWith(ArrayList<Transaction>())
         }
-        sectionRecycleViewAdapter!!.updateBaseAdapter(itemAdapter)
-    }
-
-    private fun addAdapterSection(sections: List<SectionRecycleViewAdapter.Section>) {
-        try {
-            val section = arrayOfNulls<SectionRecycleViewAdapter.Section>(sections.size)
-            sectionRecycleViewAdapter!!.setSections(sections.toTypedArray<SectionRecycleViewAdapter.Section>())
-            sectionRecycleViewAdapter!!.notifyDataSetChanged()
-        } catch (e: IllegalStateException) {
-            Timber.e(e.message)
-        }
-    }
-
-    private fun createAdapter(): SectionRecycleViewAdapter {
-        val itemAdapter = adapter
-        return SectionRecycleViewAdapter(activity, R.layout.section, R.id.section_text, itemAdapter)
     }
 
     @SuppressLint("SetTextI18n")
-    private fun setAppBarText(balance: String?, rate: String?, exchange: String?) {
-        if(rate != null && balance != null && exchange != null) {
-            val currency = preferences.exchangeCurrency
-            val btcValue = Calculations.computedValueOfBitcoin(rate, balance)
-            val btcAmount = Conversions.formatBitcoinAmount(balance) + " " + getString(R.string.btc)
+    private fun setAppBarText(btcAmount: String?, btcValue: String?, currency: String?, exchange: String?) {
+        bitcoinTitle.setText(R.string.wallet_account_balance)
+        if(btcAmount != null) {
             bitcoinPrice.text = btcAmount
-            bitcoinTitle.setText(R.string.wallet_account_balance)
+        }
+        if(btcValue != null && currency != null && exchange != null) {
             bitcoinValue.text = "≈ $btcValue $currency ($exchange)"
         }
     }

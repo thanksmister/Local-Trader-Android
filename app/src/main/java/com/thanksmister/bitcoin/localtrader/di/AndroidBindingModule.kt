@@ -32,6 +32,11 @@ internal abstract class AndroidBindingModule {
 
     @Binds
     @IntoMap
+    @ViewModelKey(BaseViewModel::class)
+    abstract fun bindsBaseViewModel(viewModel: BaseViewModel): ViewModel
+
+    @Binds
+    @IntoMap
     @ViewModelKey(WalletViewModel::class)
     abstract fun bindsWalletViewModel(viewModel: WalletViewModel): ViewModel
 
@@ -52,16 +57,34 @@ internal abstract class AndroidBindingModule {
 
     @Binds
     @IntoMap
-    @ViewModelKey(ContactViewModel::class)
-    abstract fun bindsContactViewModel(viewModel: ContactViewModel): ViewModel
+    @ViewModelKey(ContactsViewModel::class)
+    abstract fun bindsContactViewModel(viewModel: ContactsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(NotificationsViewModel::class)
+    abstract fun bindsNotificationsViewModel(viewModel: NotificationsViewModel): ViewModel
 
     @Binds
     @IntoMap
     @ViewModelKey(SplashViewModel::class)
     abstract fun bindsSplashViewModel(viewModel: SplashViewModel): ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(SettingsViewModel::class)
+    abstract fun bindsSettingsViewModel(viewModel: SettingsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(SearchViewModel::class)
+    abstract fun bindsSearchViewModel(viewModel: SearchViewModel): ViewModel
+
     @ContributesAndroidInjector
     internal abstract fun baseActivity(): BaseActivity
+
+    @ContributesAndroidInjector
+    internal abstract fun baseBitcoinHandler(): BitcoinHandler
 
     @ContributesAndroidInjector
     internal abstract fun splashActivity(): SplashActivity
@@ -136,7 +159,7 @@ internal abstract class AndroidBindingModule {
     internal abstract fun fragmentContactsFragment(): ContactsFragment
 
     @ContributesAndroidInjector
-    internal abstract fun fragmentDashboardFragment(): DashboardFragment
+    internal abstract fun fragmentSearchFragment(): SearchFragment
 
     @ContributesAndroidInjector
     internal abstract fun fragmentNotificationsFragment(): NotificationsFragment

@@ -149,7 +149,7 @@
     <string name="toast_minimum_amount">Ingrese un monto mínimo válido.</string>
     <string name="toast_maximum_amount">Ingrese una cantidad máxima válida.</string>
     <string name="toast_update_visibility">Visibilidad actualizada!</string>
-    <string name="toast_error_updat_advertisement">Error al actualizar el anuncio…</string>
+    <string name="toast_error_update_advertisement">Error al actualizar el anuncio…</string>
     <string name="toast_error_contact_data">Error al recuperar datos de contacto…</string>
     <string name="toast_message_canceled">Mensaje cancelado…</string>
     <string name="toast_no_activity_for_maps">No hay actividad para manejar esta acción (no mapas).</string>
@@ -216,7 +216,7 @@
     <string name="toast_error_no_installed_ativity">No hay ninguna aplicación instalada para manejar la solicitud.</string>
     <string name="pin_code_trade"><![CDATA[Se requiere un código PIN para financiar, liberar o enviar pagos. Administra el código PIN en la página <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Perfil de la cuenta</a>.]]></string>
     <string name="form_send_to">Enviar a:</string>
-    <string name="form_bitcoin_amount">Cantidad de Bitcoin:</string>
+    <string name="form_bitcoin_amount">Cantidad de Bitcoin</string>
     <string name="toast_edit_canceled">Editar cancelado…</string>
     <string name="snack_no_advertisement_data">No hay datos de anuncio.</string>
     <string name="toast_new_ad_canceled">Nuevo anuncio cancelado…</string>
@@ -231,7 +231,7 @@
     <string name="toast_search_canceled">Búsqueda cancelada…</string>
     <string name="error_unable_load_payment_methods">No se pueden cargar los métodos de pago en línea.</string>
     <string name="toast_loading_methods">Error al obtener métodos…</string>
-    
+
     <string-array name="country_names">
         <item>Afganistán</item>
         <item>Islas Åland</item>
@@ -572,7 +572,7 @@
     <string name="toast_enter_lower_amount">Ingrese un monto menor que %1$s %2$s</string>
     <string name="toast_enter_higher_amount">Ingrese un monto mayor que  %1$s %2$s</string>
     <string name="progress_sending_trade_request">Enviando solicitud comercial ...</string>
-    <string name="toast_trade_request_sent">Solicitud de comercio enviada a</string>
+    <string name="toast_trade_request_sent">Solicitud de comercio enviada!</string>
     <string name="text_trade_with">Comercio con %1$s</string>
     <string name="text_no_transactions">Sin transacciones.</string>
     <string name="button_send_message">ENVIAR MENSAJE</string>
@@ -662,5 +662,18 @@
     <string name="text_local_buyer">Local Buyer</string>
     <string name="text_item_contact_num">Contact #%1$s</string>
     <string name="text_item_advertisement_number">Advertisement #%1$s</string>
+    <string name="error_notification">Error marking notification read.</string>
+    <string name="error_invalid_coordinates">Invalid longitude or latitude entered. Latitude should be between -90 and 90.  Longitude should be between -180 and 180.</string>
+    <string name="error_need_valid_coordinates">To search local advertisers, enter valid latitude and longitude values.</string>
+    <string name="error_search_timeout">The search timed out, you may want to try again.</string>
+    <string name="trade_ethereum_address">Ethereum address</string>
+    <string name="trade_phone_number">Phone number</string>
+    <string name="trade_receiving_account_email">Receiving account email</string>
+    <string name="trade_account_owner">Account owner</string>
+    <string name="trade_sort_code">Sort code</string>
+    <string name="trade_account_number">Account number</string>
+    <string name="trade_biller_code">Biller code</string>
+    <string name="trade_reference_or_message">Reference or message</string>
+    <string name="trade_message_optional">Message (Optional)</string>
 
 </resources>

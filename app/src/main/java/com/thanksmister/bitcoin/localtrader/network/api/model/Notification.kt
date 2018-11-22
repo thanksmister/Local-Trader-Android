@@ -21,19 +21,24 @@ import android.arch.persistence.room.Entity
 import android.arch.persistence.room.Index
 import android.arch.persistence.room.PrimaryKey
 import android.support.annotation.NonNull
+import android.support.annotation.Nullable
+import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import java.util.*
 
 @Entity(tableName = "Notifications", indices = [(Index(value = arrayOf("notificationId"), unique = true))])
 class Notification {
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    var uid: Int = 0
+
     @ColumnInfo(name = "notificationId")
     @SerializedName("id")
-    @NonNull
-    var notificationId: Int = 0
+    var notificationId: String? = null
 
     @ColumnInfo(name = "message")
     @SerializedName("msg")
+    @Expose
     var message: String? = null
 
     @ColumnInfo(name = "contactId")
@@ -53,5 +58,6 @@ class Notification {
     var url: String? = null
 
     @ColumnInfo(name = "read")
+    @SerializedName("read")
     var read: Boolean = false
 }

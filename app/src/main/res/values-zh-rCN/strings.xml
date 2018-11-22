@@ -106,7 +106,7 @@
     <string name="progress_canceling_trade">取消中…</string>
     <string name="dialog_progress_location">获取位置中…</string>
     <string name="form_send_to">发送给：</string>
-    <string name="form_bitcoin_amount">比特币金额：</string>
+    <string name="form_bitcoin_amount">比特币金额</string>
     <string name="toast_edit_canceled">编辑已取消…</string>
     <string name="snack_no_advertisement_data">没有广告数据.</string>
     <string name="button_authenticate">授权</string>
@@ -210,7 +210,7 @@
     <string name="toast_price_equation_blank">价格公式不能为空。</string>
     <string name="toast_minimum_amount">输入最小有效金额。</string>
     <string name="toast_maximum_amount">输入最大有效金额.</string>
-    <string name="toast_error_updat_advertisement">更新广告错误…</string>
+    <string name="toast_error_update_advertisement">更新广告错误…</string>
     <string name="toast_error_contact_data">获取合同数据时出错…</string>
     <string name="text_bank_name">银行名称</string>
     <string name="text_trade_terms_hint">进入条款</string>
@@ -263,7 +263,7 @@
     <string name="toast_enter_lower_amount">输入的金额需小于 %1$s %2$s</string>
     <string name="toast_enter_higher_amount">输入的金额需大于 %1$s %2$s</string>
     <string name="progress_sending_trade_request">发送交易需求中…</string>
-    <string name="toast_trade_request_sent">交易需求发送给</string>
+    <string name="toast_trade_request_sent">交易需求发送</string>
     <string name="text_trade_with">与  %1$s 交易</string>
     <string name="text_no_transactions">没有记录.</string>
     <string name="button_send_message">发送消息</string>
@@ -398,6 +398,19 @@
     <string name="text_local_buyer">Local Buyer</string>
     <string name="text_item_contact_num">Contact #%1$s</string>
     <string name="text_item_advertisement_number">Advertisement #%1$s</string>
+    <string name="error_notification">Error marking notification read.</string>
+    <string name="error_invalid_coordinates">Invalid longitude or latitude entered. Latitude should be between -90 and 90.  Longitude should be between -180 and 180.</string>
+    <string name="error_need_valid_coordinates">To search local advertisers, enter valid latitude and longitude values.</string>
+    <string name="error_search_timeout">The search timed out, you may want to try again.</string>
+    <string name="trade_ethereum_address">Ethereum address</string>
+    <string name="trade_phone_number">Phone number</string>
+    <string name="trade_receiving_account_email">Receiving account email</string>
+    <string name="trade_account_owner">Account owner</string>
+    <string name="trade_sort_code">Sort code</string>
+    <string name="trade_account_number">Account number</string>
+    <string name="trade_biller_code">Biller code</string>
+    <string name="trade_reference_or_message">Reference or message</string>
+    <string name="trade_message_optional">Message (Optional)</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">

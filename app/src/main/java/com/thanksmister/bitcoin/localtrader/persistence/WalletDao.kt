@@ -54,4 +54,5 @@ interface WalletDao {
      */
     @Query("DELETE FROM Wallet")
     fun deleteAllItems()
+
 }

@@ -22,28 +22,24 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.utils.Dates
+import kotlinx.android.synthetic.main.adapter_dashboard_contact_list.view.*
 
 class ContactAdapter(private val context: Context) : RecyclerView.Adapter<ContactAdapter.ViewHolder>() {
 
-    protected var items: List<Contact>? = null
+    protected var items = emptyList<Contact>()
 
     fun replaceWith(data: List<Contact>) {
         this.items = data
         notifyDataSetChanged()
     }
 
-    // Create new views (invoked by the layout manager)
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactAdapter.ViewHolder {
-        // create a new view
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false)
-        return ItemViewHolder(itemLayoutView)
+        return ViewHolder(itemLayoutView)
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -51,52 +47,40 @@ class ContactAdapter(private val context: Context) : RecyclerView.Adapter<Contac
     }
 
     override fun getItemCount(): Int {
-        if (items == null)
-            return 0
-
-        return if (items!!.size > 0) items!!.size else 0
-    }
-
-    // Replace the contents of a view (invoked by the layout manager)
-    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        if (viewHolder is ItemViewHolder) {
-            val contact = items!![position]
-            val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
-            var type = ""
-            when (tradeType) {
-                TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> type = if (contact.isBuying) context.getString(R.string.text_buying_locally) else context.getString(R.string.text_selling_locally)
-                TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> type = if (contact.isBuying) context.getString(R.string.text_buying_online) else context.getString(R.string.text_selling_online)
-            }
-
-            val amount = contact.amount + " " + contact.currency
-            val person = if (contact.isBuying) contact.seller.username else contact.buyer.username
-            val date = Dates.parseLocaleDateTime(contact.createdAt)
-
-            viewHolder.tradeType!!.text = "$type - $amount"
-            viewHolder.tradeDetails!!.text = context.getString(R.string.text_with, person)
-            viewHolder.contactId!!.setText(contact.contactId)
-            viewHolder.contactDate!!.text = date
-        }
+        return if (items.isNotEmpty()) items.size else 1
     }
 
     fun getItemAt(position: Int): Contact? {
-        return if (items != null && !items!!.isEmpty() && items!!.size > position) {
-            items!![position]
+        return if (!items.isEmpty() && items.size > position) {
+            items[position]
         } else null
     }
 
-    open class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+        viewHolder.bindItems(items[position])
+    }
 
-    inner class ItemViewHolder internal constructor(itemView: View) : ViewHolder(itemView) {
-        var tradeType: TextView? = null
-        var icon: ImageView? = null
-        var tradeDetails: TextView? = null
-        var contactId: TextView? = null
-        var contactDate: TextView? = null
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bindItems(contact: Contact) {
+            val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
+            var type = ""
+            when (tradeType) {
+                TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> type = if (contact.isBuying) itemView.context.getString(R.string.text_buying_locally) else itemView.context.getString(R.string.text_selling_locally)
+                TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> type = if (contact.isBuying) itemView.context.getString(R.string.text_buying_online) else itemView.context.getString(R.string.text_selling_online)
+                TradeType.NONE -> TODO()
+            }
+            val amount = contact.amount + " " + contact.currency
+            val person = if (contact.isBuying) contact.seller.username else contact.buyer.username
+            val date = Dates.parseLocaleDateTime(contact.createdAt)
+            itemView.contactsTradeType.text = "$type - $amount"
+            itemView.contactsTradeDetails.text = itemView.context.getString(R.string.text_with, person)
+            itemView.contactsId.setText(contact.contactId)
+            itemView.contactsDate.text = date
+        }
     }
 
     companion object {
-        private val TYPE_ITEM = R.layout.adapter_dashboard_contact_list
+        const val TYPE_ITEM = R.layout.adapter_dashboard_contact_list
     }
 }
 

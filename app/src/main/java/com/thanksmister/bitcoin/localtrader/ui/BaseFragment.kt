@@ -31,6 +31,7 @@ abstract class BaseFragment : DaggerFragment() {
 
     @Inject
     lateinit var preferences: Preferences
+
     @Inject
     lateinit var dialogUtils: DialogUtils
 

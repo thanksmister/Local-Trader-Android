@@ -18,10 +18,7 @@
 package com.thanksmister.bitcoin.localtrader.ui
 
 import android.app.Activity
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -58,6 +55,7 @@ import timber.log.Timber
 abstract class BaseActivity : DaggerAppCompatActivity() {
 
     @Inject lateinit var preferences: Preferences
+    @Inject lateinit var sharedPreferences: SharedPreferences
     @Inject lateinit var dialogUtils: DialogUtils
 
     private var progressDialog: AlertDialog? = null
@@ -74,7 +72,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
             return syncMap.containsValue(true)
         }
 
-    private val connReceiver = object : BroadcastReceiver() {
+    /*private val connReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val currentNetworkInfo = connectivityManager.activeNetworkInfo
@@ -87,7 +85,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
                 handleNetworkDisconnect()
             }
         }
-    }
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,17 +110,16 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
 
     public override fun onPause() {
         super.onPause()
-        try {
+        /*try {
             unregisterReceiver(connReceiver)
         } catch (e: IllegalArgumentException) {
             Timber.e(e.message)
-        }
-
+        }*/
     }
 
     public override fun onResume() {
         super.onResume()
-        registerReceiver(connReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+        //registerReceiver(connReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
     }
 
     /**
@@ -142,17 +139,6 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
      */
     private fun resetSyncing() {
         syncMap = HashMap()
-    }
-
-    /**
-     * Called when network is disconnected
-     */
-    protected open fun handleNetworkDisconnect() {
-        // override to in views to handle network disconnect
-    }
-
-    protected open fun handleRefresh() {
-        // override to in views to handle refresh
     }
 
     open fun launchScanner() {
@@ -329,16 +315,10 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
     }
 
     private fun onLoggedOut() {
-
-        val settings = PreferenceManager.getDefaultSharedPreferences(baseContext)
-        val prefEditor = settings.edit()
-        prefEditor.clear()
-        prefEditor.apply()
-
-        SyncUtils.cancelSync(this)
-
+        // TODO clear database
+        sharedPreferences.edit().clear().apply()
+        preferences.reset()
         hideProgressDialog()
-
         val intent = PromoActivity.createStartIntent(this@BaseActivity)
         startActivity(intent)
         finish()

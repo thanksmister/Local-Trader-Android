@@ -18,36 +18,49 @@
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
 import android.app.NotificationManager
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
+import android.content.*
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactActivity
+import com.thanksmister.bitcoin.localtrader.ui.activities.SearchActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.NotificationAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.NotificationsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_notifications.*
+import timber.log.Timber
 
 import javax.inject.Inject
 
 class NotificationsFragment : BaseFragment() {
 
-    @Inject lateinit var sharedPreferences: SharedPreferences
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var viewModel: NotificationsViewModel
+
+    private val disposable = CompositeDisposable()
 
     private var adapter: NotificationAdapter? = null
-    private val notifications = emptyList<Notification>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +68,8 @@ class NotificationsFragment : BaseFragment() {
         val ns = Context.NOTIFICATION_SERVICE
         val notificationManager = activity!!.getSystemService(ns) as NotificationManager
         notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION)
+
+        //retainInstance = true
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -63,6 +78,9 @@ class NotificationsFragment : BaseFragment() {
         val linearLayoutManager = LinearLayoutManager(activity)
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
         notificationsList.layoutManager = linearLayoutManager
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(NotificationsViewModel::class.java)
+        observeViewModel(viewModel)
     }
 
     private fun setupList(items: List<Notification>) {
@@ -81,143 +99,89 @@ class NotificationsFragment : BaseFragment() {
         if(activity != null && isAdded) {
             adapter = NotificationAdapter(activity!!, object : NotificationAdapter.OnItemClickListener {
                 override fun onSearchButtonClicked() {
-                    //showSearchScreen()
+                    showSearchScreen()
                 }
                 override fun onAdvertiseButtonClicked() {
                     createAdvertisementScreen()
                 }
             })
-            ItemClickSupport.addTo(notificationsList).setOnItemClickListener { recyclerView, position, v ->
+            ItemClickSupport.addTo(notificationsList).setOnItemClickListener { _, position, _ ->
                 val notificationItem = adapter!!.getItemAt(position)
-                if (notificationItem!!.contactId != null) {
-                    showContact(notificationItem)
-                } else if (notificationItem.advertisementId != null) {
-                    showAdvertisement(notificationItem)
-                } else {
-                    try {
+                when {
+                    notificationItem!!.contactId != null -> showContact(notificationItem)
+                    notificationItem.advertisementId != null -> showAdvertisement(notificationItem)
+                    else -> try {
                         onNotificationLinkClicked(notificationItem)
                     } catch (e: ActivityNotFoundException) {
                         toast(getString(R.string.text_cant_open_link))
                     }
-
                 }
             }
             notificationsList.adapter = adapter
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        subscribeData()
-    }
-
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        //http://stackoverflow.com/questions/15207305/getting-the-error-java-lang-illegalstateexception-activity-has-been-destroyed
-        try {
-            val childFragmentManager = Fragment::class.java.getDeclaredField("mChildFragmentManager")
-            childFragmentManager.isAccessible = true
-            childFragmentManager.set(this, null)
-        } catch (e: NoSuchFieldException) {
-            throw RuntimeException(e)
-        } catch (e: IllegalAccessException) {
-            throw RuntimeException(e)
+    override fun onDestroy() {
+        super.onDestroy()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
         }
-
     }
 
-    protected fun subscribeData() {
-
-        /*dbManager.notificationsQuery()
+    private fun observeViewModel(viewModel: NotificationsViewModel) {
+        viewModel.getAlertMessage().observe(this, Observer { message ->
+            if (message != null && activity != null) {
+                dialogUtils.showAlertDialog(activity!!, message)
+            }
+        })
+        viewModel.getToastMessage().observe(this, Observer { message ->
+            if (message != null && activity != null) {
+                toast(message)
+            }
+        })
+        disposable.add(viewModel.getNotifications()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Notifications subscription safely unsubscribed");
+                .subscribe( { data ->
+                    if(data != null) {
+                        setupList(data)
                     }
-                })
-                .subscribe(new Action1<List<NotificationItem>>() {
-                    @Override
-                    public void call(final List<NotificationItem> items) {
-                        if (isAdded() && getActivity() != null) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    notifications = items;
-                                    setupList(notifications);
-                                }
-                            });
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        setupList(notifications);
-                        reportError(throwable);
-                    }
-                });*/
+                }, { error ->
+                    Timber.e(error.message)
+                }))
     }
 
-    /**
-     * Creating or editing advertisements takes users to the LBC website
-     */
     private fun createAdvertisementScreen() {
-        /*showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
-            @Override
-            public void call() {
-                try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
-                } catch (android.content.ActivityNotFoundException ex) {
-                    Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
-                }
-            }
-        }, new Action0() {
-            @Override
-            public void call() {
+        if(activity != null && isAdded) {
+            dialogUtils.showAlertDialog(activity!!, getString(R.string.dialog_edit_advertisements),
+                    DialogInterface.OnClickListener { _, _ ->
+                        try {
+                            startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)))
+                        } catch (ex: ActivityNotFoundException) {
+                            Toast.makeText(activity!!, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
+                        }
+                    }, DialogInterface.OnClickListener { _, _ ->
                 // na-da
-            }
-        });*/
+            })
+        }
     }
 
+    private fun showSearchScreen() {
+        if(activity != null && isAdded) {
+            val intent = SearchActivity.createStartIntent(activity!!)
+            startActivity(intent)
+        }
+    }
 
-    private fun onNotificationLinkClicked(notification: Notification?) {
-        /*dataService.markNotificationRead(notification.notification_id())
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Mark notification read safely unsubscribed");
-                    }
-                })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<JSONObject>() {
-                    @Override
-                    public void call(JSONObject result) {
-                        if (!Parser.containsError(result)) {
-                            dbManager.markNotificationRead(notification.notification_id());
-                            if(getActivity() != null) {
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (!TextUtils.isEmpty(notification.url())) {
-                                            launchNotificationLink(notification.url());
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Timber.e(throwable.getMessage());
-                    }
-                });*/
+    private fun onNotificationLinkClicked(notification: Notification) {
+        if (!TextUtils.isEmpty(notification.url)) {
+            launchNotificationLink(notification.url!!)
+        }
+        viewModel.markNotificationRead(notification)
     }
 
     private fun launchNotificationLink(url: String) {
@@ -248,11 +212,6 @@ class NotificationsFragment : BaseFragment() {
     }
 
     companion object {
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
         fun newInstance(): NotificationsFragment {
             return NotificationsFragment()
         }

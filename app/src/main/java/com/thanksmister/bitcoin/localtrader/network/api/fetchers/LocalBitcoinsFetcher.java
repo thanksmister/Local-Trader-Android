@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.network.api.fetchers;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.google.gson.JsonElement;
 import com.thanksmister.bitcoin.localtrader.BuildConfig;
@@ -26,13 +27,19 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisements;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Dashboard;
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Messages;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notifications;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Places;
 import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.User;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes;
@@ -40,6 +47,7 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler;
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
+import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +76,7 @@ public class LocalBitcoinsFetcher {
     }
 
     private Observable<String> refreshTokens(String refreshToken) {
-        return networkApi.refreshToken("refreshToken", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
+        return networkApi.refreshToken("refresh_token", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .flatMap(new Function<Authorization, ObservableSource<? extends String>>() {
                     @Override
                     public ObservableSource<? extends String> apply(Authorization authorization) {
@@ -98,6 +106,16 @@ public class LocalBitcoinsFetcher {
                                     return toBeResumed;
                                 }
                             });
+                } else if (RetrofitErrorHandler.isHttp400Error(networkException.getCode())) {
+                    Timber.e("Retrying error code: " + networkException.getCode());
+                    return refreshTokens(preferences.getRefreshToken())
+                            .subscribeOn(Schedulers.computation())
+                            .flatMap(new Function<String, ObservableSource<? extends T>>() {
+                                @Override
+                                public ObservableSource<? extends T> apply(String s) throws Exception {
+                                    return toBeResumed;
+                                }
+                            });
                 } else if (ExceptionCodes.CODE_THREE == networkException.getCode()) {
                     Timber.e("Retrying error code: " + networkException.getCode());
                     return refreshTokens(preferences.getRefreshToken())
@@ -115,11 +133,12 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<User> getMyself() {
-        return getMyselfObservable(preferences.getAccessToken())
-                        .onErrorResumeNext(refreshTokenAndRetry(getMyselfObservable(preferences.getAccessToken())));
+        return getMyselfObservable()
+                        .onErrorResumeNext(refreshTokenAndRetry(getMyselfObservable()));
     }
 
-    private Observable<User> getMyselfObservable(final String accessToken) {
+    private Observable<User> getMyselfObservable() {
+        String accessToken = preferences.getAccessToken();
         return networkApi.getMyself(accessToken);
     }
 
@@ -147,19 +166,51 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<List<Advertisement>> getAdvertisements() {
-        final String accessToken = preferences.getAccessToken();
-        return getAdvertisementsObservable(accessToken)
-                .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable(accessToken)))
+        return getAdvertisementsObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()))
                 .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
                     @Override
                     public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
-                        return Observable.just(advertisements.getItems());
+                        return Observable.just(advertisements.getListItems());
                     }
                 });
     }
 
-    private Observable<Advertisements> getAdvertisementsObservable(String token) {
-        return networkApi.getAdvertisements(token);
+    private Observable<Advertisements> getAdvertisementsObservable() {
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.getAdvertisements(accessToken);
+    }
+
+    public Observable<JsonElement> updateAdvertisement(Advertisement advertisement) {
+        return updateAdvertisementObservable(advertisement)
+                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement)));
+    }
+
+    private Observable<JsonElement> updateAdvertisementObservable(Advertisement advertisement) {
+        final String accessToken = preferences.getAccessToken();
+        final String city;
+        if (TextUtils.isEmpty(advertisement.getCity())) {
+            city = advertisement.getLocation();
+        } else {
+            city = advertisement.getCity();
+        }
+        return networkApi.updateAdvertisement(
+                accessToken, String.valueOf(advertisement.getAdId()), advertisement.getAccountInfo(), advertisement.getBankName(), city, advertisement.getCountryCode(), advertisement.getCurrency(),
+                String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMaxAmount(), advertisement.getMinAmount(),
+                advertisement.getMessage(), advertisement.getPriceEquation(), String.valueOf(advertisement.getTrustedRequired()), String.valueOf(advertisement.getSmsVerificationRequired()),
+                String.valueOf(advertisement.getTrackMaxAmount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequireIdentification()),
+                advertisement.getRequireFeedbackScore(), advertisement.getRequireTradeVolume(), advertisement.getFirstTimeLimitBtc(),
+                advertisement.getPhoneNumber(), advertisement.getOpeningHours());
+    }
+
+    public Observable<JsonElement> deleteAdvertisement(final int adId) {
+        return deleteAdvertisementObservable(adId)
+                .onErrorResumeNext(refreshTokenAndRetry(deleteAdvertisementObservable(adId)));
+    }
+
+    private Observable<JsonElement> deleteAdvertisementObservable(final int adId) {
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.deleteAdvertisement(accessToken, adId);
     }
 
     public Observable<List<Method>> getMethods() {
@@ -183,28 +234,50 @@ public class LocalBitcoinsFetcher {
                 });
     }
 
-    public Observable<Advertisement> getAdvertisement(final int adId) {
+    public Observable<List<Advertisement>> getAdvertisement(final int adId) {
+        return getAdvertisementObservable(adId)
+                .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementObservable(adId)));
+    }
+
+    private Observable<List<Advertisement>> getAdvertisementObservable(final int adId) {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getAdvertisement(accessToken, adId)
-                .onErrorResumeNext(refreshTokenAndRetry(networkApi.getAdvertisement(accessToken, adId)));
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getListItems());
+                    }
+                });
     }
 
     public Observable<Contact> getContact(final int contactId) {
+        return getContactObservable(contactId)
+                .onErrorResumeNext(refreshTokenAndRetry(getContactObservable(contactId)));
+    }
+
+    private Observable<Contact> getContactObservable(final int contactId) {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.getContactInfo(accessToken,contactId)
-                .onErrorResumeNext(refreshTokenAndRetry(networkApi.getContactInfo(accessToken, contactId)));
+        return networkApi.getContactInfo(accessToken, contactId);
     }
 
     public Observable<Wallet> getWallet() {
+        return getWalletObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getWalletObservable()));
+    }
+
+    private Observable<Wallet> getWalletObservable() {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.getWallet(accessToken)
-                .onErrorResumeNext(refreshTokenAndRetry(networkApi.getWallet(accessToken)));
+        return networkApi.getWallet(accessToken);
     }
 
     public Observable<List<Contact>> getContacts() {
+        return getContactsObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getContactsObservable()));
+    }
+
+    private Observable<List<Contact>> getContactsObservable() {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getDashboard(accessToken)
-                .onErrorResumeNext(refreshTokenAndRetry(networkApi.getDashboard(accessToken)))
                 .flatMap(new Function<Dashboard, ObservableSource<List<Contact>>>() {
                     @Override
                     public ObservableSource<List<Contact>> apply(Dashboard dashboard) throws Exception {
@@ -226,9 +299,13 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<List<Notification>> getNotifications() {
+        return getNotificationsObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getNotificationsObservable()));
+    }
+
+    private Observable<List<Notification>> getNotificationsObservable() {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getNotifications(accessToken)
-                .onErrorResumeNext(refreshTokenAndRetry(networkApi.getNotifications(accessToken)))
                 .flatMap(new Function<Notifications, ObservableSource<List<Notification>>>() {
                     @Override
                     public ObservableSource<List<Notification>> apply(Notifications notifications) throws Exception {
@@ -238,9 +315,13 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<Boolean> sendPinCodeMoney(final String pinCode, final String address, final String amount) {
+        return sendPinCodeMoneyObservable(pinCode, address, amount)
+                .onErrorResumeNext(refreshTokenAndRetry(sendPinCodeMoneyObservable(pinCode, address, amount)));
+    }
+
+    private Observable<Boolean> sendPinCodeMoneyObservable(final String pinCode, final String address, final String amount) {
         final String accessToken = preferences.getAccessToken();
         return networkApi.walletSendPin(accessToken, pinCode, address, amount)
-                .onErrorResumeNext(refreshTokenAndRetry(networkApi.walletSendPin(accessToken, pinCode, address, amount)))
                 .flatMap(new Function<JsonElement, ObservableSource<Boolean>>() {
                     @Override
                     public ObservableSource<Boolean> apply(JsonElement jsonElement) throws Exception {
@@ -251,8 +332,195 @@ public class LocalBitcoinsFetcher {
                         return Observable.just(true);
                     }
                 });
-
     }
+
+    public Observable<JsonElement> markNotificationRead(final String notificationId) {
+        return markNotificationReadObservable(String.valueOf(notificationId))
+                .onErrorResumeNext(refreshTokenAndRetry(markNotificationReadObservable(String.valueOf(notificationId))));
+    }
+
+    private Observable<JsonElement> markNotificationReadObservable(final String notificationId) {
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.markNotificationRead(accessToken, String.valueOf(notificationId));
+    }
+
+    public Observable<List<Message>> getContactMessages(final int contactId) {
+        return getContactMessagesReadObservable(contactId)
+                .onErrorResumeNext(refreshTokenAndRetry(getContactMessagesReadObservable(contactId)));
+    }
+
+    private Observable<List<Message>> getContactMessagesReadObservable(final int contactId) {
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.contactMessages(accessToken, contactId)
+                .flatMap(new Function<Messages, ObservableSource<List<Message>>>() {
+                    @Override
+                    public ObservableSource<List<Message>> apply(Messages messages) throws Exception {
+                        return Observable.just(messages.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Place>> getPlaces(final double lat, final double lon) {
+        return networkApi.getPlaces(lat, lon)
+                .flatMap(new Function<Places, ObservableSource<List<Place>>>() {
+                    @Override
+                    public ObservableSource<List<Place>> apply(Places places) throws Exception {
+                        return Observable.just(places.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchAdsByPlace(String type, String num, String location) {
+        return networkApi.searchAdsByPlace(type, num, location)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchOnlineAds(String type, String num, String location) {
+        return networkApi.searchOnlineAds(type, num, location)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchOnlineAds(String type, String num, String location, String paymentMethod) {
+        return networkApi.searchOnlineAds(type, num, location, paymentMethod)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchOnlineAdsCurrency(String type, String currency, String paymentMethod) {
+        return networkApi.searchOnlineAdsCurrency(type, currency, paymentMethod)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchOnlineAdsCurrency(String type, String currency) {
+        return networkApi.searchOnlineAdsCurrency(type, currency)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchOnlineAdsPayment(String type, String paymentMethod) {
+        return networkApi.searchOnlineAdsPayment(type, paymentMethod)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchOnlineAdsCurrencyPayment(String type, String currency, String paymentMethod) {
+        return networkApi.searchOnlineAdsCurrencyPayment(type, currency, paymentMethod)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<List<Advertisement>> searchOnlineAdsAll(String type) {
+        return networkApi.searchOnlineAdsAll(type)
+                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
+                    @Override
+                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
+                        return Observable.just(advertisements.getItems());
+                    }
+                });
+    }
+
+    public Observable<ContactRequest> createContact(final String adId, final TradeType tradeType, final String countryCode,
+                                                    final String onlineProvider, final String amount, final String name,
+                                                    final String phone, final String email, final String iban, final String bic,
+                                                    final String reference, final String message, final String sortCode,
+                                                    final String billerCode, final String accountNumber, final String bsb,
+                                                    final String ethereumAddress) {
+
+        return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount, name, phone, email,
+                iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
+                .onErrorResumeNext(refreshTokenAndRetry((createContactObservable(adId, tradeType, countryCode, onlineProvider, amount, name, phone, email,
+                        iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress))));
+    }
+
+    private Observable<ContactRequest> createContactObservable( final String adId, final TradeType tradeType, final String countryCode,
+                                                         final String onlineProvider, final String amount, final String name,
+                                                         final String phone, final String email, final String iban, final String bic,
+                                                         final String reference, final String message, final String sortCode,
+                                                         final String billerCode, final String accountNumber, final String bsb,
+                                                         final String ethereumAddress) {
+
+        final String accessToken = preferences.getAccessToken();
+        if (tradeType == TradeType.ONLINE_BUY) {
+            switch (onlineProvider) {
+                case TradeUtils.NATIONAL_BANK:
+                    switch (countryCode) {
+                        case "UK":
+                            return networkApi.createContactNationalUK(accessToken, adId, amount, name, sortCode, reference, accountNumber, message);
+                        case "AU":
+                            return networkApi.createContactNationalAU(accessToken, adId, amount, name, bsb, reference, accountNumber, message);
+                        case "FI":
+                            return networkApi.createContactNationalFI(accessToken, adId, amount, name, iban, bic, reference, message);
+                        default:
+                            return networkApi.createContactNational(accessToken, adId, amount, message);
+                    }
+                case TradeUtils.VIPPS:
+                case TradeUtils.EASYPAISA:
+                case TradeUtils.HAL_CASH:
+                case TradeUtils.QIWI:
+                case TradeUtils.LYDIA:
+                case TradeUtils.SWISH:
+                    return networkApi.createContactPhone(accessToken, adId, amount, phone, message);
+                case TradeUtils.PAYPAL:
+                case TradeUtils.NETELLER:
+                case TradeUtils.INTERAC:
+                case TradeUtils.ALIPAY:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
+                    return networkApi.createContactEmail(accessToken, adId, amount, email, message);
+                case TradeUtils.SEPA:
+                    return networkApi.createContactSepa(accessToken, adId, amount, name, iban, bic, reference, message);
+                case TradeUtils.ALTCOIN_ETH:
+                    return networkApi.createContactEthereumAddress(accessToken, adId, amount, ethereumAddress, message);
+                case TradeUtils.BPAY:
+                    return networkApi.createContactBPay(accessToken, adId, amount, billerCode, reference, message);
+            }
+        } else if (tradeType == TradeType.ONLINE_SELL) {
+            switch (onlineProvider) {
+                case TradeUtils.QIWI:
+                case TradeUtils.SWISH:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
+                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
+                    return networkApi.createContactPhone(accessToken, adId, amount, phone, message);
+
+            }
+        }
+
+        return networkApi.createContact(accessToken, adId, amount, message);
+    }
+
 
 
     /*public Observable<ContactRequest> createContact(final String adId, final TradeType tradeType, final String countryCode,

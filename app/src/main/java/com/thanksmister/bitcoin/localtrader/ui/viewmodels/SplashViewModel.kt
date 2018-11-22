@@ -17,171 +17,190 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.content.SharedPreferences
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
 import com.thanksmister.bitcoin.localtrader.network.api.model.User
+import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
+import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.persistence.UserDao
 import io.reactivex.Completable
+import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.util.HashMap
+import java.util.*
 import javax.inject.Inject
 
 class SplashViewModel @Inject
 constructor(application: Application, private val userDao: UserDao, private val methodsDao: MethodsDao, private val currenciesDao: CurrenciesDao,
-            private val preferences: Preferences, private val sharedPreferences: SharedPreferences) : AndroidViewModel(application) {
+            private val preferences: Preferences, private val sharedPreferences: SharedPreferences) : BaseViewModel(application) {
 
-    private val toastText = ToastMessage()
-    private val alertText = AlertMessage()
-    private val disposable = CompositeDisposable()
     private var syncMap = HashMap<String, Boolean>()
-    private val syncing = MutableLiveData<Boolean>()
+    private val syncing = MutableLiveData<String>()
     private var fetcher: LocalBitcoinsFetcher? = null
 
-    fun getToastMessage(): ToastMessage {
-        return toastText
-    }
-
-    fun getAlertMessage(): AlertMessage {
-        return alertText
-    }
-
-    fun getSyncing(): LiveData<Boolean> {
+    fun getSyncing(): LiveData<String> {
         return syncing
     }
 
-    private fun setSyncing(value: Boolean) {
+    private fun setSyncing(value: String) {
         this.syncing.value = value
     }
 
     init {
         val api = LocalBitcoinsApi(getApplication(), preferences.getServiceEndpoint())
         fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        setSyncing(true)
-    }
-
-    public override fun onCleared() {
-        //prevents memory leaks by disposing pending observable objects
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
-    }
-
-    private fun showAlertMessage(message: String?) {
-        alertText.value = message
-    }
-
-    private fun showToastMessage(message: String?) {
-        toastText.value = message
+        setSyncing(SYNC_IDLE)
     }
 
     fun startSync() {
-        getUserData()
-        getMethods()
-        getCurrencies()
+        resetSyncing()
+        fetchUser()
+        fetchMethods()
+        fetchCurrencies()
     }
 
-    /**
-     * TODO handle host errors when loading data
-     * java.net.UnknownHostException: Unable to resolve host "localbitcoins.com": No address associated with hostname
-    2018-11-10 16:39:35.189 24911-24911/com.thanksmister.bitcoin.localtrader E/SplashViewModel$getUser: Error getting user Network disconnected
-     */
+    private fun getMethods(): Flowable<List<Method>> {
+        return methodsDao.getItems()
+    }
 
-    private fun getUserData() {
+    private fun getCurrencies(): Flowable<List<Currency>> {
+        return currenciesDao.getItems()
+    }
+
+    private fun fetchMethods() {
+        //if(needToRefreshMethods()) {
+        /*disposable.add(Observable.concatArray(getMethods().toObservable(),
+                    fetcher!!.methods)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    insertMethods(it)
+                    updateSyncMap(SYNC_METHODS, false)
+                    setMethodsExpireTime()
+                }, { error ->
+                    Timber.e("Error getting methods ${error.message}")
+                    if(error is NetworkException) {
+                        showNetworkMessage(error.message, error.code)
+                    }
+                    showNetworkMessage(error.message, ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
+                    setSyncing(SYNC_ERROR)
+                }))*/
+        disposable.add(getMethods()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ results ->
+                    Timber.d("Methods results ${results.size}")
+                    if (results == null || results.isEmpty() || needToRefreshMethods()) {
+                        Timber.d("fetching methods")
+                        updateSyncMap(SYNC_METHODS, true)
+                        fetcher!!.methods
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe({
+                                    insertMethods(it)
+                                    updateSyncMap(SYNC_METHODS, false)
+                                    setMethodsExpireTime()
+                                }, { error ->
+                                    Timber.e("Error getting methods ${error.message}")
+                                    if (error is NetworkException) {
+                                        showNetworkMessage(error.message, error.code)
+                                    }
+                                    showAlertMessage(error.message)
+                                    setSyncing(SYNC_ERROR)
+                                })
+                    }
+                }, { error ->
+                    Timber.e("Error getting methods ${error.message}")
+                }))
+    }
+
+    private fun insertMethods(methods: List<Method>) {
+        disposable.add(Completable.fromAction {
+            methodsDao.replaceItem(methods)
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Methods insert error ${error.message}") }))
+    }
+
+    private fun fetchCurrencies() {
+        disposable.add(getMethods()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ results ->
+                    Timber.d("Currency results ${results.size}")
+                    if (results == null || results.isEmpty() || needToRefreshCurrency()) {
+                        Timber.d("fetching currencies")
+                        updateSyncMap(SYNC_CURRENCIES, true)
+                        fetcher!!.currencies
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe({
+                                    insertCurrencies(it)
+                                    updateSyncMap(SYNC_CURRENCIES, false)
+                                    setCurrencyExpireTime()
+                                }, { error ->
+                                    Timber.e("Error getting currencies ${error.message}")
+                                    if (error is NetworkException) {
+                                        showNetworkMessage(error.message, error.code)
+                                    }
+                                    showNetworkMessage(error.message, ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
+                                    setSyncing(SYNC_ERROR)
+                                })
+                    }
+                }, { error ->
+                    Timber.e("Error getting methods ${error.message}")
+                }))
+    }
+
+    private fun insertCurrencies(currencies: List<Currency>) {
+        disposable.add(Completable.fromAction {
+            currenciesDao.replaceItem(currencies)
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Currencies insert error ${error.message}") }))
+    }
+
+    private fun fetchUser() {
         updateSyncMap(SYNC_MYSELF, true)
         disposable.add(fetcher!!.myself
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe ({
+                .subscribe({
                     insertUser(it)
                     updateSyncMap(SYNC_MYSELF, false)
-                }, {
-                    error -> Timber.e("Error getting user ${error.message}")
-                    updateSyncMap(SYNC_MYSELF, false)
-                    showAlertMessage(error.message)
+                }, { error ->
+                    Timber.e("Error getting user ${error.message}")
+                    if (error is NetworkException) {
+                        showNetworkMessage(error.message, error.code)
+                    }
+                    showNetworkMessage(error.message, ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
+                    setSyncing(SYNC_ERROR)
                 }))
     }
 
     private fun insertUser(user: User) {
         disposable.add(Completable.fromAction {
-            userDao.updateItem(user) }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                }, { error -> Timber.e("User insert error ${error.message}")}))
-    }
-
-    private fun getMethods() {
-        if(needToRefreshMethods()) {
-            updateSyncMap(SYNC_METHODS, true)
-            disposable.add(fetcher!!.methods
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        insertMethods(it)
-                        updateSyncMap(SYNC_METHODS, false)
-                        setMethodsExpireTime()
-                    }, { error ->
-                        Timber.e("Error getting methods ${error.message}")
-                        updateSyncMap(SYNC_METHODS, false)
-                        showAlertMessage(error.message)
-                    }))
+            userDao.updateItem(user)
         }
-    }
-
-    private fun insertMethods(methods: List<Method>) {
-        disposable.add(Completable.fromAction {
-            methodsDao.replaceItem(methods) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                }, { error -> Timber.e("Methods insert error ${error.message}")}))
+                }, { error -> Timber.e("User insert error ${error.message}") }))
     }
 
-    private fun getCurrencies() {
-        if(needToRefreshCurrency()) {
-            updateSyncMap(SYNC_CURRENCIES, true)
-            disposable.add(fetcher!!.currencies
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        insertCurrencies(it)
-                        updateSyncMap(SYNC_CURRENCIES, false)
-                        setCurrencyExpireTime()
-                    }, { error ->
-                        Timber.e("Error getting currencies ${error.message}")
-                        updateSyncMap(SYNC_CURRENCIES, false)
-                        showAlertMessage(error.message)
-                    }))
-        }
-    }
-
-    private fun insertCurrencies(currencies: List<Currency>) {
-        disposable.add(Completable.fromAction {
-            currenciesDao.replaceItem(currencies) }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                }, { error -> Timber.e("Currencies insert error ${error.message}")}))
-    }
 
     // TODO we need to setup our workers for background loading data
 
@@ -194,9 +213,9 @@ constructor(application: Application, private val userDao: UserDao, private val 
         syncMap[key] = value
         if (!isSyncing()) {
             resetSyncing()
-            setSyncing(false)
+            setSyncing(SYNC_COMPLETE)
         } else {
-            setSyncing(true)
+            setSyncing(SYNC_STARTED)
         }
     }
 
@@ -256,6 +275,12 @@ constructor(application: Application, private val userDao: UserDao, private val 
         const val SYNC_MYSELF = "SYNC_MYSELF"
         const val SYNC_CURRENCIES = "SYNC_CURRENCIES"
         const val SYNC_METHODS = "SYNC_METHODS"
+
+        const val SYNC_IDLE = "SYNC_IDLE"
+        const val SYNC_STARTED = "SYNC_STARTED"
+        const val SYNC_COMPLETE = "SYNC_COMPLETE"
+        const val SYNC_ERROR = "SYNC_ERROR"
+
         const val CHECK_CURRENCY_DATA = 604800000;// // 1 week 604800000
         const val CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
         const val PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire_time";

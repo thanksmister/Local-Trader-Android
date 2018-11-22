@@ -54,7 +54,7 @@
                 android:orientation="vertical">
 
             <Button
-                    android:id="@+id/searchButton"
+                    android:id="@+id/notificationsSearchButton"
                     style="@style/ButtonGreen.Small"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
                     android:layout_height="8dp"/>
 
             <Button
-                    android:id="@+id/advertiseButton"
+                    android:id="@+id/notificationsAdvertiseButton"
                     style="@style/ButtonGreen.Small"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

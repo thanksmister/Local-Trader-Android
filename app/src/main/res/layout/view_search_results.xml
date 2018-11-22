@@ -15,20 +15,15 @@
   ~
   -->
 
-<LinearLayout
+<FrameLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:orientation="vertical"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
-    
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
         <ListView
-                android:id="@+id/resultsList"
+                android:id="@+id/searchResultsList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -36,16 +31,8 @@
                 android:visibility="gone"/>
 
         <include layout="@layout/view_empty"
-                 android:id="@+id/emptyLayout"
+                 android:id="@+id/searchResultsEmpty"
                  tools:visibility="visible"
                  android:visibility="gone"/>
 
-        <include
-                android:id="@+id/resultsProgress"
-                layout="@layout/view_progress"
-                android:visibility="visible"
-                tools:visibility="visible"/>
-
-    </FrameLayout>
-
-</LinearLayout>
+</FrameLayout>

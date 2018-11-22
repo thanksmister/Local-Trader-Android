@@ -29,7 +29,7 @@
             android:orientation="horizontal">
 
         <LinearLayout
-                android:id="@+id/priceLayout"
+                android:id="@+id/advertiserPriceLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -37,7 +37,7 @@
                 android:layout_gravity="right">
 
             <TextView
-                    android:id="@+id/tradePrice"
+                    android:id="@+id/advertiserTradePrice"
                     style="@style/TextLarge.SmallAction.Green"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
                     android:text="7000 ARS"/>
 
             <TextView
-                    android:id="@+id/adTradeLimit"
+                    android:id="@+id/advertiserTradeLimit"
                     style="@style/TextMedium.Secondary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -81,7 +81,7 @@
                     android:gravity="right">
 
                 <View
-                        android:id="@+id/lastSeenIcon"
+                        android:id="@+id/advertiserLastSeenIcon"
                         android:layout_width="8dp"
                         android:layout_height="8dp"
                         android:background="@drawable/last_seen_recently"
@@ -92,7 +92,7 @@
                         android:layout_height="match_parent"/>
 
                 <TextView
-                        android:id="@+id/traderName"
+                        android:id="@+id/advertiserTraderName"
                         style="@style/TextLarge.SmallAction"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -116,7 +116,7 @@
 
 
                 <TextView
-                        android:id="@+id/tradeFeedback"
+                        android:id="@+id/advertiserTradeFeedback"
                         style="@style/TextMedium.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -133,7 +133,7 @@
                         android:layout_gravity="right|center_vertical"/>
 
                 <TextView
-                        android:id="@+id/tradeCount"
+                        android:id="@+id/advertiserTradeCount"
                         style="@style/TextMedium.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -148,7 +148,7 @@
     </LinearLayout>
 
     <TextView
-            android:id="@+id/tradLocation"
+            android:id="@+id/advertiserTradLocation"
             style="@style/TextSmall.Light"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

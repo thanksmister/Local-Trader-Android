@@ -15,36 +15,27 @@
  *
  */
 
-package com.thanksmister.bitcoin.localtrader.network.services;
+package com.thanksmister.bitcoin.localtrader.network.services
 
-import android.content.Context;
-import android.location.Location;
-import android.location.LocationManager;
+import android.content.Context
+import android.location.Location
+import android.location.LocationManager
 
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
-import com.thanksmister.bitcoin.localtrader.utils.Doubles;
+import com.thanksmister.bitcoin.localtrader.BaseApplication
+import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
+import com.thanksmister.bitcoin.localtrader.utils.Doubles
 
-import java.util.Comparator;
+import java.util.Comparator
 
-import io.reactivex.Observable;
+import io.reactivex.Observable
 
-public class GeoLocationService {
-    public final static int MAX_ADDRESSES = 5;
+class GeoLocationService(private val application: BaseApplication, private val localBitcoins: LocalBitcoinsService) {
 
-    private static final long LOCATION_MIN_TIME_BETWEEN_UPDATES = 0L;
-    private static final float LOCATION_MIN_DISTANCE_BETWEEN_UPDATES = 0f;
+    private val locationObservable: Observable<Location>? = null
+    private val locationManager: LocationManager
 
-    private Observable<Location> locationObservable;
-
-    private BaseApplication application;
-    private LocalBitcoinsService localBitcoins;
-    private LocationManager locationManager;
-
-    public GeoLocationService(BaseApplication application, LocalBitcoinsService localBitcoins) {
-        this.application = application;
-        this.localBitcoins = localBitcoins;
-        this.locationManager = (LocationManager) application.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+    init {
+        this.locationManager = application.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         //this.locationObservable = createLocationObservable();
     }
 
@@ -220,8 +211,8 @@ public class GeoLocationService {
         }
     }*/
 
-    @Deprecated
-    /*public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final String countryCode, @NonNull final String countryName,
+    @Deprecated("")
+    private inner/*public Observable<List<Advertisement>> getOnlineAdvertisements(@NonNull final String countryCode, @NonNull final String countryName,
                                                                    @NonNull final TradeType type, @NonNull final String paymentMethod) {
         String url;
         if (type == TradeType.ONLINE_BUY) {
@@ -256,9 +247,7 @@ public class GeoLocationService {
                         }
                     });
         }
-    }*/
-
-    /*public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type) {
+    }*//*public Observable<List<Advertisement>> getAdvertisementsInPlace(Place place, TradeType type) {
         String url = "";
         if (type == TradeType.LOCAL_BUY) {
             if (place.buyLocalUrl.contains("https://localbitcoins.com/")) {
@@ -289,18 +278,24 @@ public class GeoLocationService {
                     }
                 });
     }*/
-
     /**
      * Compares distance as a double value to list advertisements by shortest to longest distance from user
      */
-    private class AdvertisementNameComparator implements Comparator<Advertisement> {
-        @Override
-        public int compare(Advertisement a1, Advertisement a2) {
+    class AdvertisementNameComparator : Comparator<Advertisement> {
+        override fun compare(a1: Advertisement, a2: Advertisement): Int {
             try {
-                return Double.compare(Doubles.convertToDouble(a1.getDistance()), Doubles.convertToDouble(a2.getDistance()));
-            } catch (Exception e) {
-                return 0;
+                return java.lang.Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance))
+            } catch (e: Exception) {
+                return 0
             }
+
         }
+    }
+
+    companion object {
+        val MAX_ADDRESSES = 5
+
+        private val LOCATION_MIN_TIME_BETWEEN_UPDATES = 0L
+        private val LOCATION_MIN_DISTANCE_BETWEEN_UPDATES = 0f
     }
 }

@@ -17,39 +17,49 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
+import android.content.ActivityNotFoundException
+import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.ContactActivity
+import com.thanksmister.bitcoin.localtrader.ui.activities.SearchActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_dashboard_items.*
-
-import javax.inject.Inject
-
 import timber.log.Timber
+import javax.inject.Inject
 
 class ContactsFragment : BaseFragment() {
 
-    @Inject lateinit var sharedPreferences: SharedPreferences
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var viewModel: ContactsViewModel
 
+    private val disposable = CompositeDisposable()
     private var adapter: ContactsAdapter? = null
-    private val contacts = emptyList<Contact>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // can't retain nested fragments
-        //retainInstance = false
+        //retainInstance = true
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -62,6 +72,9 @@ class ContactsFragment : BaseFragment() {
         val linearLayoutManager = LinearLayoutManager(activity)
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
         contactsList.layoutManager = linearLayoutManager
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactsViewModel::class.java)
+        observeViewModel(viewModel)
     }
 
     private fun setupList(items: List<Contact>) {
@@ -88,67 +101,41 @@ class ContactsFragment : BaseFragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        subscribeData()
+    override fun onDestroy() {
+        super.onDestroy()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
     }
 
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-    }
-
-    private fun subscribeData() {
-        Timber.d("subscribeData")
-
-        /*dbManager.contactsQuery()
+    private fun observeViewModel(viewModel: ContactsViewModel) {
+        viewModel.getAlertMessage().observe(this, Observer { message ->
+            if (message != null && activity != null) {
+                dialogUtils.showAlertDialog(activity!!, message)
+            }
+        })
+        viewModel.getToastMessage().observe(this, Observer { message ->
+            if (message != null && activity != null) {
+                toast(message)
+            }
+        })
+        disposable.add(viewModel.getContacts()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Contacts subscription safely unsubscribed");
+                .subscribe( { data ->
+                    if(data != null) {
+                        setupList(data)
                     }
-                })
-                .flatMap(new Func1<List<ContactItem>, Observable<List<ContactItem>>>() {
-                    @Override
-                    public Observable<List<ContactItem>> call(List<ContactItem> contactItems) {
-                        // filter for only active trades
-                        List<ContactItem> activeContacts = new ArrayList<ContactItem>();
-                        for (ContactItem contactItem : contactItems) {
-                            if (TradeUtils.INSTANCE.tradeIsActive(contactItem.closed_at(), contactItem.canceled_at())) {
-                                activeContacts.add(contactItem);
-                            }
-                        }
-                        return Observable.just(activeContacts);
-                    }
-                })
-                .subscribe(new Action1<List<ContactItem>>() {
-                    @Override
-                    public void call(final List<ContactItem> contactItems) {
-                        Timber.d("ContactItems: " + contactItems.size());
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                contacts = contactItems;
-                                setupList(contacts);
-                            }
-                        });
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        setupList(contacts);
-                        reportError(throwable);
-                    }
-                });*/
-
+                }, { error ->
+                    Timber.e(error.message)
+                }))
     }
 
-    protected fun showContact(contact: Contact?) {
+    private fun showContact(contact: Contact?) {
         if (contact != null && contact.contactId != 0 && activity != null) {
             val intent = ContactActivity.createStartIntent(activity!!, contact.contactId)
             startActivity(intent)
@@ -157,36 +144,29 @@ class ContactsFragment : BaseFragment() {
         }
     }
 
-    protected fun createAdvertisementScreen() {
-        /*showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
-            @Override
-            public void call() {
-                try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
-                } catch (android.content.ActivityNotFoundException ex) {
-                    Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
-                }
-            }
-        }, new Action0() {
-            @Override
-            public void call() {
+    private fun createAdvertisementScreen() {
+        if(activity != null && isAdded) {
+            dialogUtils.showAlertDialog(activity!!, getString(R.string.dialog_edit_advertisements),
+                    DialogInterface.OnClickListener { _, _ ->
+                        try {
+                            startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
+                        } catch (ex: ActivityNotFoundException) {
+                            Toast.makeText(activity!!, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+                        }
+                    }, DialogInterface.OnClickListener { _, _ ->
                 // na-da
-            }
-        });*/
+            })
+        }
     }
 
-    protected fun showSearchScreen() {
-        if (isAdded) {
-            //((MainActivity) getActivity()).navigateSearchView();
+    private fun showSearchScreen() {
+        if(activity != null && isAdded) {
+            val intent = SearchActivity.createStartIntent(activity!!)
+            startActivity(intent)
         }
     }
 
     companion object {
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
         fun newInstance(): ContactsFragment {
             return ContactsFragment()
         }

@@ -21,6 +21,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisements;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Dashboard;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Messages;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notifications;
@@ -74,14 +75,14 @@ public interface LocalBitcoinsService {
     @FormUrlEncoded
     @POST("/oauth2/access_token/")
     Observable<Authorization> getAuthorization(@Field("grant_type") String grant_type,
-                                             @Field("code") String code,
-                                             @Field("client_id") String client_id,
-                                             @Field("client_secret") String client_secret);
+                                               @Field("code") String code,
+                                               @Field("client_id") String client_id,
+                                               @Field("client_secret") String client_secret);
 
     @FormUrlEncoded
     @POST("/oauth2/access_token/")
     Observable<Authorization> refreshToken(@Field("grant_type") String grant_type,
-                                           @Field("refreshToken") String refresh_token,
+                                           @Field("refresh_token") String refresh_token,
                                            @Field("client_id") String client_id,
                                            @Field("client_secret") String client_secret);
 
@@ -95,8 +96,8 @@ public interface LocalBitcoinsService {
     Observable<Dashboard> getDashboard(@Query("access_token") String token);
 
     @GET(GET_DASHBOARD + "{type}/")
-    Observable<Dashboard> getDashboard(@Query("access_token") String token,
-                                       @Path("type") String type);
+    Observable<Dashboard> getDashboard(@Path("type") String type,
+                                       @Query("access_token") String token);
 
     @GET(GET_ADS)
     Observable<Advertisements> getAdvertisements(@Query("access_token") String token);
@@ -109,39 +110,39 @@ public interface LocalBitcoinsService {
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContact(@Query("access_token") String token,
-                                          @Path("ad_id") String ad_id,
-                                          @Field("amount") String amount,
-                                          @Field("message") String message);
+    Observable<ContactRequest> createContact(@Path("ad_id") String ad_id,
+                                             @Query("access_token") String token,
+                                             @Field("amount") String amount,
+                                             @Field("message") String message);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactEmail(@Query("access_token") String token,
-                                               @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactEmail(@Path("ad_id") String ad_id,
+                                               @Query("access_token") String token,
                                                @Field("amount") String amount,
                                                @Field("receiver_email") String email,
                                                @Field("message") String message);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactPhone(@Query("access_token") String token,
-                                               @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactPhone(@Path("ad_id") String ad_id,
+                                               @Query("access_token") String token,
                                                @Field("amount") String amount,
                                                @Field("phone_number") String phone,
                                                @Field("message") String message);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactEthereumAddress(@Query("access_token") String token,
-                                                         @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactEthereumAddress(@Path("ad_id") String ad_id,
+                                                         @Query("access_token") String token,
                                                          @Field("amount") String amount,
                                                          @Field("ethereum_address") String ethereum,
                                                          @Field("message") String message);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactBPay(@Query("access_token") String token,
-                                              @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactBPay(@Path("ad_id") String ad_id,
+                                              @Query("access_token") String token,
                                               @Field("amount") String amount,
                                               @Field("biller_code") String billerCode,
                                               @Field("reference") String reference,
@@ -149,15 +150,15 @@ public interface LocalBitcoinsService {
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactNational(@Query("access_token") String token,
-                                                  @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactNational(@Path("ad_id") String ad_id,
+            @Query("access_token") String token,
                                                   @Field("amount") String amount,
                                                   @Field("message") String message);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactNational_UK(@Query("access_token") String token,
-                                                     @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactNational_UK(@Path("ad_id") String ad_id,
+                                                     @Query("access_token") String token,
                                                      @Field("amount") String amount,
                                                      @Field("receiver_name") String name,
                                                      @Field("sort_code") String sortCode,
@@ -167,8 +168,8 @@ public interface LocalBitcoinsService {
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactNational_FI(@Query("access_token") String token,
-                                                     @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactNational_FI(@Path("ad_id") String ad_id,
+            @Query("access_token") String token,
                                                      @Field("amount") String amount,
                                                      @Field("receiver_name") String name,
                                                      @Field("iban") String iban,
@@ -178,8 +179,8 @@ public interface LocalBitcoinsService {
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactNational_AU(@Query("access_token") String token,
-                                                     @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactNational_AU(@Path("ad_id") String ad_id,
+                                                     @Query("access_token") String token,
                                                      @Field("amount") String amount,
                                                      @Field("receiver_name") String name,
                                                      @Field("bbs") String bsb,
@@ -189,8 +190,8 @@ public interface LocalBitcoinsService {
 
     @FormUrlEncoded
     @POST(POST_CONTACT_CREATE + "{ad_id}/")
-    Observable<JsonElement> createContactSepa(@Query("access_token") String token,
-                                              @Path("ad_id") String ad_id,
+    Observable<ContactRequest> createContactSepa(@Path("ad_id") String ad_id,
+                                              @Query("access_token") String token,
                                               @Field("amount") String amount,
                                               @Field("receiver_name") String name,
                                               @Field("iban") String iban,
@@ -240,21 +241,21 @@ public interface LocalBitcoinsService {
     Observable<TreeMap<String, Object>> getOnlineProviders(@Path("countrycode") String countrycode);
 
     @GET(GET_CONTACT_INFO + "{contact_id}/")
-    Observable<Contact> getContactInfo(@Query("access_token") String token,
-                                       @Path("contact_id") int contact_id);
+    Observable<Contact> getContactInfo(@Path("contact_id") int contact_id,
+                                       @Query("access_token") String token);
 
     @GET(GET_CONTACT_MESSAGES + "{contact_id}/")
-    Observable<Messages> contactMessages(@Query("access_token") String token,
-                                         @Path("contact_id") String contact_id);
+    Observable<Messages> contactMessages(@Path("contact_id") int contact_id,
+                                         @Query("access_token") String token);
 
     @GET(GET_AD + "{ad_id}/")
-    Observable<Advertisement> getAdvertisement(@Query("access_token") String token,
-                                               @Path("ad_id") int ad_id);
+    Observable<Advertisements> getAdvertisement(@Path("ad_id") int ad_id,
+                                               @Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(UPDATE_AD + "{ad_id}/")
-    Observable<JsonElement> updateAdvertisement(@Query("access_token") String token,
-                                                @Path("ad_id") String ad_id,
+    Observable<JsonElement> updateAdvertisement(@Path("ad_id") String ad_id,
+                                                @Query("access_token") String token,
                                                 @Field("account_info") String account_info,
                                                 @Field("bank_name") String bank_name,
                                                 @Field("city") String city,
@@ -279,8 +280,8 @@ public interface LocalBitcoinsService {
                                                 @Field("opening_hours") String opening_hours);
 
     @POST(DELETE_AD + "{ad_id}/")
-    Observable<JsonElement> deleteAdvertisement(@Query("access_token") String token,
-                                                @Path("ad_id") String ad_id);
+    Observable<JsonElement> deleteAdvertisement(@Path("ad_id") int ad_id,
+                                                @Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(POST_AD_CREATE)
@@ -310,39 +311,39 @@ public interface LocalBitcoinsService {
                                                 @Field("opening_hours") String opening_hours);
 
     @POST(POST_CONTACT_DISPUTE + "{contact_id}/")
-    Observable<JsonElement> contactDispute(@Query("access_token") String token,
-                                           @Path("contact_id") String contact_id);
+    Observable<JsonElement> contactDispute(@Path("contact_id") String contact_id,
+                                           @Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_MESSAGE + "{contact_id}/")
-    Observable<JsonElement> contactMessagePost(@Query("access_token") String token,
-                                               @Path("contact_id") String contact_id,
+    Observable<JsonElement> contactMessagePost(@Path("contact_id") String contact_id,
+                                               @Query("access_token") String token,
                                                @Field("msg") String msg);
 
     @Multipart
     @POST(POST_CONTACT_MESSAGE + "{contact_id}/")
-    Observable<JsonElement> contactMessagePostWithAttachment(@Query("access_token") String token,
-                                                             @Path("contact_id") String contact_id,
+    Observable<JsonElement> contactMessagePostWithAttachment(@Path("contact_id") String contact_id,
+                                                             @Query("access_token") String token,
                                                              @PartMap LinkedHashMap<String, String> params,
                                                              @Part("document") RequestBody document);
 
     @POST(POST_CONTACT_PAID + "{contact_id}/")
-    Observable<JsonElement> markAsPaid(@Query("access_token") String token,
-                                       @Path("contact_id") String contact_id);
+    Observable<JsonElement> markAsPaid(@Path("contact_id") String contact_id,
+                                       @Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_RELEASE + "{contact_id}/")
-    Observable<JsonElement> releaseContactPinCode(@Query("access_token") String token,
-                                                  @Path("contact_id") String contact_id,
+    Observable<JsonElement> releaseContactPinCode(@Path("contact_id") String contact_id,
+                                                  @Query("access_token") String token,
                                                   @Field("pincode") String pincode);
 
     @POST(POST_CONTACT_CANCEL + "{contact_id}/")
-    Observable<JsonElement> contactCancel(@Query("access_token") String token,
-                                          @Path("contact_id") String contact_id);
+    Observable<JsonElement> contactCancel(@Path("contact_id") String contact_id,
+                                          @Query("access_token") String token);
 
     @POST(POST_CONTACT_FUND + "{contact_id}/")
-    Observable<JsonElement> contactFund(@Query("access_token") String token,
-                                        @Path("contact_id") String contact_id);
+    Observable<JsonElement> contactFund(@Path("contact_id") String contact_id,
+                                        @Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(CHECK_PINCODE)
@@ -361,8 +362,8 @@ public interface LocalBitcoinsService {
 
 
     @POST(POST_NOTIFICATIONS_MARK_READ + "{notification_id}/")
-    Observable<JsonElement> markNotificationRead(@Query("access_token") String token,
-                                                 @Path("notification_id") String notification_id);
+    Observable<JsonElement> markNotificationRead(@Path("notification_id") String notificationId,
+                                                 @Query("access_token") String token);
 
    /* @FormUrlEncoded
     @POST("/oauth2/accessToken/")

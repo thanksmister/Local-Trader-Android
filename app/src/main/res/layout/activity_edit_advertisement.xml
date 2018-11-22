@@ -37,7 +37,7 @@
             android:paddingBottom="16dp">
 
             <FrameLayout
-                android:id="@+id/noteLayout"
+                android:id="@+id/editNoteLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="@dimen/view_padding_small"
@@ -51,7 +51,7 @@
 
                 <TextView
                     style="@style/TextMedium"
-                    android:id="@+id/noteText"
+                    android:id="@+id/editNoteText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="left|top"
@@ -63,7 +63,7 @@
             </FrameLayout>
 
             <LinearLayout
-                android:id="@+id/activeLayout"
+                android:id="@+id/editActiveLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:visibility="visible"
@@ -101,15 +101,12 @@
             </LinearLayout>
 
             <!-- Minimum Maximum Amount -->
-
             <include layout="@layout/view_min_max"/>
 
             <!-- Price Equation -->
-
             <include layout="@layout/view_price_equation"/>
 
             <!-- Terms -->
-
             <include layout="@layout/view_terms"/>
 
         </LinearLayout>
@@ -126,7 +123,7 @@
             android:layout_gravity="bottom">
 
         <Button
-                android:id="@+id/nextButton"
+                android:id="@+id/editSveButton"
                 style="@style/ButtonGreen.Small"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"

@@ -23,9 +23,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * TODO: Add a class header comment!
- */
 public class CurrencyUtils {
 
     public CurrencyUtils() {

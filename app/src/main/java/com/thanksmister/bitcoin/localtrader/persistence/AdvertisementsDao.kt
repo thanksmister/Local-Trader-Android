@@ -40,7 +40,7 @@ interface AdvertisementsDao {
      * Get all items ordered by date
      * @return list of all items with specific date
      */
-    @Query("SELECT * FROM Advertisements ORDER BY created_at DESC")
+    @Query("SELECT * FROM Advertisements ORDER BY createdAt DESC")
     fun getItems(): Flowable<List<Advertisement>>
 
     /**
@@ -56,6 +56,12 @@ interface AdvertisementsDao {
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertItems(items: List<Advertisement>)
+
+    /**
+     * Delete all items.
+     */
+    @Delete
+    fun deleteItem(item: Advertisement)
 
     /**
      * Delete all items.

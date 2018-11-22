@@ -102,6 +102,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.google.android.gms:play-services-vision:17.0.2' //16.2.0
     implementation 'com.android.support:multidex:1.0.3'
+    implementation "com.android.support:preference-v14:$versions.support"
 
     // Work
     implementation("android.arch.work:work-runtime:$versions.work") {

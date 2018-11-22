@@ -12,16 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.thanksmister.bitcoin.localtrader.network.api.model;
+package com.thanksmister.bitcoin.localtrader.architecture
 
-public class Place {
-    public String sellLocalUrl;
-    public String buyLocalUrl;
-    public String locationString;
-    public String url;
-    public String lon;
-    public String lat;
+/**
+ * Created by Michael Ritchie on 11/14/18.
+ */
+class MessageData {
+    var code: Int = 0
+    var message: String? = null
 }

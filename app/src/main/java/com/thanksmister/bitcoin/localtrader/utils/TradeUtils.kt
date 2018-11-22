@@ -244,20 +244,6 @@ class TradeUtils {
             return code
         }
 
-        fun getPaymentMethodFromItems(context: Context, advertisement: Advertisement, Methods: List<Method>?): String {
-            if (Methods == null || Methods.isEmpty()) {
-                return ""
-            }
-            var paymentMethod = ""
-            for (method in Methods) {
-                if (method.code != null && method.code == advertisement.onlineProvider) {
-                    paymentMethod = getPaymentMethod(context, advertisement, method)
-                    break
-                }
-            }
-            return paymentMethod
-        }
-
         fun getPaymentMethod(context: Context, advertisement: Advertisement, methods: List<Method>): String {
             var paymentMethod = ""
             for (method in methods) {
@@ -272,15 +258,15 @@ class TradeUtils {
         fun getPaymentMethod(context: Context, advertisement: Advertisement, method: Method?): String {
             var paymentMethod: String? = "Online"
             if (method != null && method.code == advertisement.onlineProvider) {
-                when (method.code) {
+                /*when (method.code) {
                     "NATIONAL_BANK" -> return context.getString(R.string.text_national_bank_transfer)
                     "CASH_DEPOSIT" -> return context.getString(R.string.text_cash_deposit)
                     "SPECIFIC_BANK" -> return context.getString(R.string.text_bank_transfer)
-                }
-                paymentMethod = method.name
+                }*/
+                paymentMethod = method.name!!
             }
             if (!TextUtils.isEmpty(advertisement.bankName) && "NATIONAL_BANK" == advertisement.onlineProvider) {
-                return paymentMethod + context.getString(R.string.text_common_with) + advertisement.bankName
+                return context.getString(R.string.text_common_with, paymentMethod, advertisement.bankName)
             } else if (paymentMethod != null) {
                 return paymentMethod
             }

@@ -35,6 +35,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
+import io.reactivex.exceptions.UndeliverableException
 
 
 import java.util.ArrayList
@@ -125,9 +126,16 @@ class ContactsActivity : BaseActivity() {
         super.onPause()
     }
 
-    public override fun onDestroy() {
+    /*override fun onDestroy() {
         super.onDestroy()
-    }
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
+    }*/
 
     fun showContent() {
         if (recycleView != null && emptyLayout != null && progress != null) {

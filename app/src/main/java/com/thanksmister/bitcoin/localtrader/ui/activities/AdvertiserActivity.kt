@@ -35,6 +35,7 @@ import android.widget.Toast
 import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
@@ -45,7 +46,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.functions.BiFunction
+import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_advertiser.*
 import timber.log.Timber
@@ -56,24 +57,21 @@ class AdvertiserActivity : BaseActivity() {
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject lateinit var viewModel: AdvertisementsViewModel
 
+    private var connectionLiveData: ConnectionLiveData? = null
     private val disposable = CompositeDisposable()
     private var adId: Int = 0
     private var advertisement: Advertisement? = null
 
-    private inner class AdvertisementData {
-        var advertisement: Advertisement? = null
-        var method: Method? = null
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.view_advertiser)
-        /*adId = if (savedInstanceState == null) {
+
+        adId = if (savedInstanceState == null) {
             intent.getIntExtra(EXTRA_AD_ID, 0)
         } else {
             savedInstanceState.getInt(EXTRA_AD_ID, 0)
-        }*/
+        }
+
         if (supportActionBar != null) {
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
             supportActionBar!!.title = ""
@@ -82,14 +80,25 @@ class AdvertiserActivity : BaseActivity() {
             showTradeRequest(advertisement)
         }
         requestButton.isEnabled = false
+
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(AdvertisementsViewModel::class.java)
         observeViewModel(viewModel)
     }
 
-    /*public override fun onSaveInstanceState(outState: Bundle) {
+    override fun onStart() {
+        super.onStart()
+        connectionLiveData = ConnectionLiveData(this@AdvertiserActivity)
+        connectionLiveData?.observe(this, Observer { connected ->
+            if(!connected!!) {
+                Toast.makeText(this@AdvertiserActivity, getString(R.string.error_network_disconnected), Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    public override fun onSaveInstanceState(outState: Bundle) {
         outState.putInt(EXTRA_AD_ID, adId)
         super.onSaveInstanceState(outState)
-    }*/
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.advertiser, menu)
@@ -120,56 +129,58 @@ class AdvertiserActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        disposable.dispose()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message?.message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@AdvertiserActivity, message.message!!)
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
+                dialogUtils.hideProgressDialog()
                 dialogUtils.showAlertDialog(this@AdvertiserActivity, message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             Toast.makeText(this@AdvertiserActivity, message, Toast.LENGTH_LONG).show()
         })
-        viewModel.fetchAdvertisment(adId)
-        disposable.add(
-                viewModel.getAdvertisement(adId)
-                        .zipWith(viewModel.getMethods(), BiFunction { advertisement: Advertisement, methods: List<Method> ->
-                            val method = TradeUtils.getMethodForAdvertisement(advertisement, methods);
-                            val data = AdvertisementData()
-                            data.advertisement = advertisement
-                            data.method = method
-                            data
-                        })
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe( { data ->
-                            if (data.advertisement != null && data.method != null) {
-                                advertisement = data.advertisement
-                                setTradeRequirements(advertisement)
-                                setHeader(advertisement!!.tradeType)
-                                setTradeRequirements(advertisement)
-                                if (TradeUtils.isOnlineTrade(advertisement!!)) {
-                                    setAdvertisement(advertisement, data.method)
-                                } else {
-                                    setAdvertisement(advertisement, null)
-                                }
-                                advertiserContent.visibility = View.VISIBLE
-                            }
-                        }, { error -> 
-                            Timber.e("Advertiser error: $error")
-                            runOnUiThread { 
-                                dialogUtils.showAlertDialog(this@AdvertiserActivity, getString(R.string.error_title), 
-                                        getString(R.string.toast_error_opening_advertisement), DialogInterface.OnClickListener { _, _ ->
-                                    finish()
-                                })
-                            }
-                            if (!BuildConfig.DEBUG) {
-                                Crashlytics.setString("advertiser", adId.toString())
-                                Crashlytics.logException(error)
-                            }
-                        }))
+
+        dialogUtils.showProgressDialog(this@AdvertiserActivity, getString(R.string.dialog_loading))
+        disposable.add(viewModel.fetchAdvertiser(adId)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({
+                    if(it != null) {
+                        dialogUtils.hideProgressDialog()
+                        advertisement = it.advertisement
+                        setTradeRequirements(advertisement)
+                        setHeader(advertisement!!.tradeType)
+                        setTradeRequirements(advertisement)
+                        if (TradeUtils.isOnlineTrade(advertisement!!)) {
+                            setAdvertisement(advertisement, it.method)
+                        } else {
+                            setAdvertisement(advertisement, null)
+                        }
+                        advertiserContentLayout.visibility = View.VISIBLE
+                    }
+                }, {
+                    error -> Timber.e("Error" + error.message)
+                    dialogUtils.hideProgressDialog()
+                    dialogUtils.showAlertDialog(this@AdvertiserActivity, getString(R.string.error_title),
+                            getString(R.string.toast_error_opening_advertisement), DialogInterface.OnClickListener { _, _ ->
+                        finish()
+                    })
+                }))
     }
 
     @Suppress("DEPRECATION")
@@ -214,10 +225,10 @@ class AdvertiserActivity : BaseActivity() {
                     adTradeLimit.text = getString(R.string.trade_limit_max, advertisement.maxAmountAvailable, advertisement.currency)
                 }
             }
-            if (!TextUtils.isEmpty(advertisement.message)) {
+            if (advertisement.message != null) {
                 tradeTerms.text = advertisement.message!!.trim { it <= ' ' }
             }
-            tradeFeedback.setText(advertisement.profile.feedbackScore)
+            tradeFeedback.text = advertisement.profile.feedbackScore.toString()
             tradeCount.text = advertisement.profile.tradeCount
             if (advertisement.profile.lastOnline != null) {
                 lastSeenIcon.setBackgroundResource(TradeUtils.determineLastSeenIcon(advertisement.profile.lastOnline!!))
@@ -236,35 +247,41 @@ class AdvertiserActivity : BaseActivity() {
                     || advertisement.requireIdentification) {
                 showLayout = true
             }
-            trustedTextView!!.visibility = if (advertisement.trustedRequired) View.VISIBLE else View.GONE
-            identifiedTextView!!.visibility = if (advertisement.requireIdentification) View.VISIBLE else View.GONE
-            smsTextView!!.visibility = if (advertisement.smsVerificationRequired) View.VISIBLE else View.GONE
-            if (!TextUtils.isEmpty(advertisement.requireFeedbackScore) && TradeUtils.isOnlineTrade(advertisement)) {
-                feedbackText!!.visibility = View.VISIBLE
-                feedbackText!!.text = Html.fromHtml(getString(R.string.trade_request_minimum_feedback_score, advertisement.requireFeedbackScore))
+
+            trustedTextView.visibility = if (advertisement.trustedRequired) View.VISIBLE else View.GONE
+            identifiedTextView.visibility = if (advertisement.requireIdentification) View.VISIBLE else View.GONE
+            smsTextView.visibility = if (advertisement.smsVerificationRequired) View.VISIBLE else View.GONE
+
+            if (advertisement.requireFeedbackScore != null && TradeUtils.isOnlineTrade(advertisement)) {
+                feedbackText.visibility = View.VISIBLE
+                feedbackText.text = Html.fromHtml(getString(R.string.trade_request_minimum_feedback_score, advertisement.requireFeedbackScore))
                 showLayout = true
             } else {
-                feedbackText!!.visibility = View.GONE
+                feedbackText.visibility = View.GONE
             }
-            if (!TextUtils.isEmpty(advertisement.requireTradeVolume) && TradeUtils.isOnlineTrade(advertisement)) {
-                volumeText!!.visibility = View.VISIBLE
-                volumeText!!.text = Html.fromHtml(getString(R.string.trade_request_minimum_volume, advertisement.requireTradeVolume))
+
+            if (advertisement.requireTradeVolume != null && TradeUtils.isOnlineTrade(advertisement)) {
+                volumeText.visibility = View.VISIBLE
+                volumeText.text = Html.fromHtml(getString(R.string.trade_request_minimum_volume, advertisement.requireTradeVolume))
                 showLayout = true
             } else {
-                volumeText!!.visibility = View.GONE
+                volumeText.visibility = View.GONE
             }
-            if (!TextUtils.isEmpty(advertisement.firstTimeLimitBtc) && TradeUtils.isOnlineTrade(advertisement)) {
-                limitText!!.visibility = View.VISIBLE
-                limitText!!.text = Html.fromHtml(getString(R.string.trade_request_new_buyer_limit, advertisement.firstTimeLimitBtc))
+
+            if (advertisement.firstTimeLimitBtc != null && TradeUtils.isOnlineTrade(advertisement)) {
+                limitText.visibility = View.VISIBLE
+                limitText.text = Html.fromHtml(getString(R.string.trade_request_new_buyer_limit, advertisement.firstTimeLimitBtc))
                 showLayout = true
             } else {
-                limitText!!.visibility = View.GONE
+                limitText.visibility = View.GONE
             }
-            requirementsLayout!!.visibility = if (showLayout) View.VISIBLE else View.GONE
+
+            requirementsLayout.visibility = if (showLayout) View.VISIBLE else View.GONE
         }
     }
 
     private fun setHeader(tradeTypeString: String) {
+        Timber.d("setHeader trade type $tradeTypeString")
         var header = ""
         val tradeType = TradeType.valueOf(tradeTypeString)
         header = when (tradeType) {

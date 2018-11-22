@@ -19,6 +19,9 @@ package com.thanksmister.bitcoin.localtrader.ui.activities
 
 import android.annotation.TargetApi
 import android.app.Activity
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
 import android.content.*
 import android.graphics.Bitmap
 import android.net.Uri
@@ -28,14 +31,23 @@ import android.text.TextUtils
 import android.util.AndroidRuntimeException
 import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.exceptions.UndeliverableException
+import io.reactivex.schedulers.Schedulers
+
 import kotlinx.android.synthetic.main.activity_share_qrcode.*
 
 import timber.log.Timber
+import javax.inject.Inject
 
 class ShareQrCodeActivity : Activity() {
 
-    private var bitmap: Bitmap? = null
+    private val disposable = CompositeDisposable()
     private var address: String? = null
     private var amount: String? = null
 
@@ -55,17 +67,53 @@ class ShareQrCodeActivity : Activity() {
         qrCopyButton.setOnClickListener { setRequestOnClipboard() }
         qrCancelButton.setOnClickListener { finish() }
         qrShareButton.setOnClickListener { shareBitcoinRequest() }
-        generateQrCodeImage(address, amount)
+        if(address != null && amount != null) {
+            generateAddressBitmap(address!!, amount!!)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        if (!disposable.isDisposed) {
+            try {
+                disposable.clear()
+            } catch (e: UndeliverableException) {
+                Timber.e(e.message)
+            }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(EXTRA_QR_ADDRESS, address)
         outState.putString(EXTRA_QR_AMOUNT, amount)
         super.onSaveInstanceState(outState)
+    }
+
+    private fun generateAddressBitmap(bitcoinAddress: String, bitcoinAmount: String) {
+        disposable.add(
+                generateBitmapObservable(bitcoinAddress, bitcoinAmount)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ bitmap ->
+                            if(bitmap != null) {
+                                qrImage.setImageBitmap(bitmap)
+                            }
+                        }, { error ->
+                            // TODO we want to report theset to crashalytics
+                            Timber.e(error.message)
+                            Toast.makeText(this@ShareQrCodeActivity, getString(R.string.toast_error_qrcode), Toast.LENGTH_SHORT).show()
+                        }))
+    }
+
+    private fun generateBitmapObservable(address: String, amount: String): Observable<Bitmap> {
+        return Observable.create { subscriber ->
+            try {
+                val bitmap = WalletUtils.encodeAsBitmap(address, amount,this@ShareQrCodeActivity)
+                subscriber.onNext(bitmap)
+            } catch (e: Exception) {
+                subscriber.onError(e)
+            }
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -94,36 +142,6 @@ class ShareQrCodeActivity : Activity() {
             }
         }
     }
-
-    private fun generateQrCodeImage(address: String?, amount: String?) {
-       /* subscription = generateBitmap(address, amount)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : Observer<Bitmap> {
-                    override fun onCompleted() {
-                        // na-da
-                    }
-                    override fun onError(e: Throwable) {
-                        Timber.e(e.message)
-                        Toast.makeText(applicationContext, R.string.toast_error_qrcode, Toast.LENGTH_LONG).show()
-                    }
-                    override fun onNext(data: Bitmap) {
-                        bitmap = data
-                        qrImage.setImageBitmap(bitmap)
-                    }
-                })*/
-    }
-
-   /* private fun generateBitmap(address: String?, amount: String?): Observable<Bitmap> {
-        return Observable.create { subscriber ->
-            try {
-                subscriber.onNext(WalletUtils.encodeAsBitmap(address, amount, applicationContext))
-                subscriber.onCompleted()
-            } catch (e: Exception) {
-                subscriber.onError(e)
-            }
-        }
-    }*/
 
     companion object {
         const val EXTRA_QR_ADDRESS = "EXTRA_QR_ADDRESS"
