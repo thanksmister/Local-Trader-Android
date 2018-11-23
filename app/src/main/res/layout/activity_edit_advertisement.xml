@@ -92,19 +92,34 @@
                     android:layout_marginRight="@dimen/activity_padding"
                     android:text="@string/ad_status_edit_description"/>
 
-                <View
-                    android:background="?android:attr/dividerHorizontal"
-                    android:layout_marginTop="8dp"
-                    android:layout_height="1dp"
-                    android:layout_width="match_parent"/>
-
             </LinearLayout>
+
+            <View
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
 
             <!-- Minimum Maximum Amount -->
             <include layout="@layout/view_min_max"/>
 
+            <View
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+
             <!-- Price Equation -->
             <include layout="@layout/view_price_equation"/>
+
+            <View
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
 
             <!-- Terms -->
             <include layout="@layout/view_terms"/>
@@ -113,14 +128,18 @@
     
     </android.support.v4.widget.NestedScrollView>
 
+    <View
+        style="@style/DividerHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="0" />
+
     <LinearLayout
-            android:id="@+id/buttonLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="@dimen/activity_padding"
-            android:layout_weight="0"
-            android:layout_gravity="bottom">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:padding="16dp"
+        android:orientation="vertical">
 
         <Button
                 android:id="@+id/editSveButton"

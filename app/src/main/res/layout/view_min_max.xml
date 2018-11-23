@@ -22,7 +22,6 @@
               android:layout_height="wrap_content">
 
     <!-- Minimum Amount -->
-
     <TextView
             style="@style/TextSmall"
             android:layout_width="wrap_content"
@@ -45,7 +44,6 @@
 
         <EditText
                 android:id="@+id/editMinimumAmount"
-                style="@style/TextLarge.SmallAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="0"
@@ -98,7 +96,6 @@
 
         <EditText
                 android:id="@+id/editMaximumAmount"
-                style="@style/TextLarge.SmallAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="0"
@@ -125,11 +122,5 @@
                 android:layout_marginBottom="2dp"/>
 
     </LinearLayout>
-
-    <View
-            android:background="?android:attr/dividerHorizontal"
-            android:layout_marginTop="8dp"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"/>
 
 </LinearLayout>

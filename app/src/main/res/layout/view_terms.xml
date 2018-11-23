@@ -32,18 +32,11 @@
 
     <EditText
             android:id="@+id/editMessageText"
-            style="@style/TextLarge.SmallAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/activity_padding"
             android:layout_marginRight="@dimen/activity_padding"
             android:hint="@string/text_trade_terms_hint"
             android:minLines="3"/>
-
-    <View
-            android:background="?android:attr/dividerHorizontal"
-            android:layout_marginTop="8dp"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"/>
 
 </LinearLayout>

@@ -36,7 +36,6 @@
 
     <EditText
             android:id="@+id/editPriceEquation"
-            style="@style/TextLarge.SmallAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/activity_padding"
@@ -51,9 +50,10 @@
             android:layout_height="4dp"/>
 
     <TextView
-            style="@style/TextSmall"
+            style="?android:textAppearanceSmall"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
+            android:textStyle="bold"
             android:paddingLeft="@dimen/activity_padding"
             android:paddingRight="@dimen/activity_padding"
             android:text="@string/price_equation_edit_description"
@@ -61,11 +61,5 @@
             android:linksClickable="true"
             android:autoLink="web"
             android:textColorLink="@color/body_text_blue_1"/>
-
-    <View
-            android:background="?android:attr/dividerHorizontal"
-            android:layout_marginTop="8dp"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"/>
     
 </LinearLayout>

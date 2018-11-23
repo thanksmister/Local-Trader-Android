@@ -79,7 +79,7 @@ class SearchFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey(EXTRA_ADDRESS)) {
+            if (savedInstanceState.containsKey(EXTRA_TRADE_TYPE)) {
                 tradeType = savedInstanceState.getSerializable(EXTRA_TRADE_TYPE) as TradeType
             }
         }
@@ -91,9 +91,7 @@ class SearchFragment : BaseFragment() {
     }
 
     override fun onViewCreated(fragmentView: View, savedInstanceState: Bundle?) {
-
         super.onViewCreated(fragmentView, savedInstanceState)
-
         val countryNames = resources.getStringArray(R.array.country_names)
         val countryNamesList = ArrayList(Arrays.asList(*countryNames))
         countryNamesList.add(0, "Any")
@@ -331,8 +329,8 @@ class SearchFragment : BaseFragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
         outState.putSerializable(EXTRA_TRADE_TYPE, tradeType)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -595,7 +593,6 @@ class SearchFragment : BaseFragment() {
     }
 
     companion object {
-        const val EXTRA_ADDRESS = "com.thanksmister.extra.EXTRA_ADDRESS"
         const val EXTRA_TRADE_TYPE = "com.thanksmister.extra.EXTRA_TRADE_TYPE"
         const val REQUEST_CHECK_SETTINGS = 0
         const val REQUEST_GOOGLE_PLAY_SERVICES = 1972
