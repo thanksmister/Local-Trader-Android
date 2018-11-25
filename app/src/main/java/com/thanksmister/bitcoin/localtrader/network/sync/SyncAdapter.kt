@@ -182,7 +182,6 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                                             notificationUtils!!.balanceUpdateNotification(diff)
                                             insertWallet(walletLocal)
                                         }
-                                        notificationUtils!!.balanceUpdateNotification("100000")
                                     }
                                 } else if (walletRemote != null) {
                                     val remoteBalance = walletRemote.total.balance
