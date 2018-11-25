@@ -17,10 +17,8 @@
 package com.thanksmister.bitcoin.localtrader.persistence
 
 import android.arch.persistence.room.*
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
-import com.thanksmister.bitcoin.localtrader.network.api.model.Notification
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
+import android.arch.persistence.room.Transaction
+import com.thanksmister.bitcoin.localtrader.network.api.model.*
 
 import io.reactivex.Flowable
 
@@ -60,6 +58,18 @@ interface NotificationsDao {
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertItems(items: List<Notification>)
+
+    @Transaction
+    fun replaceItems(items: List<Notification>) {
+        deleteAllItems()
+        insertItems(items)
+    }
+
+    /**
+     * Delete all items.
+     */
+    @Query("DELETE FROM Notifications WHERE notificationId = :id")
+    fun deleteItem(id: String)
 
     /**
      * Delete all items.

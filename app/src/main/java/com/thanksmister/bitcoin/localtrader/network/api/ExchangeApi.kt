@@ -16,12 +16,9 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api
 
-import android.content.SharedPreferences
 import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
-
-import com.thanksmister.bitcoin.localtrader.persistence.StringPreference
 import com.thanksmister.bitcoin.localtrader.network.api.adapters.DataTypeAdapterFactory
 import com.thanksmister.bitcoin.localtrader.network.api.model.Bitstamp
 import com.thanksmister.bitcoin.localtrader.network.services.BitcoinAverageService
@@ -30,7 +27,6 @@ import com.thanksmister.bitcoin.localtrader.network.services.BitstampService
 import com.thanksmister.bitcoin.localtrader.network.services.CoinbaseService
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import io.reactivex.Observable
-
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

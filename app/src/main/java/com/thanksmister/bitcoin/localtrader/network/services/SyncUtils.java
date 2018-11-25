@@ -49,7 +49,7 @@ public class SyncUtils {
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_DO_NOT_RETRY, true);
-        ContentResolver.requestSync(getSyncAccount(context), SyncProvider.CONTENT_AUTHORITY, bundle);
+        //ContentResolver.requestSync(getSyncAccount(context), SyncProvider.CONTENT_AUTHORITY, bundle);
     }
 
     /**
@@ -58,7 +58,7 @@ public class SyncUtils {
      * @param context
      */
     public static void cancelSync(Context context) {
-        ContentResolver.cancelSync(getSyncAccount(context), SyncProvider.CONTENT_AUTHORITY);
+        //ContentResolver.cancelSync(getSyncAccount(context), SyncProvider.CONTENT_AUTHORITY);
     }
 
     /**
@@ -67,7 +67,7 @@ public class SyncUtils {
      * @param context
      * @return
      */
-    public static Account getSyncAccount(Context context) {
+    /*public static Account getSyncAccount(Context context) {
         String acctType = "com.thanksmister.bitcoin.localtrader.sync";
         AccountManager accountManager = (AccountManager) context.getSystemService(ACCOUNT_SERVICE);
         if(accountManager != null) {
@@ -90,5 +90,5 @@ public class SyncUtils {
             }
         }
         return null;
-    }
+    }*/
 }

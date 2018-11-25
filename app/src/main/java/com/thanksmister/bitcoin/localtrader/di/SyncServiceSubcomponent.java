@@ -16,27 +16,14 @@
 
 package com.thanksmister.bitcoin.localtrader.di;
 
-import com.thanksmister.bitcoin.localtrader.BaseApplication;
+import com.thanksmister.bitcoin.localtrader.network.sync.SyncService;
 
-import javax.inject.Singleton;
-
-import dagger.Component;
+import dagger.Subcomponent;
 import dagger.android.AndroidInjector;
-import dagger.android.support.AndroidSupportInjectionModule;
 
-@Singleton
-@Component(modules = {
-        AndroidSupportInjectionModule.class,
-        ApplicationModule.class,
-        ServicesModule.class,
-        ActivityModule.class,
-        AndroidBindingModule.class,
-        DaggerViewModelInjectionModule.class
-})
-
-@ApplicationScope
-public interface ApplicationComponent extends AndroidInjector<BaseApplication> {
-    @Component.Builder
-    abstract class Builder extends AndroidInjector.Builder<BaseApplication>{
+@Subcomponent(modules = {})
+public interface SyncServiceSubcomponent extends AndroidInjector<SyncService> {
+    @Subcomponent.Builder
+    abstract class Builder extends AndroidInjector.Builder<SyncService> {
     }
 }

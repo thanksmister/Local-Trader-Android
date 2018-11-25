@@ -31,6 +31,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.persistence.UserDao
+import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -38,6 +39,7 @@ import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
+
 
 class SplashViewModel @Inject
 constructor(application: Application, private val userDao: UserDao, private val methodsDao: MethodsDao, private val currenciesDao: CurrenciesDao,
@@ -66,6 +68,10 @@ constructor(application: Application, private val userDao: UserDao, private val 
         fetchUser()
         fetchMethods()
         fetchCurrencies()
+    }
+
+    fun setupPeriodicWork() {
+        WalletBalanceScheduler.refreshWalletBalanceWorkPeriodically()
     }
 
     private fun getMethods(): Flowable<List<Method>> {
@@ -113,8 +119,9 @@ constructor(application: Application, private val userDao: UserDao, private val 
                                     Timber.e("Error getting methods ${error.message}")
                                     if (error is NetworkException) {
                                         showNetworkMessage(error.message, error.code)
+                                    } else {
+                                        showAlertMessage(error.message)
                                     }
-                                    showAlertMessage(error.message)
                                     setSyncing(SYNC_ERROR)
                                 })
                     }
@@ -134,7 +141,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun fetchCurrencies() {
-        disposable.add(getMethods()
+        disposable.add(getCurrencies()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ results ->
@@ -153,8 +160,9 @@ constructor(application: Application, private val userDao: UserDao, private val 
                                     Timber.e("Error getting currencies ${error.message}")
                                     if (error is NetworkException) {
                                         showNetworkMessage(error.message, error.code)
+                                    } else {
+                                        showAlertMessage(error.message)
                                     }
-                                    showNetworkMessage(error.message, ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
                                     setSyncing(SYNC_ERROR)
                                 })
                     }
@@ -202,7 +210,6 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
 
-    // TODO we need to setup our workers for background loading data
 
     /**
      * Keep a map of all syncing calls to update sync status and

@@ -675,5 +675,14 @@
     <string name="trade_biller_code">Biller code</string>
     <string name="trade_reference_or_message">Reference or message</string>
     <string name="trade_message_optional">Message (Optional)</string>
+    <string name="notification_new_notifications_title">New notifications</string>
+    <string name="notification_trade_notification_title">Trade notification</string>
+    <string name="notification_ad_notification_title">Advertisement notification</string>
+    <string name="notification_title">Notification</string>
+    <string name="notification_btc_received">Bitcoin Received</string>
+    <string name="notification_btc_balance">Bitcoin Balance</string>
+    <string name="notification_btc_received_message">You received %1$s BTC</string>
+    <string name="notification_btc_balance_message">You have %1$s BTC</string>
+    <string name="notification_lbc_notice">LocalBitcoins Notifications</string>
 
 </resources>

@@ -23,10 +23,14 @@ import android.content.res.Resources
 import android.location.LocationManager
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
+import androidx.work.WorkerFactory
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.modules.CameraReader
-import com.thanksmister.bitcoin.localtrader.network.services.NotificationService
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences
+import com.thanksmister.bitcoin.localtrader.persistence.WalletDao
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
+import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
+import com.thanksmister.bitcoin.localtrader.workers.DaggerWorkerFactory
 import dagger.Module
 import dagger.Provides
 import net.grandcentrix.tray.AppPreferences
@@ -60,20 +64,27 @@ class ActivityModule {
         return application.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
-
     @Provides
-    internal fun provideNotificationService(app: BaseApplication): NotificationService {
-        return NotificationService(app)
+    @Singleton
+    fun provideSharedPreferences(app: Application): SharedPreferences {
+        return PreferenceManager.getDefaultSharedPreferences(app.applicationContext)
+    }
+
+    @Singleton
+    @Provides
+    fun notificationUtils(application: Application): NotificationUtils {
+        return NotificationUtils(application)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDaggerWorkerFactory(walletDao: WalletDao, preferences: Preferences, notificationUtils: NotificationUtils): WorkerFactory {
+        return DaggerWorkerFactory(walletDao, preferences, notificationUtils)
     }
 
     /*@Provides
     internal fun provideGeoLocationService(app: BaseApplication, localBitcoins: LocalBitcoinsService): GeoLocationService {
         return GeoLocationService(app, localBitcoins)
     }
-*/
-    @Provides
-    @Singleton
-    fun provideSharedPreferences(app: Application): SharedPreferences {
-        return PreferenceManager.getDefaultSharedPreferences(app.applicationContext)
-    }
+    */
 }

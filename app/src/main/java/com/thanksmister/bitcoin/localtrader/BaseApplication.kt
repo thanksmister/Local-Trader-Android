@@ -19,14 +19,19 @@ package com.thanksmister.bitcoin.localtrader
 
 import android.content.Context
 import android.support.multidex.MultiDex
+import androidx.work.Configuration
+import androidx.work.WorkManager
+import androidx.work.WorkerFactory
 import com.crashlytics.android.Crashlytics
 import com.facebook.stetho.Stetho
 import com.thanksmister.bitcoin.localtrader.di.DaggerApplicationComponent
+import com.thanksmister.bitcoin.localtrader.network.sync.SyncUtils
 import com.thanksmister.bitcoin.localtrader.utils.CrashlyticsTree
 import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
 import io.fabric.sdk.android.Fabric
 import timber.log.Timber
+import javax.inject.Inject
 
 class BaseApplication : DaggerApplication() {
 
@@ -62,6 +67,22 @@ class BaseApplication : DaggerApplication() {
                 Crashlytics.log(1, "Sync Error", e.message)
             }
         }*/
+
+        configureWorkManager()
+
+        SyncUtils.createSyncAccount(applicationContext)
+        SyncUtils.requestSyncNow(applicationContext)
+    }
+
+    @Inject
+    lateinit var workerFactory: WorkerFactory
+
+    private fun configureWorkManager() {
+        val config = Configuration.Builder()
+                .setWorkerFactory(workerFactory)
+                .build()
+
+        WorkManager.initialize(this, config)
     }
 
     override fun attachBaseContext(base: Context) {

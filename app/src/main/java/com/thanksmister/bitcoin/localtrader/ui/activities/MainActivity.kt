@@ -34,7 +34,6 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.text.TextUtils
 import android.view.*
-import android.widget.TextView
 import android.widget.Toast
 import com.kobakei.ratethisapp.RateThisApp
 import com.thanksmister.bitcoin.localtrader.R

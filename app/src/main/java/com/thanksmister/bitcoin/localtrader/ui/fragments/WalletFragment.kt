@@ -32,9 +32,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.adapters.TransactionsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
@@ -42,7 +40,6 @@ import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_wallet.*
 import timber.log.Timber

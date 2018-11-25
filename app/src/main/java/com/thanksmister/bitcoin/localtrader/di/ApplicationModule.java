@@ -30,6 +30,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao;
 import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao;
 import com.thanksmister.bitcoin.localtrader.persistence.UserDao;
 import com.thanksmister.bitcoin.localtrader.persistence.WalletDao;
+import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceWorker;
 
 import javax.inject.Singleton;
 

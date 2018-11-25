@@ -17,11 +17,6 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.MessageData
-import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
@@ -34,8 +29,6 @@ import com.thanksmister.bitcoin.localtrader.persistence.*
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import javax.inject.Inject
@@ -134,7 +127,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                 .subscribe ({
                     if(it != null) {
                         Timber.d("Notifications: ${it}")
-                        insertNotifications(it)
+                        replaceNotifications(it)
                     }
                 }, {
                     error -> Timber.e("Error fetching notification ${error.message}")
@@ -180,9 +173,9 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                 }, { error -> Timber.e("Advertisement insert error" + error.message)}))
     }
 
-    private fun insertNotifications(items: List<Notification>) {
+    private fun replaceNotifications(items: List<Notification>) {
         disposable.add(Completable.fromAction {
-            notificationsDao.insertItems(items)
+            notificationsDao.replaceItems(items)
         }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

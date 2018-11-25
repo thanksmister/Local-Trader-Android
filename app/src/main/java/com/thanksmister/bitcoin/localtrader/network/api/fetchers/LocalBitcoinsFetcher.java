@@ -76,25 +76,33 @@ public class LocalBitcoinsFetcher {
     }
 
     private Observable<String> refreshTokens(String refreshToken) {
+        Timber.d("refreshTokens");
         return networkApi.refreshToken("refresh_token", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .flatMap(new Function<Authorization, ObservableSource<? extends String>>() {
                     @Override
                     public ObservableSource<? extends String> apply(Authorization authorization) {
                         if(authorization != null) {
+                            Timber.d("authorization.getAccessToken() " + authorization.getAccessToken());
+                            Timber.d("authorization.getRefreshToken() " + authorization.getRefreshToken());
                             preferences.setAccessToken(authorization.getAccessToken());
                             preferences.setRefreshToken(authorization.getRefreshToken());
                             return Observable.just(authorization.getAccessToken());
+                        } else {
+                            return null;
                         }
-                        return null;
                     }
                 });
     }
 
     private <T> Function<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
+
+        Timber.d("refreshTokenAndRetry");
+
         return new Function<Throwable, Observable<? extends T>>() {
             @Override
             public Observable<? extends T> apply(Throwable throwable) throws Exception {
                 RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
                 final NetworkException networkException = errorHandler.create(throwable);
                 if (RetrofitErrorHandler.isHttp403Error(networkException.getCode())) {
                     Timber.e("Retrying error code: " + networkException.getCode());
@@ -269,6 +277,18 @@ public class LocalBitcoinsFetcher {
     private Observable<Wallet> getWalletObservable() {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getWallet(accessToken);
+    }
+
+    public Observable<Wallet> getWalletBalance() {
+        Timber.d("getWalletBalance");
+        return getWalletBalanceObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getWalletBalanceObservable()));
+    }
+
+    private Observable<Wallet> getWalletBalanceObservable() {
+        Timber.d("getWalletBalanceObservable token " + preferences.getAccessToken());
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.getWalletBalance(accessToken);
     }
 
     public Observable<List<Contact>> getContacts() {

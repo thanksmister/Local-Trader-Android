@@ -20,4 +20,5 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:contentAuthority="com.thanksmister.bitcoin.localtrader.provider"
         android:accountType="com.thanksmister.bitcoin.localtrader.sync"
+        android:allowParallelSyncs="true"
         android:isAlwaysSyncable="true"/>

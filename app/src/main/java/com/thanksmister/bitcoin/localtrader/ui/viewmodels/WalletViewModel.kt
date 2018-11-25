@@ -17,18 +17,13 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.AsyncTask
-import android.view.View
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ProgressMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
@@ -46,16 +41,9 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.functions.BiFunction
-import io.reactivex.functions.Function3
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.view_wallet.*
-import org.intellij.lang.annotations.Flow
 import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject

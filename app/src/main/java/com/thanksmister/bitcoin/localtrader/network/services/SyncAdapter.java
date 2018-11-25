@@ -81,7 +81,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     private static final String BASE_URL = "https://localbitcoins.com/";
 
-    private NotificationService notificationService;
+    //private NotificationService notificationService;
     private SharedPreferences sharedPreferences;
     private Preferences preferences;
     private ContentResolver contentResolver;

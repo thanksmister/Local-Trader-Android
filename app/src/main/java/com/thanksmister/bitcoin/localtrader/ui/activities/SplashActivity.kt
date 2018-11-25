@@ -17,6 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
+import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
@@ -24,13 +25,16 @@ import android.content.*
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter
+import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.LoginViewModel
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SplashViewModel
+import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
 import kotlinx.android.synthetic.main.view_splash.*
 import timber.log.Timber
 import javax.inject.Inject
@@ -74,6 +78,8 @@ class SplashActivity : BaseActivity() {
                 })
             }
         })
+
+        WalletBalanceScheduler.cancelUniqueWalletBalanceWork()
     }
 
     private fun observeViewModel(viewModel: SplashViewModel) {
@@ -118,6 +124,7 @@ class SplashActivity : BaseActivity() {
 
         showProgress(true)
         viewModel.startSync()
+        //viewModel.setupPeriodicWork();
     }
 
     private fun showProgress(show: Boolean) {
