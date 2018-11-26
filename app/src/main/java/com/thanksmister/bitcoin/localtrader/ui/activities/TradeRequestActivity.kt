@@ -210,8 +210,8 @@ class TradeRequestActivity : BaseActivity() {
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            if (message != null) {
-                toast(message)
+            if(message != null) {
+                dialogUtils.toast(message)
             }
         })
     }
@@ -421,7 +421,7 @@ class TradeRequestActivity : BaseActivity() {
                 return
             }
         } catch (e: Exception) {
-            reportError(e)
+            Timber.e(e.message)
             return
         }
 

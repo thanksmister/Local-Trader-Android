@@ -152,7 +152,9 @@ class AdvertiserActivity : BaseActivity() {
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            Toast.makeText(this@AdvertiserActivity, message, Toast.LENGTH_LONG).show()
+            if(message != null) {
+                dialogUtils.toast(message)
+            }
         })
 
         dialogUtils.showProgressDialog(this@AdvertiserActivity, getString(R.string.dialog_loading))

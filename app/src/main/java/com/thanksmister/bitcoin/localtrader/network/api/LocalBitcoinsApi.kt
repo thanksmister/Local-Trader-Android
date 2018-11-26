@@ -25,7 +25,9 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.services.LocalBitcoinsService
 import io.reactivex.Observable
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -87,23 +89,23 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
         return service.checkPinCode(accessToken, pinCode)
     }
 
-    fun releaseContactPinCode(accessToken: String, contactId: String, pinCode: String): Observable<JsonElement> {
+    fun releaseContactPinCode(accessToken: String, contactId: Int, pinCode: String): Observable<JsonElement> {
         return service.releaseContactPinCode(contactId, accessToken, pinCode)
     }
 
-    fun contactCancel(accessToken: String, contactId: String): Observable<JsonElement> {
+    fun contactCancel(accessToken: String, contactId: Int): Observable<JsonElement> {
         return service.contactCancel(contactId, accessToken)
     }
 
-    fun contactDispute(accessToken: String, contactId: String): Observable<JsonElement> {
+    fun contactDispute(accessToken: String, contactId: Int): Observable<JsonElement> {
         return service.contactDispute(contactId, accessToken)
     }
 
-    fun markAsPaid(accessToken: String, contactId: String): Observable<JsonElement> {
+    fun markAsPaid(accessToken: String, contactId: Int): Observable<JsonElement> {
         return service.markAsPaid(contactId, accessToken)
     }
 
-    fun contactFund(accessToken: String, contactId: String): Observable<JsonElement> {
+    fun contactFund(accessToken: String, contactId: Int): Observable<JsonElement> {
         return service.contactFund(contactId, accessToken)
     }
 
@@ -121,14 +123,14 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
                 phone_number);
     }
 
-    fun contactMessagePost(accessToken: String, contactId: String, message: String): Observable<JsonElement> {
+    fun contactMessagePost(accessToken: String, contactId: Int, message: String): Observable<JsonElement> {
         return service.contactMessagePost(contactId, accessToken, message)
     }
 
-  /*  fun contactMessagePostWithAttachment(accessToken: String, contact_id: String, params: LinkedHashMap<String, String>, typedFile: TypedFile): Observable<Response> {
-        return service.contactMessagePostWithAttachment(accessToken, contact_id, params, typedFile)
+    fun contactMessagePostWithAttachment(accessToken: String, contactId: Int, params: LinkedHashMap<String, String>, requestBody: RequestBody): Observable<JsonElement> {
+        return service.contactMessagePostWithAttachment(contactId, accessToken, params, requestBody)
     }
-*/
+
     fun getMyself(accessToken: String): Observable<User> {
         return service.getMyself(accessToken)
     }
@@ -165,6 +167,7 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
         return service.deleteAdvertisement(adId, accessToken)
     }
 
+    // TODO lets bring back basic advertisement creationg
     fun createAdvertisement(accessToken: String, min_amount: String, max_amount: String, price_equation: String, name: String,
                             online_provider: String, s: String, s1: String, city: String, location: String, country_code: String,
                             account_info: String, bank_name: String, s2: String, s3: String, s4: String, s5: String,

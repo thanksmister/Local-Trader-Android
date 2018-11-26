@@ -137,7 +137,7 @@
             
             <Button
                     style="@style/ButtonGreen.Small"
-                    android:id="@+id/messageButton"
+                    android:id="@+id/sendMessageButton"
                     android:layout_width="match_parent"
                     android:layout_margin="@dimen/activity_padding"
                     android:layout_height="48dp"

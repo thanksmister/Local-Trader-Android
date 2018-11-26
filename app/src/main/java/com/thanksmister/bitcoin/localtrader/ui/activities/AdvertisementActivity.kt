@@ -176,18 +176,20 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             dialogUtils.hideProgressDialog()
-            Toast.makeText(this@AdvertisementActivity, message, Toast.LENGTH_LONG).show()
+            if(message != null) {
+                dialogUtils.toast(message)
+            }
         })
         viewModel.getAdvertisementUpdated().observe(this, Observer { updated ->
             if(updated != null && updated) {
                 dialogUtils.hideProgressDialog()
-                Toast.makeText(this@AdvertisementActivity, getString(R.string.toast_update_visibility), Toast.LENGTH_LONG).show()
+                dialogUtils.toast(getString(R.string.toast_update_visibility))
             }
         })
         viewModel.getAdvertisementDeleted().observe(this, Observer { updated ->
             if(updated != null && updated) {
                 dialogUtils.hideProgressDialog()
-                Toast.makeText(this@AdvertisementActivity, getString(R.string.toast_advertisement_deleted), Toast.LENGTH_LONG).show()
+                dialogUtils.toast(getString(R.string.toast_advertisement_deleted))
                 finish()
             }
         })
@@ -359,7 +361,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(advertisement.actions.publicView))
                 startActivity(intent)
             } catch (e: ActivityNotFoundException) {
-                showAlertDialog(getString(R.string.toast_error_no_installed_ativity))
+                dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.toast_error_no_installed_ativity))
             }
         }
     }

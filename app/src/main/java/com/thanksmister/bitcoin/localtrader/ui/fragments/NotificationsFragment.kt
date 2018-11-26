@@ -57,6 +57,7 @@ class NotificationsFragment : BaseFragment() {
     lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject
     lateinit var viewModel: NotificationsViewModel
+    lateinit var notificationUtils: NotificationUtils
 
     private val disposable = CompositeDisposable()
 
@@ -65,11 +66,10 @@ class NotificationsFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // clear all notification types
-        val ns = Context.NOTIFICATION_SERVICE
+        /*val ns = Context.NOTIFICATION_SERVICE
         val notificationManager = activity!!.getSystemService(ns) as NotificationManager
-        notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION)
-
-        //retainInstance = true
+        notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION)*/
+        notificationUtils.clearNotification()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -178,10 +178,10 @@ class NotificationsFragment : BaseFragment() {
     }
 
     private fun onNotificationLinkClicked(notification: Notification) {
+        viewModel.markNotificationRead(notification)
         if (!TextUtils.isEmpty(notification.url)) {
             launchNotificationLink(notification.url!!)
         }
-        viewModel.markNotificationRead(notification)
     }
 
     private fun launchNotificationLink(url: String) {

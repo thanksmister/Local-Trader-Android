@@ -95,8 +95,8 @@ class SearchResultsActivity : BaseActivity() {
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            if (message != null) {
-                toast(message)
+            if(message != null) {
+                dialogUtils.toast(message)
             }
         })
         viewModel.getAdvertisements().observe(this, Observer { advertisements ->

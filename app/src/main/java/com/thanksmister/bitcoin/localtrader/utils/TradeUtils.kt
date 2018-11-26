@@ -163,11 +163,13 @@ class TradeUtils {
         }
 
         fun canDisputeTrade(contact: Contact): Boolean {
-            return !TextUtils.isEmpty(contact.actions.disputeUrl)
+            return !TextUtils.isEmpty(contact.actions.disputeUrl) && TradeUtils.isOnlineTrade(contact)
+                    && !TradeUtils.isCanceledTrade(contact) && !TradeUtils.isClosedTrade(contact)
         }
 
         fun canCancelTrade(contact: Contact): Boolean {
-            return !TextUtils.isEmpty(contact.actions.cancelUrl)
+            return contact.isBuying && !isClosedTrade(contact) && !isCanceledTrade(contact) && !isReleased(contact)
+                    && !TextUtils.isEmpty(contact.actions.cancelUrl);
         }
 
         fun canReleaseTrade(contact: Contact): Boolean {

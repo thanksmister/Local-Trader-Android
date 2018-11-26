@@ -22,6 +22,7 @@ import android.content.ContentProviderClient
 import android.content.Context
 import android.content.SyncResult
 import android.os.Bundle
+import com.crashlytics.android.Crashlytics
 
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
@@ -42,6 +43,7 @@ import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import timber.log.BuildConfig
 import timber.log.Timber
 import java.util.ArrayList
 
@@ -154,7 +156,10 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                             })
                 }, { error ->
                     Timber.e("Error update notifications ${error.message}")
-                    // TODO we need to report this to crash
+                    if(!BuildConfig.DEBUG) {
+                        Crashlytics.setString("sync_error", "update notification error")
+                        Crashlytics.logException(error)
+                    }
                 }))
     }
 
@@ -195,7 +200,10 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                             })
                 }, { error ->
                     Timber.e("Error getting wallet balance ${error.message}")
-                    // TODO we need to report this to crash
+                    if(!BuildConfig.DEBUG) {
+                        Crashlytics.setString("sync_error", "update wallet balance error")
+                        Crashlytics.logException(error)
+                    }
                 }))
     }
 

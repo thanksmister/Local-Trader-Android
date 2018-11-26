@@ -24,10 +24,12 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.DialogInterface
 import android.support.v7.app.AlertDialog
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
+import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
 import timber.log.Timber
 
@@ -51,6 +53,16 @@ class DialogUtils(base: Context?) : ContextWrapper(base), LifecycleObserver {
             alertDialog = null
         }
         hideProgressDialog()
+    }
+
+    fun toast(messageId: Int) {
+        toast(getString(messageId))
+    }
+
+    fun toast(message: String) {
+        val toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
+        toast.setGravity(Gravity.BOTTOM, 0, 180)
+        toast.show()
     }
 
     fun showProgressDialog(context: Context, message: String, cancelable: Boolean = true) {

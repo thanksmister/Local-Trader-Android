@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package com.thanksmister.bitcoin.localtrader.network.exceptions;
+package com.thanksmister.bitcoin.localtrader.network.exceptions
 
-public class DataRefreshException extends Exception {
-    public DataRefreshException() {
-        super();
-    }
+class AuthenticationException : Exception {
+    constructor() : super() {}
+
+    constructor(message: String) : super(message) {}
+
+    constructor(message: String, cause: Throwable) : super(message, cause) {}
+
+    constructor(cause: Throwable) : super(cause) {}
 }

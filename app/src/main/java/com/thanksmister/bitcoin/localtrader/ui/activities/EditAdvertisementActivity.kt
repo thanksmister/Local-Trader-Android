@@ -123,7 +123,7 @@ class EditAdvertisementActivity : BaseActivity() {
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null) {
                 dialogUtils.hideProgressDialog()
-                Toast.makeText(this@EditAdvertisementActivity, message, Toast.LENGTH_LONG).show()
+                dialogUtils.toast(message)
             }
         })
         viewModel.getAdvertisementUpdated().observe(this, Observer { updated ->

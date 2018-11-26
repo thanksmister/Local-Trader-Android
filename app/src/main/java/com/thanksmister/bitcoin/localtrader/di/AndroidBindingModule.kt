@@ -80,6 +80,11 @@ internal abstract class AndroidBindingModule {
     @ViewModelKey(SearchViewModel::class)
     abstract fun bindsSearchViewModel(viewModel: SearchViewModel): ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(PinCodeViewModel::class)
+    abstract fun bindsPinCodeViewModel(viewModel: PinCodeViewModel): ViewModel
+
     @ContributesAndroidInjector
     internal abstract fun baseActivity(): BaseActivity
 

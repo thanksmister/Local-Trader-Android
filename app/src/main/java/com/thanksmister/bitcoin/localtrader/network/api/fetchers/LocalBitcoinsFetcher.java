@@ -27,6 +27,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisements;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Authorization;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
+import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Dashboard;
@@ -49,7 +50,9 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences;
 import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -57,6 +60,8 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import timber.log.Timber;
 
 public class LocalBitcoinsFetcher {
@@ -104,7 +109,7 @@ public class LocalBitcoinsFetcher {
                 RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
                 Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
                 final NetworkException networkException = errorHandler.create(throwable);
-                if (RetrofitErrorHandler.isHttp403Error(networkException.getCode())) {
+                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
                     Timber.e("Retrying error code: " + networkException.getCode());
                     return refreshTokens(preferences.getRefreshToken())
                             .subscribeOn(Schedulers.computation())
@@ -114,7 +119,7 @@ public class LocalBitcoinsFetcher {
                                     return toBeResumed;
                                 }
                             });
-                } else if (RetrofitErrorHandler.isHttp400Error(networkException.getCode())) {
+                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
                     Timber.e("Retrying error code: " + networkException.getCode());
                     return refreshTokens(preferences.getRefreshToken())
                             .subscribeOn(Schedulers.computation())
@@ -124,7 +129,7 @@ public class LocalBitcoinsFetcher {
                                     return toBeResumed;
                                 }
                             });
-                } else if (ExceptionCodes.CODE_THREE == networkException.getCode()) {
+                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
                     Timber.e("Retrying error code: " + networkException.getCode());
                     return refreshTokens(preferences.getRefreshToken())
                             .subscribeOn(Schedulers.computation())
@@ -541,6 +546,267 @@ public class LocalBitcoinsFetcher {
 
         return networkApi.createContact(accessToken, adId, amount, message);
     }
+
+    public Observable<JsonElement> contactAction(final int contactId, final String pinCode, final ContactAction action) {
+        return contactActionObservable(contactId, pinCode, action)
+                .onErrorResumeNext(refreshTokenAndRetry(contactActionObservable(contactId, pinCode, action)));
+    }
+
+    private Observable<JsonElement> contactActionObservable(final int contactId, final String pinCode, final ContactAction action) {
+        final String accessToken = preferences.getAccessToken();
+        switch (action) {
+            case RELEASE:
+                return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
+            case CANCEL:
+                return networkApi.contactCancel(accessToken, contactId);
+            case DISPUTE:
+                return networkApi.contactDispute(accessToken, contactId);
+            case PAID:
+                return networkApi.markAsPaid(accessToken, contactId);
+            case FUND:
+                return networkApi.contactFund(accessToken, contactId);
+        }
+        return Observable.error(new NetworkException("Unable to perform action on contact", ExceptionCodes.INSTANCE.getNO_ERROR_CODE()));
+    }
+
+    public Observable<JsonElement> validatePinCode(final String pinCode) {
+        return validatePinCodeObservable(pinCode)
+                .onErrorResumeNext(refreshTokenAndRetry(validatePinCodeObservable(pinCode)));
+    }
+
+    private Observable<JsonElement> validatePinCodeObservable(final String pinCode) {
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.checkPinCode(accessToken, pinCode);
+    }
+
+    public Observable<JsonElement> postMessage(final int contactId, final String message) {
+        return postMessageObservable(contactId, message)
+                .onErrorResumeNext(refreshTokenAndRetry(postMessageObservable(contactId, message)));
+    }
+
+    private Observable<JsonElement> postMessageObservable(final int contactId, final String message) {
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.contactMessagePost(accessToken, contactId, message);
+    }
+
+    public Observable<JsonElement> postMessageWithAttachment(final int contactId, final String message, final File file) {
+        return postMessageWithAttachmentObservable(contactId, message, file)
+                .onErrorResumeNext(refreshTokenAndRetry(postMessageWithAttachmentObservable(contactId, message, file)));
+    }
+
+    private Observable<JsonElement> postMessageWithAttachmentObservable(final int contactId, final String message, final File file) {
+        final String accessToken = preferences.getAccessToken();
+        RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
+        params.put("msg", message);
+        return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, requestBody);
+    }
+
+
+    /*
+    public Observable<JSONObject> postMessageWithAttachment(final String contact_id, final String message, final File file) {
+        final String accessToken = preferences.getAccessToken();
+        return postMessageWithAttachmentObservable(accessToken, contact_id, message, file)
+                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
+                    @Override
+                    public Observable<? extends Response> call(Throwable throwable) {
+                        NetworkException networkException = null;
+                        if (throwable instanceof NetworkException) {
+                            networkException = (NetworkException) throwable;
+                        }
+                        if (networkException != null) {
+                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
+                                return refreshTokens()
+                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                            @Override
+                                            public Observable<? extends Response> call(String token) {
+
+                                                return postMessageWithAttachmentObservable(token, contact_id, message, file);
+                                            }
+                                        });
+                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
+                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
+                                    return refreshTokens()
+                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                                @Override
+                                                public Observable<? extends Response> call(String token) {
+
+                                                    return postMessageWithAttachmentObservable(token, contact_id, message, file);
+                                                }
+                                            });
+                                }
+                            }
+                            return Observable.error(networkException);
+                        }
+                        return Observable.error(throwable);
+                    }
+                })
+                .map(new ResponseToJSONObject());
+    }
+
+    private Observable<Response> postMessageObservable(final String accessToken, final String contact_id, final String message) {
+        return networkApi.contactMessagePost(accessToken, contact_id, message);
+    }
+
+    private Observable<Response> postMessageWithAttachmentObservable(final String accessToken, final String contact_id, final String message, final File file) {
+        TypedFile typedFile = new TypedFile("multipart/form-data", file);
+        final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
+        params.put("msg", message);
+        return networkApi.contactMessagePostWithAttachment(accessToken, contact_id, params, typedFile);
+    }
+     */
+
+    /*
+     public Observable<JSONObject> postMessage(final String contact_id, final String message) {
+        final String accessToken = preferences.getAccessToken();
+        return postMessageObservable(accessToken, contact_id, message)
+                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
+                    @Override
+                    public Observable<? extends Response> call(Throwable throwable) {
+                        NetworkException networkException = null;
+                        if (throwable instanceof NetworkException) {
+                            networkException = (NetworkException) throwable;
+                        }
+                        if (networkException != null) {
+                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
+                                return refreshTokens()
+                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                            @Override
+                                            public Observable<? extends Response> call(String token) {
+
+                                                return postMessageObservable(token, contact_id, message);
+                                            }
+                                        });
+                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
+                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
+                                    return refreshTokens()
+                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                                @Override
+                                                public Observable<? extends Response> call(String token) {
+
+                                                    return postMessageObservable(token, contact_id, message);
+                                                }
+                                            });
+                                }
+                            }
+                            return Observable.error(networkException);
+                        }
+                        return Observable.error(throwable);
+                    }
+                })
+                .map(new ResponseToJSONObject());
+    }
+     */
+
+    /*
+    public Observable<JSONObject> validatePinCode(final String pinCode) {
+        final String accessToken = preferences.getAccessToken();
+        return validatePinCodeObservable(accessToken, pinCode)
+                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
+                    @Override
+                    public Observable<? extends Response> call(Throwable throwable) {
+                        NetworkException networkException = null;
+                        if (throwable instanceof NetworkException) {
+                            networkException = (NetworkException) throwable;
+                        }
+                        if (networkException != null) {
+                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
+
+                                return refreshTokens()
+                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                            @Override
+                                            public Observable<? extends Response> call(String token) {
+
+                                                return validatePinCodeObservable(token, pinCode);
+                                            }
+                                        });
+                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
+
+                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
+                                    return refreshTokens()
+                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                                @Override
+                                                public Observable<? extends Response> call(String token) {
+
+                                                    return validatePinCodeObservable(token, pinCode);
+                                                }
+                                            });
+                                }
+                            }
+                            return Observable.error(networkException);
+                        }
+                        return Observable.error(throwable);
+                    }
+                })
+                .map(new ResponseToJSONObject());
+    }
+
+    private Observable<Response> validatePinCodeObservable(final String accessToken, final String pinCode) {
+        return networkApi.checkPinCode(accessToken, pinCode);
+    }
+     */
+
+    /*
+     public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action) {
+        final String accessToken = preferences.getAccessToken();
+        ;
+        return contactActionObservable(accessToken, contactId, pinCode, action)
+                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
+                    @Override
+                    public Observable<? extends Response> call(Throwable throwable) {
+                        NetworkException networkException = null;
+                        if (throwable instanceof NetworkException) {
+                            networkException = (NetworkException) throwable;
+                        }
+                        if (networkException != null) {
+                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
+
+                                return refreshTokens()
+                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                            @Override
+                                            public Observable<? extends Response> call(String token) {
+
+                                                return contactActionObservable(token, contactId, pinCode, action);
+                                            }
+                                        });
+                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
+
+                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
+                                    return refreshTokens()
+                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
+                                                @Override
+                                                public Observable<? extends Response> call(String token) {
+
+                                                    return contactActionObservable(token, contactId, pinCode, action);
+                                                }
+                                            });
+                                }
+                            }
+                            return Observable.error(networkException);
+                        }
+                        return Observable.error(throwable);
+                    }
+                })
+                .map(new ResponseToJSONObject());
+    }
+
+    private Observable<Response> contactActionObservable(final String accessToken, final String contactId, final String pinCode, final ContactAction action) {
+        switch (action) {
+            case RELEASE:
+                return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
+            case CANCEL:
+                return networkApi.contactCancel(accessToken, contactId);
+            case DISPUTE:
+                return networkApi.contactDispute(accessToken, contactId);
+            case PAID:
+                return networkApi.markAsPaid(accessToken, contactId);
+            case FUND:
+                return networkApi.contactFund(accessToken, contactId);
+        }
+        return Observable.error(new Error("Unable to perform action on contact"));
+    }
+
+     */
 
 
 

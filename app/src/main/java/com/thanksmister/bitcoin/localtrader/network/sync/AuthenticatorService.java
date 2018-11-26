@@ -33,6 +33,7 @@ public class AuthenticatorService extends Service {
         // Create a new authenticator object
         mAuthenticator = new Authenticator(this);
     }
+
     /*
      * When the system binds to this Service to make the RPC call
      * return the authenticator's IBinder.

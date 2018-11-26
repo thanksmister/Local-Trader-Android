@@ -17,22 +17,19 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
-import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
-import android.content.*
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
-import com.thanksmister.bitcoin.localtrader.network.services.SyncAdapter
-import com.thanksmister.bitcoin.localtrader.network.services.SyncUtils
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
-import com.thanksmister.bitcoin.localtrader.ui.viewmodels.LoginViewModel
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SplashViewModel
 import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
 import kotlinx.android.synthetic.main.view_splash.*
@@ -108,7 +105,9 @@ class SplashActivity : BaseActivity() {
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            Toast.makeText(this@SplashActivity, message, Toast.LENGTH_LONG).show()
+            if(message != null) {
+                dialogUtils.toast(message)
+            }
         })
         viewModel.getSyncing().observe(this, Observer {
             if(it == SplashViewModel.SYNC_COMPLETE) {

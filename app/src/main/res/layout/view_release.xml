@@ -88,11 +88,12 @@
                 android:layout_height="16dp"/>
 
         <TextView
-                android:id="@+id/descriptionText"
+                android:id="@+id/pinDescriptionText"
                 style="?android:textAppearanceSmallInverse"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColorLink="@color/white"
+                android:textStyle="bold"
                 tools:text="@string/pin_code_trade"/>
 
     </LinearLayout>

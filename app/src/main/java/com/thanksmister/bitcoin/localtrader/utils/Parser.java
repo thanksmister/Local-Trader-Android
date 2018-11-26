@@ -130,7 +130,7 @@ public class Parser {
             jsonObject = new JSONObject(response);
             JSONObject errorObj = jsonObject.getJSONObject("error");
 
-            int error_code = NO_ERROR_CODE;
+            int error_code = INSTANCE.getNO_ERROR_CODE();
             if (errorObj.has("error_code")) {
                 error_code = errorObj.getInt("error_code");
             }
@@ -152,7 +152,7 @@ public class Parser {
 
         } catch (JSONException e) {
             Timber.e(e.getMessage());
-            return new NetworkException(e.getMessage(), NO_ERROR_CODE);
+            return new NetworkException(e.getMessage(), INSTANCE.getNO_ERROR_CODE());
         }
     }
 

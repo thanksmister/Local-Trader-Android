@@ -154,7 +154,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             val marketCurrency = marketCurrencyPreference!!.entry.toString()
             val storedMarketCurrency = preferences.exchangeCurrency
             if (storedMarketCurrency != marketCurrency) {
-                marketCurrencyPreference!!.title = "Market currency (" + marketCurrencyPreference!!.entry + ")"
+                marketCurrencyPreference!!.title = getString(R.string.text_market_currency, marketCurrencyPreference!!.entry)
                 preferences.exchangeCurrency = marketCurrency
             }
         } else if (key == getString(R.string.pref_key_distance)) {
@@ -163,10 +163,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         } else if (key == getString(R.string.pref_key_api)) {
             val endpoint = apiPreference!!.text.toString()
             val currentEndpoint = preferences.getServiceEndpoint()
-            if (TextUtils.isEmpty(endpoint)) {
-                (activity as SettingsActivity).showAlertDialog("The service end point should be a valid URL.")
-            } else if (!Patterns.WEB_URL.matcher(endpoint).matches()) {
-                (activity as SettingsActivity).showAlertDialog("The service end point should be a valid URL.")
+            if (TextUtils.isEmpty(endpoint) && activity != null) {
+                dialogUtils.showAlertDialog(activity!!, getString(R.string.alert_service_end_point))
+            } else if (!Patterns.WEB_URL.matcher(endpoint).matches() && activity != null) {
+                dialogUtils.showAlertDialog(activity!!, getString(R.string.alert_service_end_point))
             } else if (currentEndpoint != endpoint) {
                 preferences.setServiceEndPoint(currentEndpoint)
                 apiPreference!!.text = currentEndpoint

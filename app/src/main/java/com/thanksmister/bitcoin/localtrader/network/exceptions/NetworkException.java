@@ -17,6 +17,7 @@
 package com.thanksmister.bitcoin.localtrader.network.exceptions;
 
 public class NetworkException extends Exception {
+
     private String message;
     private int code;
 

@@ -58,6 +58,18 @@ interface ContactsDao {
     fun insertItems(items: List<Contact>)
 
     /**
+     * Delete item.
+     */
+    @Delete
+    fun deleteItem(item: Contact)
+
+    /**
+     * Delete all items.
+     */
+    @Query("DELETE FROM Contacts WHERE contactId = :id")
+    fun deleteItem(id: Int)
+
+    /**
      * Delete all items.
      */
     @Query("DELETE FROM Contacts")

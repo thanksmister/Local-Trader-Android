@@ -36,6 +36,7 @@ import android.widget.*
 import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
 import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction
 import com.thanksmister.bitcoin.localtrader.network.api.model.Message
@@ -63,6 +64,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     lateinit var viewModel: ContactsViewModel
 
     private val disposable = CompositeDisposable()
+    private var connectionLiveData: ConnectionLiveData? = null
 
     private var detailsEthereumAddress: TextView? = null
     private var detailsSortCode: TextView? = null
@@ -223,6 +225,20 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         observeViewModel(viewModel)
     }
 
+    override fun onStart() {
+        super.onStart()
+        connectionLiveData = ConnectionLiveData(this)
+        connectionLiveData?.observe(this, Observer { connected ->
+            if(!connected!!) {
+                dialogUtils.toast(getString(R.string.error_network_disconnected))
+                onRefreshStop()
+            } else {
+                dialogUtils.toast(getString(R.string.toast_refreshing_data))
+                viewModel.fetchContact(contactId)
+            }
+        })
+    }
+
     override fun onResume() {
         super.onResume()
         onRefreshStart()
@@ -284,19 +300,33 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun observeViewModel(viewModel: ContactsViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message?.message != null) {
+                dialogUtils.showAlertDialog(this@ContactActivity, message.message!!)
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
                 dialogUtils.showAlertDialog(this@ContactActivity, message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            Toast.makeText(this@ContactActivity, message, Toast.LENGTH_LONG).show()
+            if(message != null) {
+                dialogUtils.toast(message)
+            }
+        })
+        viewModel.getContactDeleted().observe(this, Observer { deleted ->
+            if(deleted != null && deleted) {
+                dialogUtils.hideProgressDialog()
+                finish();
+            }
         })
         disposable.add(viewModel.getContact(contactId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { data ->
                    if(data != null) {
+                       dialogUtils.hideProgressDialog()
                        setMenuOptions(data)
                        setTitle(data)
                        setContact(data)
@@ -306,8 +336,8 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                 }, { error ->
                     Timber.e("Contact error: $error")
                     runOnUiThread {
-                        dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.error_title),
-                                getString(R.string.toast_error_opening_advertisement), DialogInterface.OnClickListener { _, _ ->
+                        dialogUtils.hideProgressDialog()
+                        dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.toast_error_opening_contact), DialogInterface.OnClickListener { _, _ ->
                             finish()
                         })
                     }
@@ -316,28 +346,28 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                         Crashlytics.logException(error)
                     }
                 }))
+
+        // mark notification read if needed
+        viewModel.markNotificationRead(contactId)
+
+        // update contact data
         updateData()
     }
 
     private fun setMenuOptions(contact: Contact?) {
         if (contact != null) {
             val buttonTag = TradeUtils.getTradeActionButtonLabel(contact)
-            if (TradeUtils.canDisputeTrade(contact) && !TradeUtils.isLocalTrade(contact) && disputeItem != null) {
-                disputeItem!!.isVisible = buttonTag == R.string.button_dispute
+            if (TradeUtils.canDisputeTrade(contact) && disputeItem != null) {
+                disputeItem!!.isVisible = true
             }
             if (TradeUtils.canCancelTrade(contact) && cancelItem != null) {
-                cancelItem!!.isVisible = buttonTag == R.string.button_cancel
+                cancelItem!!.isVisible = true
             }
         }
     }
 
     override fun onRefresh() {
         updateData()
-    }
-
-    private fun handleNetworkDisconnect() {
-        onRefreshStop()
-        Toast.makeText(this@ContactActivity, getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show()
     }
 
     private fun onRefreshStop() {
@@ -349,20 +379,19 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent) {
-        if (resultCode == PinCodeActivity.RESULT_VERIFIED) {
-            val pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE)
-            releaseTradeWithPin(pinCode)
-        } else if (resultCode == PinCodeActivity.RESULT_CANCELED) {
-            toast(R.string.toast_pin_code_canceled)
-        } else if (resultCode == MessageActivity.RESULT_MESSAGE_SENT) {
-            updateData()
-        } else if (resultCode == MessageActivity.RESULT_MESSAGE_CANCELED) {
-            toast(getString(R.string.toast_message_canceled))
+        when (resultCode) {
+            PinCodeActivity.RESULT_VERIFIED -> {
+                val pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE)
+                releaseTradeWithPin(pinCode)
+            }
+            PinCodeActivity.RESULT_CANCELED -> dialogUtils.toast(R.string.toast_pin_code_canceled)
+            MessageActivity.RESULT_MESSAGE_SENT -> updateData()
+            MessageActivity.RESULT_MESSAGE_CANCELED -> dialogUtils.toast(getString(R.string.toast_message_canceled))
         }
     }
 
     private fun updateData() {
-        toast(getString(R.string.toast_refreshing_data))
+        dialogUtils.toast(getString(R.string.toast_refreshing_data))
         viewModel.fetchContact(contactId)
         disposable.add(viewModel.fetchMessages(contactId)
                 .subscribeOn(Schedulers.newThread())
@@ -374,63 +403,11 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                         }
                     }
                 }, { error ->
-                    Timber.e("Messages error: $error")
+                    Timber.e("Message error: $error")
                 }))
     }
 
-    private fun whatTheHeck() {
-        /*dbManager.notificationsQuery()
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Notifications subscription safely unsubscribed");
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<NotificationItem>>() {
-                    @Override
-                    public void call(final List<NotificationItem> notificationItems) {
-                        for (NotificationItem notificationItem : notificationItems) {
-                            final String notificationId = notificationItem.notification_id();
-                            final String notificationContactId = notificationItem.contact_id();
-                            final boolean read = notificationItem.read();
-                            if (contactId.equals(notificationContactId) && !read) {
-                                dataService.markNotificationRead(notificationId)
-                                        .doOnUnsubscribe(new Action0() {
-                                            @Override
-                                            public void call() {
-                                                Timber.i("Mark notification read safely unsubscribed");
-                                            }
-                                        })
-                                        .subscribeOn(Schedulers.newThread())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe(new Action1<JSONObject>() {
-                                            @Override
-                                            public void call(JSONObject result) {
-                                                if (!Parser.containsError(result)) {
-                                                    dbManager.markNotificationRead(notificationId);
-                                                }
-                                            }
-                                        }, new Action1<Throwable>() {
-                                            @Override
-                                            public void call(Throwable throwable) {
-                                                Timber.e(throwable.getMessage());
-                                            }
-                                        });
-                            }
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Timber.e(throwable.getMessage());
-                    }
-                });*/
-    }
-
     private fun setContact(contact: Contact) {
-
         this.contact = contact
         val date = Dates.parseLocalDateStringAbbreviatedTime(contact.createdAt)
         val amount = contact.amount + " " + contact.currency
@@ -545,7 +522,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
     private fun downloadAttachment(message: Message) {
         if (TextUtils.isEmpty(message.attachmentUrl)) {
-            showAlertDialog(getString(R.string.toast_attachment_empty))
+            dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.toast_attachment_empty))
             if (!BuildConfig.DEBUG) {
                 Crashlytics.setString("message_download", message.attachmentUrl)
                 Crashlytics.logException(Exception("Error downloading url: " + message.attachmentUrl!!))
@@ -576,23 +553,23 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             i.action = DownloadManager.ACTION_VIEW_DOWNLOADS
             startActivity(i)
         } catch (exception: ActivityNotFoundException) {
-            showAlertDialog(getString(R.string.toast_error_no_installed_ativity))
+            dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.toast_error_no_installed_ativity))
         }
     }
 
     private fun disputeContact() {
-        showProgressDialog(getString(R.string.progress_disputing))
-        createAlert(getString(R.string.alert_dispute_trade_title), getString(R.string.contact_dispute_confirm), contactId, null, ContactAction.DISPUTE)
+        dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_disputing))
+        createAlert(getString(R.string.contact_dispute_confirm), contactId, null, ContactAction.DISPUTE)
     }
 
     private fun fundContact() {
-        showProgressDialog(getString(R.string.progress_funding))
-        createAlert(getString(R.string.alert_fund_trade_title), getString(R.string.contact_fund_confirm), contactId, null, ContactAction.FUND)
+        dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_funding))
+        createAlert(getString(R.string.contact_fund_confirm), contactId, null, ContactAction.FUND)
     }
 
     private fun markContactPaid() {
-        showProgressDialog(getString(R.string.progress_marking_paid))
-        createAlert(getString(R.string.alert_mark_paid_title), getString(R.string.contact_paid_confirm), contactId, null, ContactAction.PAID)
+        dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_marking_paid))
+        createAlert(getString(R.string.contact_paid_confirm), contactId, null, ContactAction.PAID)
     }
 
     private fun releaseTrade() {
@@ -601,80 +578,32 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun releaseTradeWithPin(pinCode: String) {
-        // TODO dialogutils
-        /*showConfirmationDialog(new ConfirmationDialogEvent(getString(R.string.alert_release_trade_title), "Are you sure you want to release this trade?", getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
-            @Override
-            public void call() {
-                showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_releasing)));
-                contactAction(contactId, pinCode, ContactAction.RELEASE);
-            }
-        }));*/
+        dialogUtils.showAlertDialogCancel(this@ContactActivity, getString(R.string.contact_release_confirm),
+                DialogInterface.OnClickListener { dialog, which ->
+                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing));
+                    contactAction(contactId, pinCode, ContactAction.RELEASE);
+                })
     }
 
     private fun cancelContact() {
-        // TODO dialogutils
-        /*showConfirmationDialog(new ConfirmationDialogEvent(getString(R.string.alert_cancel_trade_title), getString(R.string.contact_cancel_confirm), getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
-            @Override
-            public void call() {
-                showProgressDialog(new ProgressDialogEvent(getString(R.string.progress_canceling_trade)));
-                contactAction(contactId, null, ContactAction.CANCEL);
-            }
-        }));*/
-    }
-
-    private fun createAlert(title: String, message: String, contactId: Int, pinCode: String?, action: ContactAction) {
-        // TODO dialogutils
-        /*ConfirmationDialogEvent event = new ConfirmationDialogEvent(title, message, getString(R.string.button_ok), getString(R.string.button_cancel), new Action0() {
-            @Override
-            public void call() {
-                contactAction(contactId, pinCode, action);
-            }
-        });
-        showConfirmationDialog(event);*/
-    }
-
-    private fun contactAction(contactId: String, pinCode: String, action: ContactAction) {
-        /* dataService.contactAction(contactId, pinCode, action)
-                .doOnUnsubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Timber.i("Contact action subscription safely unsubscribed");
-                    }
+        dialogUtils.showAlertDialogCancel(this@ContactActivity, getString(R.string.contact_cancel_confirm),
+                DialogInterface.OnClickListener { dialog, which ->
+                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing));
+                    contactAction(contactId, null, ContactAction.CANCEL);
                 })
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<JSONObject>() {
-                    @Override
-                    public void call(JSONObject jsonObject) {
-                        hideProgressDialog();
-                        if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
-                            deleteContact(contactId, action);
-                        } else {
-                            updateContact();
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        hideProgressDialog();
-                        showAlertDialog(getString(R.string.error_contact_action));
-                    }
-                });*/
     }
 
-    private fun deleteContact(contactId: String, action: ContactAction) {
-        /*dbManager.deleteContact(contactId, new ContentResolverAsyncHandler.AsyncQueryListener() {
-            @Override
-            public void onQueryComplete() {
-                hideProgressDialog();
-                if (action == ContactAction.RELEASE) {
-                    toast(getString(R.string.trade_released_toast_text));
-                } else {
-                    toast(getString(R.string.trade_canceled_toast_text));
-                }
-                finish();
-            }
-        });*/
+    private fun createAlert(message: String, contactId: Int, pinCode: String?, action: ContactAction) {
+        dialogUtils.showAlertDialogCancel(this@ContactActivity, message,
+                DialogInterface.OnClickListener { dialog, which ->
+                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing));
+                    contactAction(contactId, pinCode, action)
+                })
+    }
+
+    private fun contactAction(contactId: Int, pinCode: String?, action: ContactAction) {
+        dialogUtils.toast(getString(R.string.toast_refreshing_data))
+        viewModel.contactAction(contactId, pinCode, action)
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -684,16 +613,16 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         clipboard.primaryClip = clip
         if (!Strings.isBlank(message.attachmentName)) {
             downloadAttachment(message)
-            toast(R.string.message_copied_attachment_toast)
+            dialogUtils.toast(R.string.message_copied_attachment_toast)
         } else {
-            toast(R.string.message_copied_toast)
+            dialogUtils.toast(R.string.message_copied_toast)
         }
     }
 
     private fun sendNewMessage() {
         if (contact != null) {
             val contactName = if (contact!!.isBuying) contact!!.seller.username else contact!!.buyer.username
-            startActivityForResult(MessageActivity.createStartIntent(this@ContactActivity, contactId, contactName), MessageActivity.REQUEST_MESSAGE_CODE)
+            startActivityForResult(MessageActivity.createStartIntent(this@ContactActivity, contactId, contactName!!), MessageActivity.REQUEST_MESSAGE_CODE)
         }
     }
 
@@ -704,46 +633,37 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(browserIntent)
             } catch (e: SecurityException) {
-                showAlertDialog(getString(R.string.error_hijack_link) + e.message)
+                dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.error_hijack_link) + e.message)
             } catch (e: ActivityNotFoundException) {
-                showAlertDialog(getString(R.string.toast_error_no_installed_ativity))
+                dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.toast_error_no_installed_ativity))
             }
         }
     }
 
     private fun showAdvertisement() {
-        if (contact != null) {
-            /*dbManager.advertisementItemQuery(contact.advertisement_id())
-                    .subscribeOn(Schedulers.newThread())
+        if (contact != null && contact!!.advertisement.id != null) {
+            disposable.add(viewModel.getAdvertisement(contact!!.advertisement.id!!)
+                    .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<AdvertisementItem>() {
-                        @Override
-                        public void call(AdvertisementItem advertisement) {
-                            if (advertisement != null) {
-                                loadAdvertisementView(contact);
-                            } else {
-                                launchAdvertisementLink(contact);
-                            }
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
+                    .subscribe( { advertisement ->
+                        if(advertisement == null) {
                             launchAdvertisementLink(contact);
+                        } else {
+                            loadAdvertisementView(contact)
                         }
-                    });*/
+                    }, { error ->
+                        Timber.e("Advertisement error: $error")
+                        launchAdvertisementLink(contact);
+                    }))
         }
     }
 
     private fun loadAdvertisementView(contact: Contact?) {
         if (contact != null) {
             if (contact.advertisement.id != null) {
-                // TODO show alert dialog
-                /*showAlertDialog(new AlertDialogEvent(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement)), new Action0() {
-                    @Override
-                    public void call() {
-                        finish();
-                    }
-                });*/
+                dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.error_no_advertisement), DialogInterface.OnClickListener { dialog, which ->
+                    finish();
+                })
             } else {
                 val intent = AdvertisementActivity.createStartIntent(this@ContactActivity, contact.advertisement.id!!)
                 startActivity(intent)
@@ -757,9 +677,8 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(contact.actions.advertisementPublicView))
                 startActivity(intent)
             } catch (e: ActivityNotFoundException) {
-                showAlertDialog(getString(R.string.toast_error_no_installed_ativity))
+                dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.toast_error_no_installed_ativity))
             }
-
         }
     }
 

@@ -455,6 +455,10 @@
     <string name="notification_btc_received_message">You received %1$s BTC</string>
     <string name="notification_btc_balance_message">You have %1$s BTC</string>
     <string name="notification_lbc_notice">LocalBitcoins Notifications</string>
+    <string name="text_logging_out">Logging out…</string>
+    <string name="alert_service_end_point">The service end point should be a valid URL.</string>
+    <string name="text_market_currency">Market currency (%1$s)</string>
+    <string name="contact_release_confirm">Are you sure you want to release this trade?</string>
 
     <string-array name="country_names">
         <item>Afghanistan</item>

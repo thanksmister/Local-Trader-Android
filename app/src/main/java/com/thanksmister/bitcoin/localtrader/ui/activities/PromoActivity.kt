@@ -52,9 +52,9 @@ class PromoActivity : BaseActivity() {
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(browserIntent)
         } catch (e: SecurityException) {
-            showAlertDialogLinks(getString(R.string.error_traffic_rerouted))
+            dialogUtils.showAlertDialog(this@PromoActivity, getString(R.string.error_traffic_rerouted))
         } catch (e: ActivityNotFoundException) {
-            showAlertDialogLinks(getString(R.string.toast_error_no_installed_ativity))
+            dialogUtils.showAlertDialog(this@PromoActivity, getString(R.string.toast_error_no_installed_ativity))
         }
     }
 

@@ -17,40 +17,64 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.MessageData
-import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
+import com.thanksmister.bitcoin.localtrader.BaseApplication
+import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
-import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
-import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
-import com.thanksmister.bitcoin.localtrader.network.api.model.Message
+import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
+import com.thanksmister.bitcoin.localtrader.persistence.AdvertisementsDao
 import com.thanksmister.bitcoin.localtrader.persistence.ContactsDao
+import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class ContactsViewModel @Inject
-constructor(application: Application, private val contactsDao: ContactsDao, private val preferences: Preferences) : BaseViewModel(application) {
+constructor(application: Application, private val contactsDao: ContactsDao, private val notificationsDao: NotificationsDao,
+            private val advertisementsDao: AdvertisementsDao,  private val preferences: Preferences) : BaseViewModel(application) {
 
+    private val advertisement = MutableLiveData<Advertisement>()
+    private val contactUpdated = MutableLiveData<Boolean>()
+    private val contactDeleted = MutableLiveData<Boolean>()
     private val contactId = MutableLiveData<Int>()
     private val contact = MutableLiveData<Contact>()
+    private var fetcher: LocalBitcoinsFetcher? = null
+
+    fun getAdvertisement(): LiveData<Advertisement?> {
+        return advertisement
+    }
+
+    private fun setAdvertisement(value: Advertisement?) {
+        this.advertisement.value = value
+    }
+
+    fun getContactDeleted(): LiveData<Boolean> {
+        return contactDeleted
+    }
+
+    private fun setContactDeleted(value: Boolean) {
+        this.contactDeleted.value = value
+    }
+
+    fun getContactUpdated(): LiveData<Boolean> {
+        return contactUpdated
+    }
+
+    private fun setContactUpdated(value: Boolean) {
+        this.contactUpdated.value = value
+    }
 
     fun getContactId(): LiveData<Int> {
         return contactId
@@ -69,6 +93,9 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
     }
 
     init {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 
     fun getContact(contactId: Int):Flowable<Contact> {
@@ -89,10 +116,7 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
     }
 
     fun fetchContact(contactId: Int) {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable.add(fetcher.getContact(contactId)
+        disposable.add(fetcher!!.getContact(contactId)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -111,12 +135,88 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                 }))
     }
 
+    fun contactAction(contactId: Int, pinCode: String?, action: ContactAction) {
+        disposable.add(fetcher!!.contactAction(contactId, pinCode, action)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({
+                    Timber.d(it.asString)
+                    if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
+                        contactsDao.deleteItem(contactId)
+                        if (action == ContactAction.RELEASE) {
+                            showToastMessage(getApplication<BaseApplication>().getString(R.string.trade_released_toast_text));
+                        } else if (action == ContactAction.CANCEL) {
+                            showToastMessage(getApplication<BaseApplication>().getString(R.string.trade_canceled_toast_text));
+                        }
+                        setContactDeleted(true)
+                    } else {
+                        fetchContact(contactId) // refresh contact
+                    }
+                }, {
+                    error -> Timber.e("Contact Action Error" + error.message)
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_contact_action))
+                    }
+                }))
+    }
+
+    fun markNotificationRead(contactId: Int) {
+        disposable.add(notificationsDao.getItemUnreadItemByContactId(contactId, false)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({notification ->
+                    if(notification != null) {
+                        fetcher!!.markNotificationRead(notification.notificationId)
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .debounce(200, TimeUnit.MILLISECONDS)
+                                .dematerialize<List<Notification>>()
+                                .subscribe ({
+                                    notification.read = true
+                                    updateNotification(notification)
+                                }, {
+                                    error -> Timber.e("Notification Error $error.message")
+                                    if(error is NetworkException) {
+                                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                                        } else {
+                                            showNetworkMessage(error.message, error.code)
+                                        }
+                                    } else {
+                                        showAlertMessage(error.message)
+                                    }
+                                })
+                    }
+                }, {
+                    error -> Timber.e("Notification Error $error.message")
+                }))
+    }
+
     fun fetchMessages(contactId: Int): Observable<List<Message>> {
         val endpoint = preferences.getServiceEndpoint()
         val api = LocalBitcoinsApi(getApplication(), endpoint)
         val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
         return fetcher.getContactMessages(contactId)
+    }
 
+    fun getAdvertisement(adId: Int):Flowable<Advertisement> {
+        return advertisementsDao.getItemById(adId)
+    }
+
+    private fun updateNotification(notification: Notification) {
+        disposable.add(Completable.fromAction {
+            notificationsDao.updateItem(notification)
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Notification update error" + error.message)}))
     }
 
     private fun insertContact(item: Contact) {

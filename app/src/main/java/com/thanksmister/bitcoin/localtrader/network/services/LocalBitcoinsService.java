@@ -310,38 +310,38 @@ public interface LocalBitcoinsService {
                                                 @Field("opening_hours") String opening_hours);
 
     @POST(POST_CONTACT_DISPUTE + "{contact_id}/")
-    Observable<JsonElement> contactDispute(@Path("contact_id") String contact_id,
+    Observable<JsonElement> contactDispute(@Path("contact_id") int contact_id,
                                            @Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_MESSAGE + "{contact_id}/")
-    Observable<JsonElement> contactMessagePost(@Path("contact_id") String contact_id,
+    Observable<JsonElement> contactMessagePost(@Path("contact_id") int contact_id,
                                                @Query("access_token") String token,
                                                @Field("msg") String msg);
 
     @Multipart
     @POST(POST_CONTACT_MESSAGE + "{contact_id}/")
-    Observable<JsonElement> contactMessagePostWithAttachment(@Path("contact_id") String contact_id,
+    Observable<JsonElement> contactMessagePostWithAttachment(@Path("contact_id") int contact_id,
                                                              @Query("access_token") String token,
                                                              @PartMap LinkedHashMap<String, String> params,
                                                              @Part("document") RequestBody document);
 
     @POST(POST_CONTACT_PAID + "{contact_id}/")
-    Observable<JsonElement> markAsPaid(@Path("contact_id") String contact_id,
+    Observable<JsonElement> markAsPaid(@Path("contact_id") int contact_id,
                                        @Query("access_token") String token);
 
     @FormUrlEncoded
     @POST(POST_CONTACT_RELEASE + "{contact_id}/")
-    Observable<JsonElement> releaseContactPinCode(@Path("contact_id") String contact_id,
+    Observable<JsonElement> releaseContactPinCode(@Path("contact_id") int contact_id,
                                                   @Query("access_token") String token,
                                                   @Field("pincode") String pincode);
 
     @POST(POST_CONTACT_CANCEL + "{contact_id}/")
-    Observable<JsonElement> contactCancel(@Path("contact_id") String contact_id,
+    Observable<JsonElement> contactCancel(@Path("contact_id") int contact_id,
                                           @Query("access_token") String token);
 
     @POST(POST_CONTACT_FUND + "{contact_id}/")
-    Observable<JsonElement> contactFund(@Path("contact_id") String contact_id,
+    Observable<JsonElement> contactFund(@Path("contact_id") int contact_id,
                                         @Query("access_token") String token);
 
     @FormUrlEncoded

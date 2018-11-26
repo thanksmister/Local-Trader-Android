@@ -36,6 +36,13 @@ interface NotificationsDao {
     fun getItemById(id: String): Flowable<Notification>
 
     /**
+     * Get a unread item by contact id.
+     * @return the item from the table with a specific id and read is false.
+     */
+    @Query("SELECT * FROM Notifications WHERE contactId = :id AND read = :read")
+    fun getItemUnreadItemByContactId(id: Int, read: Boolean): Flowable<Notification>
+
+    /**
      * Get all items ordered by date
      * @return list of all items with specific date
      */

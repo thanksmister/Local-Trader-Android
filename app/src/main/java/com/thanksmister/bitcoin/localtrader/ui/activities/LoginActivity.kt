@@ -132,7 +132,9 @@ class LoginActivity : BaseActivity() {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             Timber.d("getToastMessage")
-            Toast.makeText(this@LoginActivity, message, Toast.LENGTH_LONG).show()
+            if(message != null) {
+                dialogUtils.toast(message)
+            }
         })
         viewModel.getAuthorized().observe(this, Observer {
             if(it == true) {
@@ -148,13 +150,13 @@ class LoginActivity : BaseActivity() {
         endpoint = loginEndpointText.text.toString()
         val currentEndpoint = preferences.getServiceEndpoint()
         if (TextUtils.isEmpty(endpoint)) {
-            hideProgressDialog()
+            dialogUtils.hideProgressDialog()
             toast(getString(R.string.alert_valid_endpoint))
         } else if (!Patterns.WEB_URL.matcher(endpoint!!).matches()) {
-            hideProgressDialog()
-            toast(getString(R.string.alert_valid_endpoint))
+            dialogUtils.hideProgressDialog()
+            dialogUtils.toast(getString(R.string.alert_valid_endpoint))
         } else if (endpoint != currentEndpoint) {
-            hideProgressDialog()
+            dialogUtils.hideProgressDialog()
             loginEndpointText.setText(endpoint)
             try {
                 BaseActivity.hideSoftKeyboard(this@LoginActivity)
@@ -177,7 +179,7 @@ class LoginActivity : BaseActivity() {
     private fun setUpWebViewDefaults() {
         loginContent.visibility = View.GONE
         loginWebView.visibility = View.VISIBLE
-        showProgressDialog(getString(R.string.progress_loading_localbitcoins), true)
+        dialogUtils.showProgressDialog(this@LoginActivity, getString(R.string.progress_loading_localbitcoins), true)
         try {
             loginWebView.webViewClient = OauthWebViewClient()
             loginWebView.webChromeClient = WebChromeClient()
@@ -198,18 +200,18 @@ class LoginActivity : BaseActivity() {
             }
             loginContent.visibility = View.VISIBLE
             loginWebView.visibility = View.GONE
-            hideProgressDialog()
+            dialogUtils.hideProgressDialog()
         }
     }
 
     fun setAuthorizationCode(code: String) {
-        showProgressDialog(getString(R.string.login_authorizing), true)
+        dialogUtils.showProgressDialog(this@LoginActivity, getString(R.string.login_authorizing), true)
         loginContent.visibility = View.VISIBLE
         loginWebView.visibility = View.GONE
         if(!TextUtils.isEmpty(endpoint)) {
             viewModel.setAuthorizationCode(code, endpoint!!)
         } else {
-            toast(getString(R.string.alert_valid_endpoint))
+            dialogUtils.toast(getString(R.string.alert_valid_endpoint))
         }
     }
 
@@ -240,7 +242,7 @@ class LoginActivity : BaseActivity() {
                 } else {
                     loginContent.visibility = View.VISIBLE
                     loginWebView.visibility = View.GONE
-                    showAlertDialog(getString(R.string.alert_authentication_error_title), getString(R.string.error_invalid_credentials))
+                    dialogUtils.showAlertDialog(this@LoginActivity, getString(R.string.error_invalid_credentials))
                     return false
                 }
             } else if (path.contains("authorize")
@@ -252,12 +254,12 @@ class LoginActivity : BaseActivity() {
                     || path.contains("/oauth2")
                     || path.contains("/accounts")
                     || path.contains("threefactor_login_verification")) {
-                hideProgressDialog()
+                dialogUtils.hideProgressDialog()
                 return false
             } else if (path == "/oauth2/canceled" || path == "/logout/") {
                 loginContent.visibility = View.VISIBLE
                 loginWebView.visibility = View.GONE
-                toast(getString(R.string.toast_authentication_canceled))
+                dialogUtils.toast(getString(R.string.toast_authentication_canceled))
                 return false
             } else if (path == "/accounts/login/") {
                 loginWebView.loadUrl(OAUTH_URL) // reload authentication page
@@ -273,7 +275,7 @@ class LoginActivity : BaseActivity() {
             } else if (path.contains("error=access_denied")) {
                 loginContent.visibility = View.VISIBLE
                 loginWebView.visibility = View.GONE
-                showAlertDialog(getString(R.string.alert_authentication_error_title), getString(R.string.error_invalid_credentials))
+                dialogUtils.showAlertDialog(this@LoginActivity, getString(R.string.error_invalid_credentials))
                 return false
             } else if (path.contains("cdn-cgi/l/chk_jschl")) {
                 //webView.loadUrl(OAUTH_URL); // reload authentication page
@@ -285,9 +287,9 @@ class LoginActivity : BaseActivity() {
                     val intent = Intent(Intent.ACTION_VIEW, uri)
                     startActivity(intent)
                 } catch (e: SecurityException) {
-                    showAlertDialog(getString(R.string.error_security_error_title), getString(R.string.error_traffic_rerouted) + e.message)
+                    dialogUtils.showAlertDialog(this@LoginActivity, getString(R.string.error_traffic_rerouted) + e.message)
                 } catch (e: ActivityNotFoundException) {
-                    toast(getString(R.string.error_cannot_open_links))
+                    dialogUtils.toast(getString(R.string.error_cannot_open_links))
                 }
                 return true
             }

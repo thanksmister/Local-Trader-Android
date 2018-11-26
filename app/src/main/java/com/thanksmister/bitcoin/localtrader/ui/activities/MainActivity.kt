@@ -260,9 +260,11 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                 dialogUtils.showAlertDialog(this@MainActivity, message)
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+            if(message != null) {
+                dialogUtils.toast(message)
+            }
         })
-        toast(getString(R.string.toast_refreshing_data))
+        dialogUtils.toast(getString(R.string.toast_refreshing_data))
         viewModel.getDashboardData()
         disposable.add(
                 viewModel.getExchange()
@@ -359,7 +361,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
             onRefreshStop()
             val id = extras.getString(EXTRA_NOTIFICATION_ID)
             if (TextUtils.isEmpty(id)) {
-                showAlertDialog(getString(R.string.error_advertisement), getString(R.string.error_no_advertisement))
+                dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_no_advertisement))
             } else {
                 val launchIntent = AdvertisementActivity.createStartIntent(this, Integer.parseInt(id))
                 startActivity(launchIntent)
