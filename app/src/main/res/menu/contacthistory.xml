@@ -12,7 +12,6 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  ~
   -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
@@ -20,14 +19,19 @@
       xmlns:thanksmister="http://schemas.android.com/apk/res-auto"
       tools:context=".MainActivity">
 
-    <item android:id="@+id/action_scan"
-          android:title="@string/menu_action_scan"
-          android:icon="@drawable/ic_qrcode"
+    <item android:id="@+id/action_send"
+          android:title="@string/menu_action_send_message"
+          android:icon="@drawable/ic_action_new_message"
+          thanksmister:showAsAction="withText|always"/>
+
+    <item android:id="@+id/action_profile"
+          android:title="@string/menu_action_profile"
+          android:icon="@drawable/ic_action_social_person"
           thanksmister:showAsAction="ifRoom"/>
-    
-    <item android:id="@+id/action_paste"
-          android:title="@string/menu_action_paste"
-          android:icon="@drawable/ic_action_content_paste"
+
+    <item android:id="@+id/action_advertisement"
+          android:title="@string/menu_action_advertisement"
+          android:icon="@drawable/ic_action_news"
           thanksmister:showAsAction="ifRoom"/>
 
 </menu>

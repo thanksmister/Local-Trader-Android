@@ -134,7 +134,6 @@ class RequestFragment : BaseFragment() {
         }
     }
 
-
     private fun observeViewModel(viewModel: WalletViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
@@ -143,7 +142,7 @@ class RequestFragment : BaseFragment() {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
-                toast(message)
+                dialogUtils.toast(message)
             }
         })
         viewModel.getBitmap().observe(this, Observer { bitmap ->
@@ -217,13 +216,13 @@ class RequestFragment : BaseFragment() {
     private fun setAmountFromClipboard() {
         val clipText = clipboardText
         if (TextUtils.isEmpty(clipText)) {
-            toast(R.string.toast_clipboard_empty)
+            dialogUtils.toast(R.string.toast_clipboard_empty)
             return
         }
         if (WalletUtils.validAmount(clipText)) {
             setAmount(WalletUtils.parseBitcoinAmount(clipText))
         } else {
-            toast(getString(R.string.toast_invalid_clipboard_contents))
+            dialogUtils.toast(getString(R.string.toast_invalid_clipboard_contents))
         }
     }
 
@@ -244,14 +243,14 @@ class RequestFragment : BaseFragment() {
 
     private fun validateForm() {
         if (address == null) {
-            toast(getString(R.string.toast_no_valid_address_bitcoin))
+            dialogUtils.toast(getString(R.string.toast_no_valid_address_bitcoin))
             return
         }
         var amount = ""
         if (requestAmountText != null) {
             amount = requestAmountText!!.text.toString()
             if (TextUtils.isEmpty(amount)) {
-                toast(getString(R.string.error_missing_amount))
+                dialogUtils.toast(getString(R.string.error_missing_amount))
                 return
             }
         }

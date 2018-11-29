@@ -120,10 +120,10 @@ class ContactsFragment : BaseFragment() {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
-                toast(message)
+                dialogUtils.toast(message)
             }
         })
-        disposable.add(viewModel.getContacts()
+        disposable.add(viewModel.getActiveContacts()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { data ->
@@ -140,7 +140,7 @@ class ContactsFragment : BaseFragment() {
             val intent = ContactActivity.createStartIntent(activity!!, contact.contactId)
             startActivity(intent)
         } else {
-            toast(getString(R.string.toast_contact_not_exist))
+            dialogUtils.toast(getString(R.string.toast_contact_not_exist))
         }
     }
 

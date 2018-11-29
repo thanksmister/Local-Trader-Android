@@ -29,21 +29,16 @@
             android:layout_height="match_parent">
 
         <android.support.v7.widget.RecyclerView
-                android:id="@+id/recycleView"
+                android:id="@+id/contactsRecycleView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
         <include
                 layout="@layout/view_empty"
-                android:id="@+id/emptyLayout"
+                android:id="@+id/contactEmptyLayout"
                 tools:visibility="visible"
                 android:visibility="gone"/>
 
-        <include
-                android:id="@+id/resultsProgress"
-                layout="@layout/view_progress"
-                android:visibility="visible"
-                tools:visibility="visible"/>
 
     </FrameLayout>
 

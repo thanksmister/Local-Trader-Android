@@ -62,11 +62,15 @@ class MessageActivity : BaseActivity() {
         if (savedInstanceState == null) {
             contactId = intent.getIntExtra(EXTRA_ID, 0)
             contactName = intent.getStringExtra(EXTRA_NAME)
-            message = intent.getStringExtra(EXTRA_MESSAGE)
+            if(intent.hasExtra(EXTRA_MESSAGE)) {
+                message = intent.getStringExtra(EXTRA_MESSAGE)
+            }
         } else {
             contactId = savedInstanceState.getInt(EXTRA_ID, 0)
             contactName = savedInstanceState.getString(EXTRA_NAME)
-            message = savedInstanceState.getString(EXTRA_MESSAGE)
+            if(savedInstanceState.containsKey(EXTRA_MESSAGE)) {
+                message = savedInstanceState.getString(EXTRA_MESSAGE)
+            }
         }
 
         if (!TextUtils.isEmpty(message)) {

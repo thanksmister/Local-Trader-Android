@@ -152,7 +152,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         insertAdvertisement(it[0])
                     }
                 }, {
-                    error -> Timber.e("Error" + error.message)
+                    error -> Timber.e("Error " + error.message)
                     if(error is NetworkException) {
                         if(RetrofitErrorHandler.isHttp403Error(error.code)) {
                             showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)

@@ -40,7 +40,7 @@ interface ContactsDao {
      * Get all items
      * @return list of all data items.
      */
-    @Query("SELECT * FROM Contacts")
+    @Query("SELECT * FROM Contacts ORDER BY createdAt DESC")
     fun getItems(): Flowable<List<Contact>>
 
     /**

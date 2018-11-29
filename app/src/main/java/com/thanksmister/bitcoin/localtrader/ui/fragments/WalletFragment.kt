@@ -23,6 +23,7 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.LinearLayoutManager
@@ -59,17 +60,6 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
         val ns = Context.NOTIFICATION_SERVICE
         val notificationManager = activity!!.getSystemService(ns) as NotificationManager
         notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_BALANCE)
-
-        connectionLiveData = ConnectionLiveData(activity!!)
-        connectionLiveData?.observe(this, Observer { connected ->
-            if(!connected!! && activity != null) {
-                Toast.makeText(activity, getString(R.string.error_network_disconnected), Toast.LENGTH_SHORT).show()
-                onRefreshStop()
-            } else {
-                toast(getString(R.string.toast_refreshing_data))
-                viewModel.fetchNetworkData()
-            }
-        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -79,6 +69,19 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
 
         super.onActivityCreated(savedInstanceState)
+
+        connectionLiveData = ConnectionLiveData(activity!!)
+        connectionLiveData?.observe(this, Observer { connected ->
+            if(!connected!!) {
+                onRefreshStop()
+                dialogUtils.showAlertDialog(activity!!, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
+                    dialogUtils.toast(getString(R.string.toast_refreshing_data))
+                    viewModel.fetchNetworkData()
+                }, DialogInterface.OnClickListener { dialog, which ->
+                    //finish()
+                })
+            }
+        })
 
         val linearLayoutManager = LinearLayoutManager(activity)
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
@@ -99,14 +102,24 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {
+        // TODO we need to logout if needed
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message?.message != null && activity != null) {
+                onRefreshStop()
+                dialogUtils.showAlertDialog(activity!!, message.message!!)
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
+                onRefreshStop()
                 dialogUtils.showAlertDialog(activity!!, message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            Toast.makeText(activity!!, message, Toast.LENGTH_LONG).show()
             onRefreshStop()
+            if (message != null && activity != null) {
+                dialogUtils.toast(message)
+            }
         })
         disposable.add(viewModel.getWalletData()
                 .subscribeOn(Schedulers.io())
@@ -127,7 +140,7 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
                     onRefreshStop()
                 }))
 
-        toast(getString(R.string.toast_refreshing_data))
+        dialogUtils.toast(getString(R.string.toast_refreshing_data))
         viewModel.fetchNetworkData()
     }
 

@@ -23,6 +23,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.text.Editable
 import android.text.Html
@@ -90,7 +91,7 @@ class SendFragment : BaseFragment() {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
-                toast(message)
+                dialogUtils.toast(message)
             }
         })
         viewModel.getShowProgress().observe(this, Observer { show ->
@@ -98,7 +99,7 @@ class SendFragment : BaseFragment() {
                 dialogUtils.showAlertDialog(activity!!, getString(R.string.progress_sending_transaction))
             } else if(confirming && activity != null) {
                 dialogUtils.hideProgressDialog()
-                toast(R.string.toast_transaction_success)
+                dialogUtils.toast(R.string.toast_transaction_success)
                 activity!!.finish()
             }
         })
@@ -135,13 +136,23 @@ class SendFragment : BaseFragment() {
                 val pinCode = intent!!.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE)
                 val address = intent.getStringExtra(PinCodeActivity.EXTRA_ADDRESS)
                 val amount = intent.getStringExtra(PinCodeActivity.EXTRA_AMOUNT)
-                pinCodeEvent(pinCode, address, amount);
+                pinCodeEvent(pinCode, address, amount)
             }
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         inflater!!.inflate(R.menu.send, menu)
+        if(menu != null) {
+            val itemLen = menu.size()
+            for (i in 0 until itemLen) {
+                val drawable = menu.getItem(i).icon
+                if (drawable != null) {
+                    drawable.mutate()
+                    drawable.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
+                }
+            }
+        }
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -179,7 +190,6 @@ class SendFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("onViewCreated")
-
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -223,7 +233,7 @@ class SendFragment : BaseFragment() {
             }
         })
         sendButton.setOnClickListener {
-            validateForm();
+            validateForm()
         }
         val currency = preferences.exchangeCurrency
         currencyText.text = currency
@@ -236,25 +246,25 @@ class SendFragment : BaseFragment() {
     private fun setWallet() {
         computeBalance(0.0);
         if (TextUtils.isEmpty(amountText.text.toString())) {
-            calculateCurrencyAmount("0.00");
+            calculateCurrencyAmount("0.00")
         } else {
-            calculateCurrencyAmount(amountText.text.toString());
+            calculateCurrencyAmount(amountText.text.toString())
         }
     }
 
     private fun validateForm() {
         if (TextUtils.isEmpty(amountText.text.toString())) {
-            toast(getString(R.string.error_missing_address_amount));
+            dialogUtils.toast(getString(R.string.error_missing_address_amount))
             return
         }
-        amount = Conversions.formatBitcoinAmount(amountText.text.toString());
+        amount = Conversions.formatBitcoinAmount(amountText.text.toString())
         address = addressText.text.toString();
         if (TextUtils.isEmpty(address)) {
-            toast(getString(R.string.error_missing_address_amount));
+            dialogUtils.toast(getString(R.string.error_missing_address_amount))
             return
         }
         if (TextUtils.isEmpty(amount) || !WalletUtils.validAmount(amount)) {
-            toast(getString(R.string.toast_invalid_btc_amount));
+            dialogUtils.toast(getString(R.string.toast_invalid_btc_amount))
             return
         }
         if(isAdded && activity != null) {
@@ -265,9 +275,9 @@ class SendFragment : BaseFragment() {
                             .subscribe({ valid ->
                                 activity?.runOnUiThread {
                                     if (valid) {
-                                        promptForPin(address!!, amount!!);
+                                        promptForPin(address!!, amount!!)
                                     } else {
-                                        toast(getString(R.string.toast_invalid_address));
+                                        dialogUtils.toast(getString(R.string.toast_invalid_address))
                                     }
                                 }
                             }, { error ->
@@ -278,7 +288,7 @@ class SendFragment : BaseFragment() {
 
     private fun promptForPin(bitcoinAddress: String, bitcoinAmount: String) {
         val intent = PinCodeActivity.createStartIntent(activity!!, bitcoinAddress, bitcoinAmount);
-        startActivityForResult(intent, PinCodeActivity.REQUEST_CODE); // be sure to do this from fragment context
+        startActivityForResult(intent, PinCodeActivity.REQUEST_CODE) // be sure to do this from fragment context
     }
 
     private fun setAddressFromClipboardTouch() {
@@ -296,7 +306,7 @@ class SendFragment : BaseFragment() {
                                 if (valid) {
                                     setAddressFromClipboard()
                                 } else {
-                                    toast(getString(R.string.toast_invalid_address))
+                                    dialogUtils.toast(getString(R.string.toast_invalid_address))
                                 }
                             }
                         }, { error ->
@@ -307,7 +317,7 @@ class SendFragment : BaseFragment() {
     private fun setAddressFromClipboard() {
         val clipText = getClipboardText()
         if (TextUtils.isEmpty(clipText)) {
-            toast(R.string.toast_clipboard_empty)
+            dialogUtils.toast(R.string.toast_clipboard_empty)
             return
         }
         val bitcoinAddress = WalletUtils.parseBitcoinAddress(clipText)
@@ -324,11 +334,11 @@ class SendFragment : BaseFragment() {
                                         if (WalletUtils.validAmount(bitcoinAmount)) {
                                             setAmount(bitcoinAmount)
                                         } else {
-                                            toast(getString(R.string.toast_invalid_btc_amount))
+                                            dialogUtils.toast(getString(R.string.toast_invalid_btc_amount))
                                         }
                                     }
                                 } else {
-                                    toast(getString(R.string.toast_invalid_address))
+                                    dialogUtils.toast(getString(R.string.toast_invalid_address))
                                 }
                             }
                         }, { error ->

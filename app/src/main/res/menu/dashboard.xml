@@ -27,7 +27,7 @@
 
     <item android:id="@+id/action_scan"
           android:title="@string/menu_action_scan"
-          android:icon="@drawable/ic_action_barcode_2"
+          android:icon="@drawable/ic_qrcode"
           thanksmister:showAsAction="always"/>
 
     <item android:id="@+id/action_advertise"

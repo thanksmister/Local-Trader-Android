@@ -18,10 +18,12 @@
 package com.thanksmister.bitcoin.localtrader.ui
 
 import android.app.Activity
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AlertDialog
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
@@ -29,9 +31,9 @@ import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.sync.SyncUtils
 import com.thanksmister.bitcoin.localtrader.persistence.LocalTraderDatabase
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.ui.activities.PromoActivity
-import com.thanksmister.bitcoin.localtrader.ui.activities.ScanQrCodeActivity
+import com.thanksmister.bitcoin.localtrader.ui.activities.*
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
+import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import dagger.android.support.DaggerAppCompatActivity
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -74,6 +76,35 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
         }
     }
 
+    // TODO this is not working from the notification?
+    /*override fun onNewIntent(intent: Intent?) {
+        Timber.d("onNewIntent")
+        super.onNewIntent(intent)
+        if (intent == null || intent.extras == null) {
+            return
+        }
+
+        val extras = intent.extras
+        val type = extras.getInt(MainActivity.EXTRA_NOTIFICATION_TYPE, 0)
+        val id = extras.getInt(MainActivity.EXTRA_NOTIFICATION_ID, 0)
+
+        Timber.d("type: $type")
+        Timber.d("id: ${id}")
+
+        if (type == NotificationUtils.NOTIFICATION_TYPE_CONTACT && id > 0) {
+            //onRefreshStop()
+            val launchIntent = ContactActivity.createStartIntent(this, id)
+            startActivity(launchIntent)
+        } else if (type == NotificationUtils.NOTIFICATION_TYPE_ADVERTISEMENT  && id > 0) {
+            //onRefreshStop()
+            val launchIntent = AdvertisementActivity.createStartIntent(this, id)
+            startActivity(launchIntent)
+        } else if (type == NotificationUtils.NOTIFICATION_TYPE_BALANCE) {
+            //onRefreshStop()
+            startActivity(WalletActivity.createStartIntent(this@BaseActivity))
+        }
+    }*/
+
     open fun launchScanner() {
         startActivity(ScanQrCodeActivity.createStartIntent(this@BaseActivity))
     }
@@ -87,7 +118,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
                 .show()
     }
 
-    private fun logOut() {
+    fun logOut() {
         dialogUtils.showProgressDialog(this@BaseActivity, getString(R.string.text_logging_out))
         clearAllTables()
     }

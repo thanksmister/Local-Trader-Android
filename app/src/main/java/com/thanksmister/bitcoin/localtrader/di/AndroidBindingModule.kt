@@ -85,6 +85,11 @@ internal abstract class AndroidBindingModule {
     @ViewModelKey(PinCodeViewModel::class)
     abstract fun bindsPinCodeViewModel(viewModel: PinCodeViewModel): ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(MessageViewModel::class)
+    abstract fun bindsMessageViewModel(viewModel: MessageViewModel): ViewModel
+
     @ContributesAndroidInjector
     internal abstract fun baseActivity(): BaseActivity
 
@@ -147,6 +152,12 @@ internal abstract class AndroidBindingModule {
 
     @ContributesAndroidInjector
     internal abstract fun activityWalletActivity(): WalletActivity
+
+    @ContributesAndroidInjector
+    internal abstract fun activityContactHistoryActivity(): ContactHistoryActivity
+
+    @ContributesAndroidInjector
+    internal abstract fun activityMessageActivity(): MessageActivity
 
     @ContributesAndroidInjector
     internal abstract fun baseFragment(): BaseFragment

@@ -57,7 +57,9 @@ class SearchResultsActivity : BaseActivity() {
     private var methods: List<Method> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.view_search_results)
 
         tradeType = TradeType.valueOf(SearchUtils.getSearchTradeType(sharedPreferences))
@@ -164,15 +166,6 @@ class SearchResultsActivity : BaseActivity() {
 
     private fun setData(advertisements: List<Advertisement>, methodItems: List<Method>) {
         getAdapter()!!.replaceWith(advertisements, methodItems)
-        /*if (advertisements.isEmpty()) {
-            showEmpty()
-        } else if ((tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL)) { // TODO wtf was this for?
-            showEmpty()
-            toast(getString(R.string.toast_error_advertisers))
-        } else {
-
-
-        }*/
     }
 
     private fun setAdapter(adapter: AdvertiseAdapter) {

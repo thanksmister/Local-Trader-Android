@@ -29,10 +29,9 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Method
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.utils.Dates
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
-import kotlinx.android.synthetic.main.adapter_advertisement_list.view.*
 import kotlinx.android.synthetic.main.adapter_dashboard_advertisement_list.view.*
 import kotlinx.android.synthetic.main.view_empty_advertisement.view.*
-import timber.log.Timber
+
 
 class AdvertisementsAdapter(private val context: Context, private val onItemClickListener: OnItemClickListener) : RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder>() {
 
@@ -95,10 +94,7 @@ class AdvertisementsAdapter(private val context: Context, private val onItemClic
                 }
             } else {
                 val adLocation = if (TradeUtils.isOnlineTrade(advertisement)) advertisement.location else advertisement.city
-                Timber.d("Ad location $adLocation")
                 val paymentMethod = TradeUtils.getPaymentMethod(itemView.context, advertisement, methods)
-                Timber.d("Payment onlineProvider ${advertisement.onlineProvider}")
-                Timber.d("Payment method $paymentMethod")
                 if (TextUtils.isEmpty(paymentMethod)) {
                     itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_in_caps, adLocation)
                 } else {

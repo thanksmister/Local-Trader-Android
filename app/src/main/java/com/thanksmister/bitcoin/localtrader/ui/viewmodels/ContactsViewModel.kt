@@ -36,6 +36,7 @@ import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
@@ -45,6 +46,8 @@ class ContactsViewModel @Inject
 constructor(application: Application, private val contactsDao: ContactsDao, private val notificationsDao: NotificationsDao,
             private val advertisementsDao: AdvertisementsDao,  private val preferences: Preferences) : BaseViewModel(application) {
 
+    private val contactData = MutableLiveData<ContactData>()
+    private val contacts = MutableLiveData<List<Contact>>()
     private val advertisement = MutableLiveData<Advertisement>()
     private val contactUpdated = MutableLiveData<Boolean>()
     private val contactDeleted = MutableLiveData<Boolean>()
@@ -52,11 +55,28 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
     private val contact = MutableLiveData<Contact>()
     private var fetcher: LocalBitcoinsFetcher? = null
 
+
+    fun getContactData(): LiveData<ContactData> {
+        return contactData
+    }
+
+    fun setContactData(value: ContactData) {
+        this.contactData.value = value
+    }
+
+    fun getContactsList(): LiveData<List<Contact>> {
+        return contacts
+    }
+
+    private fun setContactsList(value: List<Contact>) {
+        this.contacts.value = value
+    }
+
     fun getAdvertisement(): LiveData<Advertisement?> {
         return advertisement
     }
 
-    private fun setAdvertisement(value: Advertisement?) {
+    fun setAdvertisement(value: Advertisement?) {
         this.advertisement.value = value
     }
 
@@ -88,8 +108,13 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
         return contact
     }
 
-    private fun setContact(value: Contact) {
+    fun setContact(value: Contact) {
         this.contact.value = value
+    }
+
+    inner class ContactData {
+        var contact = Contact()
+        var messages = emptyList<Message>()
     }
 
     init {
@@ -102,7 +127,31 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
         return contactsDao.getItemById(contactId)
     }
 
-    fun getContacts():Flowable<List<Contact>> {
+    fun getContactsByType(dashboardType: DashboardType):Flowable<List<Contact>> {
+        return contactsDao.getItems()
+                .filter {items -> items.isNotEmpty()}
+                .map {contactList ->
+                    val contacts = ArrayList<Contact>()
+                    contactList.forEach() {contact ->
+                        if(dashboardType == DashboardType.RELEASED) {
+                            if(TradeUtils.isReleased(contact)) {
+                                contacts.add(contact)
+                            }
+                        } else if( dashboardType == DashboardType.CANCELED) {
+                            if(TradeUtils.isCanceledTrade(contact) && !TradeUtils.isReleased(contact)) {
+                                contacts.add(contact)
+                            }
+                        } else if( dashboardType == DashboardType.CLOSED) {
+                            if(TradeUtils.isClosedTrade(contact) && !TradeUtils.isReleased(contact) && !TradeUtils.canCancelTrade(contact)) {
+                                contacts.add(contact)
+                            }
+                        }
+                    }
+                    contacts
+                }
+    }
+
+    fun getActiveContacts():Flowable<List<Contact>> {
         return contactsDao.getItems()
                 .map { contactList  ->
                     val contacts = ArrayList<Contact>()
@@ -115,6 +164,28 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                 }
     }
 
+    fun fetchContactsByType(type: DashboardType) {
+        disposable.add(fetcher!!.getContactsByType(type)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({
+                    insertContacts(it)
+                    setContactsList(it)
+                }, {
+                    error -> Timber.e("Contacts Type Error" + error.message)
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_retrieving_trades))
+                    }
+                }))
+    }
+
+    @Deprecated ("Let's get with message data instead")
     fun fetchContact(contactId: Int) {
         disposable.add(fetcher!!.getContact(contactId)
                 .subscribeOn(Schedulers.newThread())
@@ -122,7 +193,7 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                 .subscribe ({
                     insertContact(it)
                 }, {
-                    error -> Timber.e("Contact Error" + error.message)
+                    error -> Timber.e("Contact Error " + error.message)
                     if(error is NetworkException) {
                         if(RetrofitErrorHandler.isHttp403Error(error.code)) {
                             showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
@@ -133,6 +204,35 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                         showAlertMessage(error.message)
                     }
                 }))
+    }
+
+    fun fetchContactData(contactId: Int) : Observable<ContactData> {
+        return Observable.combineLatest(fetcher!!.getContact(contactId), fetcher!!.getContactMessages(contactId),
+                BiFunction { contact, messages  ->
+                    insertContact(contact)
+                    val data = ContactData()
+                    data.contact = contact
+                    data.messages = messages
+                    data
+                })
+
+        /*return fetcher!!.getContact(contactId)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({
+                    //insertContact(it)
+                }, {
+                    error -> Timber.e("Contact Error " + error.message)
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(error.message)
+                    }
+                }))*/
     }
 
     fun contactAction(contactId: Int, pinCode: String?, action: ContactAction) {
@@ -223,6 +323,16 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
         disposable.add(Completable.fromAction {
             contactsDao.insertItem(item)
             }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Contact insert error" + error.message)}))
+    }
+
+    private fun insertContacts(items: List<Contact>) {
+        disposable.add(Completable.fromAction {
+            contactsDao.insertItems(items)
+        }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({

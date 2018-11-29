@@ -20,10 +20,7 @@ package com.thanksmister.bitcoin.localtrader.ui.activities
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
+import android.content.*
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
@@ -32,7 +29,6 @@ import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
@@ -40,6 +36,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Method
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.AdvertisementsViewModel
+import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -49,7 +46,6 @@ import kotlinx.android.synthetic.main.view_advertisement.*
 
 import timber.log.Timber
 import javax.inject.Inject
-
 
 class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
@@ -81,15 +77,17 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         advertisementSwipeLayout.setOnRefreshListener(this)
         advertisementSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
 
-        if (adId == 0) {
+        /*if (adId == 0) {
             dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.error_no_advertisement),
                     DialogInterface.OnClickListener { _, _ ->
                         finish();
                     })
-        }
+        }*/
 
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(AdvertisementsViewModel::class.java)
-        observeViewModel(viewModel)
+        if(adId > 0) {
+            viewModel = ViewModelProviders.of(this, viewModelFactory).get(AdvertisementsViewModel::class.java)
+            observeViewModel(viewModel)
+        }
     }
 
     // Bug: http://stackoverflow.com/questions/7575921/illegalstateexception-can-not-perform-this-action-after-onsaveinstancestate-wit
@@ -162,15 +160,16 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {
+        // TODO we need to logout if needed
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             if (message?.message != null) {
-                dialogUtils.hideProgressDialog()
+                onRefreshStop()
                 dialogUtils.showAlertDialog(this@AdvertisementActivity, message.message!!)
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
-                dialogUtils.hideProgressDialog()
+                onRefreshStop()
                 dialogUtils.showAlertDialog(this@AdvertisementActivity, message)
             }
         })
@@ -182,13 +181,13 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         })
         viewModel.getAdvertisementUpdated().observe(this, Observer { updated ->
             if(updated != null && updated) {
-                dialogUtils.hideProgressDialog()
+                onRefreshStop()
                 dialogUtils.toast(getString(R.string.toast_update_visibility))
             }
         })
         viewModel.getAdvertisementDeleted().observe(this, Observer { updated ->
             if(updated != null && updated) {
-                dialogUtils.hideProgressDialog()
+                onRefreshStop()
                 dialogUtils.toast(getString(R.string.toast_advertisement_deleted))
                 finish()
             }
@@ -217,8 +216,23 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                     onRefreshStop()
                 }))
 
-        // TODO fetch new data
-       // toast(getString(R.string.toast_refreshing_data))
+        dialogUtils.toast(getString(R.string.toast_refreshing_data))
+        updateAdvertisement()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Deep linking from notification
+        if (intent != null) {
+            val extras = intent.extras
+            val type = extras.getInt(MainActivity.EXTRA_NOTIFICATION_TYPE, 0)
+            val id = extras.getInt(MainActivity.EXTRA_NOTIFICATION_ID, 0)
+            if (type == NotificationUtils.NOTIFICATION_TYPE_ADVERTISEMENT) {
+                this.adId = id
+                viewModel = ViewModelProviders.of(this, viewModelFactory).get(AdvertisementsViewModel::class.java)
+                observeViewModel(viewModel)
+            }
+        }
     }
 
     override fun onRefresh() {

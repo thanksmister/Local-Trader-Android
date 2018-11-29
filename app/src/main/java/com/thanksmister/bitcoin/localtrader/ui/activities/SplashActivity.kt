@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
@@ -67,16 +68,18 @@ class SplashActivity : BaseActivity() {
         connectionLiveData?.observe(this, Observer { connected ->
             if(!connected!!) {
                 showProgress(false)
-                dialogUtils.showAlertDialog(this@SplashActivity, "There was a network or service error, do you want to retry?" , DialogInterface.OnClickListener { dialog, which ->
+                dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
                     showProgress(true)
                     viewModel.startSync()
                 }, DialogInterface.OnClickListener { dialog, which ->
                     finish()
                 })
+            } else {
+                dialogUtils.clearDialogs()
             }
         })
 
-        WalletBalanceScheduler.cancelUniqueWalletBalanceWork()
+       // WalletBalanceScheduler.cancelUniqueWalletBalanceWork()
     }
 
     private fun observeViewModel(viewModel: SplashViewModel) {
@@ -85,10 +88,14 @@ class SplashActivity : BaseActivity() {
                 when {
                     RetrofitErrorHandler.isHttp403Error(messageData.code) -> {
                         showProgress(false)
-                        logOutConfirmation()
+                        if(messageData.message != null) {
+                            dialogUtils.showAlertDialog(this@SplashActivity, messageData.message!!, DialogInterface.OnClickListener { dialog, which ->
+                                logOut()
+                            })
+                        }
                     }
                     RetrofitErrorHandler.isNetworkError(messageData.code) -> {
-                        dialogUtils.showAlertDialog(this@SplashActivity, "There was a network or service error, do you want to retry?", DialogInterface.OnClickListener { dialog, which ->
+                        dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
                             Timber.d("retry network!!")
                             showProgress(true)
                             viewModel.startSync()
@@ -97,7 +104,6 @@ class SplashActivity : BaseActivity() {
                         })
                     }
                     messageData.message != null -> dialogUtils.showAlertDialog(this@SplashActivity, messageData.message!!, DialogInterface.OnClickListener { dialog, which ->
-                        Timber.d("retry network!!")
                         viewModel.startSync()
                         showProgress(true)
                     })
@@ -111,10 +117,10 @@ class SplashActivity : BaseActivity() {
         })
         viewModel.getSyncing().observe(this, Observer {
             if(it == SplashViewModel.SYNC_COMPLETE) {
-                val intent = Intent(this, MainActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                startActivity(intent)
-                finish()
+                val handler = Handler()
+                handler.postDelayed({
+                    startMainActivity()
+                }, 2500)
             } else if (it == SplashViewModel.SYNC_ERROR) {
                 showProgress(false)
                 viewModel.onCleared()
@@ -132,6 +138,13 @@ class SplashActivity : BaseActivity() {
         } else {
             splashProgressBar.visibility = View.VISIBLE
         }
+    }
+
+    private fun startMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
+        finish()
     }
 
     companion object {

@@ -22,27 +22,27 @@ import android.arch.lifecycle.MutableLiveData
 import android.content.SharedPreferences
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
+import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
-import com.thanksmister.bitcoin.localtrader.network.api.model.Method
-import com.thanksmister.bitcoin.localtrader.network.api.model.User
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
-import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
-import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
-import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.persistence.UserDao
+import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
+import com.thanksmister.bitcoin.localtrader.persistence.*
 import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import java.net.SocketTimeoutException
 import java.util.*
 import javax.inject.Inject
 
 
 class SplashViewModel @Inject
 constructor(application: Application, private val userDao: UserDao, private val methodsDao: MethodsDao, private val currenciesDao: CurrenciesDao,
+            private val advertisementsDao: AdvertisementsDao, private val contactsDao: ContactsDao,
+            private val notificationsDao: NotificationsDao, private val exchangeRateDao: ExchangeRateDao,
             private val preferences: Preferences, private val sharedPreferences: SharedPreferences) : BaseViewModel(application) {
 
     private var syncMap = HashMap<String, Boolean>()
@@ -68,10 +68,19 @@ constructor(application: Application, private val userDao: UserDao, private val 
         fetchUser()
         fetchMethods()
         fetchCurrencies()
+        //fetchContacts()
+        //fetchNotifications()
+        //fetchAdvertisements()
     }
 
     fun setupPeriodicWork() {
         WalletBalanceScheduler.refreshWalletBalanceWorkPeriodically()
+    }
+
+    private fun getUser(): Flowable<User> {
+        return userDao.getItems()
+                .filter {items -> items.isNotEmpty()}
+                .map { items -> items[0] }
     }
 
     private fun getMethods(): Flowable<List<Method>> {
@@ -83,23 +92,6 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun fetchMethods() {
-        //if(needToRefreshMethods()) {
-        /*disposable.add(Observable.concatArray(getMethods().toObservable(),
-                    fetcher!!.methods)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    insertMethods(it)
-                    updateSyncMap(SYNC_METHODS, false)
-                    setMethodsExpireTime()
-                }, { error ->
-                    Timber.e("Error getting methods ${error.message}")
-                    if(error is NetworkException) {
-                        showNetworkMessage(error.message, error.code)
-                    }
-                    showNetworkMessage(error.message, ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
-                    setSyncing(SYNC_ERROR)
-                }))*/
         disposable.add(getMethods()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -122,11 +114,16 @@ constructor(application: Application, private val userDao: UserDao, private val 
                                     } else {
                                         showAlertMessage(error.message)
                                     }
+                                    updateSyncMap(SYNC_METHODS, false)
                                     setSyncing(SYNC_ERROR)
                                 })
+                    } else {
+                        updateSyncMap(SYNC_METHODS, false)
                     }
                 }, { error ->
                     Timber.e("Error getting methods ${error.message}")
+                    updateSyncMap(SYNC_METHODS, false)
+                    setSyncing(SYNC_ERROR)
                 }))
     }
 
@@ -163,11 +160,16 @@ constructor(application: Application, private val userDao: UserDao, private val 
                                     } else {
                                         showAlertMessage(error.message)
                                     }
+                                    updateSyncMap(SYNC_CURRENCIES, false)
                                     setSyncing(SYNC_ERROR)
                                 })
+                    } else {
+                        updateSyncMap(SYNC_CURRENCIES, false)
                     }
                 }, { error ->
                     Timber.e("Error getting methods ${error.message}")
+                    updateSyncMap(SYNC_CURRENCIES, false)
+                    setSyncing(SYNC_ERROR)
                 }))
     }
 
@@ -182,21 +184,150 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun fetchUser() {
-        updateSyncMap(SYNC_MYSELF, true)
-        disposable.add(fetcher!!.myself
+        disposable.add(getUser()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    insertUser(it)
-                    updateSyncMap(SYNC_MYSELF, false)
-                }, { error ->
-                    Timber.e("Error getting user ${error.message}")
-                    if (error is NetworkException) {
-                        showNetworkMessage(error.message, error.code)
+                .subscribe({ results ->
+                    if (results == null || needToRefreshUser()) {
+                        Timber.d("fetching methods")
+                        updateSyncMap(SYNC_MYSELF, true)
+                        fetcher!!.myself
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe({
+                                    insertUser(it)
+                                    updateSyncMap(SYNC_MYSELF, false)
+                                    setUserExpireTime()
+                                }, { error -> Timber.e("User Error $error.message")
+                                    if(error is NetworkException) {
+                                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                                        } else {
+                                            showNetworkMessage(error.message, error.code)
+                                        }
+                                    } else {
+                                        showAlertMessage(error.message)
+                                    }
+                                    updateSyncMap(SYNC_MYSELF, false)
+                                    setSyncing(SYNC_ERROR)
+                                })
+                    } else {
+                        updateSyncMap(SYNC_MYSELF, false)
                     }
-                    showNetworkMessage(error.message, ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
+                }, { error ->
+                    Timber.e("Error getting methods ${error.message}")
+                    updateSyncMap(SYNC_MYSELF, false)
                     setSyncing(SYNC_ERROR)
                 }))
+    }
+
+    private fun fetchContacts() {
+        Timber.d("fetchContacts")
+        updateSyncMap(DashboardViewModel.SYNC_CONTACTS, true)
+        disposable.add(fetcher!!.contacts
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({
+                    updateSyncMap(DashboardViewModel.SYNC_CONTACTS, false)
+                    insertContacts(it)
+                }, {
+                    error -> Timber.e("Error fetching contacts ${error.message}")
+                    if(error is NetworkException) {
+                        if (RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else if (error is SocketTimeoutException) {
+                        Timber.e("SocketTimeOut: ${error.message}")
+                    } else {
+                        showAlertMessage(error.message)
+                    }
+                    updateSyncMap(DashboardViewModel.SYNC_CONTACTS, false)
+                    setSyncing(SYNC_ERROR)
+                }))
+    }
+
+    private fun fetchAdvertisements() {
+        updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, true)
+        disposable.add(fetcher!!.advertisements
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({
+                    insertAdvertisements(it)
+                    updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, false)
+                }, {
+                    error -> Timber.e("Error fetching advertisement ${error.message}")
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else if (error is SocketTimeoutException) {
+                        Timber.e("SocketTimeOut: ${error.message}")
+                    } else {
+                        showAlertMessage(error.message)
+                    }
+                    updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, false)
+                    setSyncing(SYNC_ERROR)
+                }))
+    }
+
+    private fun fetchNotifications() {
+        updateSyncMap(DashboardViewModel.SYNC_NOTIFICATIONS, true)
+        disposable.add(fetcher!!.notifications
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe ({
+                    if(it != null) {
+                        replaceNotifications(it)
+                        updateSyncMap(DashboardViewModel.SYNC_NOTIFICATIONS, false)
+                    }
+                }, {
+                    error -> Timber.e("Error fetching notification ${error.message}")
+                    if(error is NetworkException) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else {
+                        showAlertMessage(error.message)
+                    }
+                    updateSyncMap(DashboardViewModel.SYNC_NOTIFICATIONS, false)
+                    setSyncing(SYNC_ERROR)
+                }))
+    }
+
+    private fun insertContacts(items: List<Contact>) {
+        disposable.add(Completable.fromAction {
+            contactsDao.insertItems(items)
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Contacts insert error" + error.message)}))
+    }
+
+    private fun insertAdvertisements(items: List<Advertisement>) {
+        disposable.add(Completable.fromAction {
+            advertisementsDao.insertItems(items)
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Advertisement insert error" + error.message)}))
+    }
+
+    private fun replaceNotifications(items: List<Notification>) {
+        disposable.add(Completable.fromAction {
+            notificationsDao.replaceItems(items)
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Notification insert error" + error.message)}))
     }
 
     private fun insertUser(user: User) {
@@ -274,6 +405,15 @@ constructor(application: Application, private val userDao: UserDao, private val 
         sharedPreferences.edit().putLong(PREFS_CURRENCY_EXPIRE_TIME, expire).apply()
     }
 
+    private fun needToRefreshUser(): Boolean {
+        return System.currentTimeMillis() > sharedPreferences.getLong(PREFS_USER_EXPIRE_TIME, -1);
+    }
+
+    private fun setUserExpireTime() {
+        val expire = System.currentTimeMillis() + CHECK_USER_DATA; // 1 hours
+        sharedPreferences.edit().putLong(PREFS_USER_EXPIRE_TIME, expire).apply()
+    }
+
     private fun resetCurrenciesExpireTime() {
         sharedPreferences.edit().remove(PREFS_CURRENCY_EXPIRE_TIME).apply()
     }
@@ -283,14 +423,20 @@ constructor(application: Application, private val userDao: UserDao, private val 
         const val SYNC_CURRENCIES = "SYNC_CURRENCIES"
         const val SYNC_METHODS = "SYNC_METHODS"
 
+        const val SYNC_CONTACTS = "SYNC_CONTACTS"
+        const val SYNC_NOTIFICATIONS = "SYNC_NOTIFICATIONS"
+        const val SYNC_ADVERTISEMENTS = "SYNC_ADVERTISEMENTS"
+
         const val SYNC_IDLE = "SYNC_IDLE"
         const val SYNC_STARTED = "SYNC_STARTED"
         const val SYNC_COMPLETE = "SYNC_COMPLETE"
         const val SYNC_ERROR = "SYNC_ERROR"
 
-        const val CHECK_CURRENCY_DATA = 604800000;// // 1 week 604800000
-        const val CHECK_METHODS_DATA = 604800000;// // 1 week 604800000
+        const val CHECK_CURRENCY_DATA = 604800000 // 1 week 604800000
+        const val CHECK_METHODS_DATA = 604800000 // 1 week 604800000
+        const val CHECK_USER_DATA = 21600000 // 6 hours
         const val PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire_time";
         const val PREFS_CURRENCY_EXPIRE_TIME = "pref_currency_expire_time";
+        const val PREFS_USER_EXPIRE_TIME = "pref_currency_expire_time";
     }
 }

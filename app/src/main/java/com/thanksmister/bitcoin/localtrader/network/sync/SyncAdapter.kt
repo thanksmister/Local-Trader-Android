@@ -23,12 +23,12 @@ import android.content.Context
 import android.content.SyncResult
 import android.os.Bundle
 import com.crashlytics.android.Crashlytics
+import com.thanksmister.bitcoin.localtrader.R
 
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
-import com.thanksmister.bitcoin.localtrader.network.services.SyncProvider
 import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.persistence.WalletDao
@@ -173,8 +173,6 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe({ walletRemote ->
                                 if(walletLocal != null) {
-                                    walletLocal.receivingAddress = walletRemote.receivingAddress
-                                    walletLocal.total = walletRemote.total
                                     val remoteBalance = walletRemote.total.balance
                                     val localBalance = walletLocal.total.balance
                                     Timber.d("Wallet remoteBalance: " + remoteBalance);
@@ -185,6 +183,8 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                                         if(remote > local) {
                                             val diff = Conversions.formatBitcoinAmount(remote - local)
                                             notificationUtils!!.balanceUpdateNotification(diff)
+                                            walletLocal.receivingAddress = walletRemote.receivingAddress
+                                            walletLocal.total = walletRemote.total
                                             insertWallet(walletLocal)
                                         }
                                     }

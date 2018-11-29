@@ -57,10 +57,10 @@ class NotificationsFragment : BaseFragment() {
     lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject
     lateinit var viewModel: NotificationsViewModel
+    @Inject
     lateinit var notificationUtils: NotificationUtils
 
     private val disposable = CompositeDisposable()
-
     private var adapter: NotificationAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +74,7 @@ class NotificationsFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         notificationsList.setHasFixedSize(true)
         val linearLayoutManager = LinearLayoutManager(activity)
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
@@ -113,7 +114,7 @@ class NotificationsFragment : BaseFragment() {
                     else -> try {
                         onNotificationLinkClicked(notificationItem)
                     } catch (e: ActivityNotFoundException) {
-                        toast(getString(R.string.text_cant_open_link))
+                        dialogUtils.toast(getString(R.string.text_cant_open_link))
                     }
                 }
             }
@@ -140,7 +141,7 @@ class NotificationsFragment : BaseFragment() {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
-                toast(message)
+                dialogUtils.toast(message)
             }
         })
         disposable.add(viewModel.getNotifications()
@@ -162,7 +163,7 @@ class NotificationsFragment : BaseFragment() {
                         try {
                             startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)))
                         } catch (ex: ActivityNotFoundException) {
-                            Toast.makeText(activity!!, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
+                            dialogUtils.toast(getString(R.string.toast_error_no_installed_ativity))
                         }
                     }, DialogInterface.OnClickListener { _, _ ->
                 // na-da
@@ -197,7 +198,7 @@ class NotificationsFragment : BaseFragment() {
             intent.setClass(activity!!, AdvertisementActivity::class.java)
             startActivity(intent)
         } else {
-            toast(getString(R.string.toast_error_opening_advertisement))
+            dialogUtils.toast(getString(R.string.toast_error_opening_advertisement))
         }
     }
 
@@ -207,7 +208,7 @@ class NotificationsFragment : BaseFragment() {
             intent.setClass(activity!!, ContactActivity::class.java)
             startActivity(intent)
         } else {
-            toast(getString(R.string.toast_error_opening_contact))
+            dialogUtils.toast(getString(R.string.toast_error_opening_contact))
         }
     }
 

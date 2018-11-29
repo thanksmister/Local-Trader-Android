@@ -271,7 +271,7 @@ class SearchFragment : BaseFragment() {
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
                 activity!!.runOnUiThread {
-                    toast(message)
+                    dialogUtils.toast(message)
                 }
             }
         })
@@ -367,7 +367,7 @@ class SearchFragment : BaseFragment() {
         when (requestCode) {
             REQUEST_CHECK_SETTINGS -> checkLocationEnabled()
             REQUEST_GOOGLE_PLAY_SERVICES -> if (resultCode != Activity.RESULT_OK) {
-                toast(R.string.toast_search_canceled)
+                dialogUtils.toast(R.string.toast_search_canceled)
                 if (isAdded && activity != null) {
                     activity!!.finish()
                 }
@@ -549,7 +549,7 @@ class SearchFragment : BaseFragment() {
 
     private fun closeView() {
         if (isAdded && activity != null) {
-            toast(getString(R.string.toast_search_canceled))
+            dialogUtils.toast(getString(R.string.toast_search_canceled))
             activity!!.finish()
         }
     }

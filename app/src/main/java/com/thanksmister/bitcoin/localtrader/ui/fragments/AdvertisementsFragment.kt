@@ -60,7 +60,6 @@ class AdvertisementsFragment : BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //retainInstance = true
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -118,7 +117,7 @@ class AdvertisementsFragment : BaseFragment() {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
-                toast(message)
+                dialogUtils.toast(message)
             }
         })
         disposable.add(viewModel.getAdvertisementsData()

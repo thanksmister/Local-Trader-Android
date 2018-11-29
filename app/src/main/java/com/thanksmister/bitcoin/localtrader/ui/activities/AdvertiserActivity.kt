@@ -90,7 +90,7 @@ class AdvertiserActivity : BaseActivity() {
         connectionLiveData = ConnectionLiveData(this@AdvertiserActivity)
         connectionLiveData?.observe(this, Observer { connected ->
             if(!connected!!) {
-                Toast.makeText(this@AdvertiserActivity, getString(R.string.error_network_disconnected), Toast.LENGTH_SHORT).show()
+                dialogUtils.toast(getString(R.string.error_network_disconnected))
             }
         })
     }

@@ -51,6 +51,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Parser;
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils;
 
 import java.io.File;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -139,6 +140,8 @@ public class LocalBitcoinsFetcher {
                                     return toBeResumed;
                                 }
                             });
+                } else if (throwable instanceof SocketTimeoutException) {
+                    return Observable.error(throwable); // bubble up the exception;
                 }
                 return Observable.error(networkException); // bubble up the exception;
             }
@@ -1499,7 +1502,7 @@ public class LocalBitcoinsFetcher {
         return networkApi.markNotificationRead(accessToken, notificationId);
     }
 
-    public Observable<List<Contact>> getContacts(final DashboardType dashboardType) {
+    public Observable<List<Contact>> fetchContactsByType(final DashboardType dashboardType) {
         final String accessToken = preferences.getAccessToken();
         switch (dashboardType) {
             case RELEASED:

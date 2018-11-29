@@ -28,23 +28,23 @@ import android.graphics.Color
 import android.os.Build
 import android.support.annotation.RequiresApi
 import android.support.v4.app.NotificationCompat
-import android.support.v4.app.TaskStackBuilder
-import android.support.v4.content.ContextCompat
-
-import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity
-
-import timber.log.Timber
-
 import android.support.v4.app.NotificationCompat.PRIORITY_MAX
 import android.support.v4.app.NotificationCompat.VISIBILITY_PUBLIC
-import java.util.ArrayList
+import android.support.v4.app.TaskStackBuilder
+import android.support.v4.content.ContextCompat
+import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.ui.activities.*
+import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity.Companion.EXTRA_NOTIFICATION_ID
+import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity.Companion.EXTRA_NOTIFICATION_TYPE
+import timber.log.Timber
+import java.util.*
+
 
 class NotificationUtils(context: Context) : ContextWrapper(context) {
 
     private var notificationManager: NotificationManager? = null
-    private val pendingIntent: PendingIntent
-    private val notificationIntent: Intent
+    // private val pendingIntent: PendingIntent
+    // private val notificationIntent: Intent
 
     private val manager: NotificationManager
         get() {
@@ -55,9 +55,6 @@ class NotificationUtils(context: Context) : ContextWrapper(context) {
         }
 
     init {
-        notificationIntent = Intent(context, MainActivity::class.java)
-        notificationIntent.flags = Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
-        pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannels()
         }
@@ -82,9 +79,9 @@ class NotificationUtils(context: Context) : ContextWrapper(context) {
         } else if (notificationList.size == 1) {
             val notification = notificationList[0]
             if (notification.contactId != null && notification.message != null) {
-                createNotification(getString(R.string.notification_trade_notification_title), notification.message!!)
+                createContactNotification(getString(R.string.notification_trade_notification_title), notification.message!!, notification.contactId!!)
             } else if (notification.advertisementId != null && notification.message != null) {
-                createNotification(getString(R.string.notification_ad_notification_title), notification.message!!)
+                createAdvertisementNotification(getString(R.string.notification_ad_notification_title), notification.message!!, notification.advertisementId!!)
             } else if (notification.message != null) {
                 createNotification(getString(R.string.notification_title), notification.message!!)
             }
@@ -92,23 +89,82 @@ class NotificationUtils(context: Context) : ContextWrapper(context) {
     }
 
     fun balanceUpdateNotification(diff: String) {
-        createNotification(getString(R.string.notification_btc_received), getString(R.string.notification_btc_received_message, diff))
+        createWalletNotification(getString(R.string.notification_btc_received), getString(R.string.notification_btc_received_message, diff))
     }
 
     fun balanceCurrentNotification(balance: String) {
-        createNotification(getString(R.string.notification_btc_balance), getString(R.string.notification_btc_balance_message, balance));
+        createWalletNotification(getString(R.string.notification_btc_balance), getString(R.string.notification_btc_balance_message, balance));
+    }
+
+    fun createWalletNotification(title: String, message: String) {
+        Timber.d("createWalletNotification")
+
+        val notificationIntent = Intent(applicationContext, WalletActivity::class.java)
+        notificationIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        notificationIntent.putExtra(EXTRA_NOTIFICATION_ID, 0)
+        notificationIntent.putExtra(EXTRA_NOTIFICATION_TYPE, NOTIFICATION_TYPE_BALANCE)
+
+        notificationIntent.setAction(Intent.ACTION_MAIN);
+        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        val pendingIntent = PendingIntent.getActivity(applicationContext, WALLET_NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nb = getAndroidChannelNotification(title, message, pendingIntent)
+            manager.notify(WALLET_NOTIFICATION_ID, nb.build())
+        } else {
+            val nb = getAndroidNotification(title, message)
+            nb.setContentIntent(pendingIntent)
+            manager.notify(WALLET_NOTIFICATION_ID, nb.build())
+        }
+    }
+
+    // TODO open up contact directly when receiving new contact or contact message
+    fun createContactNotification(title: String, message: String, contactId: Int) {
+        val notificationIntent = Intent(applicationContext, ContactActivity::class.java)
+        notificationIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        notificationIntent.putExtra(EXTRA_NOTIFICATION_ID, contactId)
+        notificationIntent.putExtra(EXTRA_NOTIFICATION_TYPE, NOTIFICATION_TYPE_CONTACT)
+        notificationIntent.action = Intent.ACTION_MAIN;
+        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        val pendingIntent = PendingIntent.getActivity(applicationContext, CONTACT_NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nb = getAndroidChannelNotification(title, message, pendingIntent)
+            manager.notify(CONTACT_NOTIFICATION_ID, nb.build())
+        } else {
+            val nb = getAndroidNotification(title, message)
+            nb.setContentIntent(pendingIntent)
+            manager.notify(CONTACT_NOTIFICATION_ID, nb.build())
+        }
+    }
+
+    fun createAdvertisementNotification(title: String, message: String, adId: Int) {
+        val notificationIntent = Intent(applicationContext, AdvertisementActivity::class.java)
+        notificationIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        notificationIntent.putExtra(EXTRA_NOTIFICATION_ID, adId)
+        notificationIntent.putExtra(EXTRA_NOTIFICATION_TYPE, NOTIFICATION_TYPE_ADVERTISEMENT)
+        notificationIntent.action = Intent.ACTION_MAIN;
+        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        val pendingIntent = PendingIntent.getActivity(applicationContext, ADVERTISEMENT_NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nb = getAndroidChannelNotification(title, message, pendingIntent)
+            manager.notify(ADVERTISEMENT_NOTIFICATION_ID, nb.build())
+        } else {
+            val nb = getAndroidNotification(title, message)
+            nb.setContentIntent(pendingIntent)
+            manager.notify(ADVERTISEMENT_NOTIFICATION_ID, nb.build())
+        }
     }
 
     private fun createNotification(title: String, message: String) {
+        val notificationIntent = Intent(applicationContext, MainActivity::class.java)
+        notificationIntent.flags = Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+        val pendingIntent = PendingIntent.getActivity(applicationContext, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val nb = getAndroidChannelNotification(title, message)
+            val nb = getAndroidChannelNotification(title, message, pendingIntent)
             manager.notify(NOTIFICATION_ID, nb.build())
         } else {
             val nb = getAndroidNotification(title, message)
-            // This ensures that navigating backward from the Activity leads out of your app to the Home screen.
-            val stackBuilder = TaskStackBuilder.create(applicationContext)
-            stackBuilder.addParentStack(MainActivity::class.java)
-            stackBuilder.addNextIntent(notificationIntent)
             nb.setContentIntent(pendingIntent)
             manager.notify(NOTIFICATION_ID, nb.build())
         }
@@ -129,7 +185,7 @@ class NotificationUtils(context: Context) : ContextWrapper(context) {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private fun getAndroidChannelNotification(title: String, body: String): Notification.Builder {
+    private fun getAndroidChannelNotification(title: String, body: String, pendingIntent: PendingIntent): Notification.Builder {
         val color = ContextCompat.getColor(applicationContext, R.color.colorPrimary)
         val builder = Notification.Builder(applicationContext, ANDROID_CHANNEL_ID)
                 .setContentTitle(title)
@@ -166,7 +222,10 @@ class NotificationUtils(context: Context) : ContextWrapper(context) {
     }
 
     companion object {
-        const val NOTIFICATION_ID = 1138
+        const val NOTIFICATION_ID = 1538
+        const val WALLET_NOTIFICATION_ID = 1540
+        const val CONTACT_NOTIFICATION_ID = 1541
+        const val ADVERTISEMENT_NOTIFICATION_ID = 1542
         const val NOTIFICATION_TYPE_BALANCE = 4
         const val NOTIFICATION_TYPE_CONTACT = 5
         const val NOTIFICATION_TYPE_ADVERTISEMENT = 6

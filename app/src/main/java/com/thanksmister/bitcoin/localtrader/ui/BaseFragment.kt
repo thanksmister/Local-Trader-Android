@@ -39,32 +39,4 @@ abstract class BaseFragment : DaggerFragment() {
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(dialogUtils)
     }
-
-    protected fun toast(messageId: Int) {
-        if (isAdded && activity != null)
-            (activity as BaseActivity).toast(messageId)
-    }
-
-    protected fun toast(message: String) {
-        if (isAdded && activity != null)
-            (activity as BaseActivity).toast(message)
-    }
-
-    @Deprecated ("Moved to dialog utils")
-    fun showProgressDialog(message: String, cancelable: Boolean) {
-        if (isAdded && activity != null)
-            (activity as BaseActivity).showProgressDialog(message, cancelable)
-    }
-
-    @Deprecated ("Moved to dialog utils")
-    fun showProgressDialog(message: String) {
-        if (isAdded && activity != null)
-            (activity as BaseActivity).showProgressDialog(message, false)
-    }
-
-    @Deprecated ("Moved to dialog utils")
-    fun hideProgressDialog() {
-        if (isAdded && activity != null)
-            (activity as BaseActivity).hideProgressDialog()
-    }
 }

@@ -202,7 +202,6 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
 
     companion object {
 
-
         fun isAuthenticationError(code: Int): Boolean {
             return code == ExceptionCodes.AUTHENTICATION_ERROR_CODE
         }

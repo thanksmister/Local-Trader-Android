@@ -17,45 +17,53 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
+
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.Toolbar
-import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
-
+import com.crashlytics.android.Crashlytics
+import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
+import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
-
-
-import java.util.ArrayList
-
-import javax.inject.Inject
-
+import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.view_contact.*
+import kotlinx.android.synthetic.main.view_contacts.*
+import kotlinx.android.synthetic.main.view_empty.*
 import timber.log.Timber
+import java.util.*
+import javax.inject.Inject
 
 class ContactsActivity : BaseActivity() {
 
-    internal var recycleView: RecyclerView? = null
-    internal var emptyLayout: View? = null
-    internal var progress: View? = null
-    internal var emptyText: TextView? = null
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject
+    lateinit var viewModel: ContactsViewModel
 
+    private var connectionLiveData: ConnectionLiveData? = null
+    private val disposable = CompositeDisposable()
     private var adapter: ContactAdapter? = null
-
     private var dashboardType: DashboardType? = DashboardType.NONE
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.view_contacts)
@@ -70,13 +78,72 @@ class ContactsActivity : BaseActivity() {
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         }
 
-        adapter = ContactAdapter(this@ContactsActivity)
-        recycleView!!.setHasFixedSize(true)
         val linearLayoutManager = LinearLayoutManager(this@ContactsActivity)
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
-        recycleView!!.layoutManager = linearLayoutManager
+        contactsRecycleView.layoutManager = linearLayoutManager
 
-        ItemClickSupport.addTo(recycleView!!).setOnItemClickListener { recyclerView, position, v -> showContact(adapter!!.getItemAt(position)) }
+        adapter = ContactAdapter(this@ContactsActivity)
+        contactsRecycleView.setHasFixedSize(true)
+
+        ItemClickSupport.addTo(contactsRecycleView).setOnItemClickListener { recyclerView, position, v ->
+            showContact(adapter!!.getItemAt(position))
+        }
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactsViewModel::class.java)
+        observeViewModel(viewModel)
+    }
+
+    private fun observeViewModel(viewModel: ContactsViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            if (message?.message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@ContactsActivity, message.message!!)
+            }
+        })
+        viewModel.getAlertMessage().observe(this, Observer { message ->
+            if (message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@ContactsActivity, message)
+            }
+        })
+        viewModel.getToastMessage().observe(this, Observer { message ->
+            if (message != null) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.toast(message)
+            }
+        })
+
+        /*viewModel.getContactsList().observe(this, Observer { contacts ->
+            if(contacts != null) {
+                Timber.d("Contacts size: " + contacts.size)
+                dialogUtils.hideProgressDialog()
+                setContacts(contacts)
+            } else {
+                showEmpty()
+            }
+        })*/
+
+        if (dashboardType != null) {
+            updateData(dashboardType!!)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        connectionLiveData = ConnectionLiveData(this@ContactsActivity)
+        connectionLiveData?.observe(this, Observer { connected ->
+            if(!connected!!) {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(this@ContactsActivity, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
+                    dialogUtils.toast(getString(R.string.toast_refreshing_data))
+                    if(dashboardType != null) {
+                        updateData(dashboardType!!)
+                    }
+                }, DialogInterface.OnClickListener { dialog, which ->
+                    //finish()
+                })
+            }
+        })
     }
 
     public override fun onSaveInstanceState(outState: Bundle) {
@@ -114,114 +181,49 @@ class ContactsActivity : BaseActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-
-    override fun onResume() {
-        super.onResume()
-        if (dashboardType != null) {
-            updateData(dashboardType)
-        }
+    private fun showContent() {
+        contactsRecycleView.visibility = View.VISIBLE
+        contactEmptyLayout.visibility = View.GONE
     }
 
-    override fun onPause() {
-        super.onPause()
+    private fun showEmpty() {
+        contactsRecycleView.visibility = View.GONE
+        contactEmptyLayout.visibility = View.VISIBLE
+        emptyText.text = getString(R.string.text_not_trades)
     }
 
-    /*override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
-    }*/
-
-    fun showContent() {
-        if (recycleView != null && emptyLayout != null && progress != null) {
-            recycleView!!.visibility = View.VISIBLE
-            emptyLayout!!.visibility = View.GONE
-            progress!!.visibility = View.GONE
-        }
-    }
-
-    fun showEmpty() {
-        if (recycleView != null && emptyLayout != null && progress != null && emptyText != null) {
-            recycleView!!.visibility = View.GONE
-            emptyLayout!!.visibility = View.VISIBLE
-            progress!!.visibility = View.GONE
-            emptyText!!.text = getString(R.string.text_not_trades)
-        }
-    }
-
-    fun showProgress() {
-        if (recycleView != null && emptyLayout != null && progress != null) {
-            recycleView!!.visibility = View.GONE
-            emptyLayout!!.visibility = View.GONE
-            progress!!.visibility = View.VISIBLE
-        }
-    }
-
-
-    /*public void setToolBarMenu(Toolbar toolbar) {
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                switch (menuItem.getItemId()) {
-                    case R.id.action_canceled:
-                        setContacts(new ArrayList<ContactItem>());
-                        updateData(DashboardType.CANCELED);
-                        return true;
-                    case R.id.action_closed:
-                        setContacts(new ArrayList<ContactItem>());
-                        updateData(DashboardType.CLOSED);
-                        return true;
-                    case R.id.action_released:
-                        setContacts(new ArrayList<ContactItem>());
-                        updateData(DashboardType.RELEASED);
-                        return true;
-                }
-                return false;
-            }
-        });
-    }*/
-
-    private fun updateData(type: DashboardType?) {
-
-        toast(getString(R.string.toast_loading_trades))
-        showProgress()
-        /*
-        subscription.unsubscribe(); // stop subscribed database data
-        dashboardType = type;
-        setTitle(dashboardType);
-        updateSubscription = dataService.getContacts(dashboardType)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<Contact>>() {
-                    @Override
-                    public void call(List<Contact> contacts) {
-                        Timber.d("Update Data Contacts: " + contacts.size());
-                        ArrayList<ContactItem> contactItems = new ArrayList<ContactItem>();
-                        for (Contact contact : contacts) {
-                            contactItems.add(ContactItem.convertContact(contact));
+    private fun updateData(type: DashboardType) {
+        Timber.d("updateData DashboardType ${type}")
+        dialogUtils.showProgressDialog(this@ContactsActivity, getString(R.string.toast_loading_trades))
+        setTitle(type)
+        dashboardType = type
+        disposable.clear()
+        disposable.add(viewModel.getContactsByType(dashboardType!!)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe( { data ->
+                        dialogUtils.hideProgressDialog()
+                        if(data != null) {
+                            setContacts(data)
+                        } else {
+                            showEmpty()
                         }
-                        setContacts(contactItems);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        showEmpty();
-                        toast(getString(R.string.toast_error_retrieving_trades));
-                    }
-                });*/
+                    }, { error ->
+                        Timber.e("Contacts error: $error")
+                        dialogUtils.hideProgressDialog()
+                        dialogUtils.showAlertDialog(this@ContactsActivity, getString(R.string.toast_error_opening_contact), DialogInterface.OnClickListener { _, _ ->
+                            finish()
+                        })
+                    }))
+        viewModel.fetchContactsByType(type)
     }
 
-    protected fun showContact(contact: Contact?) {
+    private fun showContact(contact: Contact?) {
         if (contact != null && contact.contactId != 0) {
             val intent = ContactActivity.createStartIntent(this@ContactsActivity, contact.contactId)
             startActivity(intent)
         } else {
-            toast(getString(R.string.toast_contact_not_exist))
+            dialogUtils.toast(getString(R.string.toast_contact_not_exist))
         }
     }
 
@@ -230,29 +232,25 @@ class ContactsActivity : BaseActivity() {
             showEmpty()
             return
         }
-
         showContent()
         adapter!!.replaceWith(contacts)
-        recycleView!!.adapter = adapter
+        contactsRecycleView.adapter = adapter
     }
 
-    fun setTitle(dashboardType: DashboardType) {
-        var title = ""
-        when (dashboardType) {
-            DashboardType.RELEASED -> title = getString(R.string.list_trade_filter2)
-            DashboardType.CANCELED -> title = getString(R.string.list_trade_filter3)
-            DashboardType.CLOSED -> title = getString(R.string.list_trade_filter4)
-            else -> title = ""
+    private fun setTitle(dashboardType: DashboardType) {
+        val title = when (dashboardType) {
+            DashboardType.RELEASED -> getString(R.string.list_trade_filter2)
+            DashboardType.CANCELED -> getString(R.string.list_trade_filter3)
+            DashboardType.CLOSED -> getString(R.string.list_trade_filter4)
+            else -> ""
         }
-
         if (supportActionBar != null) {
             supportActionBar!!.title = title
         }
     }
 
     companion object {
-        val EXTRA_TYPE = "com.thanksmister.extras.EXTRA_NOTIFICATION_TYPE"
-
+        const val EXTRA_TYPE = "com.thanksmister.extras.EXTRA_NOTIFICATION_TYPE"
         fun createStartIntent(context: Context, dashboardType: DashboardType): Intent {
             val intent = Intent(context, ContactsActivity::class.java)
             intent.putExtra(EXTRA_TYPE, dashboardType)
