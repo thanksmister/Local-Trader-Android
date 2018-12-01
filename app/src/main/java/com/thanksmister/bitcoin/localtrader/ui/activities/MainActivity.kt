@@ -28,6 +28,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.support.design.widget.BottomNavigationView
@@ -92,6 +93,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Timber.d("onCreate")
         super.onCreate(savedInstanceState)
         try {
             setContentView(R.layout.activity_main)
@@ -148,6 +150,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     override fun onStart() {
+        Timber.d("onStart")
         super.onStart()
         connectionLiveData = ConnectionLiveData(this@MainActivity)
         connectionLiveData?.observe(this, Observer { connected ->
@@ -166,11 +169,12 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            finishAffinity()
         } else {
-            super.onBackPressed()
+            finish()
         }
+        System.exit(0);
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -259,10 +263,17 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         mainSwipeLayout.isRefreshing = false
     }
 
+    override fun onPause() {
+        super.onPause()
+        Timber.d("onPause")
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        Timber.d("onDestroy")
         if (!disposable.isDisposed) {
             try {
+                Timber.d("disposable.clear")
                 disposable.clear()
             } catch (e: UndeliverableException) {
                 Timber.e(e.message)
@@ -338,7 +349,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                             Timber.e("User error: $error")
                         }))
 
-        // TODO refresh exchange data and refresh on pull only the others
         dialogUtils.toast(getString(R.string.toast_refreshing_data))
         viewModel.getDashboardData()
     }

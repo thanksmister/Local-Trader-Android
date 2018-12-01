@@ -21,6 +21,7 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -31,6 +32,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.inputmethod.InputMethodManager
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.MessageViewModel
 import io.reactivex.disposables.CompositeDisposable
@@ -96,7 +98,11 @@ class MessageActivity : BaseActivity() {
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             if (message?.message != null) {
                 dialogUtils.hideProgressDialog()
-                dialogUtils.showAlertDialog(this@MessageActivity, message.message!!)
+                dialogUtils.showAlertDialog(this@MessageActivity, message.message!!, DialogInterface.OnClickListener { dialog, which ->
+                    if(message.code == ExceptionCodes.MESSAGE_ERROR_CODE || message.code == ExceptionCodes.AUTHENTICATION_ERROR_CODE ) {
+                        finish()
+                    }
+                })
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
@@ -144,15 +150,17 @@ class MessageActivity : BaseActivity() {
         finish()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        when (requestCode) {
-            GALLERY_INTENT_CALLED -> if (resultCode != RESULT_CANCELED) {
-                mUri = data.data
-                if(mUri != null) {
-                    mFileName = getDocumentName(mUri!!)
-                    attachButton.visibility = GONE
-                    attachmentLayout.visibility = View.VISIBLE
-                    attachmentName.text = mFileName
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(data != null) {
+            when (requestCode) {
+                GALLERY_INTENT_CALLED -> if (resultCode != RESULT_CANCELED) {
+                    mUri = data.data
+                    if (mUri != null) {
+                        mFileName = getDocumentName(mUri!!)
+                        attachButton.visibility = GONE
+                        attachmentLayout.visibility = View.VISIBLE
+                        attachmentName.text = mFileName
+                    }
                 }
             }
         }

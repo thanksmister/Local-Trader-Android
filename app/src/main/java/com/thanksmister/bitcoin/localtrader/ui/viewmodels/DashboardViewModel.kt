@@ -60,6 +60,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
     }
 
     init {
+        Timber.d("init")
         val endpoint = preferences.getServiceEndpoint()
         val api = LocalBitcoinsApi(getApplication(), endpoint)
         fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
@@ -67,6 +68,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
     }
 
     override fun onCleared() {
+        Timber.d("onCleared")
         super.onCleared()
         resetSyncing()
     }

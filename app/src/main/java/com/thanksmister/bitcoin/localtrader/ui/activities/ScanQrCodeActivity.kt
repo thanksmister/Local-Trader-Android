@@ -100,10 +100,10 @@ class ScanQrCodeActivity : BaseActivity() {
 
     private val cameraCallback = object : CameraCallback {
         override fun onDetectorError() {
-            Toast.makeText(this@ScanQrCodeActivity, "Missing libraries to scan code...", Toast.LENGTH_LONG).show()
+            dialogUtils.toast(getString(R.string.error_missing_vision_library))
         }
         override fun onCameraError() {
-            Toast.makeText(this@ScanQrCodeActivity, "Could not start camera...", Toast.LENGTH_LONG).show()
+            dialogUtils.toast(getString(R.string.error_camera_start))
         }
         override fun onQRCode(data: String) {
             runOnUiThread {

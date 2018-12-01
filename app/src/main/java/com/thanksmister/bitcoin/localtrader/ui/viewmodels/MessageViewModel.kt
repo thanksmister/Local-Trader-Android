@@ -23,31 +23,20 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.provider.OpenableColumns
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
-import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
-import com.thanksmister.bitcoin.localtrader.persistence.AdvertisementsDao
-import com.thanksmister.bitcoin.localtrader.persistence.ContactsDao
-import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.utils.Parser
-import com.thanksmister.bitcoin.localtrader.utils.Strings
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
-import io.reactivex.Completable
-import io.reactivex.Flowable
+import com.thanksmister.bitcoin.localtrader.utils.StringUtils
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import org.json.JSONObject
 import timber.log.Timber
 import java.io.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class MessageViewModel @Inject
@@ -145,7 +134,7 @@ constructor(application: Application, private val preferences: Preferences) : Ba
             val outDimens = getBitmapDimensions(getApplication<BaseApplication>(), uri)
             val sampleSize = calculateSampleSize(outDimens.outWidth, outDimens.outHeight, 1200, 1200)
             bitmap = downSampleBitmap(getApplication<BaseApplication>(), uri, sampleSize)
-            val file = File(getApplication<BaseApplication>().cacheDir, Strings.removeExtension(fileName))
+            val file = File(getApplication<BaseApplication>().cacheDir, StringUtils.removeExtension(fileName))
             file.createNewFile()
             val bos = ByteArrayOutputStream()
             bitmap!!.compress(Bitmap.CompressFormat.PNG, 0, bos)

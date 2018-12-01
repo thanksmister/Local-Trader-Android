@@ -21,6 +21,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 
 import com.thanksmister.bitcoin.localtrader.R
@@ -41,12 +42,21 @@ class PromoActivity : BaseActivity() {
         }
     }
 
-    fun showLoginView() {
+    override fun onBackPressed() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            finishAffinity()
+        } else {
+            finish()
+        }
+        System.exit(0);
+    }
+
+    private fun showLoginView() {
         val intent = LoginActivity.createStartIntent(this@PromoActivity)
         startActivity(intent)
     }
 
-    fun showRegistration() {
+    private fun showRegistration() {
         val url = Constants.REGISTRATION_URL
         try {
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))

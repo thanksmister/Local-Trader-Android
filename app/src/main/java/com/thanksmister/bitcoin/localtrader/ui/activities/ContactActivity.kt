@@ -33,8 +33,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import com.crashlytics.android.Crashlytics
-import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
@@ -299,7 +297,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun observeViewModel(viewModel: ContactsViewModel) {
-        // TODO we need to logout if needed
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             if (message?.message != null) {
                 onRefreshStop()
@@ -320,7 +317,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.getContactDeleted().observe(this, Observer { deleted ->
             if(deleted != null && deleted) {
                 onRefreshStop()
-                finish();
+                finish()
             }
         })
         disposable.add(viewModel.getContact(contactId)
@@ -342,10 +339,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                         dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.toast_error_opening_contact), DialogInterface.OnClickListener { _, _ ->
                             finish()
                         })
-                    }
-                    if (!BuildConfig.DEBUG) {
-                        Crashlytics.setString("contact", contactId.toString())
-                        Crashlytics.logException(error)
                     }
                 }))
 
@@ -377,15 +370,17 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         contactSwipeLayout.isRefreshing = false
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent) {
-        when (resultCode) {
-            PinCodeActivity.RESULT_VERIFIED -> {
-                val pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE)
-                releaseTradeWithPin(pinCode)
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        if(intent != null) {
+            when (resultCode) {
+                PinCodeActivity.RESULT_VERIFIED -> {
+                    val pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE)
+                    releaseTradeWithPin(pinCode)
+                }
+                PinCodeActivity.RESULT_CANCELED -> dialogUtils.toast(R.string.toast_pin_code_canceled)
+                MessageActivity.RESULT_MESSAGE_SENT -> updateData()
+                MessageActivity.RESULT_MESSAGE_CANCELED -> dialogUtils.toast(getString(R.string.toast_message_canceled))
             }
-            PinCodeActivity.RESULT_CANCELED -> dialogUtils.toast(R.string.toast_pin_code_canceled)
-            MessageActivity.RESULT_MESSAGE_SENT -> updateData()
-            MessageActivity.RESULT_MESSAGE_CANCELED -> dialogUtils.toast(getString(R.string.toast_message_canceled))
         }
     }
 
@@ -521,10 +516,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     private fun downloadAttachment(message: Message) {
         if (TextUtils.isEmpty(message.attachmentUrl)) {
             dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.toast_attachment_empty))
-            if (!BuildConfig.DEBUG) {
-                Crashlytics.setString("message_download", message.attachmentUrl)
-                Crashlytics.logException(Exception("Error downloading url: " + message.attachmentUrl!!))
-            }
             return
         }
         val token = preferences.getAccessToken()
@@ -538,10 +529,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             downloadManager!!.enqueue(request)
         } catch (e: NullPointerException) {
-            if (!BuildConfig.DEBUG) {
-                Crashlytics.setString("message_download", message.attachmentUrl)
-                Crashlytics.logException(Exception("Error downloading url: " + message.attachmentUrl!!))
-            }
+            Timber.e(e.message)
         }
     }
 
@@ -578,23 +566,23 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     private fun releaseTradeWithPin(pinCode: String) {
         dialogUtils.showAlertDialogCancel(this@ContactActivity, getString(R.string.contact_release_confirm),
                 DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing));
-                    contactAction(contactId, pinCode, ContactAction.RELEASE);
+                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing))
+                    contactAction(contactId, pinCode, ContactAction.RELEASE)
                 })
     }
 
     private fun cancelContact() {
         dialogUtils.showAlertDialogCancel(this@ContactActivity, getString(R.string.contact_cancel_confirm),
                 DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing));
-                    contactAction(contactId, null, ContactAction.CANCEL);
+                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing))
+                    contactAction(contactId, null, ContactAction.CANCEL)
                 })
     }
 
     private fun createAlert(message: String, contactId: Int, pinCode: String?, action: ContactAction) {
         dialogUtils.showAlertDialogCancel(this@ContactActivity, message,
                 DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing));
+                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing))
                     contactAction(contactId, pinCode, action)
                 })
     }
@@ -609,7 +597,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(getString(R.string.message_clipboard_title), message.message)
         clipboard.primaryClip = clip
-        if (!Strings.isBlank(message.attachmentName)) {
+        if (!TextUtils.isEmpty(message.attachmentName)) {
             downloadAttachment(message)
             dialogUtils.toast(R.string.message_copied_attachment_toast)
         } else {
@@ -645,13 +633,13 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe( { advertisement ->
                         if(advertisement == null) {
-                            launchAdvertisementLink(contact);
+                            launchAdvertisementLink(contact)
                         } else {
                             loadAdvertisementView(contact)
                         }
                     }, { error ->
                         Timber.e("Advertisement error: $error")
-                        launchAdvertisementLink(contact);
+                        launchAdvertisementLink(contact)
                     }))
         }
     }

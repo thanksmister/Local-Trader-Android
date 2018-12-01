@@ -47,6 +47,7 @@ import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class AdvertisementsViewModel @Inject
@@ -152,13 +153,17 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         insertAdvertisement(it[0])
                     }
                 }, {
-                    error -> Timber.e("Error " + error.message)
+                    error ->
+                    Timber.e("Error " + error.message)
+                    Timber.e("error is SocketTimeoutException " + (error is SocketTimeoutException))
                     if(error is NetworkException) {
                         if(RetrofitErrorHandler.isHttp403Error(error.code)) {
                             showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
                         } else {
                             showNetworkMessage(error.message, error.code)
                         }
+                    } else if (error is SocketTimeoutException) {
+                        Timber.e("SocketTimeOut: ${error.message}")
                     } else {
                         showAlertMessage(error.message)
                     }

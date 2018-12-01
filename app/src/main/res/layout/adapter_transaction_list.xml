@@ -28,24 +28,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
-            android:paddingRight="16dp">
+            android:padding="16dp">
 
         <ImageView
                 android:id="@+id/transactionIcon"
                 android:contentDescription="@string/desc"
-                android:layout_width="72dp"
+                android:layout_width="wrap_content"
+
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="0"
-                tools:src="@drawable/ic_action_arrow_left_top"/>
+                android:tint="@color/gray"
+                tools:src="@drawable/ic_arrow_down_circle_outline"/>
 
         <TextView
                 style="@style/TextLarge.SmallAction"
                 android:id="@+id/descriptionText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:paddingLeft="16dp"
                 android:singleLine="false"
                 tools:text="This is the description for what its worth"
                 android:layout_weight="1"

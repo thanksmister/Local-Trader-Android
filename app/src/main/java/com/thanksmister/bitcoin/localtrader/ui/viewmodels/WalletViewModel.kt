@@ -31,7 +31,9 @@ import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFe
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
+import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
+import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.ExchangeRateDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.persistence.WalletDao
@@ -46,6 +48,7 @@ import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.lang.ref.WeakReference
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class WalletViewModel @Inject
@@ -128,11 +131,16 @@ constructor(application: Application, private val walletDao: WalletDao,
                 }, { error ->
                     Timber.e("Error: " + error.toString())
                     if(error is NetworkException) {
-                        Timber.e("Error getting data ${error.code}")
+                        if (RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else {
+                            showNetworkMessage(error.message, error.code)
+                        }
+                    } else if (error is SocketTimeoutException) {
+                        Timber.e("SocketTimeOut: ${error.message}")
+                    } else {
                         showAlertMessage(error.message)
                     }
-                    Timber.e("Error getting data ${error.message}")
-                    showAlertMessage(error.message)
                 }))
     }
 
@@ -226,7 +234,7 @@ constructor(application: Application, private val walletDao: WalletDao,
         fun onComplete(byteArray: Bitmap?)
     }
 
-    class ByteArrayTask(context: Context, private val onCompleteListener: OnCompleteListener) : AsyncTask<Any, Void, Bitmap?>() {
+    /*class ByteArrayTask(context: Context, private val onCompleteListener: OnCompleteListener) : AsyncTask<Any, Void, Bitmap?>() {
         private val contextRef: WeakReference<Context> = WeakReference(context)
         override fun doInBackground(vararg params: kotlin.Any): Bitmap? {
             if (isCancelled) {
@@ -243,5 +251,5 @@ constructor(application: Application, private val walletDao: WalletDao,
             }
             onCompleteListener.onComplete(result)
         }
-    }
+    }*/
 }

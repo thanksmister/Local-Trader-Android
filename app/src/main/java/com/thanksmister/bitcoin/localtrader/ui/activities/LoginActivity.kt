@@ -106,13 +106,16 @@ class LoginActivity : BaseActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            toast(getString(R.string.toast_authentication_canceled))
+            dialogUtils.toast(getString(R.string.toast_authentication_canceled))
             if (loginWebView.visibility == View.VISIBLE) {
                 loginContent.visibility = View.VISIBLE
                 loginWebView.visibility = View.GONE
                 return true
             }
             val intent = PromoActivity.createStartIntent(this@LoginActivity)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
             finish()
         }
@@ -139,6 +142,9 @@ class LoginActivity : BaseActivity() {
         viewModel.getAuthorized().observe(this, Observer {
             if(it == true) {
                 val intent = Intent(this, SplashActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 startActivity(intent)
                 finish()
@@ -269,7 +275,7 @@ class LoginActivity : BaseActivity() {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://localbitcoins.com/register/?ch=2hbo"))
                     startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
-                    toast(getString(R.string.error_cannot_open_links))
+                    dialogUtils.toast(getString(R.string.error_cannot_open_links))
                 }
                 return true
             } else if (path.contains("error=access_denied")) {

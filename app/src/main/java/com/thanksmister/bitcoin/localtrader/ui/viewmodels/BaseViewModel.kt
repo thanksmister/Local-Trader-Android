@@ -63,13 +63,16 @@ constructor(application: Application) : AndroidViewModel(application) {
     }
 
     init {
+        Timber.d("init")
         progressText.value = false
     }
 
     public override fun onCleared() {
+        Timber.d("onCleared")
         if (!disposable.isDisposed) {
             try {
                 disposable.clear()
+                Timber.d("disposable.clear()")
             } catch (e: UndeliverableException) {
                 Timber.e(e.message)
             }

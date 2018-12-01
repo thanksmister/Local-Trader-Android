@@ -26,18 +26,6 @@ public final class Doubles {
         // No instances.
     }
 
-    public static double valueOrDefault(String value, double defaultValue) {
-        try {
-            if (Strings.isBlank(value))
-                return defaultValue;
-
-            return convertToNumber(value);
-
-        } catch (Exception e) {
-            return defaultValue;
-        }
-    }
-
     public static double convertToDouble(String value) {
         try {
             return convertToNumber(value);

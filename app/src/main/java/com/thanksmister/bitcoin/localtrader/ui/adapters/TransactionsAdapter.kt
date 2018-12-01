@@ -18,6 +18,7 @@
 package com.thanksmister.bitcoin.localtrader.ui.adapters
 
 import android.content.Context
+import android.graphics.PorterDuff
 import android.support.v7.widget.RecyclerView
 import android.text.Html
 import android.text.TextUtils
@@ -82,40 +83,47 @@ class TransactionsAdapter(private val context: Context) : RecyclerView.Adapter<T
             if (transactionType == TransactionType.RECEIVED) {
                 val blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description)
                 val blockUrl = Constants.BLOCKCHAIN_INFO_ADDRESS + blockAddress!!
-                itemView.descriptionText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_description, blockUrl, blockAddress))
-                itemView.descriptionText!!.movementMethod = LinkMovementMethod.getInstance()
-                itemView.btcText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
-                itemView.transactionIcon!!.setImageResource(R.drawable.ic_action_arrow_right_bottom)
+                itemView.descriptionText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_description, blockUrl, blockAddress))
+                itemView.descriptionText.movementMethod = LinkMovementMethod.getInstance()
+                itemView.btcText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
+                itemView.transactionIcon.setImageResource(R.drawable.ic_arrow_down_circle_outline)
+                itemView.transactionIcon.setColorFilter(itemView.context.resources.getColor(R.color.text_green), PorterDuff.Mode.SRC_ATOP)
             } else if (transactionType == TransactionType.SENT) {
                 val blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description)
                 val blockUrl = Constants.BLOCKCHAIN_INFO_ADDRESS + blockAddress!!
-                itemView.descriptionText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_description, blockUrl, blockAddress))
-                itemView.descriptionText!!.movementMethod = LinkMovementMethod.getInstance()
-                itemView.btcText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_btc_amount, amount))
-                itemView.transactionIcon!!.setImageResource(R.drawable.ic_action_arrow_left_top)
+                itemView.descriptionText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_description, blockUrl, blockAddress))
+                itemView.descriptionText.movementMethod = LinkMovementMethod.getInstance()
+                itemView.btcText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_btc_amount, amount))
+                itemView.transactionIcon.setImageResource(R.drawable.ic_arrow_up_circle_outline)
+                itemView.transactionIcon.setColorFilter(itemView.context.resources.getColor(R.color.red), PorterDuff.Mode.SRC_ATOP)
             } else if (transactionType == TransactionType.FEE) {
-                itemView.descriptionText!!.text = itemView.context.getString(R.string.transaction_fee_description)
-                itemView.btcText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_btc_amount, amount))
-                itemView.transactionIcon!!.setImageResource(R.drawable.ic_action_arrow_left_top)
+                itemView.descriptionText.text = itemView.context.getString(R.string.transaction_fee_description)
+                itemView.btcText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_btc_amount, amount))
+                itemView.transactionIcon.setImageResource(R.drawable.ic_arrow_up_circle_outline)
+                itemView.transactionIcon.setColorFilter(itemView.context.resources.getColor(R.color.red), PorterDuff.Mode.SRC_ATOP)
             } else if (transactionType == TransactionType.CONTACT_SENT) {
                 //String contactId = Constants.BLOCKCHAIN_INFO_ADDRESS + WalletUtils.parseContactIdFromTransaction(transaction);
-                itemView.descriptionText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_contact_sent, transaction.description))
-                itemView.btcText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_btc_amount, amount))
-                itemView.transactionIcon!!.setImageResource(R.drawable.ic_action_arrow_left_top)
+                itemView.descriptionText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_contact_sent, transaction.description))
+                itemView.btcText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_sent_btc_amount, amount))
+                itemView.transactionIcon.setImageResource(R.drawable.ic_arrow_up_circle_outline)
+                itemView.transactionIcon.setColorFilter(itemView.context.resources.getColor(R.color.red), PorterDuff.Mode.SRC_ATOP)
             } else if (transactionType == TransactionType.CONTACT_RECEIVE) {
-                itemView.descriptionText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_contact_received, transaction.description))
-                itemView.btcText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
-                itemView.transactionIcon!!.setImageResource(R.drawable.ic_action_arrow_right_bottom)
+                itemView.descriptionText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_contact_received, transaction.description))
+                itemView.btcText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
+                itemView.transactionIcon.setImageResource(R.drawable.ic_arrow_down_circle_outline)
+                itemView.transactionIcon.setColorFilter(itemView.context.resources.getColor(R.color.text_green), PorterDuff.Mode.SRC_ATOP)
             } else if (transactionType == TransactionType.AFFILIATE) {
                 itemView.descriptionText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_affiliate, transaction.description))
-                itemView.btcText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
-                itemView.transactionIcon!!.setImageResource(R.drawable.ic_action_arrow_right_bottom)
+                itemView.btcText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
+                itemView.transactionIcon.setImageResource(R.drawable.ic_arrow_down_circle_outline)
+                itemView.transactionIcon.setColorFilter(itemView.context.resources.getColor(R.color.text_green), PorterDuff.Mode.SRC_ATOP)
             } else if (transactionType == TransactionType.INTERNAL) {
                 val blockAddress = WalletUtils.parseBitcoinAddressFromTransaction(transaction.description)
                 val blockUrl = Constants.BLOCKCHAIN_INFO_ADDRESS + blockAddress!!
-                itemView.descriptionText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_internal, blockUrl, blockAddress))
-                itemView.btcText!!.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
-                itemView.transactionIcon!!.setImageResource(R.drawable.ic_action_arrow_right_bottom)
+                itemView.descriptionText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_internal, blockUrl, blockAddress))
+                itemView.btcText.text = Html.fromHtml(itemView.context.getString(R.string.transaction_received_btc_amount, amount))
+                itemView.transactionIcon.setImageResource(R.drawable.ic_arrow_down_circle_outline)
+                itemView.transactionIcon.setColorFilter(itemView.context.resources.getColor(R.color.text_green), PorterDuff.Mode.SRC_ATOP)
             }
 
             if (!TextUtils.isEmpty(transaction.createdAt)) {

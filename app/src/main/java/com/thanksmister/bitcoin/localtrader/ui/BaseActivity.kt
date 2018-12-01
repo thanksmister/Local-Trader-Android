@@ -129,6 +129,9 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
         preferences.reset()
         dialogUtils.hideProgressDialog()
         val intent = PromoActivity.createStartIntent(this@BaseActivity)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
         finish()
     }

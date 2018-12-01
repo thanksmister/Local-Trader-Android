@@ -30,4 +30,5 @@ object ExceptionCodes {
     val NETWORK_CONNECTION_ERROR_CODE = 404
     val SERVICE_ERROR_CODE = 503
     val AUTHENTICATION_ERROR_CODE = 403 // authorization failed
+    val MESSAGE_ERROR_CODE = 38 // can't send message to contact
 }

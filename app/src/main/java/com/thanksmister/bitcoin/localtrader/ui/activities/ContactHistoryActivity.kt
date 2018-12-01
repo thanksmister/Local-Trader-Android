@@ -44,7 +44,6 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.Dates
-import com.thanksmister.bitcoin.localtrader.utils.Strings
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -495,7 +494,7 @@ class ContactHistoryActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListe
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(getString(R.string.message_clipboard_title), message.message)
         clipboard.primaryClip = clip
-        if (!Strings.isBlank(message.attachmentName)) {
+        if (!TextUtils.isEmpty(message.attachmentName)) {
             downloadAttachment(message)
             dialogUtils.toast(R.string.message_copied_attachment_toast)
         } else {

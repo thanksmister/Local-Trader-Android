@@ -23,6 +23,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
@@ -45,6 +46,7 @@ class SplashActivity : BaseActivity() {
     lateinit var viewModel: SplashViewModel
 
     private var connectionLiveData: ConnectionLiveData? = null
+    private var syncComplete = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,11 +57,20 @@ class SplashActivity : BaseActivity() {
             val intent = Intent(this, PromoActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
-            finish()
+            //finish()
         } else {
             viewModel = ViewModelProviders.of(this, viewModelFactory).get(SplashViewModel::class.java)
             observeViewModel(viewModel)
         }
+    }
+
+    override fun onBackPressed() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            finishAffinity()
+        } else {
+            finish()
+        }
+        System.exit(0);
     }
 
     override fun onStart() {
@@ -100,7 +111,7 @@ class SplashActivity : BaseActivity() {
                             showProgress(true)
                             viewModel.startSync()
                         }, DialogInterface.OnClickListener { dialog, which ->
-                            finish()
+                            onBackPressed()
                         })
                     }
                     messageData.message != null -> dialogUtils.showAlertDialog(this@SplashActivity, messageData.message!!, DialogInterface.OnClickListener { dialog, which ->
@@ -116,11 +127,9 @@ class SplashActivity : BaseActivity() {
             }
         })
         viewModel.getSyncing().observe(this, Observer {
-            if(it == SplashViewModel.SYNC_COMPLETE) {
-                val handler = Handler()
-                handler.postDelayed({
-                    startMainActivity()
-                }, 2500)
+            if(it == SplashViewModel.SYNC_COMPLETE && !syncComplete) {
+                syncComplete = true
+                startMainActivity()
             } else if (it == SplashViewModel.SYNC_ERROR) {
                 showProgress(false)
                 viewModel.onCleared()
@@ -141,10 +150,12 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun startMainActivity() {
+        Timber.d("startMainActivity")
         val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
-        finish()
     }
 
     companion object {

@@ -163,6 +163,9 @@ class RequestFragment : BaseFragment() {
                             address = data.address
                             requestAddressButton.text = address
                             viewModel.generateAddressBitmap(address!!)
+                        } else {
+                            // TODO we need to report to the user that the address is null
+                            dialogUtils.showAlertDialog(activity!!, "You have no receiving address, this may be because your account is unverified or hasn't be used for a long time.")
                         }
                     }
                 }, { error ->

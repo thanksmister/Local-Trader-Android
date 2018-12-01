@@ -401,7 +401,7 @@
     <string name="error_notification">Error marking notification read.</string>
     <string name="error_invalid_coordinates">Invalid longitude or latitude entered. Latitude should be between -90 and 90.  Longitude should be between -180 and 180.</string>
     <string name="error_need_valid_coordinates">To search local advertisers, enter valid latitude and longitude values.</string>
-    <string name="error_search_timeout">The search timed out, you may want to try again.</string>
+    <string name="error_search_timeout">The search timed out, you may want to check your network connection or adjust your search parameters.</string>
     <string name="trade_ethereum_address">Ethereum address</string>
     <string name="trade_phone_number">Phone number</string>
     <string name="trade_receiving_account_email">Receiving account email</string>
@@ -436,6 +436,8 @@
     <string name="text_trade_references">References</string>
     <string name="text_trade_messages">Messages</string>
     <string name="text_trade_ethereum_address">Ethereum Address</string>
+    <string name="error_missing_vision_library">Missing libraries to scan code...</string>
+    <string name="error_camera_start">Could not start camera...</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">

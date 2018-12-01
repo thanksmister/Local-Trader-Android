@@ -102,7 +102,6 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {
-        // TODO we need to logout if needed
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             if (message?.message != null && activity != null) {
                 onRefreshStop()
