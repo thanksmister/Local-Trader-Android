@@ -69,6 +69,8 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
 
         super.onActivityCreated(savedInstanceState)
 
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
+
         connectionLiveData = ConnectionLiveData(activity!!)
         connectionLiveData?.observe(this, Observer { connected ->
             if(!connected!!) {
@@ -96,7 +98,6 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
 
         setAppBarText("0.000000", "0.00", preferences.exchangeCurrency, preferences.selectedExchange)
 
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
         observeViewModel(viewModel)
     }
 

@@ -79,8 +79,6 @@ class RequestFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
-        observeViewModel(viewModel)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -127,6 +125,9 @@ class RequestFragment : BaseFragment() {
         requestAddressButton.setOnClickListener {
             setAddressOnClipboard(requestAddressButton.text.toString())
         }
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
+        observeViewModel(viewModel)
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {

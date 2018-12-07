@@ -164,12 +164,14 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             if (message?.message != null) {
                 onRefreshStop()
+                dialogUtils.hideProgressDialog()
                 dialogUtils.showAlertDialog(this@AdvertisementActivity, message.message!!)
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null) {
                 onRefreshStop()
+                dialogUtils.hideProgressDialog()
                 dialogUtils.showAlertDialog(this@AdvertisementActivity, message)
             }
         })
@@ -182,12 +184,14 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         viewModel.getAdvertisementUpdated().observe(this, Observer { updated ->
             if(updated != null && updated) {
                 onRefreshStop()
+                dialogUtils.hideProgressDialog()
                 dialogUtils.toast(getString(R.string.toast_update_visibility))
             }
         })
         viewModel.getAdvertisementDeleted().observe(this, Observer { updated ->
             if(updated != null && updated) {
                 onRefreshStop()
+                dialogUtils.hideProgressDialog()
                 dialogUtils.toast(getString(R.string.toast_advertisement_deleted))
                 finish()
             }

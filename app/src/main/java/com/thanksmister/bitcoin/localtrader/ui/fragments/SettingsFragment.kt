@@ -76,6 +76,8 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SettingsViewModel::class.java)
+
         val resetPreference = findPreference("reset")
         resetPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             logOut()
@@ -108,7 +110,6 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         currencyPreference = findPreference(getString(R.string.pref_key_exchange_currency)) as ListPreference
 
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SettingsViewModel::class.java)
         observeViewModel(viewModel)
     }
 

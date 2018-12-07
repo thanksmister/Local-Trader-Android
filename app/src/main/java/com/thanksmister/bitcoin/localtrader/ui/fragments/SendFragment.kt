@@ -193,9 +193,11 @@ class SendFragment : BaseFragment() {
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+
         super.onActivityCreated(savedInstanceState)
-        Timber.d("Bitcoin address $address")
-        Timber.d("Bitcoin amount $amount")
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
+
         if (!TextUtils.isEmpty(amount)) {
             amountText.setText(amount)
         }
@@ -239,7 +241,7 @@ class SendFragment : BaseFragment() {
         currencyText.text = currency
 
         computeBalance(0.0)
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
+
         observeViewModel(viewModel)
     }
 

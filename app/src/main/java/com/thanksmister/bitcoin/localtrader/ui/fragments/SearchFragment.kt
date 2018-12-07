@@ -92,6 +92,12 @@ class SearchFragment : BaseFragment() {
 
     override fun onViewCreated(fragmentView: View, savedInstanceState: Bundle?) {
         super.onViewCreated(fragmentView, savedInstanceState)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SearchViewModel::class.java)
+
         val countryNames = resources.getStringArray(R.array.country_names)
         val countryNamesList = ArrayList(Arrays.asList(*countryNames))
         countryNamesList.add(0, "Any")
@@ -248,7 +254,6 @@ class SearchFragment : BaseFragment() {
         predictAdapter = PredictAdapter(activity!!, ArrayList())
         setEditLocationAdapter(predictAdapter!!)
 
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SearchViewModel::class.java)
         observeViewModel(viewModel)
     }
 
