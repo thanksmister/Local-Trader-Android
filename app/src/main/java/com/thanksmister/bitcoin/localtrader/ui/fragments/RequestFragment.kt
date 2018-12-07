@@ -21,7 +21,6 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.*
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -32,8 +31,6 @@ import android.view.*
 import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
-import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.ShareQrCodeActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
@@ -44,10 +41,8 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_request.*
-import kotlinx.android.synthetic.main.view_wallet.*
 import timber.log.Timber
 import javax.inject.Inject
 

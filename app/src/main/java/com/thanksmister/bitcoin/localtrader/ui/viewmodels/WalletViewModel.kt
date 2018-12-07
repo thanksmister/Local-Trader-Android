@@ -19,9 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 import android.app.Application
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import android.content.Context
 import android.graphics.Bitmap
-import android.os.AsyncTask
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
@@ -47,7 +45,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.lang.ref.WeakReference
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 
@@ -66,7 +63,6 @@ constructor(application: Application, private val walletDao: WalletDao,
     }
 
     init {
-
     }
 
     inner class WalletData {

@@ -120,7 +120,7 @@ class ScanQrCodeActivity : BaseActivity() {
             if(WalletUtils.validBitcoinAddress(bitcoinAddress)) {
                 startActivity(SendActivity.createStartIntent(this@ScanQrCodeActivity, bitcoinAddress, bitcoinAmount))
             } else {
-                Toast.makeText(this@ScanQrCodeActivity, "Invalid Bitcoin address...", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@ScanQrCodeActivity, getString(R.string.toast_invalid_bitcoin_address), Toast.LENGTH_LONG).show()
             }
         }
     }

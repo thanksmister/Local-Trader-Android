@@ -702,5 +702,6 @@
     <string name="text_trade_ethereum_address">Ethereum Address</string>
     <string name="error_missing_vision_library">Missing libraries to scan code...</string>
     <string name="error_camera_start">Could not start camera...</string>
+    <string name="toast_invalid_bitcoin_address">Invalid Bitcoin address...</string>
 
 </resources>

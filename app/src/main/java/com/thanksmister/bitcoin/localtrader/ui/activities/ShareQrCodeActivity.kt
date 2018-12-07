@@ -19,9 +19,6 @@ package com.thanksmister.bitcoin.localtrader.ui.activities
 
 import android.annotation.TargetApi
 import android.app.Activity
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
 import android.content.*
 import android.graphics.Bitmap
 import android.net.Uri
@@ -31,19 +28,14 @@ import android.text.TextUtils
 import android.util.AndroidRuntimeException
 import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
-import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
-
 import kotlinx.android.synthetic.main.activity_share_qrcode.*
-
 import timber.log.Timber
-import javax.inject.Inject
 
 class ShareQrCodeActivity : Activity() {
 
