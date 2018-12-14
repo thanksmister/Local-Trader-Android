@@ -40,9 +40,12 @@ import com.thanksmister.bitcoin.localtrader.BuildConfig;
 import com.thanksmister.bitcoin.localtrader.R;
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent;
 import com.thanksmister.bitcoin.localtrader.events.ProgressDialogEvent;
+import com.thanksmister.bitcoin.localtrader.network.NetworkException;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
+import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.services.DataService;
+import com.thanksmister.bitcoin.localtrader.network.services.DataServiceUtils;
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity;
 import com.thanksmister.bitcoin.localtrader.utils.Calculations;
 import com.thanksmister.bitcoin.localtrader.utils.Conversions;
@@ -54,6 +57,7 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import retrofit.RetrofitError;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -622,7 +626,6 @@ public class TradeRequestActivity extends BaseActivity {
                 iban, bic, reference, message,
                 sortCode, billerCode, accountNumber,
                 bsb, ethereumAddress)
-
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<ContactRequest>() {
@@ -632,7 +635,7 @@ public class TradeRequestActivity extends BaseActivity {
                             @Override
                             public void run() {
                                 hideProgressDialog();
-                                toast(getString(R.string.toast_trade_request_sent) + profileName + "!");
+                                toast(getString(R.string.toast_trade_request_sent) + " "  + profileName + "!");
                                 finish();
                             }
                         });
@@ -643,8 +646,35 @@ public class TradeRequestActivity extends BaseActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                reportError(throwable);
-                                handleError(throwable);
+                                hideProgressDialog();
+                                // TODO let's report a valid error message
+
+                                if (throwable instanceof NetworkException) {
+                                    Timber.d("message: " + ((NetworkException) throwable).getMessage());
+                                    Timber.d("code: " + ((NetworkException) throwable).getCode());
+                                    if(((NetworkException) throwable).getCode() == 31) {
+                                        showAlertDialog(getString(R.string.error_trade_request_verification), new Action0() {
+                                            @Override
+                                            public void call() {
+                                                finish();
+                                            }
+                                        });
+                                    } else {
+                                        showAlertDialog(throwable.getMessage(), new Action0() {
+                                            @Override
+                                            public void call() {
+                                                finish();
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    showAlertDialog(throwable.getMessage(), new Action0() {
+                                        @Override
+                                        public void call() {
+                                            finish();
+                                        }
+                                    });
+                                }
                             }
                         });
                     }

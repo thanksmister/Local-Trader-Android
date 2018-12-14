@@ -645,5 +645,6 @@
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">Sincronización de datos...</string>
     <string name="notification_new_notifications">Tienes %1$s nuevas notificaciones.</string>
+    <string name="error_trade_request_verification">Hubo un problema al crear la solicitud de comercio. Usted no puede cumplir con los requisitos de este comercio. Por favor, lea los requisitos comerciales que figuran en cada anuncio.</string>
 
 </resources>

@@ -650,6 +650,7 @@
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">Syncing account data…</string>
     <string name="notification_new_notifications">You have %1$s new notifications.</string>
+    <string name="error_trade_request_verification">There was a problem creating the trade request. You may not meet the requirements of this trade. Please read the trade requirements listed in each advertisement.</string>
 
 
 </resources>

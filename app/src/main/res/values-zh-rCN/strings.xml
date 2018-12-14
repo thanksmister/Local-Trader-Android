@@ -381,6 +381,7 @@
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">同步帐户数据</string>
     <string name="notification_new_notifications">你有 %1$s 个新通知.</string>
+    <string name="error_trade_request_verification">创建交易请求时出现问题。 您可能无法满足此交易的要求。 请阅读每个广告中列出的交易要求。</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">
