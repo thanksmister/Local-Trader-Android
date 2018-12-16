@@ -24,6 +24,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Contact;
 import com.thanksmister.bitcoin.localtrader.network.api.model.ContactRequest;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Dashboard;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Messages;
+import com.thanksmister.bitcoin.localtrader.network.api.model.NewAddress;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notifications;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Places;
 import com.thanksmister.bitcoin.localtrader.network.api.model.User;
@@ -49,6 +50,7 @@ public interface LocalBitcoinsService {
     String GET_MYSELF = "/api/myself/";
     String GET_ADS = "/api/ads/";
     String GET_WALLET = "/api/wallet/";
+    String GET_WALLET_ADDRESS = "/api/wallet-addr/";
     String GET_WALLET_BALANCE = "/api/wallet-balance/";
     String GET_DASHBOARD = "/api/dashboard/";
     String GET_AD = "/api/ad-get/";
@@ -104,6 +106,9 @@ public interface LocalBitcoinsService {
 
     @GET(GET_WALLET)
     Observable<Wallet> getWallet(@Query("access_token") String token);
+
+    @GET(GET_WALLET_ADDRESS)
+    Observable<NewAddress> getWalletAddress(@Query("access_token") String token);
 
     @GET(GET_WALLET_BALANCE)
     Observable<Wallet> getWalletBalance(@Query("access_token") String token);

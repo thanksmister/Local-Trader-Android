@@ -32,7 +32,13 @@
 
     <item android:id="@+id/action_blockchain"
           android:title="@string/menu_action_blockchain"
-          android:icon="@drawable/ic_action_block_chain"
+          android:icon="@drawable/ic_qrcode"
           thanksmister:showAsAction="never"/>
+
+    <item android:id="@+id/action_new_address"
+        android:title="@string/menu_new_address"
+        android:visible="false"
+        android:icon="@drawable/ic_qrcode"
+        thanksmister:showAsAction="never"/>
 
 </menu>

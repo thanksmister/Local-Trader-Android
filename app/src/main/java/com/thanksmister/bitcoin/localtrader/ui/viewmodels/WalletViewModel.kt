@@ -27,6 +27,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
+import com.thanksmister.bitcoin.localtrader.network.api.model.NewAddress
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
@@ -96,20 +97,22 @@ constructor(application: Application, private val walletDao: WalletDao,
                    data.currency = currency
                    data.exchange = exchange.name
                    data.rate = exchange.rate
+                   if(!wallet.address.isNullOrEmpty()) {
+                       generateAddressBitmap(wallet.address!!)
+                   }
                    data
                })
     }
 
     private fun getWallet(): Flowable<Wallet> {
         return walletDao.getItems()
-                .filter {items -> items.isNotEmpty()}
-                .map {items -> items[0]}
+                .map {items -> items.firstOrNull()}
     }
 
     private fun getExchange(): Flowable<ExchangeRate> {
         return exchangeDao.getItems()
-                .filter { items -> items.isNotEmpty() }
-                .map { items -> items[0] }
+                /*.filter { items -> items.isNotEmpty() }*/
+                .map { items -> items.firstOrNull() }
     }
 
     fun fetchNetworkData() {
@@ -124,8 +127,10 @@ constructor(application: Application, private val walletDao: WalletDao,
                     if(it.exchangeRate != null) {
                         insertExchange(it.exchangeRate!!)
                     }
+                    showProgress(false)
                 }, { error ->
                     Timber.e("Error: " + error.toString())
+                    showProgress(false)
                     if(error is NetworkException) {
                         if (RetrofitErrorHandler.isHttp403Error(error.code)) {
                             showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
@@ -155,6 +160,61 @@ constructor(application: Application, private val walletDao: WalletDao,
                             networkData.wallet = wallet
                             networkData
                         })
+    }
+
+    private fun fetchWallet() {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
+        disposable.add(fetcher.wallet
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    showProgress(false)
+                    if(!it.address.isNullOrEmpty()) {
+                        if(it!= null) {
+                            insertWallet(it)
+                            generateAddressBitmap(it.address!!)
+                        }
+                    } else {
+                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_unknown_error))
+                    }
+                }, { error ->
+                    Timber.e("Error: " + error.toString())
+                    showProgress(false)
+                    if(error is NetworkException) {
+                        Timber.e("Error wallet address ${error.code}")
+                        showAlertMessage(error.message)
+                    }
+                    Timber.e("Error wallet address  ${error.message}")
+                    showAlertMessage(error.message)
+                }))
+    }
+
+    fun getWalletAddress() {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
+        disposable.add(fetcher.walletAddress
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    if(!it.address.isNullOrEmpty()) {
+                        fetchWallet()
+                    } else {
+                        showProgress(false)
+                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_unknown_error))
+                    }
+                }, { error ->
+                    Timber.e("Error: " + error.toString())
+                    showProgress(false)
+                    if(error is NetworkException) {
+                        Timber.e("Error wallet address ${error.code}")
+                        showAlertMessage(error.message)
+                    }
+                    Timber.e("Error wallet address  ${error.message}")
+                    showAlertMessage(error.message)
+                }))
     }
 
     fun sendBitcoin(pinCode: String, address: String, amount: String) {
@@ -207,10 +267,12 @@ constructor(application: Application, private val walletDao: WalletDao,
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ bitmap ->
                             if(bitmap != null) {
+                                showProgress(false)
                                 setBitmap(bitmap)
                             }
                         }, { error ->
-                            // TODO we want to report theset to crashalytics
+                            showAlertMessage(error.message)
+                            showProgress(false)
                             Timber.e(error.message)
                         }))
     }

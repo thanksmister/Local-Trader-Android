@@ -178,6 +178,10 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
         return service.getWallet(accessToken)
     }
 
+    fun getWalletAddress(accessToken: String): Observable<NewAddress> {
+        return service.getWalletAddress(accessToken)
+    }
+
     fun getOnlineProviders(): Observable<TreeMap<String?, Any>> {
         return service.onlineProviders
     }

@@ -474,6 +474,10 @@
     <string name="error_missing_vision_library">Missing libraries to scan code...</string>
     <string name="error_camera_start">Could not start camera...</string>
     <string name="toast_invalid_bitcoin_address">Invalid Bitcoin address...</string>
+    <string name="error_trade_requirements">You do not meet the requirements of this advertisement, please review the listed requirements before requesting a trade.</string>
+    <string name="error_receiving_address">You have no receiving address, do you want to generate a new address?</string>
+    <string name="progress_new_address">Generating new address...</string>
+    <string name="menu_new_address">New Address</string>
 
     <string-array name="country_names">
         <item>Afghanistan</item>

@@ -29,8 +29,10 @@ import android.text.TextWatcher
 import android.util.AndroidRuntimeException
 import android.view.*
 import android.widget.Toast
+import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
+import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.ShareQrCodeActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
@@ -104,6 +106,10 @@ class RequestFragment : BaseFragment() {
                 }
                 return true
             }
+            R.id.action_new_address -> {
+                generateNewAddress()
+                return true
+            }
             else -> {
             }
         }
@@ -131,6 +137,13 @@ class RequestFragment : BaseFragment() {
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {
+        viewModel.getShowProgress().observe(this, Observer { show ->
+            if (show != null && activity != null && show) {
+                dialogUtils.showProgressDialog(activity!!, getString(R.string.dialog_loading))
+            } else {
+                dialogUtils.hideProgressDialog()
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
                 dialogUtils.showAlertDialog(activity!!, message)
@@ -158,10 +171,12 @@ class RequestFragment : BaseFragment() {
                         if (data.address != null) {
                             address = data.address
                             requestAddressButton.text = address
-                            viewModel.generateAddressBitmap(address!!)
                         } else {
-                            // TODO we need to report to the user that the address is null
-                            dialogUtils.showAlertDialog(activity!!, "You have no receiving address, this may be because your account is unverified or hasn't be used for a long time.")
+                            dialogUtils.showAlertDialog(activity!!, getString(R.string.error_receiving_address), DialogInterface.OnClickListener { dialog, which ->
+                                generateNewAddress()
+                            }, DialogInterface.OnClickListener { dialog, which ->
+                                // na-da
+                            })
                         }
                     }
                 }, { error ->
@@ -203,6 +218,12 @@ class RequestFragment : BaseFragment() {
                 Timber.e(e.message)
             }
         }
+    }
+
+    private fun generateNewAddress() {
+        Timber.d("generateNewAddress")
+        dialogUtils.showProgressDialog(activity!!, getString(R.string.progress_new_address))
+        viewModel.getWalletAddress()
     }
 
     private fun showGeneratedQrCodeActivity(bitcoinAddress: String?, bitcoinAmount: String) {

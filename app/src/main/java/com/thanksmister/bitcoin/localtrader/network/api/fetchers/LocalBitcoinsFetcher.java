@@ -35,6 +35,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Message;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Messages;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method;
+import com.thanksmister.bitcoin.localtrader.network.api.model.NewAddress;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notifications;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
@@ -280,6 +281,16 @@ public class LocalBitcoinsFetcher {
     public Observable<Wallet> getWallet() {
         return getWalletObservable()
                 .onErrorResumeNext(refreshTokenAndRetry(getWalletObservable()));
+    }
+
+    public Observable<NewAddress> getWalletAddress() {
+        return getWalletAddressObservable()
+                .onErrorResumeNext(refreshTokenAndRetry(getWalletAddressObservable()));
+    }
+
+    private Observable<NewAddress> getWalletAddressObservable() {
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.getWalletAddress(accessToken);
     }
 
     private Observable<Wallet> getWalletObservable() {

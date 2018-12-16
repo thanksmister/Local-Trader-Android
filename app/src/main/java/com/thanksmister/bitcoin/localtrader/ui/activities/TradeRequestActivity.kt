@@ -58,7 +58,7 @@ class TradeRequestActivity : BaseActivity() {
     lateinit var viewModel: SearchViewModel
 
     private val disposable = CompositeDisposable()
-    private var adId: String? = null
+    private var adId: Int = 0
     private var adPrice: String? = null
     private var adMin: String? = null
     private var adMax: String? = null
@@ -75,7 +75,7 @@ class TradeRequestActivity : BaseActivity() {
         setContentView(R.layout.view_trade_request)
 
         if (savedInstanceState == null) {
-            adId = intent.getStringExtra(EXTRA_AD_ID)
+            adId = intent.getIntExtra(EXTRA_AD_ID, 0)
             val tradeTypeString = intent.getStringExtra(EXTRA_AD_TRADE_TYPE)
             if (!TextUtils.isEmpty(tradeTypeString)) {
                 tradeType = TradeType.valueOf(intent.getStringExtra(EXTRA_AD_TRADE_TYPE))
@@ -88,7 +88,7 @@ class TradeRequestActivity : BaseActivity() {
             currency = intent.getStringExtra(EXTRA_AD_CURRENCY)
             profileName = intent.getStringExtra(EXTRA_AD_PROFILE_NAME)
         } else {
-            adId = savedInstanceState.getString(EXTRA_AD_ID)
+            adId = savedInstanceState.getInt(EXTRA_AD_ID)
             val tradeTypeString = savedInstanceState.getString(EXTRA_AD_TRADE_TYPE)
             if (!TextUtils.isEmpty(tradeTypeString)) {
                 tradeType = TradeType.valueOf(tradeTypeString)
@@ -237,7 +237,7 @@ class TradeRequestActivity : BaseActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString(EXTRA_AD_ID, adId)
+        outState.putInt(EXTRA_AD_ID, adId)
         outState.putString(EXTRA_AD_PRICE, adPrice)
         outState.putString(EXTRA_AD_MIN_AMOUNT, adMin)
         outState.putString(EXTRA_AD_MAX_AMOUNT, adMax)
@@ -401,12 +401,12 @@ class TradeRequestActivity : BaseActivity() {
             message = requestMessage.text.toString()
         }
 
-        if (!cancel && adId != null) {
-            sendTradeRequest(adId!!, amount, receiverName, phone, receiverEmail, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
+        if (!cancel && adId > 0) {
+            sendTradeRequest(adId, amount, receiverName, phone, receiverEmail, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
         }
     }
 
-    private fun sendTradeRequest(adId: String, amount: String, name: String, phone: String,
+    private fun sendTradeRequest(adId: Int, amount: String, name: String, phone: String,
                          email: String, iban: String, bic: String, reference: String, message: String,
                          sortCode: String, billerCode: String, accountNumber: String, bsb: String, ethereumAddress: String) {
         dialogUtils.showProgressDialog(this@TradeRequestActivity, getString(R.string.progress_sending_trade_request))

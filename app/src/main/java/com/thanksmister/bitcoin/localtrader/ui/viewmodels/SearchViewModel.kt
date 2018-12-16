@@ -176,11 +176,11 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
         return SearchUtils.getSearchCountryCode(sharedPreferences)
     }
 
-    fun createContact(tradeType: TradeType?, countryCode: String?, onlineProvider: String?, adId: String, amount: String, name: String, phone: String,
+    fun createContact(tradeType: TradeType?, countryCode: String?, onlineProvider: String?, adId: Int, amount: String, name: String, phone: String,
                       email: String, iban: String, bic: String, reference: String, message: String, sortCode: String, billerCode: String,
                       accountNumber: String, bsb: String, ethereumAddress: String) {
 
-        disposable.add(fetcher!!.createContact(adId, tradeType, countryCode, onlineProvider, amount, name, phone, email,
+        disposable.add(fetcher!!.createContact(adId.toString(), tradeType, countryCode, onlineProvider, amount, name, phone, email,
                 iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -193,7 +193,11 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                     //{"error": {"message": "Payment method not available.", "error_code": 0}}
                     val errorHandler = RetrofitErrorHandler(getApplication())
                     val networkException = errorHandler.create(error)
-                    showNetworkMessage(networkException.message, networkException.code)
+                    if (networkException.code == 31) {
+                        showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_trade_requirements), networkException.code)
+                    } else {
+                        showNetworkMessage(networkException.message, networkException.code)
+                    }
                 }))
     }
 
