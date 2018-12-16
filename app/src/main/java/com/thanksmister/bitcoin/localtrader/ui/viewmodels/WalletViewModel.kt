@@ -64,6 +64,7 @@ constructor(application: Application, private val walletDao: WalletDao,
     }
 
     init {
+        //deleteWallet()
     }
 
     inner class WalletData {
@@ -106,13 +107,25 @@ constructor(application: Application, private val walletDao: WalletDao,
 
     private fun getWallet(): Flowable<Wallet> {
         return walletDao.getItems()
-                .map {items -> items.firstOrNull()}
+                .map {items ->
+                    if(items.isNotEmpty()) {
+                        items.first()
+                    } else {
+                        Wallet()
+                    }
+                }
     }
 
     private fun getExchange(): Flowable<ExchangeRate> {
         return exchangeDao.getItems()
                 /*.filter { items -> items.isNotEmpty() }*/
-                .map { items -> items.firstOrNull() }
+                .map {items ->
+                    if(items.isNotEmpty()) {
+                        items.first()
+                    } else {
+                        ExchangeRate()
+                    }
+                }
     }
 
     fun fetchNetworkData() {
@@ -171,14 +184,8 @@ constructor(application: Application, private val walletDao: WalletDao,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     showProgress(false)
-                    if(!it.address.isNullOrEmpty()) {
-                        if(it!= null) {
-                            insertWallet(it)
-                            generateAddressBitmap(it.address!!)
-                        }
-                    } else {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_unknown_error))
-                    }
+                    insertWallet(it)
+                    //generateAddressBitmap(it.address!!)
                 }, { error ->
                     Timber.e("Error: " + error.toString())
                     showProgress(false)
@@ -200,7 +207,7 @@ constructor(application: Application, private val walletDao: WalletDao,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     if(!it.address.isNullOrEmpty()) {
-                        fetchWallet()
+                        fetchNetworkData()
                     } else {
                         showProgress(false)
                         showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_unknown_error))
@@ -260,7 +267,18 @@ constructor(application: Application, private val walletDao: WalletDao,
                 }, { error -> Timber.e("Wallet insert error" + error.message) }))
     }
 
-    fun generateAddressBitmap(bitcoinAddress: String) {
+    private fun deleteWallet() {
+        disposable.add(Completable.fromAction {
+            walletDao.deleteAllItems()
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                }, { error -> Timber.e("Wallet insert error" + error.message) }))
+
+    }
+
+    private fun generateAddressBitmap(bitcoinAddress: String) {
         disposable.add(
                 generateBitmapObservable(bitcoinAddress)
                         .subscribeOn(Schedulers.io())

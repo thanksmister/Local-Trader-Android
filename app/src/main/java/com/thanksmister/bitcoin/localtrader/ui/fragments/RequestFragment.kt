@@ -58,6 +58,7 @@ class RequestFragment : BaseFragment() {
     private val disposable = CompositeDisposable()
     private var address:String? = null
     private var rate:String? = null
+    private var generatedNewAddress = false
 
     private val clipboardText: String
         get() {
@@ -163,16 +164,19 @@ class RequestFragment : BaseFragment() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { data ->
+                    Timber.d("data: ${data}")
                     if(data != null) {
                         if(data.rate != null) {
                             rate = data.rate
                             setCurrencyAmount()
                         }
-                        if (data.address != null) {
+                        Timber.d("data.address: ${data.address}")
+                        if (!data.address.isNullOrEmpty()) {
                             address = data.address
                             requestAddressButton.text = address
-                        } else {
+                        } else if (!generatedNewAddress) {
                             dialogUtils.showAlertDialog(activity!!, getString(R.string.error_receiving_address), DialogInterface.OnClickListener { dialog, which ->
+                                generatedNewAddress = true
                                 generateNewAddress()
                             }, DialogInterface.OnClickListener { dialog, which ->
                                 // na-da
