@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister
+ * Copyright (c) 2018 LocalBuzz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,24 @@ package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
-import com.thanksmister.bitcoin.localtrader.BaseApplication
-import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.events.AlertMessage
 import com.thanksmister.bitcoin.localtrader.events.SnackbarMessage
 import com.thanksmister.bitcoin.localtrader.events.ToastMessage
-import com.thanksmister.bitcoin.localtrader.network.CoinbaseApi
-import com.thanksmister.bitcoin.localtrader.network.fetchers.ExchangeFetcher
+import com.thanksmister.bitcoin.localtrader.network.LocalBitcoinsApi
+import com.thanksmister.bitcoin.localtrader.network.fetchers.LocalBitcoinsFetcher
+import com.thanksmister.bitcoin.localtrader.persistence.Notification
+import com.thanksmister.bitcoin.localtrader.persistence.NotificationDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.persistence.Rate
-import com.thanksmister.bitcoin.localtrader.persistence.RateDao
-import com.thanksmister.bitcoin.localtrader.utils.DateUtils
-import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import retrofit2.HttpException
 import timber.log.Timber
 import javax.inject.Inject
 
-class MainViewModel @Inject
+class AdvertisementViewModel @Inject
 constructor(application: Application,
-            private val dataSource: RateDao,
+            private val dataSource: NotificationDao,
             private val preferences: Preferences) : AndroidViewModel(application) {
 
     private val disposable = CompositeDisposable()
@@ -65,7 +60,6 @@ constructor(application: Application,
     }
 
     private fun showAlertMessage(message: String) {
-        Timber.d("alert message: " + message)
         alertText.value = message
     }
 
@@ -77,52 +71,25 @@ constructor(application: Application,
     }
 
     public override fun onCleared() {
-        //prevents memory leaks by disposing pending observable objects
         if ( !disposable.isDisposed) {
             disposable.clear()
         }
     }
 
-    fun getExchangeRate(): Flowable<Rate> {
-        return dataSource.getItems()
-                .filter {items -> items.isNotEmpty()}
-                .map {items -> items[items.size - 1]}
+    fun getNotification(id: String): Flowable<Notification> {
+        return dataSource.getItemById(id)
     }
 
-    private fun insertExchangePrice(rate: Rate) {
-        disposable.add(Completable.fromAction {
-            val createdAt = DateUtils.generateCreatedAtDate()
-            rate.createdAt = createdAt
-            dataSource.insertItem(rate)}
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                }, { error -> Timber.e("Database error" + error.message)}))
-    }
-
-    fun getExchangePrice() {
-        val api = CoinbaseApi()
-        val fetcher = ExchangeFetcher(this.getApplication(), api, preferences)
-        disposable.add(fetcher.spotPrice
+    fun markNotificationRead(id: String) {
+        val api = LocalBitcoinsApi(preferences.endPoint())
+        val fetcher = LocalBitcoinsFetcher(this.getApplication(), api, preferences)
+        disposable.add(fetcher.markNotificationRead(id)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({rate ->
-                    Timber.d("username: " + rate.displayName)
-                    insertExchangePrice(rate)
+                .subscribe({response ->
+                    Timber.d("Error Notification Read: ${response.string()}")
                 }, { error ->
-                    Timber.e("Error message: " + error.message)
-                    val errorMessage = getApplication<BaseApplication>().getString(R.string.error_update_exchange_rate)
-                    if (error is HttpException) {
-                        val errorCode = error.code()
-                        Timber.e("Error code: " + errorCode)
-                        Timber.e("Error response body: " + error.response().body())
-                        Timber.e("Error response message: " + error.response().message())
-                    }
-                    showAlertMessage(errorMessage)
+                    showAlertMessage(error.message!!)
                 }))
-    }
-
-    companion object {
-
     }
 }

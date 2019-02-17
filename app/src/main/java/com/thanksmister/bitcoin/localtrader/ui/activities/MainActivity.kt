@@ -23,6 +23,7 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.*
+import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.NavigationView
@@ -40,6 +41,8 @@ import android.widget.TextView
 import com.google.zxing.android.IntentIntegrator
 import com.kobakei.ratethisapp.RateThisApp
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.databinding.ActivityAdvertisementBinding
+import com.thanksmister.bitcoin.localtrader.databinding.ActivityMainBinding
 import com.thanksmister.bitcoin.localtrader.events.AlertDialogEvent
 import com.thanksmister.bitcoin.localtrader.network.ApiErrorHandler.CODE_THREE
 import com.thanksmister.bitcoin.localtrader.network.ApiErrorHandler.STATUS_403
@@ -60,18 +63,22 @@ import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.drawer_header.view.*
 import timber.log.Timber
 import javax.inject.Inject
 
 @BaseActivity.RequiresAuthentication
-class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, NavigationView.OnNavigationItemSelectedListener,
-        BottomNavigationView.OnNavigationItemSelectedListener {
+class MainActivity : BaseActivity(),
+        SwipeRefreshLayout.OnRefreshListener,
+        NavigationView.OnNavigationItemSelectedListener {
+
+    private val binding: ActivityMainBinding by lazy {
+        DataBindingUtil.setContentView<ActivityMainBinding>(this,  R.layout.activity_main)
+    }
 
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     lateinit var viewModel: MainViewModel
 
-    private var fragment: Fragment? = null
-    
     private val syncBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val syncActionType = intent.getStringExtra(EXTRA_ACTION_TYPE)
@@ -88,9 +95,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_main)
-
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
 
         val toggle = ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -99,10 +104,10 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
 
         setupNavigationView()
 
-        mainSwipeLayout.setOnRefreshListener(this)
-        mainSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
-        mainSwipeLayout.setProgressViewOffset(false, 48, 186)
-        mainSwipeLayout.setDistanceToTriggerSync(250)
+        binding.mainSwipeLayout.setOnRefreshListener(this)
+        binding.mainSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
+        binding.mainSwipeLayout.setProgressViewOffset(false, 48, 186)
+        binding.mainSwipeLayout.setDistanceToTriggerSync(250)
 
         val bitcoinUri = intent.getStringExtra(BITCOIN_URI)
         val authenticated = preferences.hasCredentials()
@@ -114,11 +119,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
             }
         }
 
-        if(savedInstanceState == null) {
-            fragment = AdvertisementsFragment.newInstance()
-            supportFragmentManager.beginTransaction().replace(R.id.main_content_frame, fragment, ADVERTISEMENTS_FRAGMENT).commit()
-        }
-
         // Application rating dialog
         if(preferences.hasCredentials()) {
             val config = RateThisApp.Config(7, 10)
@@ -127,7 +127,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
             RateThisApp.showRateDialogIfNeeded(this, R.style.DialogTheme)
         }
 
-        navigation.setOnNavigationItemSelectedListener(this)
+        // drawer
         mainNavigationView.setNavigationItemSelectedListener(this)
     }
 
@@ -155,7 +155,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                 return
             }
         }
-        // TODO move to base activity?
         registerReceiver(syncBroadcastReceiver, syncIntentFilter)
         viewModel.getExchangePrice()
     }
@@ -175,10 +174,8 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({rate ->
-                    this@MainActivity.runOnUiThread({
-                        Timber.d("Exchange rate " + rate.exchangeRate)
-                        setHeaderItem(rate.exchangeRate, rate.currency, rate.displayName);
-                    })
+                    Timber.d("Exchange rate " + rate.exchangeRate)
+                    setHeaderItem(rate.exchangeRate, rate.currency, rate.displayName);
                 }, { error -> Timber.e("Unable to get exchange rate: " + error)}))
     }
 
@@ -202,15 +199,11 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     private fun onRefreshStart() {
-        if (mainSwipeLayout != null) {
-            mainSwipeLayout.setRefreshing(true)
-        }
+        binding.mainSwipeLayout.isRefreshing = true
     }
 
     private fun onRefreshStop() {
-        if (mainSwipeLayout != null) {
-            mainSwipeLayout.setRefreshing(false)
-        }
+        binding.mainSwipeLayout.isRefreshing = false
     }
 
     private fun launchPromoScreen() {
@@ -222,15 +215,10 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
 
     private fun setupNavigationView() {
 
-        val headerView = mainNavigationView.getHeaderView(0)
-        val userName = headerView.findViewById<TextView>(R.id.userName)
-        val tradeCount = headerView.findViewById<TextView>(R.id.userTradeCount)
-        val feedbackScore = headerView.findViewById<TextView>(R.id.userTradeFeedback)
-
         // TODO move this to view model and get user from database
-        userName.text = preferences.userName()
-        tradeCount.text = preferences.userTrades()
-        feedbackScore.text = preferences.userFeedback()
+        binding.mainNavigationView.userName.text = preferences.userName()
+        binding.mainNavigationView.userTradeCount.text = preferences.userTrades()
+        binding.mainNavigationView.userTradeFeedback.text = preferences.userFeedback()
 
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
@@ -246,19 +234,20 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.navigation_home -> {
-                fragment = AdvertisementsFragment.newInstance()
+
+                /*fragment = AdvertisementsFragment.newInstance()
                 supportFragmentManager.beginTransaction().replace(R.id.main_content_frame, fragment, ADVERTISEMENTS_FRAGMENT).commit()
-                return@onNavigationItemSelected true
+                return@onNavigationItemSelected true*/
             }
             R.id.navigation_dashboard -> {
-                fragment = ContactsFragment.newInstance()
+                /*fragment = ContactsFragment.newInstance()
                 supportFragmentManager.beginTransaction().replace(R.id.main_content_frame, fragment, CONTACTS_FRAGMENT).commit()
-                return@onNavigationItemSelected true
+                return@onNavigationItemSelected true*/
             }
             R.id.navigation_notifications -> {
-                fragment = NotificationsFragment.newInstance()
+                /*fragment = NotificationsFragment.newInstance()
                 supportFragmentManager.beginTransaction().replace(R.id.main_content_frame, fragment, NOTIFICATIONS_FRAGMENT).commit()
-                return@onNavigationItemSelected true
+                return@onNavigationItemSelected true*/
             }
             R.id.navigationItemSearch -> {
                 val intent = SearchActivity.createStartIntent(this@MainActivity)

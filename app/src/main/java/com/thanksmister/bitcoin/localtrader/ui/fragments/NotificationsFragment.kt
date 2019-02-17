@@ -58,8 +58,10 @@ class NotificationsFragment : BaseFragment() {
 
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject lateinit var viewModel: NotificationsViewModel
-    private var itemAdapter: NotificationAdapter? = null
-    private val notifications = emptyList<Notification>()
+
+    private val itemAdapter: NotificationAdapter by lazy {
+        getAdapter(ArrayList<Notification>())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,26 +81,27 @@ class NotificationsFragment : BaseFragment() {
         notificationsRecyclerView.setLayoutManager(linearLayoutManager)
 
         ItemClickSupport.addTo(notificationsRecyclerView).setOnItemClickListener { recyclerView, position, v ->
-            val notificationItem = itemAdapter!!.getItemAt(position)
-            if (notificationItem!!.contactId != null) {
-                showContact(notificationItem)
-            } else if (notificationItem.advertisementId != null) {
-                showAdvertisement(notificationItem)
-            } else {
-                try {
-                    onNotificationLinkClicked(notificationItem)
-                } catch (e: ActivityNotFoundException) {
-                    toast(getString(R.string.text_cant_open_link))
+            val notificationItem = itemAdapter.getItemAt(position)
+            notificationItem?.let {
+                when {
+                    it.contactId != null -> showContact(it)
+                    it.advertisementId != null -> showAdvertisement(it)
+                    else -> try {
+                        onNotificationLinkClicked(it)
+                    } catch (e: ActivityNotFoundException) {
+                        toast(getString(R.string.text_cant_open_link))
+                    }
                 }
             }
         }
 
-        itemAdapter = getAdapter(ArrayList<Notification>())
-        notificationsRecyclerView.adapter = itemAdapter
+        notificationsRecyclerView.apply {
+            this.adapter = itemAdapter
+        }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater!!.inflate(R.menu.notifications, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.notifications, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -117,15 +120,16 @@ class NotificationsFragment : BaseFragment() {
         super.onActivityCreated(savedInstanceState)
 
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(NotificationsViewModel::class.java)
-
         lifecycle.addObserver(dialogUtils)
-
         observeViewModel(viewModel)
 
         // clear all notifications
-        val ns = Context.NOTIFICATION_SERVICE
-        val notificationManager = activity!!.getSystemService(ns) as NotificationManager
-        notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION)
+        activity?.apply {
+            val ns = Context.NOTIFICATION_SERVICE
+            val notificationManager = this.getSystemService(ns) as NotificationManager
+            notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_NOTIFICATION)
+        }
+
         setHasOptionsMenu(true)
     }
 
@@ -143,19 +147,19 @@ class NotificationsFragment : BaseFragment() {
     private fun observeViewModel(viewModel: NotificationsViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
             Timber.d("getAlertMessage")
-            if (isAdded && activity != null) {
-                dialogUtils.showAlertDialog(activity!!.applicationContext, message!!)
+            activity?.takeIf { !message.isNullOrEmpty() }?.let {
+                dialogUtils.showAlertDialog(it, message!!)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             Timber.d("getToastMessage")
-            if (isAdded && activity != null) {
-                Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+            activity?.takeIf { !message.isNullOrEmpty() }?.let {
+                Toast.makeText(it, message, Toast.LENGTH_LONG).show()
             }
         })
         viewModel.getNotificationUrl().observe(this, Observer { url ->
-            if (isAdded && activity != null && !TextUtils.isEmpty(url)) {
-                launchNotificationLink(url!!);
+            url?.let {
+                launchNotificationLink(it);
             }
         })
         disposable.add(viewModel.getNotifications()
@@ -171,23 +175,21 @@ class NotificationsFragment : BaseFragment() {
      * Creating or editing advertisements takes users to the LBC website
      */
     private fun createAdvertisementScreen() {
-        if (isAdded && activity != null) {
-            dialogUtils.showAlertDialog(activity!!, getString(R.string.dialog_edit_advertisements), object: DialogInterface.OnClickListener{
-                override fun onClick(dialog: DialogInterface?, which: Int) {
-                    try {
-                        val intent =  Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL));
-                        startActivity(intent)
-                    } catch (e: ActivityNotFoundException) {
-                        Toast.makeText(activity, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
-                    }
+        activity?.let {
+            dialogUtils.showAlertDialog(it, getString(R.string.dialog_edit_advertisements), DialogInterface.OnClickListener { dialog, which ->
+                try {
+                    val intent =  Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL));
+                    startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(it, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
                 }
             })
         }
     }
 
-    protected fun showSearchScreen() {
-        if (isAdded && activity != null) {
-            val intent = SearchActivity.createStartIntent(activity!!)
+    private fun showSearchScreen() {
+        activity?.let {
+            val intent = SearchActivity.createStartIntent(it)
             startActivity(intent)
         }
     }
@@ -199,27 +201,23 @@ class NotificationsFragment : BaseFragment() {
     private fun launchNotificationLink(url: String) {
         val currentEndpoint = preferences.endPoint()
         val intent: Intent
-        intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint!! + url))
+        intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentEndpoint + url))
         startActivity(intent)
     }
 
-    private fun showAdvertisement(item: Notification?) {
-        if (item != null && isAdded && activity != null && item.advertisementId != null) {
-            val intent = AdvertisementActivity.createStartIntent(activity, item.advertisementId!!)
-            intent.setClass(activity!!, AdvertisementActivity::class.java)
+    private fun showAdvertisement(item: Notification) {
+        activity?.takeIf { !item.advertisementId.isNullOrEmpty() }?.let {
+            val intent = AdvertisementActivity.createStartIntent(it, item.advertisementId!!)
+            intent.setClass(it, AdvertisementActivity::class.java)
             startActivity(intent)
-        } else {
-            toast(getString(R.string.toast_error_opening_advertisement))
         }
     }
 
-    private fun showContact(item: Notification?) {
-        if (item != null && isAdded && activity != null) {
-            val intent = ContactActivity.createStartIntent(activity, item.contactId)
-            intent.setClass(activity!!, ContactActivity::class.java)
+    private fun showContact(item: Notification) {
+        activity?.let {
+            val intent = ContactActivity.createStartIntent(it, item.contactId)
+            intent.setClass(it, ContactActivity::class.java)
             startActivity(intent)
-        } else {
-            toast(getString(R.string.toast_error_opening_contact))
         }
     }
 

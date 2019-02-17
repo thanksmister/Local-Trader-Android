@@ -839,7 +839,7 @@ public class ContactActivity extends BaseActivity implements SwipeRefreshLayout.
                 }
             });*/
         } else {
-            Intent intent = AdvertisementActivity.createStartIntent(ContactActivity.this, contact.advertisement_id());
+            Intent intent = AdvertisementActivity.Companion.createStartIntent(ContactActivity.this, contact.advertisement_id());
             startActivity(intent);
         }
     }

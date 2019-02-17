@@ -39,12 +39,12 @@ import javax.inject.Inject
 class Preferences @Inject
 constructor(private val preferences: AppPreferences) {
 
-    fun endPoint():String? {
+    fun endPoint():String {
         val url  = this.preferences.getString(PREFS_API_ENDPOINT, BASE_URL)
         if(TextUtils.isEmpty(url)) {
            return BASE_URL
         }
-        return this.preferences.getString(PREFS_API_ENDPOINT, BASE_URL)
+        return this.preferences.getString(PREFS_API_ENDPOINT, BASE_URL)!!
     }
 
     fun endPoint(value:String) {

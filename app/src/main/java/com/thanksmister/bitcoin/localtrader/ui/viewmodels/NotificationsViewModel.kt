@@ -37,13 +37,16 @@ import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import retrofit2.HttpException
 import timber.log.Timber
 import javax.inject.Inject
 
 class NotificationsViewModel @Inject
-constructor(application: Application, private val dataSource: NotificationDao, private val preferences: Preferences) : AndroidViewModel(application) {
+constructor(application: Application,
+            private val dataSource: NotificationDao,
+            private val preferences: Preferences) : AndroidViewModel(application) {
 
     private val disposable = CompositeDisposable()
     private val toastText = ToastMessage()
@@ -128,17 +131,13 @@ constructor(application: Application, private val dataSource: NotificationDao, p
      * Update the notification read value
      */
     private fun updateNotificationRead(notification: Notification) {
-        Completable.fromAction {
+        disposable.add(Completable.fromAction {
             notification.read = true
             dataSource.insertItem(notification)
         }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                }, { error -> Timber.e("onMQTTMessage error" + error.message)})
-    }
-
-    companion object {
-
+                }, { error -> Timber.e("onMQTTMessage error" + error.message)}))
     }
 }

@@ -1,7 +1,17 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'io.fabric'
 
 def versionMajor = 3
@@ -71,6 +81,10 @@ android {
             buildConfigField 'String', 'LBC_KEY', "\"" + LBC_KEY() + "\""
             buildConfigField 'String', 'LBC_SECRET', "\"" + LBC_SECRET() + "\""
         }
+    }
+
+    dataBinding {
+        enabled = true
     }
 
     compileOptions {
@@ -155,7 +169,7 @@ dependencies {
     // Google Location Services
     implementation 'com.google.android.gms:play-services-location:11.0.4'
 
-    implementation('com.crashlytics.sdk.android:crashlytics:2.9.3@aar') {
+    implementation('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
 

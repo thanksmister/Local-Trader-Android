@@ -17,33 +17,29 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
+import android.content.ActivityNotFoundException
+import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.text.TextUtils
 import android.view.*
-
+import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.data.database.AdvertisementItem
-import com.thanksmister.bitcoin.localtrader.data.database.ContactItem
 import com.thanksmister.bitcoin.localtrader.persistence.Method
-import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.AdvertisementActivity
-import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertisementsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.controls.ItemClickSupport
 import kotlinx.android.synthetic.main.fragment_advertisements.*
 
-import java.lang.reflect.Field
-import java.util.Collections
-
-import javax.inject.Inject
-
 class AdvertisementsFragment : BaseFragment() {
+
+
 
     private var itemAdapter: AdvertisementsAdapter? = null
     private val advertisements = emptyList<AdvertisementItem>()
@@ -143,28 +139,27 @@ class AdvertisementsFragment : BaseFragment() {
     }
 
     private fun showAdvertisement(advertisement: AdvertisementItem) {
-        val intent = AdvertisementActivity.createStartIntent(activity, advertisement.ad_id())
-        startActivityForResult(intent, AdvertisementActivity.REQUEST_CODE)
+        activity?.let {
+            val intent = AdvertisementActivity.createStartIntent(it, advertisement.ad_id())
+            startActivityForResult(intent, AdvertisementActivity.REQUEST_CODE)
+        }
     }
 
     private fun createAdvertisementScreen() {
-        /* showAlertDialog(new AlertDialogEvent(getString(R.string.view_title_advertisements), getString(R.string.dialog_edit_advertisements)), new Action0() {
-            @Override
-            public void call() {
-                try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
-                } catch (android.content.ActivityNotFoundException ex) {
-                    Toast.makeText(getActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+        activity?.let {
+            dialogUtils.showAlertDialog(it, getString(R.string.dialog_edit_advertisements), object: DialogInterface.OnClickListener {
+                override fun onClick(dialog: DialogInterface?, which: Int) {
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
+                    } catch (e: ActivityNotFoundException) {
+                        Toast.makeText(it, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        }, new Action0() {
-            @Override
-            public void call() {
-                // na-da
-            }
-        });*/
+            })
+        }
     }
 
+    // TODO let's start using the navigation architecture
     protected fun showSearchScreen() {
         if (isAdded && activity != null) {
             //(activity as MainActivity).navigateSearchView()

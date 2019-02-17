@@ -16,19 +16,47 @@
   -->
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:startDestination="@+id/launcher_home">
+            app:startDestination="@+id/main_dest">
 
-    <fragment android:id="@+id/launcher_home"
-              android:label="Search"
-              android:name="com.localbuzz.mobile.android.ui.StartFragment" >
-
-        <action android:id="@+id/end_action" app:destination="@id/end_dest"/>
-
+    <fragment android:id="@+id/main_dest"
+              android:label="Main"
+              android:name="com.thanksmister.bitcoin.localtrader.ui.fragments.MainFragment" >
+        <action android:id="@+id/action_search" app:destination="@id/search_dest"/>
+        <action android:id="@+id/action_wallet" app:destination="@id/wallet_dest"/>
+        <action android:id="@+id/action_setting" app:destination="@id/settings_dest"/>
+        <action android:id="@+id/action_send" app:destination="@id/send_dest"/>
+        <action android:id="@+id/action_request" app:destination="@id/request_dest"/>
+        <action android:id="@+id/action_about" app:destination="@id/request_about"/>
     </fragment>
 
-    <fragment android:id="@+id/end_dest"
-              android:label="SearchResults"
-              android:name="com.localbuzz.mobile.android.ui.CameraFragment" >
+    <fragment android:id="@+id/request_about"
+        android:label="About"
+        android:name="com.thanksmister.bitcoin.localtrader.ui.fragments.AboutFragment" >
+    </fragment>
+
+    <fragment android:id="@+id/request_dest"
+        android:label="Request"
+        android:name="com.thanksmister.bitcoin.localtrader.ui.fragments.RequestFragment" >
+    </fragment>
+
+    <fragment android:id="@+id/send_dest"
+        android:label="Settings"
+        android:name="com.thanksmister.bitcoin.localtrader.ui.fragments.SendFragment" >
+    </fragment>
+
+    <fragment android:id="@+id/settings_dest"
+        android:label="Settings"
+        android:name="com.thanksmister.bitcoin.localtrader.ui.fragments.SettingsFragment" >
+    </fragment>
+
+    <fragment android:id="@+id/wallet_dest"
+        android:label="Wallet"
+        android:name="com.thanksmister.bitcoin.localtrader.ui.fragments.WalletFragment" >
+    </fragment>
+
+    <fragment android:id="@+id/search_dest"
+              android:label="Search"
+              android:name="com.thanksmister.bitcoin.localtrader.ui.fragments.SearchFragment" >
     </fragment>
 
 </navigation>
