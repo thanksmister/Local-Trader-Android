@@ -17,8 +17,10 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
+import android.arch.lifecycle.Lifecycle
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.OnLifecycleEvent
 import android.content.SharedPreferences
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
@@ -28,9 +30,12 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
+import com.thanksmister.bitcoin.localtrader.utils.disposeProper
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -38,16 +43,24 @@ import java.net.SocketTimeoutException
 import java.util.*
 import javax.inject.Inject
 
-
 class SplashViewModel @Inject
-constructor(application: Application, private val userDao: UserDao, private val methodsDao: MethodsDao, private val currenciesDao: CurrenciesDao,
-            private val advertisementsDao: AdvertisementsDao, private val contactsDao: ContactsDao,
-            private val notificationsDao: NotificationsDao, private val exchangeRateDao: ExchangeRateDao,
-            private val preferences: Preferences, private val sharedPreferences: SharedPreferences) : BaseViewModel(application) {
+constructor(application: Application,
+            private val userDao: UserDao,
+            private val methodsDao: MethodsDao,
+            private val currenciesDao: CurrenciesDao,
+            private val advertisementsDao: AdvertisementsDao,
+            private val contactsDao: ContactsDao,
+            private val notificationsDao: NotificationsDao,
+            private val preferences: Preferences,
+            private val sharedPreferences: SharedPreferences) : BaseViewModel(application) {
 
     private var syncMap = HashMap<String, Boolean>()
     private val syncing = MutableLiveData<String>()
-    private var fetcher: LocalBitcoinsFetcher? = null
+
+    private val fetcher: LocalBitcoinsFetcher by lazy {
+        val api = LocalBitcoinsApi(getApplication(), preferences.getServiceEndpoint())
+        LocalBitcoinsFetcher(getApplication(), api, preferences)
+    }
 
     fun getSyncing(): LiveData<String> {
         return syncing
@@ -57,30 +70,29 @@ constructor(application: Application, private val userDao: UserDao, private val 
         this.syncing.value = value
     }
 
+    /*@OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    fun onResume() {
+        setSyncing(SYNC_IDLE)
+    }*/
+
     init {
-        val api = LocalBitcoinsApi(getApplication(), preferences.getServiceEndpoint())
-        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
         setSyncing(SYNC_IDLE)
     }
 
     fun startSync() {
+        Timber.d("startSync")
         resetSyncing()
         fetchUser()
         fetchMethods()
         fetchCurrencies()
-        //fetchContacts()
-        //fetchNotifications()
-        //fetchAdvertisements()
     }
 
     fun setupPeriodicWork() {
         WalletBalanceScheduler.refreshWalletBalanceWorkPeriodically()
     }
 
-    private fun getUser(): Flowable<User> {
+    private fun getUser(): Single<List<User>> {
         return userDao.getItems()
-                .filter {items -> items.isNotEmpty()}
-                .map { items -> items[0] }
     }
 
     private fun getMethods(): Flowable<List<Method>> {
@@ -92,7 +104,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun fetchMethods() {
-        disposable.add(getMethods()
+        disposable += (getMethods()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ results ->
@@ -100,7 +112,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
                     if (results == null || results.isEmpty() || needToRefreshMethods()) {
                         Timber.d("fetching methods")
                         updateSyncMap(SYNC_METHODS, true)
-                        fetcher!!.methods
+                        fetcher.methods
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
@@ -128,7 +140,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun insertMethods(methods: List<Method>) {
-        disposable.add(Completable.fromAction {
+        disposable += (Completable.fromAction {
             methodsDao.replaceItem(methods)
         }
                 .subscribeOn(Schedulers.io())
@@ -138,7 +150,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun fetchCurrencies() {
-        disposable.add(getCurrencies()
+        disposable += (getCurrencies()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ results ->
@@ -146,7 +158,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
                     if (results == null || results.isEmpty() || needToRefreshCurrency()) {
                         Timber.d("fetching currencies")
                         updateSyncMap(SYNC_CURRENCIES, true)
-                        fetcher!!.currencies
+                        fetcher.currencies
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
@@ -174,7 +186,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun insertCurrencies(currencies: List<Currency>) {
-        disposable.add(Completable.fromAction {
+        disposable += (Completable.fromAction {
             currenciesDao.replaceItem(currencies)
         }
                 .subscribeOn(Schedulers.io())
@@ -184,14 +196,14 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun fetchUser() {
-        disposable.add(getUser()
+        disposable += (getUser()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ results ->
-                    if (results == null || needToRefreshUser()) {
-                        Timber.d("fetching methods")
+                    Timber.d("user $results")
+                    if (results.isEmpty() || needToRefreshUser()) {
                         updateSyncMap(SYNC_MYSELF, true)
-                        fetcher!!.myself
+                        fetcher.myself
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
@@ -215,7 +227,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
                         updateSyncMap(SYNC_MYSELF, false)
                     }
                 }, { error ->
-                    Timber.e("Error getting methods ${error.message}")
+                    Timber.e("Error getting user ${error.message}")
                     updateSyncMap(SYNC_MYSELF, false)
                     setSyncing(SYNC_ERROR)
                 }))
@@ -224,7 +236,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     private fun fetchContacts() {
         Timber.d("fetchContacts")
         updateSyncMap(DashboardViewModel.SYNC_CONTACTS, true)
-        disposable.add(fetcher!!.contacts
+        disposable += (fetcher.contacts
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -250,7 +262,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
 
     private fun fetchAdvertisements() {
         updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, true)
-        disposable.add(fetcher!!.advertisements
+        disposable += (fetcher.advertisements
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -276,7 +288,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
 
     private fun fetchNotifications() {
         updateSyncMap(DashboardViewModel.SYNC_NOTIFICATIONS, true)
-        disposable.add(fetcher!!.notifications
+        disposable += (fetcher.notifications
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -301,7 +313,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun insertContacts(items: List<Contact>) {
-        disposable.add(Completable.fromAction {
+        disposable += (Completable.fromAction {
             contactsDao.insertItems(items)
         }
                 .subscribeOn(Schedulers.io())
@@ -311,7 +323,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun insertAdvertisements(items: List<Advertisement>) {
-        disposable.add(Completable.fromAction {
+        disposable += (Completable.fromAction {
             advertisementsDao.insertItems(items)
         }
                 .subscribeOn(Schedulers.io())
@@ -321,7 +333,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun replaceNotifications(items: List<Notification>) {
-        disposable.add(Completable.fromAction {
+        disposable += (Completable.fromAction {
             notificationsDao.replaceItems(items)
         }
                 .subscribeOn(Schedulers.io())
@@ -331,7 +343,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     private fun insertUser(user: User) {
-        disposable.add(Completable.fromAction {
+        disposable += (Completable.fromAction {
             userDao.updateItem(user)
         }
                 .subscribeOn(Schedulers.io())
@@ -339,8 +351,6 @@ constructor(application: Application, private val userDao: UserDao, private val 
                 .subscribe({
                 }, { error -> Timber.e("User insert error ${error.message}") }))
     }
-
-
 
     /**
      * Keep a map of all syncing calls to update sync status and
@@ -422,16 +432,13 @@ constructor(application: Application, private val userDao: UserDao, private val 
         const val SYNC_MYSELF = "SYNC_MYSELF"
         const val SYNC_CURRENCIES = "SYNC_CURRENCIES"
         const val SYNC_METHODS = "SYNC_METHODS"
-
         const val SYNC_CONTACTS = "SYNC_CONTACTS"
         const val SYNC_NOTIFICATIONS = "SYNC_NOTIFICATIONS"
         const val SYNC_ADVERTISEMENTS = "SYNC_ADVERTISEMENTS"
-
         const val SYNC_IDLE = "SYNC_IDLE"
         const val SYNC_STARTED = "SYNC_STARTED"
         const val SYNC_COMPLETE = "SYNC_COMPLETE"
         const val SYNC_ERROR = "SYNC_ERROR"
-
         const val CHECK_CURRENCY_DATA = 604800000 // 1 week 604800000
         const val CHECK_METHODS_DATA = 604800000 // 1 week 604800000
         const val CHECK_USER_DATA = 21600000 // 6 hours

@@ -57,7 +57,6 @@ class TradeRequestActivity : BaseActivity() {
     @Inject
     lateinit var viewModel: SearchViewModel
 
-    private val disposable = CompositeDisposable()
     private var adId: Int = 0
     private var adPrice: String? = null
     private var adMin: String? = null
@@ -214,17 +213,6 @@ class TradeRequestActivity : BaseActivity() {
                 dialogUtils.toast(message)
             }
         })
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

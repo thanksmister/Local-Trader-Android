@@ -24,38 +24,29 @@ import android.content.*
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
-import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.AndroidRuntimeException
 import android.view.*
 import android.widget.Toast
-import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
-import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
+import com.thanksmister.bitcoin.localtrader.databinding.ViewRequestBinding
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.ShareQrCodeActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
-import com.thanksmister.bitcoin.localtrader.utils.Calculations
-import com.thanksmister.bitcoin.localtrader.utils.Conversions
-import com.thanksmister.bitcoin.localtrader.utils.Doubles
-import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.view_request.*
+import com.thanksmister.bitcoin.localtrader.utils.*
 import timber.log.Timber
 import javax.inject.Inject
 
 class RequestFragment : BaseFragment() {
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
-    @Inject
-    lateinit var viewModel: WalletViewModel
+    private val binding: ViewRequestBinding by lazy {
+        ViewRequestBinding.inflate(LayoutInflater.from(context), null, false)
+    }
 
-    private val disposable = CompositeDisposable()
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject lateinit var viewModel: WalletViewModel
+
     private var address:String? = null
     private var rate:String? = null
     private var generatedNewAddress = false
@@ -89,21 +80,21 @@ class RequestFragment : BaseFragment() {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item!!.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_paste -> {
                 setAmountFromClipboard()
                 return true
             }
             R.id.action_share -> {
-                if (address != null) {
-                    shareAddress(address)
+                address?.let {
+                    shareAddress(it)
                 }
                 return true
             }
             R.id.action_blockchain -> {
-                if (address != null) {
-                    viewBlockChain(address)
+                address?.let {
+                    viewBlockChain(it)
                 }
                 return true
             }
@@ -111,26 +102,22 @@ class RequestFragment : BaseFragment() {
                 generateNewAddress()
                 return true
             }
-            else -> {
-            }
         }
         return false
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.view_request, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = binding.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        qrButton.setOnClickListener {
+        binding.qrButton.setOnClickListener {
             validateForm()
         }
-        codeImage.setOnClickListener {
-            setAddressOnClipboard(requestAddressButton.text.toString())
+        binding.codeImage.setOnClickListener {
+            setAddressOnClipboard(binding.requestAddressButton.text.toString())
         }
-        requestAddressButton.setOnClickListener {
-            setAddressOnClipboard(requestAddressButton.text.toString())
+        binding.requestAddressButton.setOnClickListener {
+            setAddressOnClipboard(binding.requestAddressButton.text.toString())
         }
 
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
@@ -139,15 +126,18 @@ class RequestFragment : BaseFragment() {
 
     private fun observeViewModel(viewModel: WalletViewModel) {
         viewModel.getShowProgress().observe(this, Observer { show ->
-            if (show != null && activity != null && show) {
-                dialogUtils.showProgressDialog(activity!!, getString(R.string.dialog_loading))
-            } else {
-                dialogUtils.hideProgressDialog()
+            activity?.takeIf { show != null }?.let {
+                if (show!!) {
+                    dialogUtils.showProgressDialog(it, getString(R.string.dialog_loading))
+                } else {
+                    dialogUtils.hideProgressDialog()
+                }
             }
+
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
-            if (message != null && activity != null) {
-                dialogUtils.showAlertDialog(activity!!, message)
+            activity?.takeIf { message != null }?.let {
+                dialogUtils.showAlertDialog(it, message!!)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
@@ -156,32 +146,28 @@ class RequestFragment : BaseFragment() {
             }
         })
         viewModel.getBitmap().observe(this, Observer { bitmap ->
-            if (bitmap != null && activity != null) {
-                codeImage.setImageBitmap(bitmap)
+            bitmap?.let {
+                binding.codeImage.setImageBitmap(bitmap)
             }
         })
-        disposable.add(viewModel.getWalletData()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe( { data ->
-                    Timber.d("data: ${data}")
-                    if(data != null) {
-                        if(data.rate != null) {
-                            rate = data.rate
-                            setCurrencyAmount()
-                        }
-                        Timber.d("data.address: ${data.address}")
-                        if (!data.address.isNullOrEmpty()) {
-                            address = data.address
-                            requestAddressButton.text = address
-                        } else if (!generatedNewAddress) {
-                            dialogUtils.showAlertDialog(activity!!, getString(R.string.error_receiving_address), DialogInterface.OnClickListener { dialog, which ->
-                                generatedNewAddress = true
-                                generateNewAddress()
-                            }, DialogInterface.OnClickListener { dialog, which ->
-                                // na-da
-                            })
-                        }
+        disposable += (viewModel.getWalletData()
+                .applySchedulers()
+                .subscribe( { it ->
+                    it.rate?.let {
+                        rate = it
+                        setCurrencyAmount()
+                    }
+                    it.address?.let {
+                        address = it
+                        binding.requestAddressButton.text = address
+                    }
+                    if (it.address.isNullOrEmpty() && !generatedNewAddress) {
+                        dialogUtils.showAlertDialog(activity!!, getString(R.string.error_receiving_address), DialogInterface.OnClickListener { dialog, which ->
+                            generatedNewAddress = true
+                            generateNewAddress()
+                        }, DialogInterface.OnClickListener { dialog, which ->
+                            // na-da
+                        })
                     }
                 }, { error ->
                     Timber.e(error.message)
@@ -190,93 +176,81 @@ class RequestFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        requestAmountText.addTextChangedListener(object : TextWatcher {
+        binding.requestAmountText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
             override fun onTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {
-                if (requestAmountText != null && requestAmountText!!.hasFocus()) {
+                if (binding.requestAmountText.hasFocus()) {
                     val bitcoin = charSequence.toString()
                     calculateCurrencyAmount(bitcoin)
                 }
             }
             override fun afterTextChanged(editable: Editable) {}
         })
-        requestFiatEditText.addTextChangedListener(object : TextWatcher {
+        binding.requestFiatEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {}
             override fun onTextChanged(charSequence: CharSequence, i: Int, i2: Int, i3: Int) {
-                if (requestFiatEditText != null && requestFiatEditText.hasFocus()) {
+                if (binding.requestFiatEditText.hasFocus()) {
                     calculateBitcoinAmount(charSequence.toString())
                 }
             }
             override fun afterTextChanged(editable: Editable) {}
         })
-        val currency = preferences.exchangeCurrency
-        requestCurrencyText.text = currency
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        binding.requestCurrencyText.text = preferences.exchangeCurrency
     }
 
     private fun generateNewAddress() {
         Timber.d("generateNewAddress")
-        dialogUtils.showProgressDialog(activity!!, getString(R.string.progress_new_address))
-        viewModel.getWalletAddress()
+        activity?.let {
+            dialogUtils.showProgressDialog(it, getString(R.string.progress_new_address))
+            viewModel.getWalletAddress()
+        }
     }
 
     private fun showGeneratedQrCodeActivity(bitcoinAddress: String?, bitcoinAmount: String) {
-        if (bitcoinAddress != null && activity != null) {
-            val intent = ShareQrCodeActivity.createStartIntent(activity!!, bitcoinAddress, bitcoinAmount)
+        activity?.takeIf { !bitcoinAddress.isNullOrEmpty() }?.let {
+            val intent = ShareQrCodeActivity.createStartIntent(it, bitcoinAddress!!, bitcoinAmount)
             startActivity(intent)
         }
     }
 
     private fun setAmountFromClipboard() {
-        val clipText = clipboardText
-        if (TextUtils.isEmpty(clipText)) {
+        if (clipboardText.isEmpty()) {
             dialogUtils.toast(R.string.toast_clipboard_empty)
             return
         }
-        if (WalletUtils.validAmount(clipText)) {
-            setAmount(WalletUtils.parseBitcoinAmount(clipText))
+        if (WalletUtils.validAmount(clipboardText)) {
+            setAmount(WalletUtils.parseBitcoinAmount(clipboardText))
         } else {
             dialogUtils.toast(getString(R.string.toast_invalid_clipboard_contents))
         }
     }
 
     private fun setAmount(bitcoinAmount: String) {
-        if (!TextUtils.isEmpty(bitcoinAmount)) {
-            requestAmountText.setText(bitcoinAmount)
+        if (!bitcoinAmount.isEmpty()) {
+            binding.requestAmountText.setText(bitcoinAmount)
             calculateCurrencyAmount(bitcoinAmount)
         }
     }
 
     private fun setCurrencyAmount() {
-        if (TextUtils.isEmpty(requestAmountText.text)) {
+        val amount = binding.requestAmountText.text.toString()
+        if (amount.isEmpty()) {
             calculateCurrencyAmount("0.00")
         } else {
-            calculateCurrencyAmount(requestAmountText.text.toString())
+            calculateCurrencyAmount(amount)
         }
     }
 
     private fun validateForm() {
-        if (address == null) {
+        if (address.isNullOrEmpty()) {
             dialogUtils.toast(getString(R.string.toast_no_valid_address_bitcoin))
             return
         }
-        var amount = ""
-        if (requestAmountText != null) {
-            amount = requestAmountText!!.text.toString()
-            if (TextUtils.isEmpty(amount)) {
-                dialogUtils.toast(getString(R.string.error_missing_amount))
-                return
-            }
+        val amount = binding.requestAmountText.text.toString()
+        if (amount.isEmpty()) {
+            dialogUtils.toast(getString(R.string.error_missing_amount))
+            return
         }
         val bitcoinAmount = Conversions.formatBitcoinAmount(amount)
         showGeneratedQrCodeActivity(address, bitcoinAmount)
@@ -284,34 +258,29 @@ class RequestFragment : BaseFragment() {
 
     private fun calculateBitcoinAmount(requestAmount: String) {
         if (Doubles.convertToDouble(requestAmount) == 0.0) {
-            requestAmountText.setText("")
+            binding.requestAmountText.setText("")
             return
         }
         if(rate != null) {
             val btc = Math.abs(Doubles.convertToDouble(requestAmount) / Doubles.convertToDouble(rate))
             val amount = Conversions.formatBitcoinAmount(btc)
-            if (requestAmountText != null) {
-                requestAmountText!!.setText(amount)
-            }
+            binding.requestAmountText.setText(amount)
         }
     }
 
     private fun calculateCurrencyAmount(bitcoin: String) {
         if (Doubles.convertToDouble(bitcoin) == 0.0) {
-            if (requestFiatEditText != null)
-                requestFiatEditText.setText("")
+            binding.requestFiatEditText.setText("")
             return
         }
-        if(rate != null) {
+        rate?.let {
             val value = Calculations.computedValueOfBitcoin(rate, bitcoin)
-            if (requestFiatEditText != null) {
-                requestFiatEditText.setText(value)
-            }
+            binding.requestFiatEditText.setText(value)
         }
     }
 
     private fun setAddressOnClipboard(address: String) {
-        if (!TextUtils.isEmpty(address)) {
+        if (address.isNotEmpty()) {
             val clipboard = activity!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText(activity!!.getString(R.string.wallet_address_clipboard_title), address)
             clipboard.primaryClip = clip
@@ -319,15 +288,15 @@ class RequestFragment : BaseFragment() {
         }
     }
 
-    private fun viewBlockChain(address: String?) {
-        if (!TextUtils.isEmpty(address)) {
-            val blockChainIntent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BLOCKCHAIN_INFO_ADDRESS + address!!))
+    private fun viewBlockChain(address: String) {
+        if (address.isNotEmpty()) {
+            val blockChainIntent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BLOCKCHAIN_INFO_ADDRESS + address))
             startActivity(blockChainIntent)
         }
     }
 
-    private fun shareAddress(address: String?) {
-        if (!TextUtils.isEmpty(address)) {
+    private fun shareAddress(address: String) {
+        if (address.isNotEmpty()) {
             var sendIntent: Intent
             try {
                 sendIntent = Intent(Intent.ACTION_VIEW, Uri.parse(WalletUtils.generateBitCoinURI(address)))

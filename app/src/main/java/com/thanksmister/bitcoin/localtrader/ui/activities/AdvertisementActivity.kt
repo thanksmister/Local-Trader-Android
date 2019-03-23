@@ -52,8 +52,6 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject lateinit var viewModel: AdvertisementsViewModel
 
-    private val disposable = CompositeDisposable()
-
     private var adId: Int = 0
     private var menu: Menu? = null
     private var advertisement: Advertisement? = null
@@ -146,17 +144,6 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
             }
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {

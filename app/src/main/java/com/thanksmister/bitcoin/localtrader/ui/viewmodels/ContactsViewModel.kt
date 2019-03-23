@@ -32,6 +32,8 @@ import com.thanksmister.bitcoin.localtrader.persistence.ContactsDao
 import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -43,8 +45,11 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class ContactsViewModel @Inject
-constructor(application: Application, private val contactsDao: ContactsDao, private val notificationsDao: NotificationsDao,
-            private val advertisementsDao: AdvertisementsDao,  private val preferences: Preferences) : BaseViewModel(application) {
+constructor(application: Application,
+            private val contactsDao: ContactsDao,
+            private val notificationsDao: NotificationsDao,
+            private val advertisementsDao: AdvertisementsDao,
+            private val preferences: Preferences) : BaseViewModel(application) {
 
     private val contactData = MutableLiveData<ContactData>()
     private val contacts = MutableLiveData<List<Contact>>()
@@ -53,8 +58,12 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
     private val contactDeleted = MutableLiveData<Boolean>()
     private val contactId = MutableLiveData<Int>()
     private val contact = MutableLiveData<Contact>()
-    private var fetcher: LocalBitcoinsFetcher? = null
 
+    private val fetcher: LocalBitcoinsFetcher by lazy {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        LocalBitcoinsFetcher(getApplication(), api, preferences)
+    }
 
     fun getContactData(): LiveData<ContactData> {
         return contactData
@@ -117,12 +126,6 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
         var messages = emptyList<Message>()
     }
 
-    init {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-    }
-
     fun getContact(contactId: Int):Flowable<Contact> {
         return contactsDao.getItemById(contactId)
     }
@@ -165,9 +168,8 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
     }
 
     fun fetchContactsByType(type: DashboardType) {
-        disposable.add(fetcher!!.getContactsByType(type)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += fetcher.getContactsByType(type)
+                .applySchedulers()
                 .subscribe ({
                     insertContacts(it)
                     setContactsList(it)
@@ -182,14 +184,13 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                     } else {
                         showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_retrieving_trades))
                     }
-                }))
+                })
     }
 
     @Deprecated ("Let's get with message data instead")
     fun fetchContact(contactId: Int) {
-        disposable.add(fetcher!!.getContact(contactId)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += fetcher.getContact(contactId)
+                .applySchedulers()
                 .subscribe ({
                     insertContact(it)
                 }, {
@@ -203,11 +204,11 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                     } else {
                         showAlertMessage(error.message)
                     }
-                }))
+                })
     }
 
     fun fetchContactData(contactId: Int) : Observable<ContactData> {
-        return Observable.combineLatest(fetcher!!.getContact(contactId), fetcher!!.getContactMessages(contactId),
+        return Observable.combineLatest(fetcher.getContact(contactId), fetcher.getContactMessages(contactId),
                 BiFunction { contact, messages  ->
                     insertContact(contact)
                     val data = ContactData()
@@ -236,9 +237,8 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
     }
 
     fun contactAction(contactId: Int, pinCode: String?, action: ContactAction) {
-        disposable.add(fetcher!!.contactAction(contactId, pinCode, action)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += fetcher.contactAction(contactId, pinCode, action)
+                .applySchedulers()
                 .subscribe ({
                     Timber.d(it.asString)
                     if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
@@ -263,16 +263,15 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                     } else {
                         showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_contact_action))
                     }
-                }))
+                })
     }
 
     fun markNotificationRead(contactId: Int) {
-        disposable.add(notificationsDao.getItemUnreadItemByContactId(contactId, false)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += notificationsDao.getItemUnreadItemByContactId(contactId, false)
+                .applySchedulers()
                 .subscribe ({notification ->
                     if(notification != null) {
-                        fetcher!!.markNotificationRead(notification.notificationId)
+                        fetcher.markNotificationRead(notification.notificationId)
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .debounce(200, TimeUnit.MILLISECONDS)
@@ -295,7 +294,7 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
                     }
                 }, {
                     error -> Timber.e("Notification Error $error.message")
-                }))
+                })
     }
 
     fun fetchMessages(contactId: Int): Observable<List<Message>> {
@@ -310,32 +309,29 @@ constructor(application: Application, private val contactsDao: ContactsDao, priv
     }
 
     private fun updateNotification(notification: Notification) {
-        disposable.add(Completable.fromAction {
+        disposable += Completable.fromAction {
             notificationsDao.updateItem(notification)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
-                }, { error -> Timber.e("Notification update error" + error.message)}))
+                }, { error -> Timber.e("Notification update error" + error.message)})
     }
 
     private fun insertContact(item: Contact) {
-        disposable.add(Completable.fromAction {
+        disposable += Completable.fromAction {
             contactsDao.insertItem(item)
             }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
-                }, { error -> Timber.e("Contact insert error" + error.message)}))
+                }, { error -> Timber.e("Contact insert error" + error.message)})
     }
 
     private fun insertContacts(items: List<Contact>) {
-        disposable.add(Completable.fromAction {
+        disposable += Completable.fromAction {
             contactsDao.insertItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
-                }, { error -> Timber.e("Contact insert error" + error.message)}))
+                }, { error -> Timber.e("Contact insert error" + error.message)})
     }
 }

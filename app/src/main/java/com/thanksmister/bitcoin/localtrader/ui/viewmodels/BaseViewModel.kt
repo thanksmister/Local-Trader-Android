@@ -18,6 +18,7 @@ package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
+import android.arch.lifecycle.LifecycleObserver
 import com.thanksmister.bitcoin.localtrader.architecture.*
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
@@ -28,6 +29,7 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
+import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -38,7 +40,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 open class BaseViewModel @Inject
-constructor(application: Application) : AndroidViewModel(application) {
+constructor(application: Application) : AndroidViewModel(application), LifecycleObserver {
 
     private val networkMessage = NetworkMessage()
     private val toastText = ToastMessage()
@@ -69,14 +71,7 @@ constructor(application: Application) : AndroidViewModel(application) {
 
     public override fun onCleared() {
         Timber.d("onCleared")
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-                Timber.d("disposable.clear()")
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        disposable.disposeProper()
     }
 
     fun showProgress(show: Boolean) {
@@ -85,10 +80,12 @@ constructor(application: Application) : AndroidViewModel(application) {
     }
 
     fun showNetworkMessage(message: String?, code: Int) {
-        val messageData = MessageData()
-        messageData.code = code
-        messageData.message = message
-        networkMessage.value = messageData
+        message?.let {
+            val messageData = MessageData()
+            messageData.code = code
+            messageData.message = message
+            networkMessage.value = messageData
+        }
     }
 
     fun showAlertMessage(message: String?) {

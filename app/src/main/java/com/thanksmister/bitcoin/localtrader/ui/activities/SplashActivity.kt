@@ -61,6 +61,7 @@ class SplashActivity : BaseActivity() {
         } else {
             viewModel = ViewModelProviders.of(this, viewModelFactory).get(SplashViewModel::class.java)
             observeViewModel(viewModel)
+            lifecycle.addObserver(viewModel)
         }
     }
 

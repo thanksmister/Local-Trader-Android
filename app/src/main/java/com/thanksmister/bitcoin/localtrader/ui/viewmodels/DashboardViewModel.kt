@@ -33,6 +33,8 @@ import com.thanksmister.bitcoin.localtrader.persistence.*
 import com.thanksmister.bitcoin.localtrader.utils.Parser
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Maybe
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
@@ -83,7 +85,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
         fetchContacts()
     }
 
-    fun getUser(): Flowable<User> {
+    fun getUser(): Maybe<User> {
         return userDao.getItems()
                 .filter {items -> items.isNotEmpty()}
                 .map { items -> items[0] }

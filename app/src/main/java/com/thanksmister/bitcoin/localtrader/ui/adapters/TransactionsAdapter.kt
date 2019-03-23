@@ -42,7 +42,7 @@ import kotlinx.android.synthetic.main.adapter_transaction_list.view.*
 import java.util.Collections
 
 
-class TransactionsAdapter(private val context: Context) : RecyclerView.Adapter<TransactionsAdapter.ViewHolder>() {
+class TransactionsAdapter() : RecyclerView.Adapter<TransactionsAdapter.ViewHolder>() {
 
     private var items: List<Transaction> = emptyList()
 
@@ -64,7 +64,7 @@ class TransactionsAdapter(private val context: Context) : RecyclerView.Adapter<T
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionsAdapter.ViewHolder {
-        val itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false)
+        val itemLayoutView = LayoutInflater.from(parent.context).inflate(viewType, parent, false)
         return ViewHolder(itemLayoutView)
     }
 

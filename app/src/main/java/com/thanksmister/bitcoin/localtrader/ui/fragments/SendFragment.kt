@@ -59,7 +59,6 @@ class SendFragment : BaseFragment() {
     @Inject
     lateinit var viewModel: WalletViewModel
 
-    private val disposable = CompositeDisposable()
     private var address: String? = null
     private var amount: String? = null
     private var balance: String? = null
@@ -170,17 +169,6 @@ class SendFragment : BaseFragment() {
             }
         }
         return false
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

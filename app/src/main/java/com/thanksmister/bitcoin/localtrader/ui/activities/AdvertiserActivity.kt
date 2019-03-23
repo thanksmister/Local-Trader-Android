@@ -58,7 +58,6 @@ class AdvertiserActivity : BaseActivity() {
     @Inject lateinit var viewModel: AdvertisementsViewModel
 
     private var connectionLiveData: ConnectionLiveData? = null
-    private val disposable = CompositeDisposable()
     private var adId: Int = 0
     private var advertisement: Advertisement? = null
 
@@ -125,17 +124,6 @@ class AdvertiserActivity : BaseActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {

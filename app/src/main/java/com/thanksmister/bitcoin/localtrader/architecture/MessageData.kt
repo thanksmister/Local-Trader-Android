@@ -21,5 +21,5 @@ package com.thanksmister.bitcoin.localtrader.architecture
  */
 class MessageData {
     var code: Int = 0
-    var message: String? = null
+    var message: String = ""
 }

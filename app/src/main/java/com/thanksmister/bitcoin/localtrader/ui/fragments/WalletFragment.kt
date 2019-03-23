@@ -18,11 +18,9 @@
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
 import android.annotation.SuppressLint
-import android.app.NotificationManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
@@ -31,105 +29,106 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.databinding.ViewWalletBinding
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.adapters.TransactionsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.view_wallet.*
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import timber.log.Timber
 import javax.inject.Inject
 
 class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
 
-    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
-    @Inject lateinit var viewModel: WalletViewModel
-    private var connectionLiveData: ConnectionLiveData? = null
-
-    private val disposable = CompositeDisposable()
-    private var adapter: TransactionsAdapter? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val ns = Context.NOTIFICATION_SERVICE
-        val notificationManager = activity!!.getSystemService(ns) as NotificationManager
-        notificationManager.cancel(NotificationUtils.NOTIFICATION_TYPE_BALANCE)
+    private val binding: ViewWalletBinding by lazy {
+        ViewWalletBinding.inflate(LayoutInflater.from(context), null, false)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.view_wallet, container, false)
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    @Inject lateinit var viewModel: WalletViewModel
+
+    @Inject lateinit var notificationUtils: NotificationUtils
+
+    private var connectionLiveData: ConnectionLiveData? = null
+
+    private val transactionsAdapter: TransactionsAdapter by lazy {
+       TransactionsAdapter()
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = binding.root
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.transactionRecycleView.apply {
+            val linearLayoutManager = LinearLayoutManager(activity)
+            linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
+            layoutManager = linearLayoutManager
+            setHasFixedSize(true)
+            adapter = transactionsAdapter
+        }
+
+        binding.walletRefreshLayout.setOnRefreshListener(this)
+        binding.walletRefreshLayout.setColorSchemeColors(resources.getColor(R.color.red))
+
+        setAppBarText("0.000000", "0.00", preferences.exchangeCurrency, preferences.selectedExchange)
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
+        observeViewModel(viewModel)
+        lifecycle.addObserver(viewModel)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-
         super.onActivityCreated(savedInstanceState)
 
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(WalletViewModel::class.java)
+        notificationUtils.clearNotification()
 
-        connectionLiveData = ConnectionLiveData(activity!!)
+        connectionLiveData = ConnectionLiveData(requireContext())
         connectionLiveData?.observe(this, Observer { connected ->
-            if(!connected!!) {
+            connected?.let {
                 onRefreshStop()
-                dialogUtils.showAlertDialog(activity!!, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.toast(getString(R.string.toast_refreshing_data))
-                    viewModel.fetchNetworkData()
-                }, DialogInterface.OnClickListener { dialog, which ->
+                dialogUtils.showAlertDialog(requireActivity(), getString(R.string.error_network_retry) ,
+                        DialogInterface.OnClickListener { dialog, which ->
+                            dialogUtils.toast(getString(R.string.toast_refreshing_data))
+                            viewModel.fetchNetworkData()
+                        }, DialogInterface.OnClickListener { dialog, which ->
                     //finish()
                 })
             }
         })
-
-        val linearLayoutManager = LinearLayoutManager(activity)
-        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
-
-        transactionRecycleView!!.layoutManager = linearLayoutManager
-        transactionRecycleView.setHasFixedSize(true)
-
-        walletRefreshLayout.setOnRefreshListener(this)
-        walletRefreshLayout.setColorSchemeColors(resources.getColor(R.color.red))
-
-        adapter = TransactionsAdapter(activity!!)
-        transactionRecycleView.adapter = adapter
-
-        setAppBarText("0.000000", "0.00", preferences.exchangeCurrency, preferences.selectedExchange)
-
-        observeViewModel(viewModel)
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {
         viewModel.getNetworkMessage().observe(this, Observer { message ->
-            if (message?.message != null && activity != null) {
+            message?.message?.let {
+                dialogUtils.showAlertDialog(requireActivity(), it)
                 onRefreshStop()
-                dialogUtils.showAlertDialog(activity!!, message.message!!)
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
-            if (message != null && activity != null) {
+            message?.let {
+                dialogUtils.showAlertDialog(requireActivity(), it)
                 onRefreshStop()
-                dialogUtils.showAlertDialog(activity!!, message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            onRefreshStop()
-            if (message != null && activity != null) {
-                dialogUtils.toast(message)
+            message?.let {
+                dialogUtils.toast(it)
+                onRefreshStop()
             }
         })
         disposable.add(viewModel.getWalletData()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe( { data ->
                     Timber.d("wallet updated!!")
                     if (data != null) {
                         Timber.d("data $data")
                         setAppBarText(data.bitcoinAmount, data.bitcoinValue, data.currency, data.exchange)
                         setupList(data.transactions)
-                        transactionRecycleView.visibility = View.VISIBLE
+                        binding.transactionRecycleView.visibility = View.VISIBLE
                     } else {
                         setAppBarText("0", "0", "-", "-")
                     }
@@ -143,42 +142,30 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.fetchNetworkData()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
-    }
-
     override fun onRefresh() {
         viewModel.fetchNetworkData()
     }
 
     private fun onRefreshStop() {
-        walletRefreshLayout.isRefreshing = false
+        binding.walletRefreshLayout.isRefreshing = false
     }
 
-    private fun setupList(transactionItems: List<Transaction>?) {
-        val itemAdapter = adapter
-        if (!transactionItems!!.isEmpty()) {
-            itemAdapter!!.replaceWith(transactionItems)
+    private fun setupList(transactionItems: List<Transaction>) {
+        if (!transactionItems.isEmpty()) {
+            transactionsAdapter.replaceWith(transactionItems)
         } else {
-            itemAdapter!!.replaceWith(ArrayList<Transaction>())
+            transactionsAdapter.replaceWith(ArrayList<Transaction>())
         }
     }
 
     @SuppressLint("SetTextI18n")
     private fun setAppBarText(btcAmount: String?, btcValue: String?, currency: String?, exchange: String?) {
-        bitcoinTitle.setText(R.string.wallet_account_balance)
+        binding.bitcoinTitle.setText(R.string.wallet_account_balance)
         if(btcAmount != null) {
-            bitcoinPrice.text = btcAmount
+            binding.bitcoinPrice.text = btcAmount
         }
         if(btcValue != null && currency != null && exchange != null) {
-            bitcoinValue.text = "≈ $btcValue $currency ($exchange)"
+            binding.bitcoinValue.text = "≈ $btcValue $currency ($exchange)"
         }
     }
 

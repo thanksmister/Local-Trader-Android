@@ -20,6 +20,8 @@ import android.arch.persistence.room.*
 import com.thanksmister.bitcoin.localtrader.network.api.model.User
 
 import io.reactivex.Flowable
+import io.reactivex.Maybe
+import io.reactivex.Single
 
 /**
  * Data Access Object.
@@ -31,7 +33,7 @@ interface UserDao {
      * @return list of all data items.
      */
     @Query("SELECT * FROM User")
-    fun getItems(): Flowable<List<User>>
+    fun getItems(): Single<List<User>>
 
     /**
      * Insert an item in the database. If the item already exists, replace it.

@@ -58,7 +58,6 @@ class ContactsActivity : BaseActivity() {
     lateinit var viewModel: ContactsViewModel
 
     private var connectionLiveData: ConnectionLiveData? = null
-    private val disposable = CompositeDisposable()
     private var adapter: ContactAdapter? = null
     private var dashboardType: DashboardType? = DashboardType.NONE
 

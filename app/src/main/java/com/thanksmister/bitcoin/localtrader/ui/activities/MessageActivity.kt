@@ -49,7 +49,6 @@ class MessageActivity : BaseActivity() {
     @Inject
     lateinit var viewModel: MessageViewModel
 
-    private val disposable = CompositeDisposable()
     private var contactId: Int = 0
     private var contactName: String? = null
     private var message: String = ""
@@ -125,17 +124,6 @@ class MessageActivity : BaseActivity() {
                 dialogUtils.toast(R.string.toast_error_message);
             }
         })
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
     }
 
     public override fun onSaveInstanceState(outState: Bundle) {

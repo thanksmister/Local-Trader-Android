@@ -30,7 +30,7 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates
 import kotlinx.android.synthetic.main.adapter_dashboard_notification_list.view.*
 import kotlinx.android.synthetic.main.view_empty_notifications.view.*
 
-class NotificationAdapter(private val context: Context, private val onItemClickListener: OnItemClickListener): RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
+class NotificationAdapter(private val onItemClickListener: OnItemClickListener): RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
 
     private var items = emptyList<Notification>()
 
@@ -45,7 +45,7 @@ class NotificationAdapter(private val context: Context, private val onItemClickL
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationAdapter.ViewHolder {
-        val itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false)
+        val itemLayoutView = LayoutInflater.from(parent.context).inflate(viewType, parent, false)
         return ViewHolder(itemLayoutView)
     }
 

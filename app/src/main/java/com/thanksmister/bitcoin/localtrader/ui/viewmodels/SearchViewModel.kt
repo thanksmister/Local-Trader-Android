@@ -20,7 +20,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import android.content.Context
 import android.content.SharedPreferences
 import android.location.*
 import android.location.Address
@@ -37,13 +36,8 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.utils.Doubles
-import com.thanksmister.bitcoin.localtrader.utils.Parser
-import com.thanksmister.bitcoin.localtrader.utils.SearchUtils
+import com.thanksmister.bitcoin.localtrader.utils.*
 import io.reactivex.Flowable
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import pl.charmas.android.reactivelocation2.ReactiveLocationProvider
 import timber.log.Timber
 import java.net.SocketTimeoutException
@@ -52,14 +46,22 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class SearchViewModel @Inject
-constructor(application: Application, private val methodsDao: MethodsDao, private val currenciesDao: CurrenciesDao,
-            private val sharedPreferences: SharedPreferences, private val locationManager: LocationManager,
+constructor(application: Application, 
+            private val methodsDao: MethodsDao, 
+            private val currenciesDao: CurrenciesDao,
+            private val sharedPreferences: SharedPreferences, 
+            private val locationManager: LocationManager,
             private val preferences: Preferences) : BaseViewModel(application) {
 
     private val address = MutableLiveData<Address>()
     private val addresses = MutableLiveData<List<Address>>()
     private val advertisements = MutableLiveData<List<Advertisement>>()
-    private var fetcher: LocalBitcoinsFetcher? = null
+    
+    private val fetcher: LocalBitcoinsFetcher by lazy {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        LocalBitcoinsFetcher(getApplication(), api, preferences)
+    }
 
     fun getAdvertisements(): LiveData<List<Advertisement>> {
         return advertisements
@@ -78,7 +80,6 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
     }
 
     private fun setAdvertisements(advertisements: List<Advertisement>) {
-        Timber.d("setAdvertisements: ${advertisements.size}")
         this.advertisements.value = advertisements
     }
 
@@ -101,10 +102,7 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
     }
 
     init {
-        this.address.value = SearchUtils.getSearchLocationAddress(sharedPreferences)
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
+        address.value = SearchUtils.getSearchLocationAddress(sharedPreferences)
     }
 
     fun getMethods(): Flowable<List<Method>> {
@@ -176,14 +174,15 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
         return SearchUtils.getSearchCountryCode(sharedPreferences)
     }
 
-    fun createContact(tradeType: TradeType?, countryCode: String?, onlineProvider: String?, adId: Int, amount: String, name: String, phone: String,
-                      email: String, iban: String, bic: String, reference: String, message: String, sortCode: String, billerCode: String,
+    fun createContact(tradeType: TradeType?, countryCode: String?, onlineProvider: String?,
+                      adId: Int, amount: String, name: String, phone: String,
+                      email: String, iban: String, bic: String, reference: String,
+                      message: String, sortCode: String, billerCode: String,
                       accountNumber: String, bsb: String, ethereumAddress: String) {
 
-        disposable.add(fetcher!!.createContact(adId.toString(), tradeType, countryCode, onlineProvider, amount, name, phone, email,
+        disposable += fetcher.createContact(adId.toString(), tradeType, countryCode, onlineProvider, amount, name, phone, email,
                 iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe ({
                     if(it != null) {
                         showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_trade_request_sent))
@@ -198,7 +197,7 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                     } else {
                         showNetworkMessage(networkException.message, networkException.code)
                     }
-                }))
+                })
     }
 
     @SuppressLint("MissingPermission")
@@ -208,10 +207,9 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                 .setNumUpdates(5)
                 .setInterval(100)
         val locationProvider = ReactiveLocationProvider(getApplication())
-        disposable.add(locationProvider.getUpdatedLocation(request)
-                .subscribeOn(Schedulers.newThread())
+        disposable += locationProvider.getUpdatedLocation(request)
                 .timeout(20000, TimeUnit.MILLISECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulersComputation()
                 .subscribe ({
                     if (it == null) {
                         reverseLocationLookup(it);
@@ -221,7 +219,7 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                 }, {
                     error -> Timber.e("Error startLocationMonitoring ${error.message}")
                     getLocationFromLocationManager()
-                }))
+                })
     }
 
     private fun getLocationFromLocationManager() {
@@ -260,9 +258,8 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
 
     fun doAddressLookup(locationName: String) {
         val locationProvider =  ReactiveLocationProvider(getApplication());
-        disposable.add(locationProvider.getGeocodeObservable(locationName, MAX_ADDRESSES)
-                .subscribeOn(Schedulers.computation())
-                .observeOn( AndroidSchedulers.mainThread())
+        disposable += locationProvider.getGeocodeObservable(locationName, MAX_ADDRESSES)
+                .applySchedulersComputation()
                 .subscribe ({
                     if (it != null) {
                         setAddresses(it)
@@ -270,14 +267,13 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                 }, {
                     error -> Timber.e("Error doAddressLookup ${error.message}")
                     showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_address_lookup_description))
-                }))
+                })
     }
 
     private fun reverseLocationLookup(location: Location) {
         val locationProvider = ReactiveLocationProvider(getApplication())
-        disposable.add(locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
-                .subscribeOn(Schedulers.io())
-                .observeOn( AndroidSchedulers.mainThread())
+        disposable += locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
+                .applySchedulersComputation()
                 .filter {items -> items.isNotEmpty()}
                 .map { items -> items[0]}
                 .subscribe ({
@@ -290,15 +286,14 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                 }, {
                     error -> Timber.e("Error reverseLocationLookup ${error.message}")
                     showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_address_lookup_description))
-                }))
+                })
     }
 
     fun getPlaces(tradeType: TradeType) {
         val latitude = SearchUtils.getSearchLatitude(sharedPreferences)
         val longitude = SearchUtils.getSearchLongitude(sharedPreferences)
-        disposable.add(fetcher!!.getPlaces(latitude, longitude)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += fetcher.getPlaces(latitude, longitude)
+                .applySchedulers()
                 .filter {items -> items.isNotEmpty()}
                 .map { items -> items[0]}
                 .subscribe ({
@@ -312,7 +307,7 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                     } else {
                         showAlertMessage(error.message)
                     }
-                }))
+                })
     }
 
     fun getOnlineAdvertisements(tradeType: TradeType) {
@@ -326,11 +321,9 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
             "sell-bitcoins-online";
         }
         if (countryName.toLowerCase() != "any" && paymentKey.toLowerCase() == "all") {
-            Timber.d("searchOnlineAds(url, countryCode, countryNameFix)")
             val countryNameFix = countryName.replace(" ", "-");
-            disposable.add(fetcher!!.searchOnlineAds(url, countryCode, countryNameFix)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
+            disposable += fetcher.searchOnlineAds(url, countryCode, countryNameFix)
+                    .applySchedulers()
                     .subscribe ({
                        setAdvertisements(it)
                     }, {
@@ -339,13 +332,11 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                         val errorHandler = RetrofitErrorHandler(getApplication())
                         val networkException = errorHandler.create(error)
                         showNetworkMessage(networkException.message, networkException.code)
-                    }))
+                    })
         } else if (countryName.toLowerCase() != "any" && paymentKey.toLowerCase() != "all") {
-            Timber.d("searchOnlineAds(url, countryCode, countryNameFix, paymentMethod)")
             val countryNameFix = countryName.replace(" ", "-");
-            disposable.add(fetcher!!.searchOnlineAds(url, countryCode, countryNameFix, paymentKey)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
+            disposable += fetcher.searchOnlineAds(url, countryCode, countryNameFix, paymentKey)
+                    .applySchedulers()
                     .subscribe ({
                         setAdvertisements(it)
                     }, {
@@ -353,12 +344,10 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                         val errorHandler = RetrofitErrorHandler(getApplication())
                         val networkException = errorHandler.create(error)
                         showNetworkMessage(networkException.message, networkException.code)
-                    }))
+                    })
         } else if (paymentKey.toLowerCase() == "all" && currency.toLowerCase() != "any") {
-            Timber.d("searchOnlineAdsCurrency(url, currency)")
-            disposable.add(fetcher!!.searchOnlineAdsCurrency(url, currency)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
+            disposable += fetcher.searchOnlineAdsCurrency(url, currency)
+                    .applySchedulers()
                     .subscribe ({
                         setAdvertisements(it)
                     }, {
@@ -366,12 +355,10 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                         val errorHandler = RetrofitErrorHandler(getApplication())
                         val networkException = errorHandler.create(error)
                         showNetworkMessage(networkException.message, networkException.code)
-                    }))
+                    })
         } else if (paymentKey.toLowerCase() != "all" && currency.toLowerCase() == "any") {
-            Timber.d("searchOnlineAdsPayment(url, paymentMethod)")
-            disposable.add(fetcher!!.searchOnlineAdsPayment(url, paymentKey)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
+            disposable += fetcher.searchOnlineAdsPayment(url, paymentKey)
+                    .applySchedulers()
                     .subscribe ({
                         setAdvertisements(it)
                     }, {
@@ -379,12 +366,10 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                         val errorHandler = RetrofitErrorHandler(getApplication())
                         val networkException = errorHandler.create(error)
                         showNetworkMessage(networkException.message, networkException.code)
-                    }))
+                    })
         } else if (paymentKey.toLowerCase() != "all" && currency.toLowerCase() != "any") {
-            Timber.d("searchOnlineAdsCurrencyPayment(url, currency, paymentMethod)")
-            disposable.add(fetcher!!.searchOnlineAdsCurrencyPayment(url, currency, paymentKey)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
+            disposable += fetcher.searchOnlineAdsCurrencyPayment(url, currency, paymentKey)
+                    .applySchedulers()
                     .subscribe ({
                         setAdvertisements(it)
                     }, {
@@ -392,12 +377,10 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                         val errorHandler = RetrofitErrorHandler(getApplication())
                         val networkException = errorHandler.create(error)
                         showNetworkMessage(networkException.message, networkException.code)
-                    }))
+                    })
         } else {
-            Timber.d("searchOnlineAdsAll(url)")
-            disposable.add(fetcher!!.searchOnlineAdsAll(url)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
+            disposable += fetcher.searchOnlineAdsAll(url)
+                    .applySchedulers()
                     .subscribe ({
                         setAdvertisements(it)
                     }, {
@@ -405,7 +388,7 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                         val errorHandler = RetrofitErrorHandler(getApplication())
                         val networkException = errorHandler.create(error)
                         showNetworkMessage(networkException.message, networkException.code)
-                    }))
+                    })
         }
     }
 
@@ -425,9 +408,8 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
             }
         }
         val split = url!!.split("/")
-        disposable.add(fetcher!!.searchAdsByPlace(split[0], split[1], split[2])
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += fetcher.searchAdsByPlace(split[0], split[1], split[2])
+                .applySchedulers()
                 .filter {items -> items.isNotEmpty()}
                 .subscribe ({
                     Collections.sort(it, AdvertisementNameComparator())
@@ -437,7 +419,7 @@ constructor(application: Application, private val methodsDao: MethodsDao, privat
                     val errorHandler = RetrofitErrorHandler(getApplication())
                     val networkException = errorHandler.create(error)
                     showNetworkMessage(networkException.message, networkException.code)
-                }))
+                })
     }
 
     class AdvertisementNameComparator : Comparator<Advertisement> {

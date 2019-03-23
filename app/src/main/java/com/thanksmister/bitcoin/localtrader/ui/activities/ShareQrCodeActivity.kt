@@ -29,6 +29,7 @@ import android.util.AndroidRuntimeException
 import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
+import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -66,13 +67,7 @@ class ShareQrCodeActivity : Activity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        disposable.disposeProper()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

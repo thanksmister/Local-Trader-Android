@@ -18,7 +18,6 @@
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
@@ -26,45 +25,49 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.databinding.DataBindingUtil
 import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
-import android.text.TextUtils
-import android.view.*
-import android.widget.TextView
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import com.kobakei.ratethisapp.RateThisApp
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
+import com.thanksmister.bitcoin.localtrader.databinding.ActivityMainBinding
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.DashboardType
 import com.thanksmister.bitcoin.localtrader.network.api.model.User
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.network.sync.SyncUtils
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
-import com.thanksmister.bitcoin.localtrader.ui.fragments.*
+import com.thanksmister.bitcoin.localtrader.ui.fragments.AdvertisementsFragment
+import com.thanksmister.bitcoin.localtrader.ui.fragments.ContactsFragment
+import com.thanksmister.bitcoin.localtrader.ui.fragments.NotificationsFragment
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.DashboardViewModel
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SplashViewModel
-import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.drawer_header.*
+import kotlinx.android.synthetic.main.drawer_header.view.*
 import timber.log.Timber
-import java.lang.Exception
 import javax.inject.Inject
 
 class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, NavigationView.OnNavigationItemSelectedListener {
+
+    private val binding: ActivityMainBinding by lazy {
+        DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+    }
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -72,7 +75,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     lateinit var viewModel: DashboardViewModel
 
     private var connectionLiveData: ConnectionLiveData? = null
-    private val disposable = CompositeDisposable()
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
@@ -94,23 +96,11 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.d("onCreate")
-        super.onCreate(savedInstanceState)
-        try {
-            setContentView(R.layout.activity_main)
-        } catch (e: Exception) {
-            dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_device_softare_description),
-                    DialogInterface.OnClickListener { dialog, which ->
-                        finish()
-                    })
-            return
-        }
 
-        setSupportActionBar(toolbar)
-        if (supportActionBar != null) {
-            //supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            //supportActionBar!!.setHomeButtonEnabled(true)
-            supportActionBar!!.title = ""
-        }
+        super.onCreate(savedInstanceState)
+
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.title = ""
 
         val bitcoinUri = intent.getStringExtra(BITCOIN_URI)
         val authenticated = preferences.hasCredentials()
@@ -122,22 +112,20 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
             }
         }
 
-        val toggle = ActionBarDrawerToggle(
-                this, drawerLayout, toolbar, R.string.menu_action_blockchain, R.string.menu_action_advertise)
+        val toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.menu_action_blockchain, R.string.menu_action_advertise)
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        navigationView.setNavigationItemSelectedListener(this)
+        binding.navigationView.setNavigationItemSelectedListener(this)
+        binding.navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
-        val navigation = findViewById<View>(R.id.navigation) as BottomNavigationView
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+        supportFragmentManager.beginTransaction().replace(R.id.mainContainer,
+                AdvertisementsFragment.newInstance(), ADVERTISEMENTS_FRAGMENT).commit()
 
-        supportFragmentManager.beginTransaction().replace(R.id.mainContainer, AdvertisementsFragment.newInstance(), ADVERTISEMENTS_FRAGMENT).commit()
-
-        mainSwipeLayout.setOnRefreshListener(this)
-        mainSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
-        mainSwipeLayout.setProgressViewOffset(false, 48, 186)
-        mainSwipeLayout.setDistanceToTriggerSync(250)
+        binding.mainSwipeLayout.setOnRefreshListener(this)
+        binding.mainSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
+        binding.mainSwipeLayout.setProgressViewOffset(false, 48, 186)
+        binding.mainSwipeLayout.setDistanceToTriggerSync(250)
 
         // Application rating dialog
         val config = RateThisApp.Config(7, 10)
@@ -154,14 +142,17 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         super.onStart()
         connectionLiveData = ConnectionLiveData(this@MainActivity)
         connectionLiveData?.observe(this, Observer { connected ->
-            if(!connected!!) {
-                onRefreshStop()
-                dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.toast(getString(R.string.toast_refreshing_data))
-                    viewModel.getDashboardData()
-                }, DialogInterface.OnClickListener { dialog, which ->
-                    //finish()
-                })
+            connected?.let {
+                if (!it) {
+                    onRefreshStop()
+                    dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_network_retry),
+                            DialogInterface.OnClickListener { dialog, which ->
+                                dialogUtils.toast(getString(R.string.toast_refreshing_data))
+                                viewModel.getDashboardData()
+                            }, DialogInterface.OnClickListener { dialog, which ->
+                        //finish()
+                    })
+                }
             }
         })
 
@@ -193,8 +184,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                if (drawerLayout != null)
-                    drawerLayout!!.openDrawer(GravityCompat.START)
+                binding.drawerLayout.openDrawer(GravityCompat.START)
                 return true
             }
             R.id.action_search -> {
@@ -260,94 +250,74 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     private fun onRefreshStop() {
-        mainSwipeLayout.isRefreshing = false
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Timber.d("onPause")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Timber.d("onDestroy")
-        if (!disposable.isDisposed) {
-            try {
-                Timber.d("disposable.clear")
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        binding.mainSwipeLayout.isRefreshing = false
     }
 
     private fun observeViewModel(viewModel: DashboardViewModel) {
         viewModel.getNetworkMessage().observe(this, Observer { messageData ->
             onRefreshStop()
-            if(messageData != null) {
+            messageData?.let {
                 when {
-                    RetrofitErrorHandler.isHttp403Error(messageData.code) && messageData.message != null -> {
-                        dialogUtils.showAlertDialog(this@MainActivity, messageData.message!!, DialogInterface.OnClickListener { dialog, which ->
+                    RetrofitErrorHandler.isHttp403Error(it.code) && it.message != null -> {
+                        dialogUtils.showAlertDialog(this@MainActivity, it.message!!, DialogInterface.OnClickListener { dialog, which ->
                             logOut()
                         })
                     }
                     RetrofitErrorHandler.isNetworkError(messageData.code) -> {
-                        dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
+                        dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
                             dialogUtils.toast(getString(R.string.toast_refreshing_data))
                             viewModel.getDashboardData()
-                        }, DialogInterface.OnClickListener { _, _ ->  })
+                        }, DialogInterface.OnClickListener { _, _ -> })
                     }
-                    messageData.message != null -> dialogUtils.showAlertDialog(this@MainActivity, messageData.message!!, DialogInterface.OnClickListener { dialog, which ->
+                    it.message != null -> dialogUtils.showAlertDialog(this@MainActivity, it.message!!, DialogInterface.OnClickListener { dialog, which ->
                         dialogUtils.toast(getString(R.string.toast_refreshing_data))
                         viewModel.getDashboardData()
-                    }, DialogInterface.OnClickListener { _, _ ->  })
+                    }, DialogInterface.OnClickListener { _, _ -> })
                 }
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
-            if(message != null)
+            message?.let {
                 onRefreshStop()
-                dialogUtils.showAlertDialog(this@MainActivity, message!!)
+                dialogUtils.showAlertDialog(this@MainActivity, it)
+            }
+
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            if(message != null) {
-                dialogUtils.toast(message)
+            message?.let {
+                dialogUtils.toast(it)
             }
         })
         viewModel.getSyncing().observe(this, Observer {
-            if(it == SplashViewModel.SYNC_COMPLETE) {
+            if (it == SplashViewModel.SYNC_COMPLETE) {
                 onRefreshStop()
             } else if (it == SplashViewModel.SYNC_ERROR) {
                 onRefreshStop()
                 viewModel.onCleared()
             }
         })
-        disposable.add(
-                viewModel.getExchange()
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe( { exchange ->
-                            if(exchange != null) {
-                                runOnUiThread {
-                                    setHeaderItem(exchange.rate, exchange.currency, exchange.name);
-                                }
-                            }
-                            onRefreshStop()
-                        }, { error ->
-                            Timber.e("Exchange error: $error")
-                        }))
-        disposable.add (
-                viewModel.getUser()
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe( { user ->
-                            if(user != null) {
-                                setupNavigationView(user)
-                            }
-                            onRefreshStop()
-                        }, { error ->
-                            Timber.e("User error: $error")
-                        }))
+        disposable += viewModel.getExchange()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ exchange ->
+                    exchange?.let {
+                        setHeaderItem(it.rate, it.currency, it.name)
+                    }
+                    onRefreshStop()
+                }, { error ->
+                    Timber.e("Exchange error: $error")
+                })
+        disposable += viewModel.getUser()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ user ->
+                    user?.let {
+                        setupNavigationView(it)
+                    }
+                    onRefreshStop()
+                }, { error ->
+                    Timber.e("User error: $error")
+                })
 
         dialogUtils.toast(getString(R.string.toast_refreshing_data))
         viewModel.getDashboardData()
@@ -357,7 +327,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.dialog_edit_advertisements),
                 DialogInterface.OnClickListener { _, _ ->
                     try {
-                        startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
                     } catch (ex: ActivityNotFoundException) {
                         Toast.makeText(this@MainActivity, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
                     }
@@ -367,34 +337,21 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     private fun setupNavigationView(user: User) {
-        try {
-            val headerView = navigationView.getHeaderView(0)
-            if (headerView != null) {
-                val drawerUserName = headerView.findViewById<TextView>(R.id.drawerUserName)
-                drawerUserName.text = user.username
-                val drawerTradeCount = headerView.findViewById<TextView>(R.id.drawerTradeCount)
-                drawerTradeCount.text = user.confirmedTradeCountText
-                val drawerTradeFeedback = headerView.findViewById<TextView>(R.id.drawerTradeFeedback)
-                drawerTradeFeedback.text = user.feedbackScore
-            }
-        } catch (e: Exception) {
-            System.out.print(e.message)
-            Timber.d(e.message)
-        }
+        binding.navigationView.drawerHeaderView.drawerUserName.text = user.username
+        binding.navigationView.drawerHeaderView.drawerTradeCount.text = user.confirmedTradeCountText
+        binding.navigationView.drawerHeaderView.drawerTradeFeedback.text = user.feedbackScore
     }
 
     private fun startSendActivity(bitcoinAddress: String?, bitcoinAmount: String?) {
         startActivity(SendActivity.createStartIntent(this, bitcoinAddress, bitcoinAmount))
     }
 
-
-
     @SuppressLint("SetTextI18n")
     private fun setHeaderItem(rate: String?, currency: String?, exchange: String?) {
         headerBitcoinTitle.setText(R.string.text_title_market_price)
-        if(rate != null && currency != null && exchange != null) {
-            headerBitcoinPrice.text = rate + " " + currency + "/" + getString(R.string.btc)
-            headerBitcoinValue.text = "$exchange ($currency)"
+        if (!rate.isNullOrEmpty() && !currency.isNullOrEmpty() && !exchange.isNullOrEmpty()) {
+            binding.headerBitcoinPrice.text = rate + " " + currency + "/" + getString(R.string.btc)
+            binding.headerBitcoinValue.text = "$exchange ($currency)"
         }
     }
 
@@ -403,7 +360,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         const val CONTACTS_FRAGMENT = "com.thanksmister.fragment.CONTACTS_FRAGMENT"
         const val NOTIFICATIONS_FRAGMENT = "com.thanksmister.fragment.NOTIFICATIONS_FRAGMENT"
         const val BITCOIN_URI = "com.thanksmister.extra.BITCOIN_URI"
-
         const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
         const val EXTRA_NOTIFICATION_TYPE = "extra_notification_type"
         fun createStartIntent(context: Context, bitcoinUri: String): Intent {

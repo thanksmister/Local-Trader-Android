@@ -40,8 +40,6 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_dashboard_items.*
 import timber.log.Timber
@@ -49,17 +47,18 @@ import javax.inject.Inject
 
 class ContactsFragment : BaseFragment() {
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
-    @Inject
-    lateinit var viewModel: ContactsViewModel
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject lateinit var viewModel: ContactsViewModel
 
-    private val disposable = CompositeDisposable()
-    private var adapter: ContactsAdapter? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        //retainInstance = true
+    private val contactsAdapter: ContactsAdapter by lazy {
+        ContactsAdapter(requireActivity(), object : ContactsAdapter.OnItemClickListener {
+            override fun onSearchButtonClicked() {
+                showSearchScreen()
+            }
+            override fun onAdvertiseButtonClicked() {
+                createAdvertisementScreen()
+            }
+        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -68,54 +67,28 @@ class ContactsFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        contactsList.setHasFixedSize(true)
-        val linearLayoutManager = LinearLayoutManager(activity)
-        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
-        contactsList.layoutManager = linearLayoutManager
-
+        contactsList.apply {
+            setHasFixedSize(true)
+            val linearLayoutManager = LinearLayoutManager(activity)
+            linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
+            layoutManager = linearLayoutManager
+            adapter = contactsAdapter
+        }
+        ItemClickSupport.addTo(contactsList).setOnItemClickListener { recyclerView, position, v ->
+            showContact(contactsAdapter.getItemAt(position))
+        }
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactsViewModel::class.java)
         observeViewModel(viewModel)
     }
 
     private fun setupList(items: List<Contact>) {
-        if (activity != null &&  isAdded) {
-            adapter!!.replaceWith(items)
-            contactsList.adapter = adapter
-        }
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        if(activity != null) {
-            adapter = ContactsAdapter(activity!!, object : ContactsAdapter.OnItemClickListener {
-                override fun onSearchButtonClicked() {
-                    showSearchScreen()
-                }
-
-                override fun onAdvertiseButtonClicked() {
-                    createAdvertisementScreen()
-                }
-            })
-            contactsList.adapter = adapter
-            ItemClickSupport.addTo(contactsList).setOnItemClickListener { recyclerView, position, v -> showContact(adapter!!.getItemAt(position)) }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        contactsAdapter.replaceWith(items)
     }
 
     private fun observeViewModel(viewModel: ContactsViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
             if (message != null && activity != null) {
-                dialogUtils.showAlertDialog(activity!!, message)
+                dialogUtils.showAlertDialog(requireActivity(), message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
@@ -137,7 +110,7 @@ class ContactsFragment : BaseFragment() {
 
     private fun showContact(contact: Contact?) {
         if (contact != null && contact.contactId != 0 && activity != null) {
-            val intent = ContactActivity.createStartIntent(activity!!, contact.contactId)
+            val intent = ContactActivity.createStartIntent(requireActivity(), contact.contactId)
             startActivity(intent)
         } else {
             dialogUtils.toast(getString(R.string.toast_contact_not_exist))
@@ -146,12 +119,12 @@ class ContactsFragment : BaseFragment() {
 
     private fun createAdvertisementScreen() {
         if(activity != null && isAdded) {
-            dialogUtils.showAlertDialog(activity!!, getString(R.string.dialog_edit_advertisements),
+            dialogUtils.showAlertDialog(requireActivity(), getString(R.string.dialog_edit_advertisements),
                     DialogInterface.OnClickListener { _, _ ->
                         try {
                             startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
                         } catch (ex: ActivityNotFoundException) {
-                            Toast.makeText(activity!!, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
                         }
                     }, DialogInterface.OnClickListener { _, _ ->
                 // na-da
@@ -161,7 +134,7 @@ class ContactsFragment : BaseFragment() {
 
     private fun showSearchScreen() {
         if(activity != null && isAdded) {
-            val intent = SearchActivity.createStartIntent(activity!!)
+            val intent = SearchActivity.createStartIntent(requireActivity())
             startActivity(intent)
         }
     }

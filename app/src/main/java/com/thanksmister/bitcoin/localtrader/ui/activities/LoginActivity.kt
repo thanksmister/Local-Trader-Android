@@ -58,7 +58,6 @@ class LoginActivity : BaseActivity() {
     @Inject
     lateinit var viewModel: LoginViewModel
 
-    val disposable = CompositeDisposable()
     private var OAUTH_URL = ""
     private var endpoint: String? = null
     private var whatsNewShown: Boolean = false
@@ -120,11 +119,6 @@ class LoginActivity : BaseActivity() {
             finish()
         }
         return super.onKeyDown(keyCode, event)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        disposable.dispose()
     }
 
     private fun observeViewModel(viewModel: LoginViewModel) {

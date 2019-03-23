@@ -33,7 +33,7 @@ import kotlinx.android.synthetic.main.adapter_dashboard_advertisement_list.view.
 import kotlinx.android.synthetic.main.view_empty_advertisement.view.*
 
 
-class AdvertisementsAdapter(private val context: Context, private val onItemClickListener: OnItemClickListener) : RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder>() {
+class AdvertisementsAdapter(private val onItemClickListener: OnItemClickListener) : RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder>() {
 
     private var items = emptyList<Advertisement>()
     private var methods = emptyList<Method>()
@@ -50,7 +50,7 @@ class AdvertisementsAdapter(private val context: Context, private val onItemClic
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val itemLayoutView = LayoutInflater.from(context).inflate(viewType, parent, false)
+        val itemLayoutView = LayoutInflater.from(parent.context).inflate(viewType, parent, false)
         return ViewHolder(itemLayoutView)
     }
 

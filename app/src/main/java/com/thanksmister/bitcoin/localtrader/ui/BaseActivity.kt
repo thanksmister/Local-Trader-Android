@@ -34,6 +34,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.ui.activities.*
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
+import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import dagger.android.support.DaggerAppCompatActivity
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -58,7 +59,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
     @Inject
     lateinit var localBitcoinsDatabase: LocalTraderDatabase
 
-    private val disposable = CompositeDisposable()
+    val disposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,13 +68,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        disposable.disposeProper()
     }
 
     // TODO this is not working from the notification?

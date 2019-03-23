@@ -55,7 +55,6 @@ class EditAdvertisementActivity : BaseActivity() {
     @Inject
     lateinit var viewModel: AdvertisementsViewModel
 
-    private val disposable = CompositeDisposable()
     private var advertisement: Advertisement? = null
     private var adId: Int = 0
 
@@ -94,17 +93,6 @@ class EditAdvertisementActivity : BaseActivity() {
         toast(getString(R.string.text_post_update_canceled))
         setResult(RESULT_CANCELED)
         finish()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
     }
 
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {

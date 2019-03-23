@@ -37,6 +37,7 @@ import com.thanksmister.bitcoin.localtrader.ui.activities.SettingsActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SettingsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.CurrencyUtils
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
+import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import dagger.android.support.AndroidSupportInjection
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -137,13 +138,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
     override fun onDestroy() {
         super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        disposable.disposeProper()
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {

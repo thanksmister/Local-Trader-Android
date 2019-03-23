@@ -58,7 +58,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     @Inject
     lateinit var viewModel: ContactsViewModel
 
-    private val disposable = CompositeDisposable()
     private var connectionLiveData: ConnectionLiveData? = null
 
     private var detailsEthereumAddress: TextView? = null

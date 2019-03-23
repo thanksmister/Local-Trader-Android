@@ -51,7 +51,9 @@ import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class AdvertisementsViewModel @Inject
-constructor(application: Application, private val advertisementsDao: AdvertisementsDao, private val methodsDao: MethodsDao,
+constructor(application: Application,
+            private val advertisementsDao: AdvertisementsDao,
+            private val methodsDao: MethodsDao,
             private val preferences: Preferences) : BaseViewModel(application) {
 
     private val advertisementDeleted = MutableLiveData<Boolean>()

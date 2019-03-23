@@ -60,7 +60,6 @@ class ContactHistoryActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListe
     @Inject
     lateinit var viewModel: ContactsViewModel
 
-    private val disposable = CompositeDisposable()
     private var connectionLiveData: ConnectionLiveData? = null
 
     private var detailsEthereumAddress: TextView? = null
@@ -230,13 +229,6 @@ class ContactHistoryActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListe
 
     override fun onDestroy() {
         super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
         unregisterReceiver(receiver)
     }
 

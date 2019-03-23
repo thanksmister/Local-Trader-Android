@@ -20,7 +20,6 @@ package com.thanksmister.bitcoin.localtrader.ui.fragments
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
-import android.content.ActivityNotFoundException
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
@@ -40,132 +39,103 @@ import com.thanksmister.bitcoin.localtrader.ui.activities.SearchActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertisementsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.AdvertisementsViewModel
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import kotlinx.android.synthetic.main.fragment_advertisements.*
 import timber.log.Timber
 import javax.inject.Inject
 
 class AdvertisementsFragment : BaseFragment() {
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
-    @Inject
-    lateinit var viewModel: AdvertisementsViewModel
+    @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+    @Inject lateinit var viewModel: AdvertisementsViewModel
 
-    private val disposable = CompositeDisposable()
-    private var adapter: AdvertisementsAdapter? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private val advertisementsAdapter: AdvertisementsAdapter by lazy {
+        AdvertisementsAdapter(object : AdvertisementsAdapter.OnItemClickListener {
+            override fun onSearchButtonClicked() {
+                showSearchScreen()
+            }
+            override fun onAdvertiseButtonClicked() {
+                createAdvertisementScreen()
+            }
+        })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         super.onViewCreated(view, savedInstanceState)
-        advertisementsList.setHasFixedSize(true)
-        val linearLayoutManager = LinearLayoutManager(activity)
-        linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
-        advertisementsList.layoutManager = linearLayoutManager
+
+        advertisementsList.apply {
+            setHasFixedSize(true)
+            val linearLayoutManager = LinearLayoutManager(activity)
+            linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
+            layoutManager = linearLayoutManager
+            adapter = advertisementsAdapter
+        }
+
+        ItemClickSupport.addTo(advertisementsList).setOnItemClickListener { _, position, v ->
+            val advertisement = advertisementsAdapter.getItemAt(position)
+            advertisement?.let {
+                showAdvertisement(advertisement)
+            }
+        }
 
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(AdvertisementsViewModel::class.java)
         observeViewModel(viewModel)
+        lifecycle.addObserver(viewModel)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_advertisements, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        if (activity != null) {
-            adapter = AdvertisementsAdapter(activity!!, object : AdvertisementsAdapter.OnItemClickListener {
-                override fun onSearchButtonClicked() {
-                    showSearchScreen()
-                }
-                override fun onAdvertiseButtonClicked() {
-                    createAdvertisementScreen()
-                }
-            })
-            advertisementsList.adapter = adapter
-        }
-        ItemClickSupport.addTo(advertisementsList).setOnItemClickListener { _, position, v ->
-            val advertisement = adapter!!.getItemAt(position)
-            if (advertisement != null) {
-                showAdvertisement(advertisement)
-            }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
-    }
-
     private fun observeViewModel(viewModel: AdvertisementsViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
-            if (message != null && activity != null) {
-                dialogUtils.showAlertDialog(activity!!, message)
+            message?.let {
+                dialogUtils.showAlertDialog(requireActivity(), message)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            if (message != null && activity != null) {
-                dialogUtils.toast(message)
+            message?.let {
+                dialogUtils.toast(it)
             }
         })
-        disposable.add(viewModel.getAdvertisementsData()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += viewModel.getAdvertisementsData()
+                .applySchedulers()
                 .subscribe( { data ->
                     if(data != null) {
                       setupList(data.advertisements, data.methods)
                     }
                 }, { error ->
                     Timber.e(error.message)
-                }))
+                })
     }
 
     private fun setupList(advertisementItems: List<Advertisement>, methods: List<Method>) {
-        if (isAdded && adapter != null) {
-            adapter!!.replaceWith(advertisementItems, methods)
-            advertisementsList.adapter = adapter
-        }
+        advertisementsAdapter.replaceWith(advertisementItems, methods)
     }
 
     private fun showAdvertisement(advertisement: Advertisement) {
-        if(activity != null) {
-            val intent = AdvertisementActivity.createStartIntent(activity!!, advertisement.adId)
-            startActivityForResult(intent, AdvertisementActivity.REQUEST_CODE)
-        }
+        val intent = AdvertisementActivity.createStartIntent(requireActivity(), advertisement.adId)
+        startActivityForResult(intent, AdvertisementActivity.REQUEST_CODE)
     }
 
     private fun createAdvertisementScreen() {
-        if(activity != null && isAdded) {
-            dialogUtils.showAlertDialog(activity!!, getString(R.string.dialog_edit_advertisements),
-                    DialogInterface.OnClickListener { _, _ ->
-                        try {
-                            startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)))
-                        } catch (ex: ActivityNotFoundException) {
-                            Toast.makeText(activity!!, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
-                        }
-                    }, DialogInterface.OnClickListener { _, _ ->
-                        // na-da
-                    })
-        }
+        dialogUtils.showAlertDialog(requireActivity(), getString(R.string.dialog_edit_advertisements),
+                DialogInterface.OnClickListener { _, _ ->
+                    try {
+                        startActivity( Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)))
+                    } catch (ex: Exception) {
+                        Toast.makeText(requireActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
+                    }
+                }, DialogInterface.OnClickListener { _, _ ->
+            // na-da
+        })
     }
 
     private fun showSearchScreen() {
-        if (isAdded && activity != null) {
-            val intent = SearchActivity.createStartIntent(activity!!)
-            startActivity(intent)
-        }
+        val intent = SearchActivity.createStartIntent(requireActivity())
+        startActivity(intent)
     }
 
     companion object {

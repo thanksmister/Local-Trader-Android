@@ -51,7 +51,6 @@ class SearchResultsActivity : BaseActivity() {
     @Inject
     lateinit var viewModel: SearchViewModel
 
-    private val disposable = CompositeDisposable()
     private var adapter: AdvertiseAdapter? = null
     private var tradeType = TradeType.NONE
     private var methods: List<Method> = emptyList()
@@ -140,17 +139,6 @@ class SearchResultsActivity : BaseActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.searchresults, menu)
         return true
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
     }
 
     private fun showContent() {
