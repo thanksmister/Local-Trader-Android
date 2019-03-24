@@ -31,7 +31,10 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
+import com.thanksmister.bitcoin.localtrader.utils.Parser
 import com.thanksmister.bitcoin.localtrader.utils.StringUtils
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -43,7 +46,11 @@ class MessageViewModel @Inject
 constructor(application: Application, private val preferences: Preferences) : BaseViewModel(application) {
 
     private val messagePostStatus = MutableLiveData<Boolean>()
-    private var fetcher: LocalBitcoinsFetcher? = null
+    private val fetcher: LocalBitcoinsFetcher by lazy {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        LocalBitcoinsFetcher(getApplication(), api, preferences)
+    }
 
     fun getMessagePostStatus(): LiveData<Boolean> {
         return messagePostStatus
@@ -54,20 +61,17 @@ constructor(application: Application, private val preferences: Preferences) : Ba
     }
 
     init {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
+
     }
 
     fun postMessage(contactId: Int, message: String) {
-        disposable.add(fetcher!!.postMessage(contactId, message)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += fetcher.postMessage(contactId, message)
+                .applySchedulers()
                 .subscribe ({
-                    Timber.d(it.asString)
+                    Timber.d("json: ${it.toString()}")
                     setMessagePostStatus(true)
                 }, {
-                    error -> Timber.e("Message Post Error" + error.message)
+                    error -> Timber.e("Message Post Error " + error.message)
                     if(error is NetworkException) {
                         if(RetrofitErrorHandler.isHttp403Error(error.code)) {
                             showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
@@ -77,15 +81,16 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                     } else {
                         showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_message))
                     }
-                }))
+                })
     }
 
-    fun postMessageWithAttachment(contactId: Int, message: String, file: File) {
-        disposable.add(fetcher!!.postMessageWithAttachment(contactId, message, file)
+    private fun postMessageWithAttachment(contactId: Int, message: String, file: File) {
+        Timber.d("postMessageWithAttachment: file ${file.path}")
+        disposable += fetcher.postMessageWithAttachment(contactId, message, file)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    Timber.d(it.asString)
+                    Timber.d("json: ${it.toString()}")
                     setMessagePostStatus(true)
                 }, {
                     error -> Timber.e("Message Post Attachment Error" + error.message)
@@ -98,11 +103,11 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                     } else {
                         showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_message))
                     }
-                }))
+                })
     }
 
 
-    fun generateAddressBitmap(contactId: Int, fileName: String, message: String, uri: Uri) {
+    fun generateMessageBitmap(contactId: Int, fileName: String, message: String, uri: Uri) {
         disposable.add(
                 generateBitmapObservable(fileName, uri)
                         .subscribeOn(Schedulers.io())

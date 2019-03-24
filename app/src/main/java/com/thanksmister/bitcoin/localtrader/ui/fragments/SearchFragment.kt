@@ -255,6 +255,7 @@ class SearchFragment : BaseFragment() {
         viewModel.getNetworkMessage().observe(this, Observer { messageData ->
             messageData?.let {
                 if(it.message.isNotEmpty()) {
+                    dialogUtils.hideProgressDialog()
                     dialogUtils.showAlertDialog(requireActivity(), it.message)
                 }
             }
@@ -267,11 +268,13 @@ class SearchFragment : BaseFragment() {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             message?.let {
+                dialogUtils.hideProgressDialog()
                 dialogUtils.toast(it)
             }
         })
         viewModel.getAddress().observe(this, Observer { address ->
             address?.let {
+                dialogUtils.hideProgressDialog()
                 displayAddress(it)
             }
         })

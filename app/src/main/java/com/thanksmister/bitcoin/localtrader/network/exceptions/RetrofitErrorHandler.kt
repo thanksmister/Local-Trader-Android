@@ -225,7 +225,7 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
 
         // bad request
         fun isHttp400Error(throwable: Throwable): Boolean {
-            return (throwable as HttpException).code() == 400
+            return (throwable as HttpException).code() == ExceptionCodes.BAD_REQUEST_ERROR_CODE
         }
 
         fun isHttp400Error(code: Int): Boolean {

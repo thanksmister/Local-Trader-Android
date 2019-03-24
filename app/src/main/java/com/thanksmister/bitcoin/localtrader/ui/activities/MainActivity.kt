@@ -32,6 +32,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.NavigationView
+import android.support.v4.app.Fragment
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.ActionBarDrawerToggle
@@ -76,18 +77,35 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
 
     private var connectionLiveData: ConnectionLiveData? = null
 
+    private val advertisementFragment: AdvertisementsFragment by lazy {
+        AdvertisementsFragment.newInstance()
+    }
+
+    private val contactsFragment: ContactsFragment by lazy {
+        ContactsFragment.newInstance()
+    }
+
+    private val notificationsFragment: NotificationsFragment by lazy {
+        NotificationsFragment.newInstance()
+    }
+
+    private var activeFragment: Fragment = advertisementFragment
+
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_home -> {
-                supportFragmentManager.beginTransaction().replace(R.id.mainContainer, AdvertisementsFragment.newInstance(), ADVERTISEMENTS_FRAGMENT).commit()
+                supportFragmentManager.beginTransaction().hide(activeFragment).show(advertisementFragment).commit()
+                activeFragment = advertisementFragment
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_dashboard -> {
-                supportFragmentManager.beginTransaction().replace(R.id.mainContainer, ContactsFragment.newInstance(), CONTACTS_FRAGMENT).commit()
+                supportFragmentManager.beginTransaction().hide(activeFragment).show(contactsFragment).commit()
+                activeFragment = contactsFragment
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_notifications -> {
-                supportFragmentManager.beginTransaction().replace(R.id.mainContainer, NotificationsFragment.newInstance(), NOTIFICATIONS_FRAGMENT).commit()
+                supportFragmentManager.beginTransaction().hide(activeFragment).show(notificationsFragment).commit()
+                activeFragment = notificationsFragment
                 return@OnNavigationItemSelectedListener true
             }
         }
@@ -119,8 +137,13 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         binding.navigationView.setNavigationItemSelectedListener(this)
         binding.navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
-        supportFragmentManager.beginTransaction().replace(R.id.mainContainer,
+        /*supportFragmentManager.beginTransaction().replace(R.id.mainContainer,
                 AdvertisementsFragment.newInstance(), ADVERTISEMENTS_FRAGMENT).commit()
+*/
+
+        supportFragmentManager.beginTransaction().add(R.id.mainContainer, notificationsFragment, NOTIFICATIONS_FRAGMENT).hide(notificationsFragment).commit();
+        supportFragmentManager.beginTransaction().add(R.id.mainContainer, contactsFragment, CONTACTS_FRAGMENT).hide(contactsFragment).commit();
+        supportFragmentManager.beginTransaction().add(R.id.mainContainer, advertisementFragment, ADVERTISEMENTS_FRAGMENT).commit();
 
         binding.mainSwipeLayout.setOnRefreshListener(this)
         binding.mainSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
@@ -150,12 +173,10 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                                 dialogUtils.toast(getString(R.string.toast_refreshing_data))
                                 viewModel.getDashboardData()
                             }, DialogInterface.OnClickListener { dialog, which ->
-                        //finish()
                     })
                 }
             }
         })
-
         SyncUtils.requestSyncNow(applicationContext)
     }
 
@@ -257,9 +278,10 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         viewModel.getNetworkMessage().observe(this, Observer { messageData ->
             onRefreshStop()
             messageData?.let {
+                Timber.d("Error Message ${it.message}")
                 when {
-                    RetrofitErrorHandler.isHttp403Error(it.code) && it.message != null -> {
-                        dialogUtils.showAlertDialog(this@MainActivity, it.message!!, DialogInterface.OnClickListener { dialog, which ->
+                    RetrofitErrorHandler.isHttp403Error(it.code)  -> {
+                        dialogUtils.showAlertDialog(this@MainActivity, it.message, DialogInterface.OnClickListener { dialog, which ->
                             logOut()
                         })
                     }
@@ -269,7 +291,12 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                             viewModel.getDashboardData()
                         }, DialogInterface.OnClickListener { _, _ -> })
                     }
-                    it.message != null -> dialogUtils.showAlertDialog(this@MainActivity, it.message!!, DialogInterface.OnClickListener { dialog, which ->
+                    RetrofitErrorHandler.isHttp400Error(messageData.code) -> {
+                        dialogUtils.showAlertDialog(this@MainActivity, it.message, DialogInterface.OnClickListener { dialog, which ->
+                            Timber.e("Bad request: ${it.message}")
+                        }, DialogInterface.OnClickListener { _, _ -> })
+                    }
+                    else -> dialogUtils.showAlertDialog(this@MainActivity, it.message, DialogInterface.OnClickListener { dialog, which ->
                         dialogUtils.toast(getString(R.string.toast_refreshing_data))
                         viewModel.getDashboardData()
                     }, DialogInterface.OnClickListener { _, _ -> })
@@ -328,7 +355,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                 DialogInterface.OnClickListener { _, _ ->
                     try {
                         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.ADS_URL)));
-                    } catch (ex: ActivityNotFoundException) {
+                    } catch (ex: Exception) {
                         Toast.makeText(this@MainActivity, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show();
                     }
                 }, DialogInterface.OnClickListener { _, _ ->

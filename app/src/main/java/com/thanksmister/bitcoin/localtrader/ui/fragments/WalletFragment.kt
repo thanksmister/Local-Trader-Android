@@ -32,6 +32,7 @@ import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.databinding.ViewWalletBinding
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
+import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.adapters.TransactionsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
@@ -51,8 +52,6 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
     @Inject lateinit var viewModel: WalletViewModel
 
     @Inject lateinit var notificationUtils: NotificationUtils
-
-    private var connectionLiveData: ConnectionLiveData? = null
 
     private val transactionsAdapter: TransactionsAdapter by lazy {
        TransactionsAdapter()
@@ -83,49 +82,32 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         notificationUtils.clearNotification()
-
-        connectionLiveData = ConnectionLiveData(requireContext())
-        connectionLiveData?.observe(this, Observer { connected ->
-            connected?.let {
-                onRefreshStop()
-                dialogUtils.showAlertDialog(requireActivity(), getString(R.string.error_network_retry) ,
-                        DialogInterface.OnClickListener { dialog, which ->
-                            dialogUtils.toast(getString(R.string.toast_refreshing_data))
-                            viewModel.fetchNetworkData()
-                        }, DialogInterface.OnClickListener { dialog, which ->
-                    //finish()
-                })
-            }
-        })
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             message?.message?.let {
-                dialogUtils.showAlertDialog(requireActivity(), it)
                 onRefreshStop()
+                dialogUtils.showAlertDialog(requireActivity(), it)
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
             message?.let {
-                dialogUtils.showAlertDialog(requireActivity(), it)
                 onRefreshStop()
+                dialogUtils.showAlertDialog(requireActivity(), it)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             message?.let {
-                dialogUtils.toast(it)
                 onRefreshStop()
+                dialogUtils.toast(it)
             }
         })
         disposable.add(viewModel.getWalletData()
                 .applySchedulers()
                 .subscribe( { data ->
-                    Timber.d("wallet updated!!")
                     if (data != null) {
-                        Timber.d("data $data")
                         setAppBarText(data.bitcoinAmount, data.bitcoinValue, data.currency, data.exchange)
                         setupList(data.transactions)
                         binding.transactionRecycleView.visibility = View.VISIBLE

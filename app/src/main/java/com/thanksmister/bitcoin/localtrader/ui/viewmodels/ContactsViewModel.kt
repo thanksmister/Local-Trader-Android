@@ -130,9 +130,9 @@ constructor(application: Application,
         return contactsDao.getItemById(contactId)
     }
 
+    @Deprecated ("Don't save these to the database")
     fun getContactsByType(dashboardType: DashboardType):Flowable<List<Contact>> {
         return contactsDao.getItems()
-                .filter {items -> items.isNotEmpty()}
                 .map {contactList ->
                     val contacts = ArrayList<Contact>()
                     contactList.forEach() {contact ->
@@ -171,7 +171,6 @@ constructor(application: Application,
         disposable += fetcher.getContactsByType(type)
                 .applySchedulers()
                 .subscribe ({
-                    insertContacts(it)
                     setContactsList(it)
                 }, {
                     error -> Timber.e("Contacts Type Error" + error.message)
@@ -217,23 +216,6 @@ constructor(application: Application,
                     data
                 })
 
-        /*return fetcher!!.getContact(contactId)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe ({
-                    //insertContact(it)
-                }, {
-                    error -> Timber.e("Contact Error " + error.message)
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
-                        }
-                    } else {
-                        showAlertMessage(error.message)
-                    }
-                }))*/
     }
 
     fun contactAction(contactId: Int, pinCode: String?, action: ContactAction) {

@@ -24,6 +24,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.adapters.DataTypeAdapter
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.services.LocalBitcoinsService
 import io.reactivex.Observable
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
@@ -122,8 +123,8 @@ class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: Str
         return service.contactMessagePost(contactId, accessToken, message)
     }
 
-    fun contactMessagePostWithAttachment(accessToken: String, contactId: Int, params: LinkedHashMap<String, String>, requestBody: RequestBody): Observable<JsonElement> {
-        return service.contactMessagePostWithAttachment(contactId, accessToken, params, requestBody)
+    fun contactMessagePostWithAttachment(accessToken: String, contactId: Int, params: LinkedHashMap<String, String>, multipartBody: MultipartBody.Part): Observable<JsonElement> {
+        return service.contactMessagePostWithAttachment(contactId, accessToken, params, multipartBody)
     }
 
     fun getMyself(accessToken: String): Observable<User> {

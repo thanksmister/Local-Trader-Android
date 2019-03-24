@@ -29,8 +29,6 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import com.crashlytics.android.Crashlytics
-import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
@@ -39,14 +37,8 @@ import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.ContactAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.view_contact.*
 import kotlinx.android.synthetic.main.view_contacts.*
 import kotlinx.android.synthetic.main.view_empty.*
-import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
@@ -58,8 +50,12 @@ class ContactsActivity : BaseActivity() {
     lateinit var viewModel: ContactsViewModel
 
     private var connectionLiveData: ConnectionLiveData? = null
-    private var adapter: ContactAdapter? = null
-    private var dashboardType: DashboardType? = DashboardType.NONE
+
+    private val adapter: ContactAdapter by lazy {
+        ContactAdapter(this@ContactsActivity)
+    }
+
+    private var dashboardType: DashboardType? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -81,11 +77,10 @@ class ContactsActivity : BaseActivity() {
         linearLayoutManager.orientation = LinearLayoutManager.VERTICAL
         contactsRecycleView.layoutManager = linearLayoutManager
 
-        adapter = ContactAdapter(this@ContactsActivity)
         contactsRecycleView.setHasFixedSize(true)
 
         ItemClickSupport.addTo(contactsRecycleView).setOnItemClickListener { recyclerView, position, v ->
-            showContact(adapter!!.getItemAt(position))
+            showContact(adapter.getItemAt(position))
         }
 
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactsViewModel::class.java)
@@ -111,19 +106,18 @@ class ContactsActivity : BaseActivity() {
                 dialogUtils.toast(message)
             }
         })
-
-        /*viewModel.getContactsList().observe(this, Observer { contacts ->
-            if(contacts != null) {
-                Timber.d("Contacts size: " + contacts.size)
+        viewModel.getContactsList().observe(this, Observer { list ->
+            list?.let {
                 dialogUtils.hideProgressDialog()
-                setContacts(contacts)
-            } else {
-                showEmpty()
+                if(it.isEmpty()) {
+                    showEmpty()
+                } else {
+                    setContacts(it)
+                }
             }
-        })*/
-
-        if (dashboardType != null) {
-            updateData(dashboardType!!)
+        })
+        dashboardType?.let {
+            updateData(it)
         }
     }
 
@@ -134,12 +128,11 @@ class ContactsActivity : BaseActivity() {
             if(!connected!!) {
                 dialogUtils.hideProgressDialog()
                 dialogUtils.showAlertDialog(this@ContactsActivity, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.toast(getString(R.string.toast_refreshing_data))
-                    if(dashboardType != null) {
-                        updateData(dashboardType!!)
+                    dashboardType?.let {
+                        updateData(it)
                     }
                 }, DialogInterface.OnClickListener { dialog, which ->
-                    //finish()
+                    finish()
                 })
             }
         })
@@ -192,48 +185,29 @@ class ContactsActivity : BaseActivity() {
     }
 
     private fun updateData(type: DashboardType) {
-        Timber.d("updateData DashboardType ${type}")
         dialogUtils.showProgressDialog(this@ContactsActivity, getString(R.string.toast_loading_trades))
-        setTitle(type)
         dashboardType = type
-        disposable.clear()
-        disposable.add(viewModel.getContactsByType(dashboardType!!)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe( { data ->
-                        dialogUtils.hideProgressDialog()
-                        if(data != null) {
-                            setContacts(data)
-                        } else {
-                            showEmpty()
-                        }
-                    }, { error ->
-                        Timber.e("Contacts error: $error")
-                        dialogUtils.hideProgressDialog()
-                        dialogUtils.showAlertDialog(this@ContactsActivity, getString(R.string.toast_error_opening_contact), DialogInterface.OnClickListener { _, _ ->
-                            finish()
-                        })
-                    }))
+        setTitle(type)
         viewModel.fetchContactsByType(type)
     }
 
     private fun showContact(contact: Contact?) {
-        if (contact != null && contact.contactId != 0) {
+        contact?.let {
             val intent = ContactActivity.createStartIntent(this@ContactsActivity, contact.contactId)
             startActivity(intent)
-        } else {
-            dialogUtils.toast(getString(R.string.toast_contact_not_exist))
         }
     }
 
     private fun setContacts(contacts: List<Contact>) {
-        if (contacts.isEmpty()) {
-            showEmpty()
-            return
+        if(contacts.isNotEmpty()) {
+            showContent()
+            adapter.replaceWith(contacts)
+            contactsRecycleView.adapter = adapter
+        } else {
+            contactsRecycleView.visibility = View.GONE
+            contactEmptyLayout.visibility = View.GONE
+            adapter.replaceWith(ArrayList())
         }
-        showContent()
-        adapter!!.replaceWith(contacts)
-        contactsRecycleView.adapter = adapter
     }
 
     private fun setTitle(dashboardType: DashboardType) {

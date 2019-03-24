@@ -17,6 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
@@ -44,7 +45,6 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.*
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_contact.*
@@ -55,8 +55,13 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
+
     @Inject
     lateinit var viewModel: ContactsViewModel
+
+    private val adapter: MessageAdapter by lazy {
+        MessageAdapter(this)
+    }
 
     private var connectionLiveData: ConnectionLiveData? = null
 
@@ -99,7 +104,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     private var contactHeaderLayout: View? = null
     private var dealPrice: TextView? = null
     private var contactButton: Button? = null
-    private var adapter: MessageAdapter? = null
     private var contactId: Int = 0
     private var contact: Contact? = null
     private var downloadManager: DownloadManager? = null
@@ -205,8 +209,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             }
         })
 
-        adapter = MessageAdapter(this)
-        setAdapter(adapter!!)
+        setAdapter(adapter)
 
         if(contactId > 0) {
             viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactsViewModel::class.java)
@@ -243,13 +246,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (!disposable.isDisposed) {
-            try {
-                disposable.clear()
-            } catch (e: UndeliverableException) {
-                Timber.e(e.message)
-            }
-        }
+        disposable.disposeProper()
         unregisterReceiver(receiver)
     }
 
@@ -299,7 +296,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             if (message?.message != null) {
                 onRefreshStop()
-                dialogUtils.showAlertDialog(this@ContactActivity, message.message!!)
+                dialogUtils.showAlertDialog(this@ContactActivity, message.message)
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
@@ -310,6 +307,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
             if(message != null) {
+                onRefreshStop()
                 dialogUtils.toast(message)
             }
         })
@@ -320,8 +318,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             }
         })
         disposable.add(viewModel.getContact(contactId)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe( { data ->
                    if(data != null) {
                        setMenuOptions(data)
@@ -370,16 +367,19 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        if(intent != null) {
-            when (resultCode) {
-                PinCodeActivity.RESULT_VERIFIED -> {
+        when (resultCode) {
+            PinCodeActivity.RESULT_VERIFIED -> {
+                intent?.let {
                     val pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE)
                     releaseTradeWithPin(pinCode)
                 }
-                PinCodeActivity.RESULT_CANCELED -> dialogUtils.toast(R.string.toast_pin_code_canceled)
-                MessageActivity.RESULT_MESSAGE_SENT -> updateData()
-                MessageActivity.RESULT_MESSAGE_CANCELED -> dialogUtils.toast(getString(R.string.toast_message_canceled))
             }
+            PinCodeActivity.RESULT_CANCELED -> dialogUtils.toast(R.string.toast_pin_code_canceled)
+            MessageActivity.RESULT_MESSAGE_SENT -> {
+                dialogUtils.toast(getString(R.string.toast_refreshing_data))
+                updateData()
+            }
+            MessageActivity.RESULT_MESSAGE_CANCELED -> dialogUtils.toast(getString(R.string.toast_message_canceled))
         }
     }
 
@@ -388,10 +388,8 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { data ->
-                    if(data != null) {
-                        if (!data.messages.isEmpty() && adapter != null) {
-                            adapter!!.replaceWith(data.messages)
-                        }
+                    data?.let {
+                        adapter.replaceWith(it.messages)
                     }
                     onRefreshStop()
                 }, { error ->
@@ -400,6 +398,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
                 }))
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setContact(contact: Contact) {
         this.contact = contact
         val date = Dates.parseLocalDateStringAbbreviatedTime(contact.createdAt)
@@ -518,7 +517,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             return
         }
         val token = preferences.getAccessToken()
-        val request = DownloadManager.Request(Uri.parse(message.attachmentUrl + "?accessToken=" + token))
+        val request = DownloadManager.Request(Uri.parse(message.attachmentUrl + "?access_token=" + token))
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE or DownloadManager.Request.NETWORK_WIFI)
         request.setVisibleInDownloadsUi(true)
         request.setMimeType(message.attachmentType)

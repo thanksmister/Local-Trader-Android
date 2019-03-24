@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 import io.reactivex.Observable;
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -329,7 +330,7 @@ public interface LocalBitcoinsService {
     Observable<JsonElement> contactMessagePostWithAttachment(@Path("contact_id") int contact_id,
                                                              @Query("access_token") String token,
                                                              @PartMap LinkedHashMap<String, String> params,
-                                                             @Part("document") RequestBody document);
+                                                             @Part MultipartBody.Part part);
 
     @POST(POST_CONTACT_PAID + "{contact_id}/")
     Observable<JsonElement> markAsPaid(@Path("contact_id") int contact_id,

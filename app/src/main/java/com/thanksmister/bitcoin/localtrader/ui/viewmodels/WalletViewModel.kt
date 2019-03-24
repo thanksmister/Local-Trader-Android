@@ -27,7 +27,6 @@ import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
-import com.thanksmister.bitcoin.localtrader.network.api.model.NewAddress
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
@@ -70,7 +69,7 @@ constructor(application: Application,
     }
 
     init {
-        //deleteWallet()
+
     }
 
     inner class WalletData {
@@ -135,7 +134,6 @@ constructor(application: Application,
     }
 
     fun fetchNetworkData() {
-        Timber.d("fetchNetworkData")
         disposable += getNetworkData()
                 .applySchedulers()
                 .subscribe({
@@ -178,25 +176,6 @@ constructor(application: Application,
                             networkData.wallet = wallet
                             networkData
                         })
-    }
-
-    private fun fetchWallet() {
-        disposable += fetcher.wallet
-                .applySchedulers()
-                .subscribe({
-                    showProgress(false)
-                    insertWallet(it)
-                    //generateAddressBitmap(it.address!!)
-                }, { error ->
-                    Timber.e("Error: " + error.toString())
-                    showProgress(false)
-                    if(error is NetworkException) {
-                        Timber.e("Error wallet address ${error.code}")
-                        showAlertMessage(error.message)
-                    }
-                    Timber.e("Error wallet address  ${error.message}")
-                    showAlertMessage(error.message)
-                })
     }
 
     fun getWalletAddress() {
@@ -294,27 +273,4 @@ constructor(application: Application,
             }
         }
     }
-
-    interface OnCompleteListener {
-        fun onComplete(byteArray: Bitmap?)
-    }
-
-    /*class ByteArrayTask(context: Context, private val onCompleteListener: OnCompleteListener) : AsyncTask<Any, Void, Bitmap?>() {
-        private val contextRef: WeakReference<Context> = WeakReference(context)
-        override fun doInBackground(vararg params: kotlin.Any): Bitmap? {
-            if (isCancelled) {
-                return null
-            }
-            val address = params[0] as String
-            return WalletUtils.encodeAsBitmap(address, contextRef.get())
-        }
-
-        override fun onPostExecute(result: Bitmap?) {
-            super.onPostExecute(result)
-            if (isCancelled) {
-                return
-            }
-            onCompleteListener.onComplete(result)
-        }
-    }*/
 }

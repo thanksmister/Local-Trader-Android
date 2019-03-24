@@ -63,6 +63,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import timber.log.Timber;
 
@@ -611,9 +612,11 @@ public class LocalBitcoinsFetcher {
     private Observable<JsonElement> postMessageWithAttachmentObservable(final int contactId, final String message, final File file) {
         final String accessToken = preferences.getAccessToken();
         RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        MultipartBody.Part multiPartBody = MultipartBody.Part.createFormData("document", file.getName(), requestBody);
+
         final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
         params.put("msg", message);
-        return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, requestBody);
+        return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody);
     }
 
 

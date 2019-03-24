@@ -35,11 +35,8 @@ import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.MessageViewModel
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import kotlinx.android.synthetic.main.view_message.*
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 class MessageActivity : BaseActivity() {
@@ -95,9 +92,9 @@ class MessageActivity : BaseActivity() {
 
     private fun observeViewModel(viewModel: MessageViewModel) {
         viewModel.getNetworkMessage().observe(this, Observer { message ->
-            if (message?.message != null) {
+            message?.let {
                 dialogUtils.hideProgressDialog()
-                dialogUtils.showAlertDialog(this@MessageActivity, message.message!!, DialogInterface.OnClickListener { dialog, which ->
+                dialogUtils.showAlertDialog(this@MessageActivity, message.message, DialogInterface.OnClickListener { dialog, which ->
                     if(message.code == ExceptionCodes.MESSAGE_ERROR_CODE || message.code == ExceptionCodes.AUTHENTICATION_ERROR_CODE ) {
                         finish()
                     }
@@ -105,23 +102,25 @@ class MessageActivity : BaseActivity() {
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->
-            if (message != null) {
+            message?.let {
                 dialogUtils.hideProgressDialog()
-                dialogUtils.showAlertDialog(this@MessageActivity, message)
+                dialogUtils.showAlertDialog(this@MessageActivity, it)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            if (message != null) {
-                dialogUtils.toast(message)
+            message?.let {
+                dialogUtils.toast(it)
             }
         })
         viewModel.getMessagePostStatus().observe(this, Observer { status ->
-            if (status == true) {
-                dialogUtils.hideProgressDialog()
-                handleMessageSent()
-            } else if (status == false) {
-                dialogUtils.hideProgressDialog()
-                dialogUtils.toast(R.string.toast_error_message);
+            status?.let {
+                if (it) {
+                    dialogUtils.hideProgressDialog()
+                    handleMessageSent()
+                } else if (!it) {
+                    dialogUtils.hideProgressDialog()
+                    dialogUtils.toast(R.string.toast_error_message);
+                }
             }
         })
     }
@@ -163,7 +162,7 @@ class MessageActivity : BaseActivity() {
         }
         if (mUri != null && mFileName != null) {
             dialogUtils.showProgressDialog(this@MessageActivity, getString(R.string.dialog_send_message));
-            viewModel.generateAddressBitmap(contactId, mFileName!!, message, mUri!!)
+            viewModel.generateMessageBitmap(contactId, mFileName!!, message, mUri!!)
         } else {
             dialogUtils.showProgressDialog(this@MessageActivity, getString(R.string.dialog_send_message))
             if(contactId > 0) {
@@ -184,19 +183,6 @@ class MessageActivity : BaseActivity() {
         setResult(RESULT_MESSAGE_SENT)
         finish()
     }
-
-    /*private fun postMessage(message: String) {
-        dialogUtils.showProgressDialog(this@MessageActivity, getString(R.string.dialog_send_message))
-        if(contactId > 0) {
-            viewModel.postMessage(contactId, message)
-        }
-    }*/
-
-    /*private fun postMessageWithAttachment(message: String, file: File) {
-        if(contactId > 0 && !TextUtils.isEmpty(message)) {
-            viewModel.postMessageWithAttachment(contactId, message, file)
-        }
-    }*/
 
     private fun removeAttachment() {
         attachButton!!.visibility = View.VISIBLE

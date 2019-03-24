@@ -17,13 +17,8 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.MessageData
-import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification
@@ -33,14 +28,11 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.utils.Parser
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Completable
 import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class NotificationsViewModel @Inject
@@ -57,13 +49,10 @@ constructor(application: Application, private val notificationsDao: Notification
         val endpoint = preferences.getServiceEndpoint()
         val api = LocalBitcoinsApi(getApplication(), endpoint)
         val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable.add(fetcher.markNotificationRead(notification.notificationId)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .debounce(200, TimeUnit.MILLISECONDS)
-                .dematerialize<List<Notification>>()
+        disposable += fetcher.markNotificationRead(notification.notificationId)
+                .applySchedulers()
                 .subscribe ({
-                    Timber.d("Notification update response: ${it.toString()}")
+                    Timber.d("Notification update response: ${it}")
                     if(!Parser.containsError(it.toString())) {
                         notification.read = true
                         updateNotification(notification)
@@ -81,15 +70,14 @@ constructor(application: Application, private val notificationsDao: Notification
                     } else {
                         showAlertMessage(error.message)
                     }
-                }))
+                })
     }
 
     private fun updateNotification(notification: Notification) {
         disposable.add(Completable.fromAction {
             notificationsDao.updateItem(notification)
             }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Notification update error" + error.message)}))
     }

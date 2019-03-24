@@ -21,6 +21,7 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.databinding.ActivityMainBinding
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
@@ -31,6 +32,8 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
 import com.thanksmister.bitcoin.localtrader.utils.Parser
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Maybe
@@ -50,7 +53,13 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
             private val userDao: UserDao, private val preferences: Preferences) : BaseViewModel(application) {
 
     private var syncMap = HashMap<String, Boolean>()
-    private var fetcher: LocalBitcoinsFetcher? = null
+
+    private val fetcher: LocalBitcoinsFetcher by lazy {
+        val endpoint = preferences.getServiceEndpoint()
+        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        LocalBitcoinsFetcher(getApplication(), api, preferences)
+    }
+
     private val syncing = MutableLiveData<String>()
 
     fun getSyncing(): LiveData<String> {
@@ -63,9 +72,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
 
     init {
         Timber.d("init")
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
+
         setSyncing(SplashViewModel.SYNC_IDLE)
     }
 
@@ -77,12 +84,12 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
 
     fun getDashboardData() {
         Timber.d("getDashboardData")
-        fetchExchange()
         resetSyncing()
         updateSyncMap(SYNC_CONTACTS, true)
         updateSyncMap(SYNC_ADVERTISEMENTS, true)
         updateSyncMap(SYNC_NOTIFICATIONS, true)
         fetchContacts()
+        fetchExchange()
     }
 
     fun getUser(): Maybe<User> {
@@ -102,13 +109,13 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
     }
 
     fun markNotificationsRead() {
-        disposable.add(getUnreadNotifications()
+        disposable += getUnreadNotifications()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({notificationList ->
                     Timber.d("Notifications unread ${notificationList.size}")
                     for(notification in notificationList) {
-                        fetcher!!.markNotificationRead(notification.notificationId)
+                        fetcher.markNotificationRead(notification.notificationId)
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .debounce(200, TimeUnit.MILLISECONDS)
@@ -143,14 +150,14 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     } else {
                         showAlertMessage(error.message)
                     }
-                }))
+                })
     }
 
     private fun fetchExchange() {
         Timber.d("fetchExchange")
         val api = ExchangeApi(preferences)
         val fetcher = ExchangeFetcher(api, preferences)
-        disposable.add(fetcher.getExchangeRate()
+        disposable += fetcher.getExchangeRate()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -158,14 +165,13 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                 }, {
                     error -> Timber.e("Error fetching exchange ${error.message}")
                     showAlertMessage(error.message)
-                }))
+                })
     }
 
     private fun fetchContacts() {
         Timber.d("fetchContacts")
-        disposable.add(fetcher!!.contacts
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        disposable += fetcher.contacts
+                .applySchedulers()
                 .subscribe ({
                     updateSyncMap(SYNC_CONTACTS, false)
                     insertContacts(it)
@@ -184,11 +190,12 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         showAlertMessage(error.message)
                     }
                     updateSyncMap(SYNC_CONTACTS, false)
-                }))
+                })
     }
 
     private fun fetchAdvertisements() {
-        disposable.add(fetcher!!.advertisements
+        Timber.d("fetchAdvertisements")
+        disposable += fetcher.advertisements
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -208,11 +215,12 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         showAlertMessage(error.message)
                     }
                     updateSyncMap(SYNC_ADVERTISEMENTS, false)
-                }))
+                })
     }
 
     private fun fetchNotifications() {
-        disposable.add(fetcher!!.notifications
+        Timber.d("fetchNotifications")
+        disposable += fetcher.notifications
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -235,47 +243,46 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         showAlertMessage(error.message)
                     }
                     updateSyncMap(SYNC_NOTIFICATIONS, false)
-                }))
+                })
     }
 
     private fun updateNotification(notification: Notification) {
-        disposable.add(Completable.fromAction {
+        disposable += Completable.fromAction {
             notificationsDao.updateItem(notification)
         }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                }, { error -> Timber.e("Notification update error" + error.message)}))
+                }, { error -> Timber.e("Notification update error" + error.message)})
     }
 
     private fun insertExchange(items: ExchangeRate) {
-        disposable.add(Completable.fromAction {
+        disposable += Completable.fromAction {
             exchangeRateDao.updateItem(items)
         }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                }, { error -> Timber.e("Exchange insert error" + error.message)}))
+                }, { error -> Timber.e("Exchange insert error" + error.message)})
     }
 
     private fun insertContacts(items: List<Contact>) {
-        disposable.add(Completable.fromAction {
+        disposable += Completable.fromAction {
             contactsDao.insertItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
-                }, { error -> Timber.e("Contacts insert error" + error.message)}))
+                }, { error -> Timber.e("Contacts insert error" + error.message)})
     }
 
     private fun insertAdvertisements(items: List<Advertisement>) {
-        disposable.add(Completable.fromAction {
+        disposable += Completable.fromAction {
             advertisementsDao.insertItems(items)
         }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                }, { error -> Timber.e("Advertisement insert error" + error.message)}))
+                }, { error -> Timber.e("Advertisement insert error" + error.message)})
     }
 
     private fun replaceNotifications(items: List<Notification>) {
@@ -330,6 +337,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
         const val SYNC_CONTACTS = "SYNC_CONTACTS"
         const val SYNC_NOTIFICATIONS = "SYNC_NOTIFICATIONS"
         const val SYNC_ADVERTISEMENTS = "SYNC_ADVERTISEMENTS"
+        const val SYNC_EXCHANGES = "SYNC_EXCHANGES"
         const val SYNC_IDLE = "SYNC_IDLE"
         const val SYNC_STARTED = "SYNC_STARTED"
         const val SYNC_COMPLETE = "SYNC_COMPLETE"
