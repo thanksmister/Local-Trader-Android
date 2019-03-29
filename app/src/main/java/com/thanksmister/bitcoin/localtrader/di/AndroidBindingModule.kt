@@ -127,6 +127,9 @@ internal abstract class AndroidBindingModule {
     internal abstract fun activityMainActivity(): MainActivity
 
     @ContributesAndroidInjector
+    internal abstract fun activityPinCodeActivity(): PinCodeActivity
+
+    @ContributesAndroidInjector
     internal abstract fun activityScanQrCodeActivity(): ScanQrCodeActivity
 
     @ContributesAndroidInjector
