@@ -90,7 +90,6 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    Timber.d("json: ${it.toString()}")
                     setMessagePostStatus(true)
                 }, {
                     error -> Timber.e("Message Post Attachment Error" + error.message)

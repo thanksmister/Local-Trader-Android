@@ -19,28 +19,20 @@ package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 import android.app.Application
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BaseApplication
+import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
-import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
-import com.thanksmister.bitcoin.localtrader.persistence.AdvertisementsDao
-import com.thanksmister.bitcoin.localtrader.persistence.ContactsDao
-import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.utils.Parser
-import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
-import io.reactivex.Completable
-import io.reactivex.Flowable
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import org.json.JSONObject
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class PinCodeViewModel @Inject
@@ -68,11 +60,16 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    Timber.d(it.asString)
-                    val jsonObject = JSONObject(it.asString)
-                    val data = jsonObject.getJSONObject("data");
-                    val valid = (data.getString("pincode_ok") == "true");
-                    setPinCodeStatus(valid)
+                    try {
+                        val jsonObject = JSONObject(it.toString())
+                        val data = jsonObject.getJSONObject("data");
+                        val valid = (data.getString("pincode_ok") == "true");
+                        setPinCodeStatus(valid)
+                    } catch (e:ClassCastException) {
+                        if(!BuildConfig.DEBUG) {
+                            Crashlytics.logException(Exception("Error parsing json object on validate pin code ${e.message}"))
+                        }
+                    }
                 }, {
                     error -> Timber.e("Pin Code Error" + error.message)
                     if(error is NetworkException) {
@@ -85,35 +82,5 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                         showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_contact_action))
                     }
                 }))
-
-
-        /*disposable.add(fetcher!!.contactAction(contactId, pinCode, action)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe ({
-                    Timber.d(it.asString)
-                    if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
-                        contactsDao.deleteItem(contactId)
-                        if (action == ContactAction.RELEASE) {
-                            showToastMessage(getApplication<BaseApplication>().getString(R.string.trade_released_toast_text));
-                        } else if (action == ContactAction.CANCEL) {
-                            showToastMessage(getApplication<BaseApplication>().getString(R.string.trade_canceled_toast_text));
-                        }
-                        setContactDeleted(true)
-                    } else {
-                        fetchContact(contactId) // refresh contact
-                    }
-                }, {
-                    error -> Timber.e("Contact Action Error" + error.message)
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
-                        }
-                    } else {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_contact_action))
-                    }
-                }))*/
     }
 }

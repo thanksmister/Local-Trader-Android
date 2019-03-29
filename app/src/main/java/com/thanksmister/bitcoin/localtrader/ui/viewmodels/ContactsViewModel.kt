@@ -222,7 +222,6 @@ constructor(application: Application,
         disposable += fetcher.contactAction(contactId, pinCode, action)
                 .applySchedulers()
                 .subscribe ({
-                    Timber.d(it.asString)
                     if (action == ContactAction.RELEASE || action == ContactAction.CANCEL) {
                         contactsDao.deleteItem(contactId)
                         if (action == ContactAction.RELEASE) {
@@ -232,7 +231,7 @@ constructor(application: Application,
                         }
                         setContactDeleted(true)
                     } else {
-                        fetchContact(contactId) // refresh contact
+                        fetchContactData(contactId) // refresh contact
                     }
                 }, {
                     error -> Timber.e("Contact Action Error" + error.message)

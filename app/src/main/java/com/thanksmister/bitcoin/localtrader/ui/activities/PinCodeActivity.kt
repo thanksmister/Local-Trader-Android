@@ -242,41 +242,6 @@ class PinCodeActivity : BaseActivity() {
     private fun validatePinCode(pinCode: String, address: String?, amount: String?) {
         dialogUtils.showProgressDialog(this@PinCodeActivity, getString(R.string.progress_pin_verify), true)
         viewModel.validatePinCode(pinCode)
-        /*
-        subscription = dataService.validatePinCode(pinCode)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<JSONObject>() {
-                    @Override
-                    public void call(JSONObject jsonObject) {
-                        hideProgressDialog();
-
-                        try {
-                            JSONObject object = jsonObject.getJSONObject("data");
-                            Boolean valid = (object.getString("pincode_ok").equals("true"));
-                            if (valid) {
-                                Intent intent = getIntent();
-                                intent.putExtra(PinCodeActivity.EXTRA_PIN_CODE, pinCode);
-                                intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, address);
-                                intent.putExtra(PinCodeActivity.EXTRA_AMOUNT, amount);
-                                setResult(PinCodeActivity.RESULT_VERIFIED, intent);
-                                finish();
-                            } else {
-                                Timber.d(object.toString());
-                                invalidatePinCode();
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            invalidatePinCode();
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        hideProgressDialog();
-                        invalidatePinCode();
-                    }
-                });*/
     }
 
     companion object {
