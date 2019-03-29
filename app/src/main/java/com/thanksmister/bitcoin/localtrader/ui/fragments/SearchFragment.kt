@@ -396,7 +396,7 @@ class SearchFragment : BaseFragment() {
         }
 
         binding.paymentMethodSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(arg0: AdapterView<*>, arg1: View, position: Int, arg3: Long) {
+            override fun onItemSelected(arg0: AdapterView<*>, arg1: View?, position: Int, arg3: Long) {
                 try {
                     val methodItem = binding.paymentMethodSpinner.adapter.getItem(position) as Method
                     methodItem.key?.let {
