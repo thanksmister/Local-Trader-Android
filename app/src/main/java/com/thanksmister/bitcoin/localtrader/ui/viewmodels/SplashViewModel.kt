@@ -30,6 +30,7 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
@@ -143,8 +144,7 @@ constructor(application: Application,
         disposable += (Completable.fromAction {
             methodsDao.replaceItem(methods)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Methods insert error ${error.message}") }))
     }
@@ -189,8 +189,7 @@ constructor(application: Application,
         disposable += (Completable.fromAction {
             currenciesDao.replaceItem(currencies)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Currencies insert error ${error.message}") }))
     }
@@ -316,8 +315,7 @@ constructor(application: Application,
         disposable += (Completable.fromAction {
             contactsDao.insertItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Contacts insert error" + error.message)}))
     }
@@ -326,8 +324,7 @@ constructor(application: Application,
         disposable += (Completable.fromAction {
             advertisementsDao.insertItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Advertisement insert error" + error.message)}))
     }
@@ -336,8 +333,7 @@ constructor(application: Application,
         disposable += (Completable.fromAction {
             notificationsDao.replaceItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Notification insert error" + error.message)}))
     }
@@ -346,8 +342,7 @@ constructor(application: Application,
         disposable += (Completable.fromAction {
             userDao.updateItem(user)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("User insert error ${error.message}") }))
     }

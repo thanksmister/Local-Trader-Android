@@ -68,7 +68,6 @@ constructor(application: Application, private val preferences: Preferences) : Ba
         disposable += fetcher.postMessage(contactId, message)
                 .applySchedulers()
                 .subscribe ({
-                    Timber.d("json: ${it.toString()}")
                     setMessagePostStatus(true)
                 }, {
                     error -> Timber.e("Message Post Error " + error.message)

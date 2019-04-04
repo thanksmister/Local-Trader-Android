@@ -95,7 +95,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         super.onSaveInstanceState(outState)
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent) {
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
             if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
                 updateAdvertisement() // update the new editAdvertisement

@@ -364,9 +364,11 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     private fun setupNavigationView(user: User) {
-        binding.navigationView.drawerHeaderView.drawerUserName.text = user.username
-        binding.navigationView.drawerHeaderView.drawerTradeCount.text = user.confirmedTradeCountText
-        binding.navigationView.drawerHeaderView.drawerTradeFeedback.text = user.feedbackScore
+        binding.navigationView.drawerHeaderView?.let {
+            it.drawerUserName.text = user.username
+            it.drawerTradeCount.text = user.confirmedTradeCountText
+            it.drawerTradeFeedback.text = user.feedbackScore
+        }
     }
 
     private fun startSendActivity(bitcoinAddress: String?, bitcoinAmount: String?) {

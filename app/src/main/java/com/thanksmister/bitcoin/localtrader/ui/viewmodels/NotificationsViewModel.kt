@@ -52,13 +52,8 @@ constructor(application: Application, private val notificationsDao: Notification
         disposable += fetcher.markNotificationRead(notification.notificationId)
                 .applySchedulers()
                 .subscribe ({
-                    Timber.d("Notification update response: ${it}")
-                    if(!Parser.containsError(it.toString())) {
-                        notification.read = true
-                        updateNotification(notification)
-                    } else {
-                        showToastMessage(getApplication<BaseApplication>().getString(R.string.error_notification))
-                    }
+                    notification.read = true
+                    updateNotification(notification)
                 }, {
                     error -> Timber.e("Notification Error $error.message")
                     if(error is NetworkException) {

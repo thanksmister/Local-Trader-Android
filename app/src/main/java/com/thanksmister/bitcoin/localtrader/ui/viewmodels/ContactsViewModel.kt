@@ -253,10 +253,7 @@ constructor(application: Application,
                 .subscribe ({notification ->
                     if(notification != null) {
                         fetcher.markNotificationRead(notification.notificationId)
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .debounce(200, TimeUnit.MILLISECONDS)
-                                .dematerialize<List<Notification>>()
+                                .applySchedulers()
                                 .subscribe ({
                                     notification.read = true
                                     updateNotification(notification)

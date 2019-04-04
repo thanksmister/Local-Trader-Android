@@ -34,6 +34,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.ui.activities.*
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import dagger.android.support.DaggerAppCompatActivity
 import io.reactivex.Completable
@@ -135,8 +136,7 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
         disposable.add(Completable.fromAction {
             localBitcoinsDatabase.clearAllTables()
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                     onLoggedOut()
                 }, { error -> Timber.e("Database clear error" + error.message) }))

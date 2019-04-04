@@ -232,8 +232,7 @@ constructor(application: Application,
         disposable += Completable.fromAction {
             walletDao.updateItem(item)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Wallet insert error" + error.message) })
     }

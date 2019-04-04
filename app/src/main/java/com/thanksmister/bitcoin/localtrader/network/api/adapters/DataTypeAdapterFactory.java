@@ -53,7 +53,7 @@ public class DataTypeAdapterFactory implements TypeAdapterFactory
             {
                 JsonElement jsonElement = elementAdapter.read(in);
                 JsonObject dataObject = new JsonObject();
-                JsonObject currencyObject = new JsonObject();
+                //JsonObject currencyObject = new JsonObject();
                      
                 if (jsonElement.isJsonObject()) {
                     

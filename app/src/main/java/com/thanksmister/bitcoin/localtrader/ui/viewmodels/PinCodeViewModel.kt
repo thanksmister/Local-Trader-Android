@@ -67,6 +67,7 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                         setPinCodeStatus(valid)
                     } catch (e:ClassCastException) {
                         if(!BuildConfig.DEBUG) {
+                            Crashlytics.log(1, "PinCode", "Error parsing json object on validate pin code")
                             Crashlytics.logException(Exception("Error parsing json object on validate pin code ${e.message}"))
                         }
                     }

@@ -38,6 +38,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.utils.Parser
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -193,7 +194,6 @@ constructor(application: Application,
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    Timber.d("json: ${it.toString()}")
                     deleteAdvertisementItem(advertisement)
                     setAdvertisementDeleted(true)
                 }, {
@@ -215,7 +215,6 @@ constructor(application: Application,
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
-                    Timber.d("json: ${it.toString()}")
                     //val response = Parser.parseDataMessage(it.toString(), defaultResponse)
                     insertAdvertisement(advertisement)
                     setAdvertisementUpdated(true)
@@ -237,8 +236,7 @@ constructor(application: Application,
         disposable.add(Completable.fromAction {
                 advertisementsDao.insertItem(item)
             }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("User insert error" + error.message)}))
     }
@@ -247,8 +245,7 @@ constructor(application: Application,
         disposable.add(Completable.fromAction {
             advertisementsDao.deleteItem(item)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("User insert error" + error.message)}))
     }

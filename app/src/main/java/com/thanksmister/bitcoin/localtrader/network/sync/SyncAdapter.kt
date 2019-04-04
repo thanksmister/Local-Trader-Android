@@ -34,6 +34,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.persistence.WalletDao
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -223,8 +224,7 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
         disposable.add(Completable.fromAction {
             walletDao!!.updateItem(item)
         }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Wallet insert error" + error.message) }))
     }
@@ -233,8 +233,7 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
         disposable.add(Completable.fromAction {
             notificationsDao!!.deleteItem(item.notificationId!!)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Notification upate error" + error.message)}))
     }
@@ -243,8 +242,7 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
         disposable.add(Completable.fromAction {
             notificationsDao!!.updateItem(item)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Notification upate error" + error.message)}))
     }
@@ -253,8 +251,7 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
         disposable.add(Completable.fromAction {
             notificationsDao!!.insertItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Notification insert error" + error.message)}))
     }

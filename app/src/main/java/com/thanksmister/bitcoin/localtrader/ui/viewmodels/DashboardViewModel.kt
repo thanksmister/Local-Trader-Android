@@ -116,10 +116,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     Timber.d("Notifications unread ${notificationList.size}")
                     for(notification in notificationList) {
                         fetcher.markNotificationRead(notification.notificationId)
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .debounce(200, TimeUnit.MILLISECONDS)
-                                .dematerialize<List<Notification>>()
+                                .applySchedulers()
                                 .subscribe ({
                                     Timber.d("Notification update response: ${it.toString()}")
                                     if(!Parser.containsError(it.toString())) {
@@ -250,8 +247,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
         disposable += Completable.fromAction {
             notificationsDao.updateItem(notification)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Notification update error" + error.message)})
     }
@@ -260,8 +256,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
         disposable += Completable.fromAction {
             exchangeRateDao.updateItem(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Exchange insert error" + error.message)})
     }
@@ -279,8 +274,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
         disposable += Completable.fromAction {
             advertisementsDao.insertItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Advertisement insert error" + error.message)})
     }
@@ -289,8 +283,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
         disposable.add(Completable.fromAction {
             notificationsDao.replaceItems(items)
         }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulers()
                 .subscribe({
                 }, { error -> Timber.e("Notification insert error" + error.message)}))
     }
