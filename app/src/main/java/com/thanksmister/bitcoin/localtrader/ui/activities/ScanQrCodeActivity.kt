@@ -55,6 +55,11 @@ class ScanQrCodeActivity : BaseActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        cameraReader.stopCamera()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cameraReader.stopCamera()

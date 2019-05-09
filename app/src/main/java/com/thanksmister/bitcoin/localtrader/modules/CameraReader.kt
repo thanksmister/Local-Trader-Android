@@ -64,6 +64,8 @@ constructor(private val context: Context) {
             barCodeDetectorProcessor!!.release()
             barCodeDetectorProcessor = null
         }
+
+        this.cameraCallback = null
     }
 
     @SuppressLint("MissingPermission")
@@ -78,7 +80,7 @@ constructor(private val context: Context) {
                 buildDetectors()
                 if (multiDetector != null) {
                     cameraSource = initCamera(cameraId)
-                    cameraPreview!!.start(cameraSource, object : CameraSourcePreview.OnCameraPreviewListener {
+                    cameraPreview?.start(cameraSource, object : CameraSourcePreview.OnCameraPreviewListener {
                         override fun onCameraError() {
                             Timber.e("Camera Preview Error")
                             cameraSource = if (cameraId == CAMERA_FACING_FRONT) {
@@ -88,24 +90,24 @@ constructor(private val context: Context) {
                             }
                             if (cameraPreview != null) {
                                 try {
-                                    cameraPreview!!.start(cameraSource, object : CameraSourcePreview.OnCameraPreviewListener {
+                                    cameraPreview?.start(cameraSource, object : CameraSourcePreview.OnCameraPreviewListener {
                                         override fun onCameraError() {
                                             Timber.e("Camera Preview Error")
-                                            cameraCallback!!.onCameraError()
+                                            cameraCallback?.onCameraError()
                                         }
                                     })
                                 } catch (e: Exception) {
                                     Timber.e(e.message)
-                                    cameraPreview!!.stop()
-                                    cameraSource!!.stop()
-                                    cameraCallback!!.onCameraError()
+                                    cameraPreview?.stop()
+                                    cameraSource?.stop()
+                                    cameraCallback?.onCameraError()
                                 }
                             }
                         }
                     })
                 }
             } else {
-                cameraCallback!!.onCameraError()
+                cameraCallback?.onCameraError()
             }
         }
     }
@@ -138,15 +140,16 @@ constructor(private val context: Context) {
             }
         }).build()
 
-        barcodeDetector!!.setProcessor(barCodeDetectorProcessor);
+        barcodeDetector?.setProcessor(barCodeDetectorProcessor);
         multiDetectorBuilder.add(barcodeDetector)
         detectorAdded = true
 
         if(detectorAdded) {
             multiDetector = multiDetectorBuilder.build()
-            if(!multiDetector!!.isOperational) {
-                cameraCallback!!.onDetectorError()
-                return
+            multiDetector?.let {
+                if(it.isOperational) {
+                    cameraCallback?.onDetectorError()
+                }
             }
         }
     }
@@ -156,7 +159,7 @@ constructor(private val context: Context) {
         Timber.d("initCamera camerId $camerId")
         return CameraSource.Builder(context, multiDetector)
                 .setAutoFocusEnabled(true)
-                .setRequestedFps(15.0f)
+                .setRequestedFps(9.0f)
                 .setRequestedPreviewSize(640, 480)
                 .setFacing(camerId)
                 .build()
