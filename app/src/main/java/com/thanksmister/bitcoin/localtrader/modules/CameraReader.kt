@@ -98,9 +98,11 @@ constructor(private val context: Context) {
                                     })
                                 } catch (e: Exception) {
                                     Timber.e(e.message)
-                                    cameraPreview?.stop()
-                                    cameraSource?.stop()
                                     cameraCallback?.onCameraError()
+                                    stopCamera()
+                                } finally {
+                                    cameraCallback?.onCameraError()
+                                    stopCamera()
                                 }
                             }
                         }
