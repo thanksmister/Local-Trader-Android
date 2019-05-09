@@ -29,7 +29,6 @@ import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFe
 import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeRate
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet
-import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.ExchangeRateDao
@@ -39,9 +38,8 @@ import com.thanksmister.bitcoin.localtrader.utils.*
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
-import io.reactivex.schedulers.Schedulers
+import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import javax.inject.Inject
@@ -79,6 +77,7 @@ constructor(application: Application,
         var currency: String? = null
         var exchange: String? = null
         var balance: String? = null
+        var sendable: String? = null
         var rate: String? = null
         var transactions = emptyList<Transaction>()
     }
@@ -100,6 +99,7 @@ constructor(application: Application,
                    data.bitcoinAmount = btcAmount
                    data.bitcoinValue = btcValue
                    data.balance = wallet.total.balance
+                   data.sendable = wallet.total.sendable
                    data.currency = currency
                    data.exchange = exchange.name
                    data.rate = exchange.rate
@@ -145,18 +145,17 @@ constructor(application: Application,
                     }
                     showProgress(false)
                 }, { error ->
-                    Timber.e("Error: " + error.toString())
+                    Timber.e("Wallet Error: " + error.toString())
                     showProgress(false)
-                    if(error is NetworkException) {
-                        if (RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else if (error is SocketTimeoutException) {
-                        Timber.e("SocketTimeOut: ${error.message}")
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> showAlertMessage(error.message)
                     }
                 })
     }
@@ -191,30 +190,37 @@ constructor(application: Application,
                 }, { error ->
                     Timber.e("Error: " + error.toString())
                     showProgress(false)
-                    if(error is NetworkException) {
-                        Timber.e("Error wallet address ${error.code}")
-                        showAlertMessage(error.message)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
+                        }
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> handleSocketTimeoutException()
+                        else -> showAlertMessage(error.message)
                     }
-                    Timber.e("Error wallet address  ${error.message}")
-                    showAlertMessage(error.message)
                 })
     }
 
     fun sendBitcoin(pinCode: String, address: String, amount: String) {
-        showProgress(true)
+        showPending(true)
         disposable += fetcher.sendPinCodeMoney(pinCode, address, amount)
                 .applySchedulers()
                 .subscribe({
-                    showProgress(false)
+                    showPending(false)
                 }, { error ->
-                    Timber.e("Error: " + error.toString())
-                    if(error is NetworkException) {
-                        Timber.e("Error sending money ${error.code}")
-                        // TODO test what code we have for specific messqage
-                        showAlertMessage(error.message)
-                    }
                     Timber.e("Error sending money  ${error.message}")
-                    showAlertMessage(error.message)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
+                        }
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> handleSocketTimeoutException()
+                        else -> showAlertMessage(error.message)
+                    }
                 })
     }
 
@@ -256,9 +262,18 @@ constructor(application: Application,
                                 setBitmap(bitmap)
                             }
                         }, { error ->
-                            showAlertMessage(error.message)
                             showProgress(false)
                             Timber.e(error.message)
+                            when (error) {
+                                is HttpException -> {
+                                    val errorHandler = RetrofitErrorHandler(getApplication())
+                                    val networkException = errorHandler.create(error)
+                                    handleNetworkException(networkException)
+                                }
+                                is NetworkException -> handleNetworkException(error)
+                                is SocketTimeoutException -> handleSocketTimeoutException()
+                                else -> showAlertMessage(error.message)
+                            }
                         })
     }
 

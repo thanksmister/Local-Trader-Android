@@ -67,6 +67,8 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
             } else if (jsonObject.has("error_code")) {
                 error_code = jsonObject.getInt("error_code")
             }
+            // TODO setup a test case to properly parse this
+            //{"message":"One or more parameters did not validate. Please check the API documentation for usage.","errors":{"amount":"Not enough balance"},"error_code":19}
 
             if (errorObj.has("errors")) {
                 error_message = StringBuilder()

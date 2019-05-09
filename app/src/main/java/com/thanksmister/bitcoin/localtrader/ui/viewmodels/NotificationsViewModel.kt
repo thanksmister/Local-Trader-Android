@@ -32,7 +32,9 @@ import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import retrofit2.HttpException
 import timber.log.Timber
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class NotificationsViewModel @Inject
@@ -54,16 +56,16 @@ constructor(application: Application, private val notificationsDao: Notification
                 .subscribe ({
                     notification.read = true
                     updateNotification(notification)
-                }, {
-                    error -> Timber.e("Notification Error $error.message")
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error ->
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> showAlertMessage(error.message)
                     }
                 })
     }

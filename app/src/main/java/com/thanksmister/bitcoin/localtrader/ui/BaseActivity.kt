@@ -101,10 +101,6 @@ abstract class BaseActivity : DaggerAppCompatActivity() {
         }
     }*/
 
-    open fun launchScanner() {
-        startActivity(ScanQrCodeActivity.createStartIntent(this@BaseActivity))
-    }
-
     fun logOutConfirmation() {
         AlertDialog.Builder(this@BaseActivity, R.style.CustomAlertDialog)
                 .setTitle(R.string.dialog_logout_title)

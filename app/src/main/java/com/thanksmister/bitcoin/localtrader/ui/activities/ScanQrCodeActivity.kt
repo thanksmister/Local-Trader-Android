@@ -118,7 +118,10 @@ class ScanQrCodeActivity : BaseActivity() {
             val bitcoinAddress = WalletUtils.parseBitcoinAddress(data)
             val bitcoinAmount = WalletUtils.parseBitcoinAmount(data)
             if(WalletUtils.validBitcoinAddress(bitcoinAddress)) {
-                startActivity(SendActivity.createStartIntent(this@ScanQrCodeActivity, bitcoinAddress, bitcoinAmount))
+                intent.putExtra(PinCodeActivity.EXTRA_ADDRESS, bitcoinAddress)
+                intent.putExtra(PinCodeActivity.EXTRA_AMOUNT, bitcoinAmount)
+                setResult(SCAN_SUCCESS, intent)
+                finish()
             } else {
                 Toast.makeText(this@ScanQrCodeActivity, getString(R.string.toast_invalid_bitcoin_address), Toast.LENGTH_LONG).show()
             }
@@ -128,6 +131,8 @@ class ScanQrCodeActivity : BaseActivity() {
     companion object {
         const val RC_HANDLE_GMS = 9001
         const val PERMISSIONS_REQUEST_CAMERA = 201
+        const val SCAN_INTENT = 7978
+        const val SCAN_SUCCESS = 53
         fun createStartIntent(context: Context): Intent {
             return Intent(context, ScanQrCodeActivity::class.java)
         }

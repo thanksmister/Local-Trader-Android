@@ -38,8 +38,10 @@ import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import retrofit2.HttpException
 import timber.log.Timber
 import java.io.*
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class MessageViewModel @Inject
@@ -69,16 +71,17 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                 .applySchedulers()
                 .subscribe ({
                     setMessagePostStatus(true)
-                }, {
-                    error -> Timber.e("Message Post Error " + error.message)
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error ->
+                    Timber.e("Message Post Error " + error.message)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_message))
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> handleSocketTimeoutException()
+                        else -> showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_message))
                     }
                 })
     }

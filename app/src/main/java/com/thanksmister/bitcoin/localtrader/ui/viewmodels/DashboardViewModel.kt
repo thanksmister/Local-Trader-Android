@@ -238,20 +238,10 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         }
                         is NetworkException -> handleNetworkException(error)
                         is SocketTimeoutException -> {}
-                        else -> {
-                            showAlertMessage(error.message)
-                        }
+                        else -> showAlertMessage(error.message)
                     }
                     updateSyncMap(SYNC_NOTIFICATIONS, false)
                 })
-    }
-
-    private fun handleNetworkException(error: NetworkException) {
-        when {
-            RetrofitErrorHandler.isHttp403Error(error.code) -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-            ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-            else -> showNetworkMessage(error.message, error.code)
-        }
     }
 
     private fun updateNotification(notification: Notification) {

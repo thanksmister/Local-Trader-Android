@@ -32,6 +32,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
+import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
@@ -39,6 +40,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.utils.*
 import io.reactivex.Flowable
 import pl.charmas.android.reactivelocation2.ReactiveLocationProvider
+import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import java.util.*
@@ -302,10 +304,15 @@ constructor(application: Application,
                     }
                 }, {
                     error -> Timber.e("Error getPlaces ${error.message}")
-                    if(error is SocketTimeoutException) {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_search_timeout))
-                    } else {
-                        showAlertMessage(error.message)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
+                        }
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> handleSocketTimeoutException()
+                        else -> showAlertMessage(error.message)
                     }
                 })
     }
@@ -329,9 +336,16 @@ constructor(application: Application,
                     }, {
                         error -> Timber.e("Error getOnlineAdvertisements ${error.message}")
                         //{"error": {"message": "Payment method not available.", "error_code": 0}}
-                        val errorHandler = RetrofitErrorHandler(getApplication())
-                        val networkException = errorHandler.create(error)
-                        showNetworkMessage(networkException.message, networkException.code)
+                        when (error) {
+                            is HttpException -> {
+                                val errorHandler = RetrofitErrorHandler(getApplication())
+                                val networkException = errorHandler.create(error)
+                                handleNetworkException(networkException)
+                            }
+                            is NetworkException -> handleNetworkException(error)
+                            is SocketTimeoutException -> handleSocketTimeoutException()
+                            else -> showAlertMessage(error.message)
+                        }
                     })
         } else if (countryName.toLowerCase() != "any" && paymentKey.toLowerCase() != "all") {
             val countryNameFix = countryName.replace(" ", "-");
@@ -341,9 +355,16 @@ constructor(application: Application,
                         setAdvertisements(it)
                     }, {
                         error -> Timber.e("Error getOnlineAdvertisements ${error.message}")
-                        val errorHandler = RetrofitErrorHandler(getApplication())
-                        val networkException = errorHandler.create(error)
-                        showNetworkMessage(networkException.message, networkException.code)
+                        when (error) {
+                            is HttpException -> {
+                                val errorHandler = RetrofitErrorHandler(getApplication())
+                                val networkException = errorHandler.create(error)
+                                handleNetworkException(networkException)
+                            }
+                            is NetworkException -> handleNetworkException(error)
+                            is SocketTimeoutException -> handleSocketTimeoutException()
+                            else -> showAlertMessage(error.message)
+                        }
                     })
         } else if (paymentKey.toLowerCase() == "all" && currency.toLowerCase() != "any") {
             disposable += fetcher.searchOnlineAdsCurrency(url, currency)
@@ -352,9 +373,16 @@ constructor(application: Application,
                         setAdvertisements(it)
                     }, {
                         error -> Timber.e("Error getOnlineAdvertisements ${error.message}")
-                        val errorHandler = RetrofitErrorHandler(getApplication())
-                        val networkException = errorHandler.create(error)
-                        showNetworkMessage(networkException.message, networkException.code)
+                        when (error) {
+                            is HttpException -> {
+                                val errorHandler = RetrofitErrorHandler(getApplication())
+                                val networkException = errorHandler.create(error)
+                                handleNetworkException(networkException)
+                            }
+                            is NetworkException -> handleNetworkException(error)
+                            is SocketTimeoutException -> handleSocketTimeoutException()
+                            else -> showAlertMessage(error.message)
+                        }
                     })
         } else if (paymentKey.toLowerCase() != "all" && currency.toLowerCase() == "any") {
             disposable += fetcher.searchOnlineAdsPayment(url, paymentKey)
@@ -363,9 +391,16 @@ constructor(application: Application,
                         setAdvertisements(it)
                     }, {
                         error -> Timber.e("Error getOnlineAdvertisements ${error.message}")
-                        val errorHandler = RetrofitErrorHandler(getApplication())
-                        val networkException = errorHandler.create(error)
-                        showNetworkMessage(networkException.message, networkException.code)
+                        when (error) {
+                            is HttpException -> {
+                                val errorHandler = RetrofitErrorHandler(getApplication())
+                                val networkException = errorHandler.create(error)
+                                handleNetworkException(networkException)
+                            }
+                            is NetworkException -> handleNetworkException(error)
+                            is SocketTimeoutException -> handleSocketTimeoutException()
+                            else -> showAlertMessage(error.message)
+                        }
                     })
         } else if (paymentKey.toLowerCase() != "all" && currency.toLowerCase() != "any") {
             disposable += fetcher.searchOnlineAdsCurrencyPayment(url, currency, paymentKey)
@@ -374,9 +409,16 @@ constructor(application: Application,
                         setAdvertisements(it)
                     }, {
                         error -> Timber.e("Error getOnlineAdvertisements ${error.message}")
-                        val errorHandler = RetrofitErrorHandler(getApplication())
-                        val networkException = errorHandler.create(error)
-                        showNetworkMessage(networkException.message, networkException.code)
+                        when (error) {
+                            is HttpException -> {
+                                val errorHandler = RetrofitErrorHandler(getApplication())
+                                val networkException = errorHandler.create(error)
+                                handleNetworkException(networkException)
+                            }
+                            is NetworkException -> handleNetworkException(error)
+                            is SocketTimeoutException -> handleSocketTimeoutException()
+                            else -> showAlertMessage(error.message)
+                        }
                     })
         } else {
             disposable += fetcher.searchOnlineAdsAll(url)
@@ -384,10 +426,18 @@ constructor(application: Application,
                     .subscribe ({
                         setAdvertisements(it)
                     }, {
-                        error -> Timber.e("Error getOnlineAdvertisements ${error.message}")
-                        val errorHandler = RetrofitErrorHandler(getApplication())
-                        val networkException = errorHandler.create(error)
-                        showNetworkMessage(networkException.message, networkException.code)
+                        error ->
+                        Timber.e("Error getOnlineAdvertisements ${error.message}")
+                        when (error) {
+                            is HttpException -> {
+                                val errorHandler = RetrofitErrorHandler(getApplication())
+                                val networkException = errorHandler.create(error)
+                                handleNetworkException(networkException)
+                            }
+                            is NetworkException -> handleNetworkException(error)
+                            is SocketTimeoutException -> handleSocketTimeoutException()
+                            else -> showAlertMessage(error.message)
+                        }
                     })
         }
     }
@@ -416,9 +466,16 @@ constructor(application: Application,
                     setAdvertisements(it)
                 }, {
                     error -> Timber.e("Error getAdvertisementsInPlace ${error.message}")
-                    val errorHandler = RetrofitErrorHandler(getApplication())
-                    val networkException = errorHandler.create(error)
-                    showNetworkMessage(networkException.message, networkException.code)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
+                        }
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> handleSocketTimeoutException()
+                        else -> showAlertMessage(error.message)
+                    }
                 })
     }
 

@@ -32,7 +32,9 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import org.json.JSONObject
+import retrofit2.HttpException
 import timber.log.Timber
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class PinCodeViewModel @Inject
@@ -73,14 +75,15 @@ constructor(application: Application, private val preferences: Preferences) : Ba
                     }
                 }, {
                     error -> Timber.e("Pin Code Error" + error.message)
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_contact_action))
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> handleSocketTimeoutException()
+                        else -> showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_contact_action))
                     }
                 }))
     }

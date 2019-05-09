@@ -19,6 +19,8 @@ package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LifecycleObserver
+import com.thanksmister.bitcoin.localtrader.BaseApplication
+import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.architecture.*
 import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
@@ -46,10 +48,21 @@ constructor(application: Application) : AndroidViewModel(application), Lifecycle
     private val toastText = ToastMessage()
     private val alertText = AlertMessage()
     private val progressText = ProgressMessage()
+    private val progressBarMessage = ProgressBarMessage()
+    private val pendingMessage = PendingMessage()
+
     val disposable = CompositeDisposable()
 
     fun getShowProgress(): ProgressMessage {
         return progressText
+    }
+
+    fun getShowProgressBar(): ProgressBarMessage {
+        return progressBarMessage
+    }
+
+    fun getPendingMessage(): PendingMessage {
+        return pendingMessage
     }
 
     fun getToastMessage(): ToastMessage {
@@ -79,6 +92,15 @@ constructor(application: Application) : AndroidViewModel(application), Lifecycle
         progressText.value = show
     }
 
+    fun showPending(show: Boolean) {
+        Timber.d("showPending")
+        pendingMessage.value = show
+    }
+
+    fun showProgressMessage(message: String?) {
+        progressBarMessage.value = message
+    }
+
     fun showNetworkMessage(message: String?, code: Int) {
         message?.let {
             val messageData = MessageData()
@@ -94,5 +116,20 @@ constructor(application: Application) : AndroidViewModel(application), Lifecycle
 
     fun showToastMessage(message: String?) {
         toastText.value = message
+    }
+
+    fun handleSocketTimeoutException() {
+        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_search_timeout))
+    }
+
+    fun handleNetworkException(error: NetworkException) {
+       Timber.e("Network Error Message" + error.message)
+       Timber.e("Network Error Code" + error.code)
+        when {
+            RetrofitErrorHandler.isHttp403Error(error.code) -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_bad_token), ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+            ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_network_retry), ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+            ExceptionCodes.INSUFFICIENT_BALANCE == error.code -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_not_enough_balance), ExceptionCodes.INSUFFICIENT_BALANCE)
+            else -> showNetworkMessage(error.message, error.code)
+        }
     }
 }

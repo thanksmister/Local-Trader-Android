@@ -84,7 +84,8 @@ public class LocalBitcoinsFetcher {
     }
 
     private Observable<String> refreshTokens() {
-        Timber.d("refreshTokens: " + preferences.getRefreshToken());
+        Timber.d("accessToken: " + preferences.getAccessToken());
+        Timber.d("refreshToken: " + preferences.getRefreshToken());
         return networkApi.refreshToken("refresh_token", preferences.getRefreshToken(), BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .flatMap(new Function<Authorization, ObservableSource<? extends String>>() {
                     @Override
@@ -181,7 +182,7 @@ public class LocalBitcoinsFetcher {
                                                 if (++retryCount < maxRetries) {
                                                     // When this Observable calls onNext, the original
                                                     // Observable will be retried (i.e. re-subscribed).
-                                                    return Observable.timer(50, TimeUnit.MILLISECONDS);
+                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
                                                 }
                                                 return Observable.error(networkException); // bubble up the exception;
                                             }
@@ -196,7 +197,7 @@ public class LocalBitcoinsFetcher {
                                                 if (++retryCount < maxRetries) {
                                                     // When this Observable calls onNext, the original
                                                     // Observable will be retried (i.e. re-subscribed).
-                                                    return Observable.timer(50, TimeUnit.MILLISECONDS);
+                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
                                                 }
                                                 return Observable.error(networkException); // bubble up the exception;
                                             }
@@ -211,7 +212,7 @@ public class LocalBitcoinsFetcher {
                                                 if (++retryCount < maxRetries) {
                                                     // When this Observable calls onNext, the original
                                                     // Observable will be retried (i.e. re-subscribed).
-                                                    return Observable.timer(50, TimeUnit.MILLISECONDS);
+                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
                                                 }
                                                 return Observable.error(networkException); // bubble up the exception;
                                             }
@@ -473,8 +474,7 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<Boolean> sendPinCodeMoney(final String pinCode, final String address, final String amount) {
-        return sendPinCodeMoneyObservable(pinCode, address, amount)
-                .retryWhen(new retryWithDelay(1, 500));
+        return sendPinCodeMoneyObservable(pinCode, address, amount);
     }
 
     private Observable<Boolean> sendPinCodeMoneyObservable(final String pinCode, final String address, final String amount) {

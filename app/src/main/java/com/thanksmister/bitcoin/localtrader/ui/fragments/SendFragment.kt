@@ -35,6 +35,7 @@ import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.PinCodeActivity
+import com.thanksmister.bitcoin.localtrader.ui.activities.ScanQrCodeActivity
 import com.thanksmister.bitcoin.localtrader.ui.activities.SendActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
 import com.thanksmister.bitcoin.localtrader.utils.Calculations
@@ -79,27 +80,49 @@ class SendFragment : BaseFragment() {
     }
 
     private fun observeViewModel(viewModel: WalletViewModel) {
+        viewModel.getNetworkMessage().observe(this, Observer { message ->
+            message?.let {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(requireActivity(), it.message)
+            }
+        })
         viewModel.getAlertMessage().observe(this, Observer { message ->
-            if (message != null && activity != null) {
-                if(confirming) {
-                    confirming = false
-                    dialogUtils.hideProgressDialog()
-                }
-                dialogUtils.showAlertDialog(activity!!, message)
+            message?.let {
+                dialogUtils.hideProgressDialog()
+                dialogUtils.showAlertDialog(requireActivity(), it)
             }
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            if (message != null && activity != null) {
+            message?.let {
+                dialogUtils.hideProgressDialog()
                 dialogUtils.toast(message)
             }
         })
-        viewModel.getShowProgress().observe(this, Observer { show ->
-            if(show!! && !confirming && activity != null) {
-                dialogUtils.showAlertDialog(activity!!, getString(R.string.progress_sending_transaction))
-            } else if(confirming && activity != null) {
+        viewModel.getPendingMessage().observe(this, Observer { value ->
+            value?.let {
+                if(it) {
+                    dialogUtils.showProgressDialog(requireActivity(), getString(R.string.progress_sending_transaction))
+                } else {
+                    dialogUtils.hideProgressDialog()
+                    dialogUtils.toast(R.string.toast_transaction_success)
+                    clearForm()
+                }
+            }
+        })
+        viewModel.getShowProgressBar().observe(this, Observer { value ->
+            if(value.isNullOrEmpty()) {
                 dialogUtils.hideProgressDialog()
-                dialogUtils.toast(R.string.toast_transaction_success)
-                activity!!.finish()
+            } else {
+                dialogUtils.showProgressDialog(requireActivity(), value)
+            }
+        })
+        viewModel.getShowProgress().observe(this, Observer { show ->
+            show?.let {
+                if(it) {
+                    dialogUtils.showProgressDialog(requireActivity(), getString(R.string.progress_sending_transaction))
+                } else if (confirming) {
+                    dialogUtils.hideProgressDialog()
+                }
             }
         })
         disposable.add(viewModel.getWalletData()
@@ -110,7 +133,7 @@ class SendFragment : BaseFragment() {
                     Timber.d("data $data")
                     if (data != null) {
                         rate = data.rate
-                        balance = data.balance
+                        balance = data.sendable
                         setWallet()
                     } else {
                         computeBalance(0.0)
@@ -127,7 +150,6 @@ class SendFragment : BaseFragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        super.onActivityResult(requestCode, resultCode, intent)
         Timber.d("onActivityResult: requestCode $requestCode")
         Timber.d("onActivityResult: resultCode $resultCode")
         if (requestCode == PinCodeActivity.REQUEST_CODE) {
@@ -137,7 +159,19 @@ class SendFragment : BaseFragment() {
                 val amount = intent.getStringExtra(PinCodeActivity.EXTRA_AMOUNT)
                 pinCodeEvent(pinCode, address, amount)
             }
+        } else if (requestCode == ScanQrCodeActivity.SCAN_INTENT) {
+            if(resultCode == ScanQrCodeActivity.SCAN_SUCCESS) {
+                address = intent?.getStringExtra(PinCodeActivity.EXTRA_ADDRESS)
+                amount = intent?.getStringExtra(PinCodeActivity.EXTRA_AMOUNT)
+                address?.let {
+                    setBitcoinAddress(it)
+                }
+                amount?.let {
+                    setAmount(it)
+                }
+            }
         }
+        super.onActivityResult(requestCode, resultCode, intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
@@ -162,7 +196,7 @@ class SendFragment : BaseFragment() {
                 return true
             }
             R.id.action_scan -> {
-                (activity as BaseActivity).launchScanner()
+                startBarCodeScanner()
                 return true
             }
             else -> {
@@ -231,6 +265,17 @@ class SendFragment : BaseFragment() {
         computeBalance(0.0)
 
         observeViewModel(viewModel)
+    }
+
+    private fun startBarCodeScanner() {
+        startActivityForResult(ScanQrCodeActivity.createStartIntent(requireActivity()), ScanQrCodeActivity.SCAN_INTENT)
+    }
+
+    private fun clearForm() {
+        confirming = false
+        amountText.setText("")
+        addressText.setText("")
+        fiatEditText.setText("")
     }
 
     private fun setWallet() {

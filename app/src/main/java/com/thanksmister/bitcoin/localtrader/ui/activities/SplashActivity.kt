@@ -100,7 +100,7 @@ class SplashActivity : BaseActivity() {
                 when {
                     RetrofitErrorHandler.isHttp403Error(messageData.code) -> {
                         showProgress(false)
-                        dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_authentication), DialogInterface.OnClickListener { dialog, which ->
+                        dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_bad_token), DialogInterface.OnClickListener { dialog, which ->
                             logOut()
                         })
                     }

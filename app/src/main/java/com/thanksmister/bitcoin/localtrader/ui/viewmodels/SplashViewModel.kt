@@ -236,15 +236,6 @@ constructor(application: Application,
                 }))
     }
 
-    // TODO make a better authentication error message
-    private fun handleNetworkException(error: NetworkException) {
-        when {
-            RetrofitErrorHandler.isHttp403Error(error.code) -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-            ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-            else -> showNetworkMessage(error.message, error.code)
-        }
-    }
-
     private fun fetchContacts() {
         Timber.d("fetchContacts")
         updateSyncMap(DashboardViewModel.SYNC_CONTACTS, true)
@@ -254,19 +245,18 @@ constructor(application: Application,
                 .subscribe ({
                     updateSyncMap(DashboardViewModel.SYNC_CONTACTS, false)
                     insertContacts(it)
-                }, {
-                    error -> Timber.e("Error fetching contacts ${error.message}")
-                    val invalid = error.message?.contains("invalid_grant")?:false
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else if (RetrofitErrorHandler.isHttp400Error(error.code) && invalid) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error ->
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> {
+                            showAlertMessage(error.message)
+                        }
                     }
                     updateSyncMap(DashboardViewModel.SYNC_CONTACTS, false)
                     setSyncing(SYNC_ERROR)
@@ -281,18 +271,18 @@ constructor(application: Application,
                 .subscribe ({
                     insertAdvertisements(it)
                     updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, false)
-                }, {
-                    error -> Timber.e("Error fetching advertisement ${error.message}")
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error -> Timber.e("Error fetching advertisement ${error.message}")
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else if (error is SocketTimeoutException) {
-                        Timber.e("SocketTimeOut: ${error.message}")
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> {
+                            showAlertMessage(error.message)
+                        }
                     }
                     updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, false)
                     setSyncing(SYNC_ERROR)
@@ -309,16 +299,18 @@ constructor(application: Application,
                         replaceNotifications(it)
                         updateSyncMap(DashboardViewModel.SYNC_NOTIFICATIONS, false)
                     }
-                }, {
-                    error -> Timber.e("Error fetching notification ${error.message}")
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error -> Timber.e("Error fetching notification ${error.message}")
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> {
+                            showAlertMessage(error.message)
+                        }
                     }
                     updateSyncMap(DashboardViewModel.SYNC_NOTIFICATIONS, false)
                     setSyncing(SYNC_ERROR)

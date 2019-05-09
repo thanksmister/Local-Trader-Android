@@ -443,6 +443,7 @@
     <string name="error_receiving_address">You have no receiving address, do you want to generate a new address?</string>
     <string name="progress_new_address">Generating new address...</string>
     <string name="menu_new_address">New Address</string>
+    <string name="error_not_enough_balance">Not enough balance, try a lower amount.</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">

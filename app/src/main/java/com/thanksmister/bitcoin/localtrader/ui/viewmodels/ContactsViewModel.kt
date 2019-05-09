@@ -40,7 +40,9 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
+import retrofit2.HttpException
 import timber.log.Timber
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -233,16 +235,16 @@ constructor(application: Application,
                     } else {
                         fetchContactData(contactId) // refresh contact
                     }
-                }, {
-                    error -> Timber.e("Contact Action Error" + error.message)
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error ->
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_contact_action))
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> showAlertMessage(error.message)
                     }
                 })
     }
@@ -257,16 +259,17 @@ constructor(application: Application,
                                 .subscribe ({
                                     notification.read = true
                                     updateNotification(notification)
-                                }, {
-                                    error -> Timber.e("Notification Error $error.message")
-                                    if(error is NetworkException) {
-                                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                                        } else {
-                                            showNetworkMessage(error.message, error.code)
+                                }, { error ->
+                                    Timber.e("Notification Error $error.message")
+                                    when (error) {
+                                        is HttpException -> {
+                                            val errorHandler = RetrofitErrorHandler(getApplication())
+                                            val networkException = errorHandler.create(error)
+                                            handleNetworkException(networkException)
                                         }
-                                    } else {
-                                        showAlertMessage(error.message)
+                                        is NetworkException -> handleNetworkException(error)
+                                        is SocketTimeoutException -> {}
+                                        else -> showAlertMessage(error.message)
                                     }
                                 })
                     }

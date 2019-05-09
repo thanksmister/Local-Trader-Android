@@ -47,6 +47,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
+import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import javax.inject.Inject
@@ -157,18 +158,17 @@ constructor(application: Application,
                     }
                 }, {
                     error ->
-                    Timber.e("Error " + error.message)
-                    Timber.e("error is SocketTimeoutException " + (error is SocketTimeoutException))
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else if (error is SocketTimeoutException) {
-                        Timber.e("SocketTimeOut: ${error.message}")
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> {
+                            showAlertMessage(error.message)
+                        }
                     }
                 }))
     }

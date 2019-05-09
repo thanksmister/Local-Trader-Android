@@ -66,12 +66,10 @@ constructor(application: Application, private val userDao: UserDao, private val 
                     setAuthorized(true)
                 }, {
                     error -> Timber.e("Error authentication " + error.message)
-                    if(error.message == "HTTP 404") {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_service_unreachable_error))
-                    } else if (error.message == "HTTP 400") {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_authentication))
-                    } else {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_authentication))
+                    when {
+                        error.message == "HTTP 404" -> showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_service_unreachable_error))
+                        error.message == "HTTP 400" -> showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_authentication))
+                        else -> showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_authentication))
                     }
                 }))
     }

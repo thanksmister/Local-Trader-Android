@@ -137,10 +137,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         binding.navigationView.setNavigationItemSelectedListener(this)
         binding.navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
-        /*supportFragmentManager.beginTransaction().replace(R.id.mainContainer,
-                AdvertisementsFragment.newInstance(), ADVERTISEMENTS_FRAGMENT).commit()
-*/
-
         supportFragmentManager.beginTransaction().add(R.id.mainContainer, notificationsFragment, NOTIFICATIONS_FRAGMENT).hide(notificationsFragment).commit();
         supportFragmentManager.beginTransaction().add(R.id.mainContainer, contactsFragment, CONTACTS_FRAGMENT).hide(contactsFragment).commit();
         supportFragmentManager.beginTransaction().add(R.id.mainContainer, advertisementFragment, ADVERTISEMENTS_FRAGMENT).commit();
@@ -281,7 +277,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                 Timber.d("Error Message ${it.message}")
                 when {
                     RetrofitErrorHandler.isHttp403Error(it.code)  -> {
-                        dialogUtils.showAlertDialog(this@MainActivity, it.message, DialogInterface.OnClickListener { dialog, which ->
+                        dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_bad_token), DialogInterface.OnClickListener { dialog, which ->
                             logOut()
                         })
                     }
