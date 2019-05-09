@@ -39,6 +39,7 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import java.util.*
@@ -209,15 +210,18 @@ constructor(application: Application,
                                     insertUser(it)
                                     updateSyncMap(SYNC_MYSELF, false)
                                     setUserExpireTime()
-                                }, { error -> Timber.e("User Error $error.message")
-                                    if(error is NetworkException) {
-                                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                                        } else {
-                                            showNetworkMessage(error.message, error.code)
+                                }, {
+                                    error ->
+                                    when (error) {
+                                        is HttpException -> {
+                                            val errorHandler = RetrofitErrorHandler(getApplication())
+                                            val networkException = errorHandler.create(error)
+                                            handleNetworkException(networkException)
                                         }
-                                    } else {
-                                        showAlertMessage(error.message)
+                                        is NetworkException -> handleNetworkException(error)
+                                        else -> {
+                                            showAlertMessage(error.message)
+                                        }
                                     }
                                     updateSyncMap(SYNC_MYSELF, false)
                                     setSyncing(SYNC_ERROR)
@@ -232,6 +236,15 @@ constructor(application: Application,
                 }))
     }
 
+    // TODO make a better authentication error message
+    private fun handleNetworkException(error: NetworkException) {
+        when {
+            RetrofitErrorHandler.isHttp403Error(error.code) -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+            ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+            else -> showNetworkMessage(error.message, error.code)
+        }
+    }
+
     private fun fetchContacts() {
         Timber.d("fetchContacts")
         updateSyncMap(DashboardViewModel.SYNC_CONTACTS, true)
@@ -243,14 +256,15 @@ constructor(application: Application,
                     insertContacts(it)
                 }, {
                     error -> Timber.e("Error fetching contacts ${error.message}")
+                    val invalid = error.message?.contains("invalid_grant")?:false
                     if(error is NetworkException) {
-                        if (RetrofitErrorHandler.isHttp403Error(error.code)) {
+                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                        } else if (RetrofitErrorHandler.isHttp400Error(error.code) && invalid) {
                             showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
                         } else {
                             showNetworkMessage(error.message, error.code)
                         }
-                    } else if (error is SocketTimeoutException) {
-                        Timber.e("SocketTimeOut: ${error.message}")
                     } else {
                         showAlertMessage(error.message)
                     }

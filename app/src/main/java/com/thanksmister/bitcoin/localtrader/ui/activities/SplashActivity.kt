@@ -100,14 +100,12 @@ class SplashActivity : BaseActivity() {
                 when {
                     RetrofitErrorHandler.isHttp403Error(messageData.code) -> {
                         showProgress(false)
-                        if(messageData.message != null) {
-                            dialogUtils.showAlertDialog(this@SplashActivity, messageData.message!!, DialogInterface.OnClickListener { dialog, which ->
-                                logOut()
-                            })
-                        }
+                        dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_authentication), DialogInterface.OnClickListener { dialog, which ->
+                            logOut()
+                        })
                     }
                     RetrofitErrorHandler.isNetworkError(messageData.code) -> {
-                        dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry) , DialogInterface.OnClickListener { dialog, which ->
+                        dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
                             Timber.d("retry network!!")
                             showProgress(true)
                             viewModel.startSync()
@@ -115,7 +113,7 @@ class SplashActivity : BaseActivity() {
                             onBackPressed()
                         })
                     }
-                    messageData.message != null -> dialogUtils.showAlertDialog(this@SplashActivity, messageData.message!!, DialogInterface.OnClickListener { dialog, which ->
+                    else -> dialogUtils.showAlertDialog(this@SplashActivity, messageData.message, DialogInterface.OnClickListener { dialog, which ->
                         viewModel.startSync()
                         showProgress(true)
                     })

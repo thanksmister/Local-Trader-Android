@@ -40,7 +40,6 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Notification;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notifications;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Place;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Places;
-import com.thanksmister.bitcoin.localtrader.network.api.model.RetroError;
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType;
 import com.thanksmister.bitcoin.localtrader.network.api.model.User;
 import com.thanksmister.bitcoin.localtrader.network.api.model.Wallet;
@@ -57,6 +56,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
@@ -83,12 +83,13 @@ public class LocalBitcoinsFetcher {
         return networkApi.getAuthorization("authorization_code", code, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET);
     }
 
-    private Observable<String> refreshTokens(String refreshToken) {
-        Timber.d("refreshTokens");
-        return networkApi.refreshToken("refresh_token", refreshToken, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
+    private Observable<String> refreshTokens() {
+        Timber.d("refreshTokens: " + preferences.getRefreshToken());
+        return networkApi.refreshToken("refresh_token", preferences.getRefreshToken(), BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
                 .flatMap(new Function<Authorization, ObservableSource<? extends String>>() {
                     @Override
                     public ObservableSource<? extends String> apply(Authorization authorization) {
+                        Timber.d("authorization " + authorization);
                         if(authorization != null) {
                             Timber.d("authorization.getAccessToken() " + authorization.getAccessToken());
                             Timber.d("authorization.getRefreshToken() " + authorization.getRefreshToken());
@@ -102,7 +103,7 @@ public class LocalBitcoinsFetcher {
                 });
     }
 
-    private <T> Function<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
+    /*private <T> Function<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
 
         Timber.d("refreshTokenAndRetry");
 
@@ -148,11 +149,127 @@ public class LocalBitcoinsFetcher {
                 return Observable.error(networkException); // bubble up the exception;
             }
         };
+    }*/
+
+    public class retryWithDelay implements Function<Observable<? extends Throwable>, Observable<?>> {
+        private final int maxRetries;
+        private final int retryDelayMillis;
+        private int retryCount;
+
+        public retryWithDelay(final int maxRetries, final int retryDelayMillis) {
+            this.maxRetries = maxRetries;
+            this.retryDelayMillis = retryDelayMillis;
+            this.retryCount = 0;
+        }
+
+        @Override
+        public Observable<?> apply(final Observable<? extends Throwable> attempts) {
+            return attempts
+                    .flatMap(new Function<Throwable, Observable<?>>() {
+                        @Override
+                        public Observable<?> apply(final Throwable throwable) {
+                            RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                            Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
+                            final NetworkException networkException = errorHandler.create(throwable);
+                            if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                                Timber.e("Retrying error code: " + networkException.getCode());
+                                return refreshTokens()
+                                        .subscribeOn(Schedulers.computation())
+                                        .flatMap(new Function<String, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> apply(String s) throws Exception {
+                                                if (++retryCount < maxRetries) {
+                                                    // When this Observable calls onNext, the original
+                                                    // Observable will be retried (i.e. re-subscribed).
+                                                    return Observable.timer(50, TimeUnit.MILLISECONDS);
+                                                }
+                                                return Observable.error(networkException); // bubble up the exception;
+                                            }
+                                        });
+                            } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                                Timber.e("Retrying error code: " + networkException.getCode());
+                                return refreshTokens()
+                                        .subscribeOn(Schedulers.computation())
+                                        .flatMap(new Function<String, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> apply(String s) throws Exception {
+                                                if (++retryCount < maxRetries) {
+                                                    // When this Observable calls onNext, the original
+                                                    // Observable will be retried (i.e. re-subscribed).
+                                                    return Observable.timer(50, TimeUnit.MILLISECONDS);
+                                                }
+                                                return Observable.error(networkException); // bubble up the exception;
+                                            }
+                                        });
+                            } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                                Timber.e("Retrying error code: " + networkException.getCode());
+                                return refreshTokens()
+                                        .subscribeOn(Schedulers.computation())
+                                        .flatMap(new Function<String, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> apply(String s) throws Exception {
+                                                if (++retryCount < maxRetries) {
+                                                    // When this Observable calls onNext, the original
+                                                    // Observable will be retried (i.e. re-subscribed).
+                                                    return Observable.timer(50, TimeUnit.MILLISECONDS);
+                                                }
+                                                return Observable.error(networkException); // bubble up the exception;
+                                            }
+                                        });
+                            } else if (throwable instanceof SocketTimeoutException) {
+                                return Observable.error(throwable); // bubble up the exception;
+                            }
+                            return Observable.error(networkException); // bubble up the exception;
+                        }
+                    });
+        }
     }
 
     public Observable<User> getMyself() {
         return getMyselfObservable()
-                        .onErrorResumeNext(refreshTokenAndRetry(getMyselfObservable()));
+                .retryWhen(new retryWithDelay(1, 500));
+                /*.onErrorResumeNext(new Function<Throwable, Observable<User>>() {
+                    @Override
+                    public Observable<User> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<User>>() {
+                                        @Override
+                                        public Observable<User> apply(String s) throws Exception {
+                                            return getMyselfObservable();
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<User>>() {
+                                        @Override
+                                        public Observable<User> apply(String s) throws Exception {
+                                            return getMyselfObservable();
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode() ) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<User>>() {
+                                        @Override
+                                        public Observable<User> apply(String s) throws Exception {
+                                            return getMyselfObservable();
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });*/
     }
 
     private Observable<User> getMyselfObservable() {
@@ -185,7 +302,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<List<Advertisement>> getAdvertisements() {
         return getAdvertisementsObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementsObservable()))
+                .retryWhen(new retryWithDelay(1, 500))
                 .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
                     @Override
                     public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
@@ -201,7 +318,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<JsonElement> updateAdvertisement(Advertisement advertisement) {
         return updateAdvertisementObservable(advertisement)
-                .onErrorResumeNext(refreshTokenAndRetry(updateAdvertisementObservable(advertisement)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<JsonElement> updateAdvertisementObservable(Advertisement advertisement) {
@@ -224,7 +341,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<JsonElement> deleteAdvertisement(final int adId) {
         return deleteAdvertisementObservable(adId)
-                .onErrorResumeNext(refreshTokenAndRetry(deleteAdvertisementObservable(adId)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<JsonElement> deleteAdvertisementObservable(final int adId) {
@@ -255,7 +372,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<List<Advertisement>> getAdvertisement(final int adId) {
         return getAdvertisementObservable(adId)
-                .onErrorResumeNext(refreshTokenAndRetry(getAdvertisementObservable(adId)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<List<Advertisement>> getAdvertisementObservable(final int adId) {
@@ -271,7 +388,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<Contact> getContact(final int contactId) {
         return getContactObservable(contactId)
-                .onErrorResumeNext(refreshTokenAndRetry(getContactObservable(contactId)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<Contact> getContactObservable(final int contactId) {
@@ -281,12 +398,12 @@ public class LocalBitcoinsFetcher {
 
     public Observable<Wallet> getWallet() {
         return getWalletObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getWalletObservable()));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     public Observable<NewAddress> getWalletAddress() {
         return getWalletAddressObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getWalletAddressObservable()));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<NewAddress> getWalletAddressObservable() {
@@ -302,7 +419,7 @@ public class LocalBitcoinsFetcher {
     public Observable<Wallet> getWalletBalance() {
         Timber.d("getWalletBalance");
         return getWalletBalanceObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getWalletBalanceObservable()));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<Wallet> getWalletBalanceObservable() {
@@ -313,7 +430,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<List<Contact>> getContacts() {
         return getContactsObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getContactsObservable()));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<List<Contact>> getContactsObservable() {
@@ -330,7 +447,7 @@ public class LocalBitcoinsFetcher {
     public Observable<List<Contact>> getContactsByType(final DashboardType dashboardType) {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getDashboard(accessToken, dashboardType.name().toLowerCase())
-                .onErrorResumeNext(refreshTokenAndRetry(networkApi.getDashboard(accessToken, dashboardType.name().toLowerCase())))
+                .retryWhen(new retryWithDelay(1, 500))
                 .flatMap(new Function<Dashboard, ObservableSource<List<Contact>>>() {
                     @Override
                     public ObservableSource<List<Contact>> apply(Dashboard dashboard) throws Exception {
@@ -341,7 +458,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<List<Notification>> getNotifications() {
         return getNotificationsObservable()
-                .onErrorResumeNext(refreshTokenAndRetry(getNotificationsObservable()));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<List<Notification>> getNotificationsObservable() {
@@ -357,7 +474,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<Boolean> sendPinCodeMoney(final String pinCode, final String address, final String amount) {
         return sendPinCodeMoneyObservable(pinCode, address, amount)
-                .onErrorResumeNext(refreshTokenAndRetry(sendPinCodeMoneyObservable(pinCode, address, amount)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<Boolean> sendPinCodeMoneyObservable(final String pinCode, final String address, final String amount) {
@@ -377,7 +494,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<JsonElement> markNotificationRead(final String notificationId) {
         return markNotificationReadObservable(String.valueOf(notificationId))
-                .onErrorResumeNext(refreshTokenAndRetry(markNotificationReadObservable(String.valueOf(notificationId))));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<JsonElement> markNotificationReadObservable(final String notificationId) {
@@ -387,7 +504,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<List<Message>> getContactMessages(final int contactId) {
         return getContactMessagesReadObservable(contactId)
-                .onErrorResumeNext(refreshTokenAndRetry(getContactMessagesReadObservable(contactId)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<List<Message>> getContactMessagesReadObservable(final int contactId) {
@@ -500,8 +617,7 @@ public class LocalBitcoinsFetcher {
 
         return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount, name, phone, email,
                 iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
-                .onErrorResumeNext(refreshTokenAndRetry((createContactObservable(adId, tradeType, countryCode, onlineProvider, amount, name, phone, email,
-                        iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress))));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<ContactRequest> createContactObservable( final String adId, final TradeType tradeType, final String countryCode,
@@ -564,7 +680,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<JsonElement> contactAction(final int contactId, final String pinCode, final ContactAction action) {
         return contactActionObservable(contactId, pinCode, action)
-                .onErrorResumeNext(refreshTokenAndRetry(contactActionObservable(contactId, pinCode, action)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<JsonElement> contactActionObservable(final int contactId, final String pinCode, final ContactAction action) {
@@ -586,7 +702,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<JsonElement> validatePinCode(final String pinCode) {
         return validatePinCodeObservable(pinCode)
-                .onErrorResumeNext(refreshTokenAndRetry(validatePinCodeObservable(pinCode)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<JsonElement> validatePinCodeObservable(final String pinCode) {
@@ -596,7 +712,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<JsonElement> postMessage(final int contactId, final String message) {
         return postMessageObservable(contactId, message)
-                .onErrorResumeNext(refreshTokenAndRetry(postMessageObservable(contactId, message)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<JsonElement> postMessageObservable(final int contactId, final String message) {
@@ -606,7 +722,7 @@ public class LocalBitcoinsFetcher {
 
     public Observable<JsonElement> postMessageWithAttachment(final int contactId, final String message, final File file) {
         return postMessageWithAttachmentObservable(contactId, message, file)
-                .onErrorResumeNext(refreshTokenAndRetry(postMessageWithAttachmentObservable(contactId, message, file)));
+                .retryWhen(new retryWithDelay(1, 500));
     }
 
     private Observable<JsonElement> postMessageWithAttachmentObservable(final int contactId, final String message, final File file) {
@@ -618,1218 +734,4 @@ public class LocalBitcoinsFetcher {
         params.put("msg", message);
         return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody);
     }
-
-
-    /*
-    public Observable<JSONObject> postMessageWithAttachment(final String contact_id, final String message, final File file) {
-        final String accessToken = preferences.getAccessToken();
-        return postMessageWithAttachmentObservable(accessToken, contact_id, message, file)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return postMessageWithAttachmentObservable(token, contact_id, message, file);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return postMessageWithAttachmentObservable(token, contact_id, message, file);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> postMessageObservable(final String accessToken, final String contact_id, final String message) {
-        return networkApi.contactMessagePost(accessToken, contact_id, message);
-    }
-
-    private Observable<Response> postMessageWithAttachmentObservable(final String accessToken, final String contact_id, final String message, final File file) {
-        TypedFile typedFile = new TypedFile("multipart/form-data", file);
-        final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
-        params.put("msg", message);
-        return networkApi.contactMessagePostWithAttachment(accessToken, contact_id, params, typedFile);
-    }
-     */
-
-    /*
-     public Observable<JSONObject> postMessage(final String contact_id, final String message) {
-        final String accessToken = preferences.getAccessToken();
-        return postMessageObservable(accessToken, contact_id, message)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return postMessageObservable(token, contact_id, message);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return postMessageObservable(token, contact_id, message);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-     */
-
-    /*
-    public Observable<JSONObject> validatePinCode(final String pinCode) {
-        final String accessToken = preferences.getAccessToken();
-        return validatePinCodeObservable(accessToken, pinCode)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return validatePinCodeObservable(token, pinCode);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return validatePinCodeObservable(token, pinCode);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> validatePinCodeObservable(final String accessToken, final String pinCode) {
-        return networkApi.checkPinCode(accessToken, pinCode);
-    }
-     */
-
-    /*
-     public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action) {
-        final String accessToken = preferences.getAccessToken();
-        ;
-        return contactActionObservable(accessToken, contactId, pinCode, action)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return contactActionObservable(token, contactId, pinCode, action);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return contactActionObservable(token, contactId, pinCode, action);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> contactActionObservable(final String accessToken, final String contactId, final String pinCode, final ContactAction action) {
-        switch (action) {
-            case RELEASE:
-                return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
-            case CANCEL:
-                return networkApi.contactCancel(accessToken, contactId);
-            case DISPUTE:
-                return networkApi.contactDispute(accessToken, contactId);
-            case PAID:
-                return networkApi.markAsPaid(accessToken, contactId);
-            case FUND:
-                return networkApi.contactFund(accessToken, contactId);
-        }
-        return Observable.error(new Error("Unable to perform action on contact"));
-    }
-
-     */
-
-
-
-    /*public Observable<ContactRequest> createContact(final String adId, final TradeType tradeType, final String countryCode,
-                                                    final String onlineProvider, final String amount, final String name,
-                                                    final String phone, final String email, final String iban, final String bic,
-                                                    final String reference, final String message, final String sortCode,
-                                                    final String billerCode, final String accountNumber, final String bsb,
-                                                    final String ethereumAddress) {
-
-        final String accessToken = preferences.getAccessToken();
-        ;
-
-        return createContactObservable(accessToken, adId, tradeType, countryCode, onlineProvider, amount,
-                name, phone, email, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return createContactObservable(token, adId, tradeType, countryCode, onlineProvider, amount,
-                                                        name, phone, email, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return createContactObservable(token, adId, tradeType, countryCode, onlineProvider, amount,
-                                                            name, phone, email, iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToContactRequest());
-    }
-
-
-    private Observable<Response> createContactObservable(final String accessToken, final String adId, final TradeType tradeType, final String countryCode,
-                                                         final String onlineProvider, final String amount, final String name,
-                                                         final String phone, final String email, final String iban, final String bic,
-                                                         final String reference, final String message, final String sortCode,
-                                                         final String billerCode, final String accountNumber, final String bsb,
-                                                         final String ethereumAddress) {
-
-        if (tradeType == TradeType.ONLINE_BUY) {
-            switch (onlineProvider) {
-                case TradeUtils.NATIONAL_BANK:
-                    switch (countryCode) {
-                        case "UK":
-                            return networkApi.createContactNationalUK(accessToken, adId, amount, name, sortCode, reference, accountNumber, message);
-                        case "AU":
-                            return networkApi.createContactNationalAU(accessToken, adId, amount, name, bsb, reference, accountNumber, message);
-                        case "FI":
-                            return networkApi.createContactNationalFI(accessToken, adId, amount, name, iban, bic, reference, message);
-                        default:
-                            return networkApi.createContactNational(accessToken, adId, amount, message);
-                    }
-                case TradeUtils.VIPPS:
-                case TradeUtils.EASYPAISA:
-                case TradeUtils.HAL_CASH:
-                case TradeUtils.QIWI:
-                case TradeUtils.LYDIA:
-                case TradeUtils.SWISH:
-                    return networkApi.createContactPhone(accessToken, adId, amount, phone, message);
-                case TradeUtils.PAYPAL:
-                case TradeUtils.NETELLER:
-                case TradeUtils.INTERAC:
-                case TradeUtils.ALIPAY:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
-                    return networkApi.createContactEmail(accessToken, adId, amount, email, message);
-                case TradeUtils.SEPA:
-                    return networkApi.createContactSepa(accessToken, adId, amount, name, iban, bic, reference, message);
-                case TradeUtils.ALTCOIN_ETH:
-                    return networkApi.createContactEthereumAddress(accessToken, adId, amount, ethereumAddress, message);
-                case TradeUtils.BPAY:
-                    return networkApi.createContactBPay(accessToken, adId, amount, billerCode, reference, message);
-            }
-        } else if (tradeType == TradeType.ONLINE_SELL) {
-            switch (onlineProvider) {
-                case TradeUtils.QIWI:
-                case TradeUtils.SWISH:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_DK:
-                case TradeUtils.MOBILEPAY_DANSKE_BANK_NO:
-                    return networkApi.createContactPhone(accessToken, adId, amount, phone, message);
-
-            }
-        }
-
-        return networkApi.createContact(accessToken, adId, amount, message);
-    }
-
-    public Observable<Boolean> sendPinCodeMoney(final String pinCode, final String address, final String amount) {
-        final String accessToken = preferences.getAccessToken();
-        return sendPinCodeMoneyObservable(accessToken, pinCode, address, amount)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-                                                return sendPinCodeMoneyObservable(token, pinCode, address, amount);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return sendPinCodeMoneyObservable(token, pinCode, address, amount);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(JSONObject jsonObject) {
-                        if (Parser.containsError(jsonObject)) {
-                            RetroError retroError = Parser.parseError(jsonObject);
-                            throw new Error(retroError);
-                        }
-                        return Observable.just(true);
-                    }
-                });
-    }
-
-    private Observable<Response> sendPinCodeMoneyObservable(String accessToken, final String pinCode, final String address, final String amount) {
-        return networkApi.walletSendPin(accessToken, pinCode, address, amount);
-    }
-
-    public Observable<Wallet> getWalletBalance() {
-        final String accessToken = preferences.getAccessToken();
-        return getWalletBalanceObservable(accessToken)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-                                                return getWalletBalanceObservable(token);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-                                                    return getWalletBalanceObservable(token);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToWalletBalance());
-    }
-
-    private Observable<Response> getWalletBalanceObservable(final String accessToken) {
-        return networkApi.getWalletBalance(accessToken);
-    }
-
-    public Observable<JSONObject> validatePinCode(final String pinCode) {
-        final String accessToken = preferences.getAccessToken();
-        return validatePinCodeObservable(accessToken, pinCode)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return validatePinCodeObservable(token, pinCode);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return validatePinCodeObservable(token, pinCode);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> validatePinCodeObservable(final String accessToken, final String pinCode) {
-        return networkApi.checkPinCode(accessToken, pinCode);
-    }
-
-    public Observable<JSONObject> contactAction(final String contactId, final String pinCode, final ContactAction action) {
-        final String accessToken = preferences.getAccessToken();
-        ;
-        return contactActionObservable(accessToken, contactId, pinCode, action)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return contactActionObservable(token, contactId, pinCode, action);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return contactActionObservable(token, contactId, pinCode, action);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> contactActionObservable(final String accessToken, final String contactId, final String pinCode, final ContactAction action) {
-        switch (action) {
-            case RELEASE:
-                return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
-            case CANCEL:
-                return networkApi.contactCancel(accessToken, contactId);
-            case DISPUTE:
-                return networkApi.contactDispute(accessToken, contactId);
-            case PAID:
-                return networkApi.markAsPaid(accessToken, contactId);
-            case FUND:
-                return networkApi.contactFund(accessToken, contactId);
-        }
-        return Observable.error(new Error("Unable to perform action on contact"));
-    }
-
-    public Observable<JSONObject> updateAdvertisement(final Advertisement advertisement) {
-        final String accessToken = preferences.getAccessToken();
-        return updateAdvertisementObservable(accessToken, advertisement)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return updateAdvertisementObservable(token, advertisement);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return updateAdvertisementObservable(token, advertisement);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<JSONObject>>() {
-                    @Override
-                    public Observable<JSONObject> call(JSONObject jsonObject) {
-                        return Observable.just(jsonObject);
-                    }
-                });
-    }
-
-    private Observable<Response> updateAdvertisementObservable(final String accessToken, final Advertisement advertisement) {
-        final String city;
-        if (Strings.isBlank(advertisement.getCity())) {
-            city = advertisement.getLocation();
-        } else {
-            city = advertisement.getCity();
-        }
-        return networkApi.updateAdvertisement(
-                accessToken, String.valueOf(advertisement.getAd_id()), advertisement.getAccount_info(), advertisement.getBank_name(), city, advertisement.getCountry_code(), advertisement.getCurrency(),
-                String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMax_amount(), advertisement.getMin_amount(),
-                advertisement.getMessage(), advertisement.getPrice_equation(), String.valueOf(advertisement.getTrusted_required()), String.valueOf(advertisement.getSms_verification_required()),
-                String.valueOf(advertisement.getTrack_max_amount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequire_identification()),
-                advertisement.getRequire_feedback_score(), advertisement.getRequire_trade_volume(), advertisement.getFirst_time_limit_btc(),
-                advertisement.getPhone_number(), advertisement.getOpening_hours());
-    }
-
-    public Observable<JSONObject> createAdvertisement(final Advertisement advertisement) {
-        final String accessToken = preferences.getAccessToken();
-        return createAdvertisementObservable(accessToken, advertisement)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return createAdvertisementObservable(token, advertisement);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return createAdvertisementObservable(token, advertisement);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> createAdvertisementObservable(final String accessToken, final Advertisement advertisement) {
-        String city;
-        if (TextUtils.isEmpty(advertisement.getCity())) {
-            city = advertisement.getLocation();
-        } else {
-            city = advertisement.getCity();
-        }
-
-        return networkApi.createAdvertisement(accessToken, advertisement.getMin_amount(),
-                advertisement.getMax_amount(), advertisement.getPrice_equation(), advertisement.getTrade_type(), advertisement.getOnline_provider(),
-                String.valueOf(advertisement.getLat()), String.valueOf(advertisement.getLon()),
-                city, advertisement.getLocation(), advertisement.getCountry_code(), advertisement.getAccount_info(), advertisement.getBank_name(),
-                String.valueOf(advertisement.getSms_verification_required()), String.valueOf(advertisement.getTrack_max_amount()),
-                String.valueOf(advertisement.getTrusted_required()), String.valueOf(advertisement.getRequire_identification()),
-                advertisement.getRequire_feedback_score(), advertisement.getRequire_trade_volume(),
-                advertisement.getFirst_time_limit_btc(), advertisement.getMessage(), advertisement.getCurrency(),
-                advertisement.getPhone_number(), advertisement.getOpening_hours());
-    }
-
-    public Observable<JSONObject> postMessage(final String contact_id, final String message) {
-        final String accessToken = preferences.getAccessToken();
-        return postMessageObservable(accessToken, contact_id, message)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return postMessageObservable(token, contact_id, message);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return postMessageObservable(token, contact_id, message);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    public Observable<JSONObject> postMessageWithAttachment(final String contact_id, final String message, final File file) {
-        final String accessToken = preferences.getAccessToken();
-        return postMessageWithAttachmentObservable(accessToken, contact_id, message, file)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return postMessageWithAttachmentObservable(token, contact_id, message, file);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return postMessageWithAttachmentObservable(token, contact_id, message, file);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> postMessageObservable(final String accessToken, final String contact_id, final String message) {
-        return networkApi.contactMessagePost(accessToken, contact_id, message);
-    }
-
-    private Observable<Response> postMessageWithAttachmentObservable(final String accessToken, final String contact_id, final String message, final File file) {
-        TypedFile typedFile = new TypedFile("multipart/form-data", file);
-        final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
-        params.put("msg", message);
-        return networkApi.contactMessagePostWithAttachment(accessToken, contact_id, params, typedFile);
-    }
-
-    public Observable<User> getMyself(String accessToken) {
-        return networkApi.getMyself(accessToken)
-                .map(new ResponseToUser());
-    }
-
-    public Observable<Contact> getContactInfo(final String contact_id) {
-        final String accessToken = preferences.getAccessToken();
-        return getContactInfoObservable(accessToken, contact_id)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return getContactInfoObservable(token, contact_id);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return getContactInfoObservable(token, contact_id);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToContact())
-                .flatMap(new Func1<Contact, Observable<? extends Contact>>() {
-                    @Override
-                    public Observable<? extends Contact> call(final Contact contact) {
-                        return getContactMessagesObservable(String.valueOf(contact.getContact_id()))
-                                .map(new ResponseToMessages())
-                                .map(new Func1<List<Message>, Contact>() {
-                                    @Override
-                                    public Contact call(List<Message> messages) {
-                                        if (messages != null) {
-                                            contact.setMessages(messages);
-                                        }
-                                        return contact;
-                                    }
-                                });
-                    }
-                });
-    }
-
-    private Observable<Response> getContactInfoObservable(String accessToken, final String contact_id) {
-        return networkApi.getContactInfo(accessToken, contact_id);
-    }
-
-    private Observable<Response> getContactMessagesObservable(final String contact_id) {
-        final String accessToken = preferences.getAccessToken();
-        return networkApi.contactMessages(accessToken, contact_id);
-    }
-
-    public Observable<List<Notification>> getNotifications() {
-        final String accessToken = preferences.getAccessToken();
-        return getNotificationsObservable(accessToken)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return getNotificationsObservable(token);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return getNotificationsObservable(token);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToNotifications());
-    }
-
-    private Observable<Response> getNotificationsObservable(String accessToken) {
-        return networkApi.getNotifications(accessToken);
-    }
-
-    public Observable<JSONObject> markNotificationRead(final String notificationId) {
-        final String accessToken = preferences.getAccessToken();
-        return markNotificationReadObservable(accessToken, notificationId)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return markNotificationReadObservable(token, notificationId);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return markNotificationReadObservable(token, notificationId);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject());
-    }
-
-    private Observable<Response> markNotificationReadObservable(String accessToken, final String notificationId) {
-        return networkApi.markNotificationRead(accessToken, notificationId);
-    }
-
-    public Observable<List<Contact>> fetchContactsByType(final DashboardType dashboardType) {
-        final String accessToken = preferences.getAccessToken();
-        switch (dashboardType) {
-            case RELEASED:
-            case CLOSED:
-            case CANCELED:
-                return getContactsObservable(accessToken, dashboardType)
-                        .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                            @Override
-                            public Observable<? extends Response> call(Throwable throwable) {
-                                NetworkException networkException = null;
-                                if (throwable instanceof NetworkException) {
-                                    networkException = (NetworkException) throwable;
-                                    throwable = networkException.getCause();
-                                }
-                                if (networkException != null) {
-                                    if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                        return refreshTokens()
-                                                .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                    @Override
-                                                    public Observable<? extends Response> call(String token) {
-
-                                                        return getContactsObservable(token, dashboardType);
-                                                    }
-                                                });
-                                    } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                        if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                            return refreshTokens()
-                                                    .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                        @Override
-                                                        public Observable<? extends Response> call(String token) {
-
-                                                            return getContactsObservable(token, dashboardType);
-                                                        }
-                                                    });
-                                        }
-                                    }
-                                    return Observable.error(networkException);
-                                }
-                                return Observable.error(throwable);
-                            }
-                        })
-                        .map(new ResponseToContacts())
-                        .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
-                            @Override
-                            public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                                return Observable.just(contacts);
-                            }
-                        });
-            default:
-                return getContactsObservable(accessToken)
-                        .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                            @Override
-                            public Observable<? extends Response> call(Throwable throwable) {
-                                NetworkException networkException = null;
-                                if (throwable instanceof NetworkException) {
-                                    networkException = (NetworkException) throwable;
-                                }
-                                if (networkException != null) {
-                                    if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                        return refreshTokens()
-                                                .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                    @Override
-                                                    public Observable<? extends Response> call(String token) {
-
-                                                        return getContactsObservable(token);
-                                                    }
-                                                });
-                                    } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                        if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                            return refreshTokens()
-                                                    .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                        @Override
-                                                        public Observable<? extends Response> call(String token) {
-
-                                                            return getContactsObservable(token);
-                                                        }
-                                                    });
-                                        }
-                                    }
-                                    return Observable.error(networkException);
-                                }
-                                return Observable.error(throwable);
-                            }
-                        })
-                        .map(new ResponseToContacts())
-                        .flatMap(new Func1<List<Contact>, Observable<? extends List<Contact>>>() {
-                            @Override
-                            public Observable<? extends List<Contact>> call(final List<Contact> contacts) {
-                                return Observable.just(contacts);
-                            }
-                        });
-        }
-    }
-
-    private Observable<Dashboard> getContactsObservable(String accessToken) {
-        return networkApi.getDashboard(accessToken);
-    }
-
-    private Observable<Dashboard> getContactsObservable(String accessToken, final DashboardType dashboardType) {
-        return networkApi.getDashboard(accessToken, dashboardType.name().toLowerCase());
-    }
-
-    public Observable<Advertisement> getAdvertisement(final String adId) {
-        final String accessToken = preferences.getAccessToken();
-        return networkApi.getAdvertisement(accessToken, adId)
-
-                .onErrorResumeNext(new Function<Throwable, ObservableSource<? extends Advertisement>>() {
-                    @Override
-                    public ObservableSource<? extends Advertisement> apply(Throwable throwable) throws Exception {
-                        return null;
-                    }
-                })
-
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Advertisement>>() {
-                    @Override
-                    public Observable<? extends Advertisement> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return networkApi.getAdvertisement(token, adId);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return networkApi.getAdvertisement(token, adId);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToAd());
-    }
-
-    public Observable<JSONObject> updateAdvertisementVisibility(final Advertisement advertisement, final boolean visible) {
-        advertisement.setVisible(visible);
-        final String accessToken = preferences.getAccessToken();
-        return updateAdvertisementObservable(accessToken, advertisement)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return updateAdvertisementObservable(token, advertisement);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return updateAdvertisementObservable(token, advertisement);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<JSONObject>>() {
-                    @Override
-                    public Observable<JSONObject> call(JSONObject jsonObject) {
-                        if (Parser.containsError(jsonObject)) {
-                            RetroError retroError = Parser.parseError(jsonObject);
-                            throw new Error(retroError);
-                        } else {
-                            return Observable.just(jsonObject);
-                        }
-                    }
-                });
-    }
-
-    public Observable<Boolean> deleteAdvertisement(final String adId) {
-        final String accessToken = preferences.getAccessToken();
-        return deleteAdvertisementObservable(accessToken, adId)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return deleteAdvertisementObservable(token, adId);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return deleteAdvertisementObservable(token, adId);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToJSONObject())
-                .flatMap(new Func1<JSONObject, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(JSONObject jsonObject) {
-                        if (Parser.containsError(jsonObject)) {
-                            RetroError retroError = Parser.parseError(jsonObject);
-                            throw new Error(retroError);
-                        }
-                        return Observable.just(true);
-                    }
-                });
-    }
-
-    private Observable<Response> deleteAdvertisementObservable(String accessToken, final String adId) {
-        return networkApi.deleteAdvertisement(accessToken, adId);
-    }
-
-    public Observable<Wallet> getWallet() {
-        final String accessToken = preferences.getAccessToken();
-        return getWalletObservable(accessToken)
-                .onErrorResumeNext(new Func1<Throwable, Observable<? extends Response>>() {
-                    @Override
-                    public Observable<? extends Response> call(Throwable throwable) {
-                        NetworkException networkException = null;
-                        if (throwable instanceof NetworkException) {
-                            networkException = (NetworkException) throwable;
-                        }
-                        if (networkException != null) {
-                            if (networkException.getStatus() == DataServiceUtils.STATUS_403) {
-
-                                return refreshTokens()
-                                        .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                            @Override
-                                            public Observable<? extends Response> call(String token) {
-
-                                                return getWalletObservable(token);
-                                            }
-                                        });
-                            } else if (networkException.getStatus() == DataServiceUtils.STATUS_400) {
-
-                                if (networkException.getCode() == DataServiceUtils.CODE_THREE) {
-                                    return refreshTokens()
-                                            .flatMap(new Func1<String, Observable<? extends Response>>() {
-                                                @Override
-                                                public Observable<? extends Response> call(String token) {
-
-                                                    return getWalletObservable(token);
-                                                }
-                                            });
-                                }
-                            }
-                            return Observable.error(networkException);
-                        }
-                        return Observable.error(throwable);
-                    }
-                })
-                .map(new ResponseToWallet());
-    }
-
-    private Observable<Response> getWalletObservable(String accessToken) {
-        return networkApi.getWallet(accessToken);
-    }
-
-    public Observable<List<Method>> getMethods() {
-        return networkApi.getOnlineProviders()
-                .map(new ResponseToMethod());
-    }*/
 }

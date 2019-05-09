@@ -41,6 +41,7 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
+import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import java.util.HashMap
@@ -123,16 +124,18 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                                         notification.read = true
                                         updateNotification(notification)
                                     }
-                                }, {
-                                    error -> Timber.e("Notification Error $error.message")
-                                    if(error is NetworkException) {
-                                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                                        } else {
-                                            showNetworkMessage(error.message, error.code)
+                                }, { error ->
+                                    when (error) {
+                                        is HttpException -> {
+                                            val errorHandler = RetrofitErrorHandler(getApplication())
+                                            val networkException = errorHandler.create(error)
+                                            handleNetworkException(networkException)
                                         }
-                                    } else {
-                                        showAlertMessage(error.message)
+                                        is NetworkException -> handleNetworkException(error)
+                                        is SocketTimeoutException -> {}
+                                        else -> {
+                                            showAlertMessage(error.message)
+                                        }
                                     }
                                 })
                     }
@@ -173,18 +176,18 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     updateSyncMap(SYNC_CONTACTS, false)
                     insertContacts(it)
                     fetchNotifications()
-                }, {
-                    error -> Timber.e("Error fetching contacts ${error.message}")
-                    if(error is NetworkException) {
-                        if (RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error ->
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else if (error is SocketTimeoutException) {
-                        Timber.e("SocketTimeOut: ${error.message}")
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> {
+                            showAlertMessage(error.message)
+                        }
                     }
                     updateSyncMap(SYNC_CONTACTS, false)
                 })
@@ -198,18 +201,18 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                 .subscribe ({
                     insertAdvertisements(it)
                     updateSyncMap(SYNC_ADVERTISEMENTS, false)
-                }, {
-                    error -> Timber.e("Error fetching advertisement ${error.message}")
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error ->
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else if (error is SocketTimeoutException) {
-                        Timber.e("SocketTimeOut: ${error.message}")
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> {
+                            showAlertMessage(error.message)
+                        }
                     }
                     updateSyncMap(SYNC_ADVERTISEMENTS, false)
                 })
@@ -226,21 +229,29 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         updateSyncMap(SYNC_NOTIFICATIONS, false)
                         fetchAdvertisements()
                     }
-                }, {
-                    error -> Timber.e("Error fetching notification ${error.message}")
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
+                }, { error ->
+                    when (error) {
+                        is HttpException -> {
+                            val errorHandler = RetrofitErrorHandler(getApplication())
+                            val networkException = errorHandler.create(error)
+                            handleNetworkException(networkException)
                         }
-                    } else if (error is SocketTimeoutException) {
-                        Timber.e("SocketTimeOut: ${error.message}")
-                    } else {
-                        showAlertMessage(error.message)
+                        is NetworkException -> handleNetworkException(error)
+                        is SocketTimeoutException -> {}
+                        else -> {
+                            showAlertMessage(error.message)
+                        }
                     }
                     updateSyncMap(SYNC_NOTIFICATIONS, false)
                 })
+    }
+
+    private fun handleNetworkException(error: NetworkException) {
+        when {
+            RetrofitErrorHandler.isHttp403Error(error.code) -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+            ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+            else -> showNetworkMessage(error.message, error.code)
+        }
     }
 
     private fun updateNotification(notification: Notification) {
