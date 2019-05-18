@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,11 @@ class ShareQrCodeActivity : Activity() {
         return Observable.create { subscriber ->
             try {
                 val bitmap = WalletUtils.encodeAsBitmap(address, amount,this@ShareQrCodeActivity)
-                subscriber.onNext(bitmap)
+                if(bitmap != null) {
+                    subscriber.onNext(bitmap)
+                } else {
+                    subscriber.onError(Throwable(getString(R.string.toast_error_qrcode)))
+                }
             } catch (e: Exception) {
                 subscriber.onError(e)
             }
@@ -105,27 +109,31 @@ class ShareQrCodeActivity : Activity() {
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     fun setRequestOnClipboard() {
-        val bitcoinUrl = if (TextUtils.isEmpty(amount)) WalletUtils.generateBitCoinURI(address, amount) else WalletUtils.generateBitCoinURI(address, amount)
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText(getString(R.string.bitcoin_request_clipboard_title), bitcoinUrl)
-        clipboard.primaryClip = clip
-        Toast.makeText(this, getString(R.string.bitcoin_request_copied_toast), Toast.LENGTH_LONG).show()
+        address?.let {
+            val bitcoinUrl = if (TextUtils.isEmpty(amount)) WalletUtils.generateBitCoinURI(it, amount) else WalletUtils.generateBitCoinURI(it, amount)
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText(getString(R.string.bitcoin_request_clipboard_title), bitcoinUrl)
+            clipboard.primaryClip = clip
+            Toast.makeText(this, getString(R.string.bitcoin_request_copied_toast), Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun shareBitcoinRequest() {
-        val bitcoinUrl = if (TextUtils.isEmpty(amount)) WalletUtils.generateBitCoinURI(address, amount) else WalletUtils.generateBitCoinURI(address, amount)
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(bitcoinUrl)))
-        } catch (ex: ActivityNotFoundException) {
+        address?.let {
+            val bitcoinUrl = if (TextUtils.isEmpty(amount)) WalletUtils.generateBitCoinURI(it, amount) else WalletUtils.generateBitCoinURI(it, amount)
             try {
-                val sendIntent = Intent(Intent.ACTION_SEND)
-                sendIntent.type = "text/plain"
-                sendIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                sendIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.bitcoin_request_clipboard_title))
-                sendIntent.putExtra(Intent.EXTRA_TEXT, bitcoinUrl)
-                startActivity(Intent.createChooser(sendIntent, getString(R.string.text_share_using)))
-            } catch (e: AndroidRuntimeException) {
-                Timber.e(e.message)
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(bitcoinUrl)))
+            } catch (ex: ActivityNotFoundException) {
+                try {
+                    val sendIntent = Intent(Intent.ACTION_SEND)
+                    sendIntent.type = "text/plain"
+                    sendIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    sendIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.bitcoin_request_clipboard_title))
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, bitcoinUrl)
+                    startActivity(Intent.createChooser(sendIntent, getString(R.string.text_share_using)))
+                } catch (e: AndroidRuntimeException) {
+                    Timber.e(e.message)
+                }
             }
         }
     }

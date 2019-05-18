@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -220,7 +220,10 @@ class RequestFragment : BaseFragment() {
             return
         }
         if (WalletUtils.validAmount(clipboardText)) {
-            setAmount(WalletUtils.parseBitcoinAmount(clipboardText))
+            val amount = WalletUtils.parseBitcoinAmount(clipboardText)
+            amount?.let {
+                setAmount(it)
+            }
         } else {
             dialogUtils.toast(getString(R.string.toast_invalid_clipboard_contents))
         }

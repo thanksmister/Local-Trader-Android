@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,10 +137,10 @@ object SearchUtils {
     }
 
     fun getSearchLocationAddress(sharedPreferences: SharedPreferences): Address {
-        val stringPreference = StringPreference(sharedPreferences, PREFS_SEARCH_LOCATION_ADDRESS, null)
+        val stringPreference = StringPreference(sharedPreferences, PREFS_SEARCH_LOCATION_ADDRESS, "")
         val addressJson = stringPreference.get()
         val address = Address(Locale.US)
-        if (addressJson != null) {
+        if (addressJson.isNotEmpty()) {
             try {
                 val jsonObject = JSONObject(addressJson)
                 address.setAddressLine(0, jsonObject.getString("addressline"))
@@ -152,7 +152,6 @@ object SearchUtils {
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
-
         }
         return address
     }

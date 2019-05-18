@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -365,9 +365,9 @@ class SendFragment : BaseFragment() {
                             activity?.runOnUiThread {
                                 if (valid) {
                                     setBitcoinAddress(bitcoinAddress)
-                                    if (!TextUtils.isEmpty(bitcoinAmount)) {
-                                        if (WalletUtils.validAmount(bitcoinAmount)) {
-                                            setAmount(bitcoinAmount)
+                                    bitcoinAmount?.let {
+                                        if (WalletUtils.validAmount(it)) {
+                                            setAmount(it)
                                         } else {
                                             dialogUtils.toast(getString(R.string.toast_invalid_btc_amount))
                                         }
@@ -381,18 +381,18 @@ class SendFragment : BaseFragment() {
                         }))
     }
 
-    private fun setBitcoinAddress(bitcoinAddress: String) {
-        if (!TextUtils.isEmpty(bitcoinAddress)) {
-            address = bitcoinAddress
-            addressText.setText(bitcoinAddress)
+    private fun setBitcoinAddress(bitcoinAddress: String?) {
+        bitcoinAddress?.let {
+            address = it
+            addressText.setText(it)
         }
     }
 
-    private fun setAmount(bitcoinAmount: String) {
-        if (!TextUtils.isEmpty(bitcoinAmount)) {
-            amount = bitcoinAmount
-            amountText.setText(bitcoinAmount)
-            calculateCurrencyAmount(bitcoinAmount)
+    private fun setAmount(bitcoinAmount: String?) {
+        bitcoinAmount?.let {
+            amount = it
+            amountText.setText(it)
+            calculateCurrencyAmount(it)
         }
     }
 
@@ -485,7 +485,7 @@ class SendFragment : BaseFragment() {
         }
     }
 
-    private fun validateBitcoinAddress(address: String): Observable<Boolean> {
+    private fun validateBitcoinAddress(address: String?): Observable<Boolean> {
         return Observable.create { subscriber ->
             try {
                 val bitcoinAddress = WalletUtils.parseBitcoinAddress(address)

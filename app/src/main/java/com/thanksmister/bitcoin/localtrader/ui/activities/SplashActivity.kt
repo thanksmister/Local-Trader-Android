@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,12 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.view.View
-import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SplashViewModel
-import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
 import kotlinx.android.synthetic.main.view_splash.*
 import timber.log.Timber
 import javax.inject.Inject
@@ -50,14 +47,11 @@ class SplashActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.view_splash)
-
         if (!preferences.hasCredentials()) {
             val intent = Intent(this, PromoActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
-            //finish()
         } else {
             viewModel = ViewModelProviders.of(this, viewModelFactory).get(SplashViewModel::class.java)
             observeViewModel(viewModel)
@@ -90,8 +84,6 @@ class SplashActivity : BaseActivity() {
                 dialogUtils.clearDialogs()
             }
         })
-
-       // WalletBalanceScheduler.cancelUniqueWalletBalanceWork()
     }
 
     private fun observeViewModel(viewModel: SplashViewModel) {
@@ -137,7 +129,6 @@ class SplashActivity : BaseActivity() {
 
         showProgress(true)
         viewModel.startSync()
-        //viewModel.setupPeriodicWork();
     }
 
     private fun showProgress(show: Boolean) {

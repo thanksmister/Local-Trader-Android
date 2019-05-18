@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,10 +64,6 @@ constructor(application: Application,
 
     private fun setBitmap(value: Bitmap) {
         this.qrCodeBitmap.value = value
-    }
-
-    init {
-
     }
 
     inner class WalletData {
@@ -281,7 +277,12 @@ constructor(application: Application,
         return Observable.create { subscriber ->
             try {
                 val bitmap = WalletUtils.encodeAsBitmap(address, getApplication())
-                subscriber.onNext(bitmap)
+                if(bitmap != null) {
+                    subscriber.onNext(bitmap)
+                } else {
+                    subscriber.onError(Throwable(getApplication<BaseApplication>().getString(R.string.toast_error_qrcode)))
+                }
+
             } catch (e: Exception) {
                 subscriber.onError(e)
             }

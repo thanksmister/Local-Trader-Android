@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao;
 import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao;
 import com.thanksmister.bitcoin.localtrader.persistence.UserDao;
 import com.thanksmister.bitcoin.localtrader.persistence.WalletDao;
-import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceWorker;
 
 import javax.inject.Singleton;
 

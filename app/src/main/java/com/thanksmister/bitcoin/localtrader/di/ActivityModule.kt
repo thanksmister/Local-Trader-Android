@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,8 @@ import android.content.res.Resources
 import android.location.LocationManager
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
-import androidx.work.WorkerFactory
-import com.thanksmister.bitcoin.localtrader.BaseApplication
-import com.thanksmister.bitcoin.localtrader.modules.CameraReader
-import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.persistence.WalletDao
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
-import com.thanksmister.bitcoin.localtrader.workers.DaggerWorkerFactory
 import dagger.Module
 import dagger.Provides
 import net.grandcentrix.tray.AppPreferences
@@ -74,12 +68,6 @@ class ActivityModule {
     @Provides
     fun notificationUtils(application: Application): NotificationUtils {
         return NotificationUtils(application)
-    }
-
-    @Singleton
-    @Provides
-    fun provideDaggerWorkerFactory(walletDao: WalletDao, preferences: Preferences, notificationUtils: NotificationUtils): WorkerFactory {
-        return DaggerWorkerFactory(walletDao, preferences, notificationUtils)
     }
 
     /*@Provides

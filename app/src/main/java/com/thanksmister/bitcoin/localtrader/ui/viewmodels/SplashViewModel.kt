@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,18 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.Lifecycle
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.OnLifecycleEvent
 import android.content.SharedPreferences
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
-import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
-import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
-import com.thanksmister.bitcoin.localtrader.workers.WalletBalanceScheduler
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
@@ -87,10 +82,6 @@ constructor(application: Application,
         fetchUser()
         fetchMethods()
         fetchCurrencies()
-    }
-
-    fun setupPeriodicWork() {
-        WalletBalanceScheduler.refreshWalletBalanceWorkPeriodically()
     }
 
     private fun getUser(): Single<List<User>> {

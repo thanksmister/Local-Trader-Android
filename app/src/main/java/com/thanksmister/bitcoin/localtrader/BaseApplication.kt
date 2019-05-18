@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,6 @@ package com.thanksmister.bitcoin.localtrader
 
 import android.content.Context
 import android.support.multidex.MultiDex
-import androidx.work.Configuration
-import androidx.work.WorkManager
-import androidx.work.WorkerFactory
 import com.crashlytics.android.Crashlytics
 import com.facebook.stetho.Stetho
 import com.thanksmister.bitcoin.localtrader.di.DaggerApplicationComponent
@@ -31,7 +28,6 @@ import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
 import io.fabric.sdk.android.Fabric
 import timber.log.Timber
-import javax.inject.Inject
 
 class BaseApplication : DaggerApplication() {
 
@@ -53,36 +49,8 @@ class BaseApplication : DaggerApplication() {
             Timber.plant(CrashlyticsTree())
         }
 
-        // set up sync
-        /*try {
-            val account = SyncUtils.getSyncAccount(this)
-            if (account != null) {
-                ContentResolver.setIsSyncable(account, SyncProvider.CONTENT_AUTHORITY, 1)
-                ContentResolver.setSyncAutomatically(account, SyncProvider.CONTENT_AUTHORITY, true)
-                ContentResolver.addPeriodicSync(account, SyncProvider.CONTENT_AUTHORITY, Bundle.EMPTY, SyncUtils.SYNC_FREQUENCY)
-            }
-        } catch (e: Exception) {
-            Timber.e(e.message)
-            if (!BuildConfig.DEBUG) {
-                Crashlytics.log(1, "Sync Error", e.message)
-            }
-        }*/
-
-        configureWorkManager()
-
         SyncUtils.createSyncAccount(applicationContext)
         SyncUtils.requestSyncNow(applicationContext)
-    }
-
-    @Inject
-    lateinit var workerFactory: WorkerFactory
-
-    private fun configureWorkManager() {
-        val config = Configuration.Builder()
-                .setWorkerFactory(workerFactory)
-                .build()
-
-        WorkManager.initialize(this, config)
     }
 
     override fun attachBaseContext(base: Context) {
