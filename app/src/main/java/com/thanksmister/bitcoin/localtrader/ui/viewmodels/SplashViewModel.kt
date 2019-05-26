@@ -20,6 +20,10 @@ import android.app.Application
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.content.SharedPreferences
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.constants.Constants.ADVANCED_AD_EDITING
+import com.thanksmister.bitcoin.localtrader.constants.Constants.DEAD_MAN_SWITCH
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
@@ -49,7 +53,8 @@ constructor(application: Application,
             private val contactsDao: ContactsDao,
             private val notificationsDao: NotificationsDao,
             private val preferences: Preferences,
-            private val sharedPreferences: SharedPreferences) : BaseViewModel(application) {
+            private val sharedPreferences: SharedPreferences,
+            private val remoteConfig: FirebaseRemoteConfig) : BaseViewModel(application) {
 
     private var syncMap = HashMap<String, Boolean>()
     private val syncing = MutableLiveData<String>()
@@ -79,9 +84,7 @@ constructor(application: Application,
     fun startSync() {
         Timber.d("startSync")
         resetSyncing()
-        fetchUser()
-        fetchMethods()
-        fetchCurrencies()
+        fetchRemoteConfigValues()
     }
 
     private fun getUser(): Single<List<User>> {
@@ -94,6 +97,34 @@ constructor(application: Application,
 
     private fun getCurrencies(): Flowable<List<Currency>> {
         return currenciesDao.getItems()
+    }
+
+    private fun fetchRemoteConfigValues() {
+        Timber.e("fetchRemoteConfigValues")
+        updateSyncMap(SYNC_REMOTE_CONFIG, true)
+        remoteConfig.setDefaults(R.xml.remoteconfig)
+        remoteConfig.fetch()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Timber.e("Firebase remote config fetch success!")
+                        remoteConfig.activate()
+                        updateSyncMap(SYNC_REMOTE_CONFIG, false)
+                        Timber.w("advanced editing: ${remoteConfig.getBoolean(ADVANCED_AD_EDITING)}")
+                        val deadMan = remoteConfig.getBoolean(DEAD_MAN_SWITCH)
+                        Timber.w("dead man walking: $deadMan")
+                        if(!deadMan) {
+                            fetchUser()
+                            fetchMethods()
+                            fetchCurrencies()
+                        } else {
+                            showAlertMessage("Dead man switch activated, this app has stopped functioning indefinitely.")
+                        }
+                    } else {
+                        Timber.e("Firebase remote config fetch vales failed.")
+                        updateSyncMap(SYNC_REMOTE_CONFIG, false)
+                        updateSyncMap(SYNC_ERROR, true)
+                    }
+                }
     }
 
     private fun fetchMethods() {
@@ -424,6 +455,7 @@ constructor(application: Application,
         const val SYNC_MYSELF = "SYNC_MYSELF"
         const val SYNC_CURRENCIES = "SYNC_CURRENCIES"
         const val SYNC_METHODS = "SYNC_METHODS"
+        const val SYNC_REMOTE_CONFIG = "SYNC_REMOTE_CONFIG"
         const val SYNC_CONTACTS = "SYNC_CONTACTS"
         const val SYNC_NOTIFICATIONS = "SYNC_NOTIFICATIONS"
         const val SYNC_ADVERTISEMENTS = "SYNC_ADVERTISEMENTS"

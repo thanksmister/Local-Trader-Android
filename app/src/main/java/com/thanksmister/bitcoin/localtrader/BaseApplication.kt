@@ -21,6 +21,7 @@ import android.content.Context
 import android.support.multidex.MultiDex
 import com.crashlytics.android.Crashlytics
 import com.facebook.stetho.Stetho
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.thanksmister.bitcoin.localtrader.di.DaggerApplicationComponent
 import com.thanksmister.bitcoin.localtrader.network.sync.SyncUtils
 import com.thanksmister.bitcoin.localtrader.utils.CrashlyticsTree
@@ -48,9 +49,6 @@ class BaseApplication : DaggerApplication() {
             Fabric.with(this, Crashlytics())
             Timber.plant(CrashlyticsTree())
         }
-
-        SyncUtils.createSyncAccount(applicationContext)
-        SyncUtils.requestSyncNow(applicationContext)
     }
 
     override fun attachBaseContext(base: Context) {

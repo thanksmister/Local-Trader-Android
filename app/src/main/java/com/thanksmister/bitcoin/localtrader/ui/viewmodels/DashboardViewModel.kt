@@ -73,7 +73,6 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
 
     init {
         Timber.d("init")
-
         setSyncing(SplashViewModel.SYNC_IDLE)
     }
 

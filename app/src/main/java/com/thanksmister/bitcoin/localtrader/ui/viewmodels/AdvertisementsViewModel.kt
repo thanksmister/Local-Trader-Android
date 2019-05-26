@@ -20,12 +20,14 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
 import com.thanksmister.bitcoin.localtrader.architecture.MessageData
 import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
 import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
+import com.thanksmister.bitcoin.localtrader.constants.Constants.ADVANCED_AD_EDITING
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
@@ -56,12 +58,22 @@ class AdvertisementsViewModel @Inject
 constructor(application: Application,
             private val advertisementsDao: AdvertisementsDao,
             private val methodsDao: MethodsDao,
-            private val preferences: Preferences) : BaseViewModel(application) {
+            private val preferences: Preferences,
+            private val remoteConfig: FirebaseRemoteConfig) : BaseViewModel(application) {
 
     private val advertisementDeleted = MutableLiveData<Boolean>()
     private val advertisementUpdated = MutableLiveData<Boolean>()
+    private val advancedEdit = MutableLiveData<Boolean>()
     private val advertisement = MutableLiveData<Advertisement>()
     private var fetcher: LocalBitcoinsFetcher? = null
+
+    fun getUseAdvancedEditFeature(): LiveData<Boolean> {
+        return advancedEdit
+    }
+
+    private fun setUseAdvancedEditFeature(value: Boolean) {
+        this.advancedEdit.value = value
+    }
 
     fun getAdvertisementUpdated(): LiveData<Boolean> {
         return advertisementUpdated
@@ -105,6 +117,7 @@ constructor(application: Application,
     init {
         setAdvertisementUpdated(false)
         setAdvertisementDeleted(false)
+        setUseAdvancedEditFeature(remoteConfig.getBoolean(ADVANCED_AD_EDITING))
         val endpoint = preferences.getServiceEndpoint()
         val api = LocalBitcoinsApi(getApplication(), endpoint)
         fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)

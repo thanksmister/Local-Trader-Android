@@ -26,9 +26,13 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
+import com.thanksmister.bitcoin.localtrader.network.sync.SyncUtils
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SplashViewModel
 import kotlinx.android.synthetic.main.view_splash.*
@@ -39,6 +43,7 @@ class SplashActivity : BaseActivity() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
+
     @Inject
     lateinit var viewModel: SplashViewModel
 
@@ -65,7 +70,7 @@ class SplashActivity : BaseActivity() {
         } else {
             finish()
         }
-        System.exit(0);
+        System.exit(0)
     }
 
     override fun onStart() {
@@ -87,6 +92,18 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun observeViewModel(viewModel: SplashViewModel) {
+        viewModel.getAlertMessage().observe(this, Observer { message ->
+            message?.let {
+                showProgress(false)
+                dialogUtils.clearDialogs()
+                dialogUtils.showAlertDialog(this@SplashActivity, it,
+                        DialogInterface.OnClickListener { _, _ ->
+                            onBackPressed()
+                        }, DialogInterface.OnClickListener { _, _ ->
+                            onBackPressed()
+                        })
+            }
+        })
         viewModel.getNetworkMessage().observe(this, Observer { messageData ->
             if(messageData != null) {
                 when {
@@ -124,6 +141,13 @@ class SplashActivity : BaseActivity() {
             } else if (it == SplashViewModel.SYNC_ERROR) {
                 showProgress(false)
                 viewModel.onCleared()
+                dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
+                    Timber.d("retry network!!")
+                    showProgress(true)
+                    viewModel.startSync()
+                }, DialogInterface.OnClickListener { dialog, which ->
+                    onBackPressed()
+                })
             }
         })
 
@@ -140,7 +164,11 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun startMainActivity() {
+
         Timber.d("startMainActivity")
+
+        SyncUtils.createSyncAccount(applicationContext)
+
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

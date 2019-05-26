@@ -20,7 +20,10 @@ package com.thanksmister.bitcoin.localtrader.ui.activities
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
-import android.content.*
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
@@ -29,7 +32,6 @@ import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
@@ -39,11 +41,8 @@ import com.thanksmister.bitcoin.localtrader.ui.viewmodels.AdvertisementsViewMode
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_advertisement.*
-
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -152,7 +151,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
             if (message?.message != null) {
                 onRefreshStop()
                 dialogUtils.hideProgressDialog()
-                dialogUtils.showAlertDialog(this@AdvertisementActivity, message.message!!)
+                dialogUtils.showAlertDialog(this@AdvertisementActivity, message.message)
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->

@@ -157,7 +157,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     }
 
     override fun onStart() {
-        Timber.d("onStart")
         super.onStart()
         connectionLiveData = ConnectionLiveData(this@MainActivity)
         connectionLiveData?.observe(this, Observer { connected ->
@@ -173,6 +172,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                 }
             }
         })
+
         SyncUtils.requestSyncNow(applicationContext)
     }
 

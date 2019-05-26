@@ -23,8 +23,6 @@ import android.content.Context
 import android.content.SyncResult
 import android.os.Bundle
 import com.crashlytics.android.Crashlytics
-import com.thanksmister.bitcoin.localtrader.R
-
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification
@@ -35,10 +33,6 @@ import com.thanksmister.bitcoin.localtrader.persistence.WalletDao
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
-
-import javax.inject.Inject
-import javax.inject.Singleton
-
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -47,11 +41,18 @@ import io.reactivex.schedulers.Schedulers
 import timber.log.BuildConfig
 import timber.log.Timber
 import java.util.ArrayList
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.collections.HashMap
+import kotlin.collections.List
+import kotlin.collections.get
+import kotlin.collections.isNotEmpty
+import kotlin.collections.remove
+import kotlin.collections.set
 
 @Singleton
 class SyncAdapter : AbstractThreadedSyncAdapter {
 
-    // TODO do we need to use this
     private var preferences: Preferences? = null
     private var walletDao: WalletDao? = null
     private var notificationsDao: NotificationsDao? = null
@@ -64,12 +65,14 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                 notificationsDao: NotificationsDao,
                 notificationUtils: NotificationUtils,
                 preferences: Preferences) : this(context, true) {
+
         this.preferences = preferences
         this.walletDao = walletDao
         this.notificationsDao = notificationsDao
         this.notificationUtils = notificationUtils
         val api = LocalBitcoinsApi(context, preferences.getServiceEndpoint())
         fetcher = LocalBitcoinsFetcher(context, api, preferences)
+        Timber.d("SyncAdapter")
     }
 
     constructor(context: Context, autoInitialize: Boolean) : super(context, autoInitialize) {
