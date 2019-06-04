@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
         android:background="@color/white">
 
     <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycleView"
+            android:id="@+id/contactsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 

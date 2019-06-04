@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,437 +14,400 @@
   ~ limitations under the License.
   ~
   -->
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:orientation="vertical"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent">
-    
-        <android.support.design.widget.AppBarLayout
-                android:layout_width="match_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+            <TextView
+                android:id="@+id/requestAmountTitle"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fitsSystemWindows="true">
+                android:text="@string/form_trade_amount" />
 
-            <android.support.v7.widget.Toolbar
-                    android:id="@+id/tradeRequestToolbar"
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
-                    android:minHeight="?android:attr/actionBarSize"
-                    android:background="@color/colorPrimary"
-                    app:popupTheme="@style/Theme.AppCompat.Light"/>
-
-        </android.support.design.widget.AppBarLayout>
-
-        <android.support.v4.widget.NestedScrollView
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/requestLimit"
+                style="@style/SmallText.ExtraSmall"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-                android:paddingRight="16dp"
-                android:paddingLeft="16dp">
+                tools:text="Min 1000 - Max 20000 ARS" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/activity_padding" />
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/requestBitcoinLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingBottom="16dp"
-                    android:orientation="vertical">
+                    android:orientation="horizontal">
 
-                <TextView
-                        android:id="@+id/tradeAmountTitle"
-                        style="@style/TextLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/form_trade_amount"/>
-
-                <TextView
-                        android:id="@+id/tradeLimit"
-                        style="@style/SmallText.ExtraSmall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        tools:text="Min 1000 - Max 20000 ARS"/>
-
-                <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_padding"/>
-
-                <LinearLayout
+                    <android.support.design.widget.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_weight="1"
+                        android:hint="@string/form_bitcoin_amount"
+                        android:visibility="visible">
 
-                    <LinearLayout
-                            android:id="@+id/bitcoinLayout"
+                        <EditText
+                            android:id="@+id/requestBitcoinText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:gravity="left"
+                            android:inputType="numberDecimal"
+                            android:nextFocusForward="@+id/requestAmountText" />
 
-                        <android.support.design.widget.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="@string/form_bitcoin_amount"
-                                android:layout_weight="1"
-                                android:visibility="visible">
+                    </android.support.design.widget.TextInputLayout>
 
-                            <EditText
-                                    android:id="@+id/editBitcoinText"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:inputType="numberDecimal"
-                                    android:gravity="left"
-                                    android:theme="@style/EditTextTheme"
-                                    android:nextFocusForward="@+id/editAmountText"/>
-
-                        </android.support.design.widget.TextInputLayout>
-
-
-                        <TextView
-                                android:id="@android:id/button1"
-                                style="@style/TextLarge.SmallAction.White"
-                                android:minWidth="50dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="36dp"
-                                android:background="@drawable/button_blue_selector"
-                                android:clickable="true"
-                                android:text="@string/btc"
-                                android:layout_gravity="center"
-                                android:gravity="center"
-                                android:layout_weight="0"
-                                android:layout_marginBottom="2dp"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                            android:id="@+id/fiatLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                        <android.support.design.widget.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="@string/form_fiat_amount"
-                                tools:text="@string/form_fiat_amount"
-                                android:layout_weight="1">
-
-                            <EditText
-                                    android:id="@+id/editAmountText"
-                                    android:theme="@style/EditTextTheme"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:inputType="numberDecimal"
-                                    android:digits="0123456789."
-                                    android:gravity="left"
-                                    android:nextFocusForward="@+id/buttonLayout"/>
-
-                        </android.support.design.widget.TextInputLayout>
-
-                        <TextView
-                                android:id="@+id/tradeCurrency"
-                                style="@style/TextMedium.SmallAction.White"
-                                android:minWidth="50dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="36dp"
-                                android:background="@drawable/button_blue_selector"
-                                android:clickable="true"
-                                android:text="@string/usd"
-                                android:layout_gravity="center"
-                                android:gravity="center"
-                                android:layout_weight="0"
-                                android:layout_marginBottom="2dp"/>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                            android:id="@+id/ethereumLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:visibility="gone"
-                            tools:visibility="gone">
-
-                        <android.support.design.widget.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="@string/form_eth_amount"
-                                android:layout_weight="1"
-                                android:visibility="visible">
-
-                            <EditText
-                                    android:id="@+id/ethereumAmountText"
-                                    android:theme="@style/EditTextTheme"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:inputType="numberDecimal"
-                                    android:digits="0123456789."
-                                    android:gravity="left"
-                                    android:nextFocusForward="@+id/buttonLayout"/>
-
-                        </android.support.design.widget.TextInputLayout>
-
-                        <TextView
-                                style="@style/TextMedium.SmallAction.White"
-                                android:minWidth="50dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="36dp"
-                                android:background="@drawable/button_blue_selector"
-                                android:clickable="true"
-                                android:text="@string/eth"
-                                android:layout_gravity="center"
-                                android:gravity="center"
-                                android:layout_weight="0"
-                                android:layout_marginBottom="2dp"/>
-
-                    </LinearLayout>
+                    <TextView
+                        android:id="@android:id/button1"
+                        style="@style/TextLarge.SmallAction.White"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="2dp"
+                        android:layout_weight="0"
+                        android:background="@drawable/button_blue_selector"
+                        android:gravity="center"
+                        android:minWidth="50dp"
+                        android:text="@string/btc" />
 
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/requestFiatLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <android.support.design.widget.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:divider="@drawable/empty_list_divider"
-                        android:orientation="vertical">
+                        android:layout_weight="1"
+                        android:hint="@string/form_fiat_amount"
+                        tools:text="@string/form_fiat_amount">
 
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsEthereumAddressLayout"
+                        <EditText
+                            android:id="@+id/requestAmountText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsEthereumAddress"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:inputType="phone"
-                                android:hint="Ethereum address"/>
+                            android:digits="0123456789."
+                            android:gravity="left"
+                            android:inputType="numberDecimal"
+                            android:nextFocusForward="@+id/requestButtonLayout" />
 
                     </android.support.design.widget.TextInputLayout>
 
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsPhoneNumberLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsPhoneNumber"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:inputType="phone"
-                                android:hint="Phone number"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsReceiverEmailLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsReceiverEmail"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:inputType="textEmailAddress"
-                                android:hint="Receiving account email"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsReceiverNameLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsReceiverName"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="Account owner"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsSortCodeLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsSortCode"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="Sort code"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsAccountNumberLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsAccountNumber"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="Account number"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsBSBLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsBSB"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="BSB"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsBillerCodeLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsBillerCode"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="Biller code"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsIbanLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsIbanName"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="IBAN"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsSwiftBicLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsSwiftBic"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="BIC"/>
-
-                    </android.support.design.widget.TextInputLayout>
-
-                    <android.support.design.widget.TextInputLayout
-                            android:id="@+id/detailsReferenceLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            tools:visibility="gone"
-                            android:visibility="gone">
-
-                        <android.support.v7.widget.AppCompatEditText
-                                android:id="@+id/detailsReference"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:theme="@style/EditTextTheme"
-                                android:hint="Reference or message"/>
-
-                    </android.support.design.widget.TextInputLayout>
+                    <TextView
+                        android:id="@+id/requestCurrency"
+                        style="@style/TextMedium.SmallAction.White"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="2dp"
+                        android:layout_weight="0"
+                        android:background="@drawable/button_blue_selector"
+                        android:gravity="center"
+                        android:minWidth="50dp"
+                        android:text="@string/usd" />
 
                 </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/requestEthereumLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.design.widget.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/form_eth_amount"
+                        android:visibility="visible">
+
+                        <EditText
+                            android:id="@+id/requestEthereumAmount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:digits="0123456789."
+                            android:gravity="left"
+                            android:inputType="numberDecimal"
+                            android:nextFocusForward="@+id/buttonLayout" />
+
+                    </android.support.design.widget.TextInputLayout>
+
+                    <TextView
+                        style="@style/TextMedium.SmallAction.White"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="2dp"
+                        android:layout_weight="0"
+                        android:background="@drawable/button_blue_selector"
+                        android:gravity="center"
+                        android:minWidth="50dp"
+                        android:text="@string/eth" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/empty_list_divider"
+                android:orientation="vertical">
 
                 <android.support.design.widget.TextInputLayout
-                        android:id="@+id/tradeMessageLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Message (Optional)"
-                        android:theme="@style/EditTextTheme">
+                    android:id="@+id/requestEthereumAddressLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
 
                     <android.support.v7.widget.AppCompatEditText
-                            android:id="@+id/tradeMessage"
-                            android:layout_marginTop="@dimen/activity_padding"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="textMultiLine"
-                            android:lines="4"
-                            android:minLines="1"
-                            android:theme="@style/EditTextTheme"/>
+                        android:id="@+id/requestEthereumAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trade_ethereum_address"
+                        android:inputType="phone" />
 
                 </android.support.design.widget.TextInputLayout>
 
-                <android.support.v4.widget.Space
-                        android:layout_width="match_parent"
-                        android:layout_height="8dp"/>
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestPhoneNumberLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
 
-                <TextView
-                        android:id="@+id/tradeDescription"
-                        style="@style/TextSmall.Light"
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestPhoneNumber"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_width="match_parent"
-                        android:text="@string/trade_request_description"/>
+                        android:hint="@string/trade_phone_number"
+                        android:inputType="phone" />
 
-                <android.support.v4.widget.Space
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestReceiverEmailLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestReceiverEmail"
                         android:layout_width="match_parent"
-                        android:layout_height="16dp"/>
-                
-                <Button
-                        style="@style/ButtonGreen.Small"
-                        android:id="@+id/sendButton"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trade_receiving_account_email"
+                        android:inputType="textEmailAddress" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestReceiverNameLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestReceiverName"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/button_send"/>
-                
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trade_account_owner" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestSortCodeLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestSortCode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trade_sort_code" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestAccountNumberLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestAccountNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trade_account_number" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestBSBLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestBSB"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="BSB" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestBillerCodeLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestBillerCode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trade_biller_code" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestIbanLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestIbanName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="IBAN" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestSwiftBicLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestSwiftBic"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="BIC" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/requestReferenceLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/requestReference"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trade_reference_or_message" />
+
+                </android.support.design.widget.TextInputLayout>
+
             </LinearLayout>
 
-        </android.support.v4.widget.NestedScrollView>
-    
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/requestMessageLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/trade_message_optional">
+
+                <android.support.v7.widget.AppCompatEditText
+                    android:id="@+id/requestMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/activity_padding"
+                    android:inputType="textMultiLine"
+                    android:lines="4"
+                    android:minLines="1" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.v4.widget.Space
+                android:layout_width="match_parent"
+                android:layout_height="8dp" />
+
+            <TextView
+                android:id="@+id/requestDescription"
+                style="?android:textAppearanceSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:text="@string/trade_request_description" />
+
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+    <View
+        style="@style/DividerHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="0" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/requestButton"
+            style="@style/ButtonGreen.Small"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/button_send" />
+
+    </LinearLayout>
+
 </LinearLayout>

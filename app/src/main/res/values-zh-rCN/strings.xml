@@ -106,7 +106,7 @@
     <string name="progress_canceling_trade">取消中…</string>
     <string name="dialog_progress_location">获取位置中…</string>
     <string name="form_send_to">发送给：</string>
-    <string name="form_bitcoin_amount">比特币金额：</string>
+    <string name="form_bitcoin_amount">比特币金额</string>
     <string name="toast_edit_canceled">编辑已取消…</string>
     <string name="snack_no_advertisement_data">没有广告数据.</string>
     <string name="button_authenticate">授权</string>
@@ -210,7 +210,7 @@
     <string name="toast_price_equation_blank">价格公式不能为空。</string>
     <string name="toast_minimum_amount">输入最小有效金额。</string>
     <string name="toast_maximum_amount">输入最大有效金额.</string>
-    <string name="toast_error_updat_advertisement">更新广告错误…</string>
+    <string name="toast_error_update_advertisement">更新广告错误…</string>
     <string name="toast_error_contact_data">获取合同数据时出错…</string>
     <string name="text_bank_name">银行名称</string>
     <string name="text_trade_terms_hint">进入条款</string>
@@ -263,7 +263,7 @@
     <string name="toast_enter_lower_amount">输入的金额需小于 %1$s %2$s</string>
     <string name="toast_enter_higher_amount">输入的金额需大于 %1$s %2$s</string>
     <string name="progress_sending_trade_request">发送交易需求中…</string>
-    <string name="toast_trade_request_sent">交易需求发送给</string>
+    <string name="toast_trade_request_sent">交易需求发送</string>
     <string name="text_trade_with">与  %1$s 交易</string>
     <string name="text_no_transactions">没有记录.</string>
     <string name="button_send_message">发送消息</string>
@@ -362,8 +362,8 @@
     <string name="advertisement_edit_margin_description">利润率是指在市场价格基础上增加或减少的比例，使用负数表示低于市场价。</string>
     <string name="hint_bitcoin_address">比特币地址</string>
     <string name="form_sendable_label">可发送金额是你账号的最大金额减去服务费。</string>
-    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s 比特币 / %2$s %3$s</font>]]></string>
-    <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s 比特币 / %2$s %3$s</font>]]></string>
+    <string name="form_balance_negative">%1$s 比特币</string>
+    <string name="form_balance_positive">%1$s 比特币</string>
     <string name="pin_code_send"><![CDATA[在释放、托管和发送比特币时需要交易口令，在Localbitecoin的 <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">账户配置</a> 页面也可以管理交易口令。]]></string>
     <string name="toast_update_visibility">可见性已更新！</string>
     <string name="trade_limit"><![CDATA[%1$s - %2$s %3$s]]></string>
@@ -381,7 +381,69 @@
     <string name="button_retry">Retry</string>
     <string name="progress_syncing_account_data">同步帐户数据</string>
     <string name="notification_new_notifications">你有 %1$s 个新通知.</string>
-    <string name="error_trade_request_verification">创建交易请求时出现问题。 您可能无法满足此交易的要求。 请阅读每个广告中列出的交易要求。</string>
+    <string name="toast_camera_denied">相机许可被拒绝...</string>
+    <string name="text_confirm_transaction">确认交易</string>
+    <string name="text_location_title">地点</string>
+    <string name="text_enter_bank_name">输入银行名称</string>
+    <string name="dialog_localbitcoins_website_login">您将被带到LocalBitcoins网站进行身份验证，您输入的所有信息都将是私人信息。 你想继续吗？</string>
+    <string name="text_national_bank_transfer">国家银行转账</string>
+    <string name="text_common_with">%1$s with %2$s</string>
+    <string name="text_bank_transfer">Bank transfer</string>
+    <string name="text_cash_deposit">Cash deposit</string>
+    <string name="text_with_int">"在 %1$s 中 %2$s "</string>
+    <string name="text_buy_your">买你的</string>
+    <string name="text_online_seller">在线卖家</string>
+    <string name="text_online_buyer">在线买家</string>
+    <string name="text_local_seller">当地卖家</string>
+    <string name="text_local_buyer">本地买家</string>
+    <string name="text_item_contact_num">联系 #%1$s</string>
+    <string name="text_item_advertisement_number">广告 #%1$s</string>
+    <string name="error_notification">标记通知读取时出错。</string>
+    <string name="error_invalid_coordinates">输入的经度或纬度无效。 纬度应介于-90和90之间。经度应介于-180和180之间。</string>
+    <string name="error_need_valid_coordinates">要搜索本地广告商，请输入有效的纬度和经度值。</string>
+    <string name="error_search_timeout">搜索超时，您可能需要检查网络连接或调整搜索参数。</string>
+    <string name="trade_ethereum_address">ETH 钱包</string>
+    <string name="trade_phone_number">电话号码</string>
+    <string name="trade_receiving_account_email">接收帐户电子邮件</string>
+    <string name="trade_account_owner">帐户所有者</string>
+    <string name="trade_sort_code">排序代码</string>
+    <string name="trade_account_number">帐号</string>
+    <string name="trade_biller_code">比尔代码</string>
+    <string name="trade_reference_or_message">参考或消息</string>
+    <string name="trade_message_optional">消息（可选）</string>
+    <string name="notification_new_notifications_title">新通知</string>
+    <string name="notification_trade_notification_title">交易通知</string>
+    <string name="notification_ad_notification_title">广告通知</string>
+    <string name="notification_title">通知</string>
+    <string name="notification_btc_received">比特币收到了</string>
+    <string name="notification_btc_balance">比特币余额</string>
+    <string name="notification_btc_received_message">你收到 %1$s BTC</string>
+    <string name="notification_btc_balance_message">你有 %1$s BTC</string>
+    <string name="notification_lbc_notice">LocalBitcoins 通知</string>
+    <string name="text_logging_out">注销...</string>
+    <string name="alert_service_end_point">The service end point should be a valid URL.</string>
+    <string name="text_market_currency">市场货币 (%1$s)</string>
+    <string name="contact_release_confirm">你确定要发布这笔交易吗？</string>
+    <string name="toast_loading_trade">Loading trade…</string>
+    <string name="error_network_retry">出现网络或服务错误，您要重试吗？</string>
+    <string name="text_trade_id">贸易号码</string>
+    <string name="text_trade_reference">贸易参考</string>
+    <string name="text_trade_with_title">与...交换</string>
+    <string name="text_receiver_email">收件人电子邮件</string>
+    <string name="text_receiver_name">收件者姓名</string>
+    <string name="text_iban_name">Iban 名称</string>
+    <string name="text_swift_code">Swift Code</string>
+    <string name="text_trade_references">参考</string>
+    <string name="text_trade_messages">消息</string>
+    <string name="text_trade_ethereum_address">ETH 钱包</string>
+    <string name="error_missing_vision_library">缺少库来扫描代码...</string>
+    <string name="error_camera_start">无法启动相机</string>
+    <string name="toast_invalid_bitcoin_address">Invalid Bitcoin address...</string>
+    <string name="error_trade_requirements">如果您不符合此广告的要求，请在申请交易前查看列出的要求。</string>
+    <string name="error_receiving_address">该应用程序没有所需的权限。</string>
+    <string name="progress_new_address">Generating new address...</string>
+    <string name="menu_new_address">新的钱包代码</string>
+    <string name="error_not_enough_balance">没有足够的余额，尝试较低的金额。</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">
@@ -630,4 +692,12 @@
         <item>Zambia</item>
         <item>Zimbabwe</item>
     </string-array>
+    <string name="error_permissions_security" translatable="false">该应用程序没有所需的权限。</string>
+    <string name="error_server_time_out">呼叫服务超时。</string>
+    <string name="error_network_disconnected">网络断开连接</string>
+    <string name="error_resource_not_found">服务器上找不到资源。</string>
+    <string name="exception_message_no_connection">没有网络连接</string>
+    <string name="error_generic_permission">您无权访问此功能。</string>
+    <string name="error_generic_server_down">服务暂时关闭或无法访问。</string>
+    <string name="error_data_refresh">无需数据刷新</string>
 </resources>

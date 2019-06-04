@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -42,14 +42,14 @@
 
             <TextView
                     style="@style/TextLarge.SmallAction"
-                    android:id="@+id/senderName"
+                    android:id="@+id/messageSenderName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="ThanksMister"/>
 
             <TextView
                     style="@style/SmallText.ExtraSmall.Light"
-                    android:id="@+id/createdAt"
+                    android:id="@+id/messageCreatedAt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
@@ -74,7 +74,7 @@
     </LinearLayout>
 
     <LinearLayout
-            android:id="@+id/attachmentLayout"
+            android:id="@+id/messageAttachmentLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="4dp"
@@ -90,7 +90,7 @@
                 android:src="@drawable/ic_attached_file"/>
 
         <TextView
-                android:id="@+id/attachmentName"
+                android:id="@+id/messageAttachmentName"
                 style="@style/TextMedium.Blue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

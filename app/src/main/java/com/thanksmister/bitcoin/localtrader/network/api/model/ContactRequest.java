@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ContactRequest {
-    public String contact_id;
-    public String contact_url;
-    public boolean funded;
-    public String message;
+
+    @SerializedName("contact_id")
+    public String contactId;
 }

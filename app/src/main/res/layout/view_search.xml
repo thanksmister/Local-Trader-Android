@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,282 +14,263 @@
   ~ limitations under the License.
   ~
   -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-<android.support.design.widget.CoordinatorLayout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/coordinatorLayout"
+    <data>
+
+        <variable
+            name="viewmodel"
+            type="com.thanksmister.bitcoin.localtrader.ui.viewmodels.SearchViewModel" />
+    </data>
+
+    <LinearLayout 
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_width="match_parent">
-
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-        <android.support.design.widget.AppBarLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-            <android.support.v7.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:background="?attr/colorPrimary"
-                    app:popupTheme="@style/Theme.AppCompat.Light"/>
-
-        </android.support.design.widget.AppBarLayout>
+        android:orientation="vertical">
 
         <android.support.v4.widget.NestedScrollView
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:fillViewport="true">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fillViewport="true">
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="16dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="16dp"
+                    android:orientation="vertical"
+                    android:paddingLeft="@dimen/view_padding"
+                    android:paddingRight="@dimen/view_padding"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="left"
+                        android:text="@string/text_search_buying_or_selling" />
+
+                    <Spinner
+                        android:id="@+id/typeSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                </LinearLayout>
+
+                <View style="@style/DividerHorizontal" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingLeft="@dimen/view_padding"
+                    android:paddingTop="@dimen/view_padding_small"
+                    android:paddingRight="@dimen/view_padding"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="left"
+                        android:text="@string/text_search_locally_or_online" />
+
+                    <Spinner
+                        android:id="@+id/locationSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/localOptionsLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical">
-                
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="12dp"
-                        android:paddingLeft="@dimen/view_padding"
-                        android:paddingRight="@dimen/view_padding"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/text_search_buying_or_selling"
-                            android:gravity="left"/>
-
-                    <Spinner
-                            android:id="@+id/typeSpinner"
-                            android:theme="@style/SpinnerTheme"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
-
-                </LinearLayout>
-
-                <View style="@style/DividerHorizontal"/>
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="@dimen/view_padding_small"
-                        android:paddingBottom="12dp"
-                        android:paddingLeft="@dimen/view_padding"
-                        android:paddingRight="@dimen/view_padding"
-                        android:orientation="vertical">
-
-                    <TextView
-                            style="@style/TextSmall"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/text_search_locally_or_online"
-                            android:gravity="left"/>
-
-                    <Spinner
-                            android:id="@+id/locationSpinner"
-                            android:theme="@style/SpinnerTheme"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
-                    
-                </LinearLayout>
-                
-                
-                <LinearLayout
-                        android:id="@+id/localOptionsLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
 
                     <View
-                            style="@style/DividerHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"/>
+                        style="@style/DividerHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp" />
 
                     <TextView
-                            style="@style/SmallText.ExtraSmall"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding"
-                            android:paddingLeft="@dimen/view_padding"
-                            android:paddingRight="@dimen/view_padding"
-                            android:text="@string/text_local_search_instructions"/>
+                        style="@style/SmallText.ExtraSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="@dimen/view_padding"
+                        android:paddingTop="@dimen/view_padding"
+                        android:paddingRight="@dimen/view_padding"
+                        android:text="@string/text_local_search_instructions" />
 
                     <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingTop="@dimen/view_padding_small"
-                            android:paddingBottom="10dp"
-                            android:paddingLeft="@dimen/view_padding"
-                            android:paddingRight="8dp">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingLeft="@dimen/view_padding"
+                        android:paddingTop="@dimen/view_padding_small"
+                        android:paddingRight="8dp"
+                        android:paddingBottom="10dp">
 
                         <FrameLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1">
 
                             <FrameLayout
-                                    android:id="@+id/editLocationLayout"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:paddingTop="16dp"
-                                    android:visibility="visible">
+                                android:id="@+id/editLocationLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingTop="16dp"
+                                android:visibility="visible">
 
                                 <AutoCompleteTextView
-                                        android:theme="@style/EditTextTheme"
-                                        style="@style/TextLarge.SmallAction"
-                                        android:id="@+id/editLocationText"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_gravity="center"
-                                        android:hint="@string/hint_enter_county_city_or_address"
-                                        android:maxLines="3"/>
+                                    android:id="@+id/editLocationText"
+                                    style="@style/TextLarge.SmallAction"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:hint="@string/hint_enter_county_city_or_address"
+                                    android:maxLines="3" />
 
                             </FrameLayout>
 
                             <TextView
-                                    style="@style/TextLarge.SmallAction"
-                                    android:id="@+id/locationText"
-                                    android:paddingTop="16dp"
-                                    android:paddingLeft="0dp"
-                                    android:paddingRight="4dp"
-                                    android:paddingBottom="16dp"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center"
-                                    android:maxLines="3"
-                                    tools:visibility="visible"
-                                    android:visibility="gone"/>
+                                android:id="@+id/locationText"
+                                style="@style/TextLarge.SmallAction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:maxLines="3"
+                                android:paddingLeft="0dp"
+                                android:paddingTop="16dp"
+                                android:paddingRight="4dp"
+                                android:paddingBottom="16dp"
+                                android:visibility="gone"
+                                tools:visibility="visible" />
 
                         </FrameLayout>
 
                         <ImageButton
-                                style="@style/BorderlessButtonStyle"
-                                android:id="@+id/clearButton"
-                                android:contentDescription="@string/desc"
-                                android:layout_height="36dp"
-                                android:layout_width="36dp"
-                                android:layout_gravity="center_vertical"
-                                android:src="@drawable/ic_action_content_clear"
-                                android:layout_weight="0"/>
+                            android:id="@+id/clearButton"
+                            style="@style/BorderlessButtonStyle"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="0"
+                            android:contentDescription="@string/desc"
+                            android:src="@drawable/ic_action_content_clear" />
 
                     </LinearLayout>
 
                     <View
-                            style="@style/DividerHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"/>
+                        style="@style/DividerHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp" />
 
                     <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding_small"
-                            android:paddingBottom="4dp"
-                            android:paddingLeft="@dimen/view_padding"
-                            android:paddingRight="@dimen/view_padding"
-                            android:orientation="vertical">
-
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/text_latitude"
-                                android:gravity="left"/>
-
-                        <EditText
-                                android:id="@+id/editLatitude"
-                                style="@style/TextLarge.SmallAction"
-                                android:theme="@style/SpinnerTheme"
-                                android:digits=".0123456789-"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"/>
-
-                    </LinearLayout>
-
-                    <View
-                            style="@style/DividerHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"/>
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding_small"
-                            android:paddingBottom="4dp"
-                            android:paddingLeft="@dimen/view_padding"
-                            android:paddingRight="@dimen/view_padding"
-                            android:orientation="vertical">
-
-                        <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:digits=".0123456789-"
-                                android:text="@string/text_longitude"
-                                android:gravity="left"/>
-
-                        <EditText
-                                android:id="@+id/editLongitude"
-                                style="@style/TextLarge.SmallAction"
-                                android:theme="@style/SpinnerTheme"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"/>
-
-                    </LinearLayout>
-                    
-                </LinearLayout>
-
-                <LinearLayout
-                        android:id="@+id/onlineOptionsLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        tools:visibility="visible"
-                        android:visibility="gone">
+                        android:paddingLeft="@dimen/view_padding"
+                        android:paddingTop="@dimen/view_padding_small"
+                        android:paddingRight="@dimen/view_padding"
+                        android:paddingBottom="4dp">
+
+                        <TextView
+                            style="@style/TextSmall"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="left"
+                            android:text="@string/text_latitude" />
+
+                        <EditText
+                            android:id="@+id/editLatitude"
+                            style="@style/TextLarge.SmallAction"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:digits=".0123456789-" />
+
+                    </LinearLayout>
 
                     <View
-                            style="@style/DividerHorizontal"
+                        style="@style/DividerHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingLeft="@dimen/view_padding"
+                        android:paddingTop="@dimen/view_padding_small"
+                        android:paddingRight="@dimen/view_padding"
+                        android:paddingBottom="4dp">
+
+                        <TextView
+                            style="@style/TextSmall"
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"/>
+                            android:layout_height="wrap_content"
+                            android:digits=".0123456789-"
+                            android:gravity="left"
+                            android:text="@string/text_longitude" />
+
+                        <EditText
+                            android:id="@+id/editLongitude"
+                            style="@style/TextLarge.SmallAction"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/onlineOptionsLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <View
+                        style="@style/DividerHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp" />
 
 
                     <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding_small"
-                            android:orientation="vertical">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="@dimen/view_padding_small">
 
                         <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/text_search_country"
-                                android:gravity="left"
-                                android:layout_marginLeft="@dimen/view_padding"/>
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/view_padding"
+                            android:gravity="left"
+                            android:text="@string/text_search_country" />
 
                         <FrameLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:paddingTop="@dimen/view_padding_small"
-                                android:paddingBottom="8dp"
-                                android:paddingLeft="@dimen/view_padding"
-                                android:paddingRight="@dimen/view_padding">
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/view_padding"
+                            android:paddingTop="@dimen/view_padding_small"
+                            android:paddingRight="@dimen/view_padding"
+                            android:paddingBottom="8dp">
 
                             <Spinner
-                                    android:id="@+id/countrySpinner"
-                                    android:theme="@style/SpinnerTheme"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"/>
+                                android:id="@+id/countrySpinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
 
                         </FrameLayout>
 
@@ -297,103 +278,107 @@
                     </LinearLayout>
 
                     <View
-                            style="@style/DividerHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"/>
+                        style="@style/DividerHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp" />
 
                     <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="@dimen/view_padding_small"
-                            android:orientation="vertical">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="@dimen/view_padding_small">
 
                         <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/text_search_currency"
-                                android:gravity="left"
-                                android:layout_marginLeft="@dimen/view_padding"/>
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/view_padding"
+                            android:gravity="left"
+                            android:text="@string/text_search_currency" />
 
                         <FrameLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:paddingTop="@dimen/view_padding_small"
-                                android:paddingBottom="8dp"
-                                android:paddingLeft="@dimen/view_padding"
-                                android:paddingRight="@dimen/view_padding">
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/view_padding"
+                            android:paddingTop="@dimen/view_padding_small"
+                            android:paddingRight="@dimen/view_padding"
+                            android:paddingBottom="8dp">
 
                             <Spinner
-                                    android:id="@+id/currencySpinner"
-                                    android:theme="@style/SpinnerTheme"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"/>
+                                android:id="@+id/currencySpinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
 
                         </FrameLayout>
 
                         <View
-                                style="@style/DividerHorizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="1dp"/>
+                            style="@style/DividerHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp" />
 
                     </LinearLayout>
 
                     <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:paddingTop="@dimen/view_padding_small">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="@dimen/view_padding_small">
 
                         <TextView
-                                style="@style/TextSmall"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/text_search_online_payment_method"
-                                android:gravity="left"
-                                android:layout_marginLeft="@dimen/view_padding"/>
+                            style="@style/TextSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="@dimen/view_padding"
+                            android:gravity="left"
+                            android:text="@string/text_search_online_payment_method" />
 
                         <FrameLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:paddingTop="@dimen/view_padding_small"
-                                android:paddingBottom="8dp"
-                                android:paddingLeft="@dimen/view_padding"
-                                android:paddingRight="@dimen/view_padding">
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="@dimen/view_padding"
+                            android:paddingTop="@dimen/view_padding_small"
+                            android:paddingRight="@dimen/view_padding"
+                            android:paddingBottom="8dp">
 
                             <Spinner
-                                    android:id="@+id/paymentMethodSpinner"
-                                    android:theme="@style/SpinnerTheme"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"/>
+                                android:id="@+id/paymentMethodSpinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
 
                         </FrameLayout>
 
-                    
 
                     </LinearLayout>
 
                 </LinearLayout>
 
-                <View
-                        style="@style/DividerHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"/>
-
-                <Button
-                        style="@style/ButtonGreen.Small"
-                        android:id="@+id/searchButton"
-                        android:layout_width="match_parent"
-                        android:layout_margin="@dimen/activity_padding"
-                        android:layout_height="48dp"
-                        android:textAllCaps="true"
-                        android:text="@string/button_search_trades"/>
-
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>
-        
-      
+
+        <View
+            style="@style/DividerHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_weight="0" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/searchButton"
+                style="@style/ButtonGreen.Small"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/button_search_trades"
+                android:textAllCaps="true" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
-</android.support.design.widget.CoordinatorLayout>
+</layout>

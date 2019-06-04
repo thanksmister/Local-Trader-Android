@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -42,15 +42,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingRight="16dp"
-                android:paddingLeft="16dp"
-                android:theme="@style/EditTextTheme">
+                android:paddingLeft="16dp">
 
             <EditText
                     android:id="@+id/editMessageText"
                     style="@style/TextLarge.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:theme="@style/EditTextTheme"
                     android:minLines="3"
                     android:gravity="left|top"
                     android:scrollHorizontally="false"
@@ -139,7 +137,7 @@
             
             <Button
                     style="@style/ButtonGreen.Small"
-                    android:id="@+id/messageButton"
+                    android:id="@+id/sendMessageButton"
                     android:layout_width="match_parent"
                     android:layout_margin="@dimen/activity_padding"
                     android:layout_height="48dp"

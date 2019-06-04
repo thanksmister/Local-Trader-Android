@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@
 
 
     <ImageView
-            android:id="@android:id/icon"
+            android:id="@+id/advertisementIcon"
             android:contentDescription="@string/desc"
             android:layout_width="72dp"
             android:layout_height="wrap_content"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,20 @@ public class Dates {
         }
 
         return new Date();
+    }
+
+    public static Date parseDate(String dateString) {
+        return parseISODate(dateString);
+    }
+
+    // Parsing this shit 2016-07-13T16:00:58+00:00
+    public static Date parseISODate(String dateTime) {
+        try {
+            DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault());
+            return df1.parse(dateTime);
+        } catch (ParseException e) {
+            throw new IllegalStateException("Unsupported date format." + e.getMessage());
+        }
     }
 
     public static String createISODate() {

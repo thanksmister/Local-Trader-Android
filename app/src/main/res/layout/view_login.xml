@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,163 +16,98 @@
   -->
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <LinearLayout
-            android:id="@+id/content"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingTop="16dp"
-            tools:visibility="visible"
-            android:visibility="visible">
+        android:id="@+id/loginContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="visible"
+        tools:visibility="visible">
 
         <TextView
-                style="@style/TextExtraLarge"
-                android:text="@string/setup_credentials"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="16dp"
-                android:paddingLeft="16dp"/>
+            style="@style/TextExtraLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="@string/setup_credentials" />
 
         <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-                android:paddingRight="16dp"
-                android:paddingLeft="16dp">
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:padding="16dp"
+            android:layout_weight="1">
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:id="@+id/loginEndpointText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/setup_hint_servcie_endpoint"
+                        android:inputType="textMultiLine"
+                        android:maxLines="2"
+                        tools:text="http://localbitcoins.com" />
+
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.v4.widget.Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp" />
+
+
+                <TextView
+                    android:id="@+id/urlTextDescription"
+                    style="?android:textAppearanceSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme">
-
-                    <EditText
-                            android:id="@+id/apiEndpoint"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/setup_hint_servcie_endpoint"
-                            tools:text="http://localbitcoins.com"
-                            android:inputType="textMultiLine"
-                            android:maxLines="2"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <TextView
-                        android:id="@+id/urlTextDescription"
-                        style="@style/TextMedium.Secondary"
-                        android:layout_margin="@dimen/view_padding_small"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:linksClickable="true"
-                        android:text="@string/setup_description"
-                        tools:visibility="visible"/>
-
-               <!-- <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_list_padding"/>
-                
-                <CheckBox
-                        android:id="@+id/hmacCheckBox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/use_hmac_authentication"
-                        android:theme="@style/EditTextTheme"/>
-
-                <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="4dp"/>
-                
-                <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme">
-
-                    <EditText
-                            android:id="@+id/hmacKey"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:hint="@string/setup_hint_key"
-                            android:enabled="false"
-                            android:inputType="textMultiLine"
-                            android:maxLines="2"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/activity_list_padding"/>
-
-                <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:theme="@style/EditTextTheme">
-
-                    <EditText
-                            android:id="@+id/hmacSecret"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:theme="@style/EditTextTheme"
-                            android:enabled="false"
-                            android:hint="@string/setup_hint_secret"
-                            android:inputType="textMultiLine"
-                            android:maxLines="3"/>
-
-                </android.support.design.widget.TextInputLayout>
-
-                <TextView
-                        android:id="@+id/hmacTextDescription"
-                        style="@style/TextMedium.Secondary"
-                        android:layout_margin="@dimen/view_padding_small"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:linksClickable="true"
-                        android:text="@string/setup_description_hmac"
-                        tools:visibility="visible"/>-->
+                    android:layout_margin="@dimen/view_padding_small"
+                    android:linksClickable="true"
+                    android:textStyle="bold"
+                    android:text="@string/setup_description"
+                    tools:visibility="visible" />
 
             </LinearLayout>
 
         </ScrollView>
 
-        <View
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:orientation="vertical">
+
+            <View
                 android:background="?android:attr/dividerHorizontal"
                 android:layout_height="1dp"
                 android:layout_width="match_parent"/>
 
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-            android:padding="@dimen/activity_padding"
-                android:orientation="horizontal">
-
             <Button
-                    style="@style/ButtonGreen.Small"
-                    android:id="@+id/authenticateButton"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:textAllCaps="true"
-                    android:text="@string/button_authenticate"/>
+                android:id="@+id/authenticateButton"
+                style="@style/ButtonGreen.Small"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/button_authenticate"
+                android:textAllCaps="true" />
 
         </LinearLayout>
 
     </LinearLayout>
-    
+
     <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
+        android:id="@+id/loginWebView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
 </FrameLayout>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@
                 android:layout_gravity="center_vertical">
 
             <ImageView
-                    android:id="@+id/itemIcon"
+                    android:id="@+id/notificationsItemIcon"
                     android:contentDescription="@string/desc"
                     android:layout_width="72dp"
                     android:layout_height="wrap_content"
@@ -61,7 +61,7 @@
 
                 <TextView
                         style="@style/TextLarge.SmallAction.Green"
-                        android:id="@+id/messageBody"
+                        android:id="@+id/notificationsMessageBody"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:focusable="false"
@@ -78,7 +78,7 @@
                     android:orientation="horizontal">
 
                     <TextView
-                            android:id="@+id/contactId"
+                            android:id="@+id/notificationsContactId"
                             style="@style/TextMedium.SmallAction.Light"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -87,7 +87,7 @@
                             tools:text="#2343453"/>
         
                     <TextView
-                            android:id="@+id/createdAt"
+                            android:id="@+id/notificationsCreatedAt"
                             style="@style/TextMedium.SmallAction.Light"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

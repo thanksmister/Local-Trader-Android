@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
   ~
   -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
@@ -25,54 +26,32 @@
         android:id="@+id/screenBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
+        android:paddingTop="16dp"
         android:layout_above="@id/buttonLayout"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
-        <RelativeLayout
+        <ImageView
+            android:id="@+id/screenImage"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="top"
-            android:padding="@dimen/activity_padding"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:minHeight="250dp"
+            android:src="@drawable/logo_screen"/>
 
-            <android.support.v4.widget.Space
-                android:id="@+id/spacerTop"
-                android:layout_alignParentTop="true"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"/>
+        <TextView
+            android:id="@+id/descriptionText"
+            style="@style/TextLarge"
+            android:textColor="@color/body_text_1"
+            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="36dp"
+            android:paddingTop="16dp"
+            android:layout_marginLeft="36dp"
+            android:layout_marginRight="36dp"
+            android:text="@string/login_registration_screens_description"/>
 
-            <ImageView
-                android:id="@+id/screenImage"
-                android:layout_width="260dp"
-                android:layout_height="260dp"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@+id/spacerTop"
-                android:src="@drawable/logo_screen"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/screenImage"
-                android:layout_centerHorizontal="true"
-                android:layout_alignParentBottom="true"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/descriptionText"
-                    style="@style/TextLarge.SmallAction"
-                    android:textColor="@color/body_text_1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:layout_marginLeft="36dp"
-                    android:layout_marginRight="36dp"
-                    android:text="@string/login_registration_screens_description"/>
-
-            </LinearLayout>
-
-        </RelativeLayout>
 
     </LinearLayout>
 
@@ -91,6 +70,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_weight="1"
+                android:textAllCaps="true"
                 android:text="@string/button_register"/>
 
         <View
@@ -102,6 +82,7 @@
                 style="@style/ButtonGreen.Small"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
+                android:textAllCaps="true"
                 android:layout_weight="1"
                 android:text="@string/button_authenticate"/>
 

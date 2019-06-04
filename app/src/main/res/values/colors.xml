@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 
     <color name="primary_text">#ffffff</color>
     <color name="secondary_text">#ffffff</color>
-
+    <color name="white_alpha">#beffffff</color>
     <color name="window_background">@color/white</color>
 
     <color name="body_text_1">#8a000000</color>
@@ -32,7 +32,7 @@
     <color name="body_text_blue_1">#0099cc</color>
     <color name="body_text_1_inverse">#deffffff</color>
 
-
+    <color name="black">#000000</color>
     <color name="light_green">#ff7dac2f</color>
     <color name="light_green_pressed">#ff67932c</color>
     <color name="text_green">#ff67932c</color>

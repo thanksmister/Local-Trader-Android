@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
             android:title="@string/pref_currency_settings">
 
         <ListPreference
-                android:key="pref_exchange"
+                android:key="@string/pref_key_exchange"
                 android:title="@string/pref_exchange"
                 android:summary="@string/pref_exchange_summary"
                 android:defaultValue="Coinbase"
@@ -31,7 +31,7 @@
                 android:positiveButtonText="@null"/>
 
         <ListPreference
-                android:key="exchange_currency"
+                android:key="@string/pref_key_exchange_currency"
                 android:title="@string/pref_market_currency_title"
                 android:summary="@string/pref_market_currency_summary"
                 android:defaultValue="0"
@@ -64,7 +64,6 @@
                 android:title="@string/pref_endpoint"
                 android:defaultValue="@string/local_bitcoins_url"
                 android:dialogTitle="@string/pref_dialog_endpoint_title"
-                android:dialogMessage="@string/pref_dialog_endpoint_message"
                 android:summary="https://localbitcoins.com"
                 android:inputType="textWebEditText"
                 android:key="@string/pref_key_api"/>

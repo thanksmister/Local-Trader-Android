@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,26 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
-import com.thanksmister.bitcoin.localtrader.network.api.model.ExchangeCurrency;
+import com.thanksmister.bitcoin.localtrader.network.api.model.Currency;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * TODO: Add a class header comment!
- */
 public class CurrencyUtils {
 
     public CurrencyUtils() {
     }
 
-    public static List<ExchangeCurrency> sortCurrencies(List<ExchangeCurrency> currencies) {
+    public static List<Currency> sortCurrencies(List<Currency> currencies) {
         Collections.sort(currencies, new CurrencyComparator());
         return currencies;
     }
 
-    private static class CurrencyComparator implements Comparator<ExchangeCurrency> {
+    private static class CurrencyComparator implements Comparator<Currency> {
         @Override
-        public int compare(ExchangeCurrency o1, ExchangeCurrency o2) {
-            return o1.getCurrency().toLowerCase().compareTo(o2.getCurrency().toLowerCase());
+        public int compare(Currency o1, Currency o2) {
+            return o1.getCode().compareTo(o2.getCode());
         }
     }
 }

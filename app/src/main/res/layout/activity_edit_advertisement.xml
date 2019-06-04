@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,15 +22,6 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:orientation="vertical">
-
-    <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_weight="0"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:minHeight="?android:attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            app:popupTheme="@style/Theme.AppCompat.Light"/>
     
     <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
@@ -46,7 +37,7 @@
             android:paddingBottom="16dp">
 
             <FrameLayout
-                android:id="@+id/noteLayout"
+                android:id="@+id/editNoteLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="@dimen/view_padding_small"
@@ -60,7 +51,7 @@
 
                 <TextView
                     style="@style/TextMedium"
-                    android:id="@+id/noteText"
+                    android:id="@+id/editNoteText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="left|top"
@@ -71,9 +62,8 @@
 
             </FrameLayout>
 
-
             <LinearLayout
-                android:id="@+id/activeLayout"
+                android:id="@+id/editActiveLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:visibility="visible"
@@ -100,44 +90,59 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="@dimen/activity_padding"
                     android:layout_marginRight="@dimen/activity_padding"
-                    android:theme="@style/EditTextTheme"
                     android:text="@string/ad_status_edit_description"/>
-
-                <View
-                    android:background="?android:attr/dividerHorizontal"
-                    android:layout_marginTop="8dp"
-                    android:layout_height="1dp"
-                    android:layout_width="match_parent"/>
 
             </LinearLayout>
 
-            <!-- Minimum Maximum Amount -->
+            <View
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
 
+            <!-- Minimum Maximum Amount -->
             <include layout="@layout/view_min_max"/>
 
-            <!-- Price Equation -->
+            <View
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
 
+            <!-- Price Equation -->
             <include layout="@layout/view_price_equation"/>
 
-            <!-- Terms -->
+            <View
+                android:background="?android:attr/dividerHorizontal"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
 
+            <!-- Terms -->
             <include layout="@layout/view_terms"/>
 
         </LinearLayout>
     
     </android.support.v4.widget.NestedScrollView>
 
+    <View
+        style="@style/DividerHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="0" />
+
     <LinearLayout
-            android:id="@+id/buttonLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="@dimen/activity_padding"
-            android:layout_weight="0"
-            android:layout_gravity="bottom">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:padding="16dp"
+        android:orientation="vertical">
 
         <Button
-                android:id="@+id/nextButton"
+                android:id="@+id/editSveButton"
                 style="@style/ButtonGreen.Small"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
               android:layout_height="wrap_content">
 
     <!-- Minimum Amount -->
-
     <TextView
             style="@style/TextSmall"
             android:layout_width="wrap_content"
@@ -45,13 +44,11 @@
 
         <EditText
                 android:id="@+id/editMinimumAmount"
-                style="@style/TextLarge.SmallAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="0"
                 android:inputType="numberDecimal"
                 android:digits="0123456789"
-                android:theme="@style/EditTextTheme"
                 android:layout_weight="1"/>
 
         <View
@@ -99,13 +96,11 @@
 
         <EditText
                 android:id="@+id/editMaximumAmount"
-                style="@style/TextLarge.SmallAction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="0"
                 android:digits="0123456789"
                 android:inputType="numberDecimal"
-                android:theme="@style/EditTextTheme"
                 android:layout_weight="1"/>
 
         <View
@@ -127,11 +122,5 @@
                 android:layout_marginBottom="2dp"/>
 
     </LinearLayout>
-
-    <View
-            android:background="?android:attr/dividerHorizontal"
-            android:layout_marginTop="8dp"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"/>
 
 </LinearLayout>

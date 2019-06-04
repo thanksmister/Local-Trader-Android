@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:paddingBottom="@dimen/view_padding_small"
                 android:gravity="left"
-                android:text="Trade With"/>
+                android:text="@string/text_trade_with_title"/>
 
         <LinearLayout
                 android:layout_width="match_parent"
@@ -184,7 +184,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/activity_padding"
                         android:gravity="left"
-                        android:text="Trade Amount"/>
+                        android:text="@string/form_trade_amount"/>
 
                 <View
                         android:layout_width="match_parent"
@@ -233,7 +233,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="left"
                         android:layout_marginLeft="@dimen/activity_padding"
-                        android:text="Deal Price"/>
+                        android:text="@string/text_deal_price"/>
 
                 <View
                         android:layout_width="match_parent"
@@ -254,7 +254,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/activity_padding"
                         android:gravity="left"
-                        android:text="1.0 BTC"/>
+                        tools:text="1.0 BTC"/>
 
             </LinearLayout>
 
@@ -286,7 +286,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/activity_padding"
                         android:gravity="left"
-                        android:text="Trade Reference"/>
+                        android:text="@string/text_trade_reference"/>
 
                 <View
                         android:layout_width="match_parent"
@@ -299,6 +299,7 @@
                         android:layout_height="wrap_content"
                         tools:text="KDJ839080983LKJD"
                         android:layout_marginLeft="@dimen/activity_padding"
+                        android:focusable="true"
                         android:selectAllOnFocus="true"
                         android:ellipsize="end"/>
 
@@ -321,7 +322,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="left"
                         android:layout_marginLeft="@dimen/activity_padding"
-                        android:text="Trade Id"/>
+                        android:text="@string/text_trade_id"/>
 
                 <View
                         android:layout_width="match_parent"
@@ -334,6 +335,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/activity_padding"
                         android:selectAllOnFocus="true"
+                        android:focusable="true"
                         android:gravity="left"
                         tools:text="83838393"/>
 
@@ -370,7 +372,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Ethereum Address"/>
+                    android:text="@string/text_trade_ethereum_address"/>
 
             <TextView
                     android:id="@+id/detailsEthereumAddress"
@@ -399,7 +401,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Phone Number"/>
+                    android:text="@string/trade_phone_number"/>
 
             <TextView
                     android:id="@+id/detailsPhoneNumber"
@@ -428,7 +430,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Receiver Email"/>
+                    android:text="@string/text_receiver_email"/>
 
             <TextView
                     android:id="@+id/detailsReceiverEmail"
@@ -457,7 +459,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Receiver Name"
+                    android:text="@string/text_receiver_name"
                     android:selectAllOnFocus="true"
                     android:textIsSelectable="true"/>
 
@@ -469,7 +471,6 @@
                     tools:text="This is text"/>
 
         </LinearLayout>
-
 
         <LinearLayout
                 android:id="@+id/detailsSortCodeLayout"
@@ -487,7 +488,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Sort Code"/>
+                    android:text="@string/trade_sort_code"/>
 
             <TextView
                     android:id="@+id/detailsSortCode"
@@ -516,7 +517,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Account Number"/>
+                    android:text="@string/trade_account_number"/>
 
             <TextView
                     android:id="@+id/detailsAccountNumber"
@@ -574,7 +575,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Biller Code"/>
+                    android:text="@string/trade_biller_code"/>
 
             <TextView
                     android:id="@+id/detailsBillerCode"
@@ -603,7 +604,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Iban Name"/>
+                    android:text="@string/text_iban_name"/>
 
             <TextView
                     android:id="@+id/detailsIbanName"
@@ -632,7 +633,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="Swift Code"
+                    android:text="@string/text_swift_code"
                     android:selectAllOnFocus="true"
                     android:textIsSelectable="true"/>
 
@@ -661,7 +662,7 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/view_padding_small"
                     android:gravity="left"
-                    android:text="References"/>
+                    android:text="@string/text_trade_references"/>
 
             <TextView
                     android:id="@+id/detailsReference"
@@ -691,7 +692,7 @@
                 android:layout_weight="1"
                 android:layout_marginLeft="@dimen/activity_padding"
                 android:gravity="left|center_vertical"
-                android:text="Messages"/>
+                android:text="@string/text_trade_messages"/>
 
         <ImageButton
                 android:id="@+id/messageButton"
@@ -704,4 +705,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

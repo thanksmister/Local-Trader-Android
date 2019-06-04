@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,13 +21,6 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:orientation="vertical">
-
-    <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:theme="@style/ToolbarTheme"
-            android:background="?attr/colorPrimary"/>
 
     <FrameLayout
             android:id="@+id/content"

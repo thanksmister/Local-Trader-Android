@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ThanksMister LLC
+ * Copyright (c) 2019 ThanksMister LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,6 @@ import java.util.Locale;
 public final class Doubles {
     private Doubles() {
         // No instances.
-    }
-
-    public static double valueOrDefault(String value, double defaultValue) {
-        try {
-            if (Strings.isBlank(value))
-                return defaultValue;
-
-            return convertToNumber(value);
-
-        } catch (Exception e) {
-            return defaultValue;
-        }
     }
 
     public static double convertToDouble(String value) {

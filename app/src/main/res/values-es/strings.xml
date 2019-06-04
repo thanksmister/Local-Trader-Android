@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@
     <string name="button_ok">Aceptar</string>
     <string name="button_cancel">Cancelar</string>
     <string name="button_close">Cerrar</string>
-    <string name="button_dispute">Dispute</string>
+    <string name="button_dispute">Disputa</string>
     <string name="button_release">Liberar</string>
     <string name="button_fund">​​Fondo</string>
     <string name="button_confirm">CONFIRMAR</string>
@@ -67,7 +67,7 @@
     <string name="menu_action_notifications">Marcar Notificaciones Leer</string>
     <string name="menu_action_profile">Perfil</string>
     <string name="menu_action_cancel">Cancelar</string>
-    <string name="menu_action_dispute">Dispute</string>
+    <string name="menu_action_dispute">Disputa</string>
     <string name="menu_action_blockchain">Ver Blockchain</string>
     <string name="login_registration_screens_description">Local Trader trabaja con tu cuenta LocalBitcoins para administrar los oficios, anuncios, enviar mensajes o manejar los pagos.</string>
     <string name="login_authorizing">Autenticando…</string>
@@ -133,8 +133,8 @@
     <string name="bitcoin_request_copied_toast">Solicitar enlace copiado al portapapeles!</string>
     <string name="hint_bitcoin_address">Dirección de Bitcoi</string>
     <string name="form_sendable_label">La cantidad que se puede enviar es la cantidad máxima que puede enviar menos los cargos.</string>
-    <string name="form_balance_negative"><![CDATA[<font color="#c33e29">%1$s BTC / %2$s %3$s</font>]]></string>
-    <string name="form_balance_positive"><![CDATA[<font color="#67932c">%1$s BTC / %2$s %3$s</font>]]></string>
+    <string name="form_balance_negative">%1$s BTC</string>
+    <string name="form_balance_positive">%1$s BTC</string>
     <string name="pin_code_send"><![CDATA[Se requiere un código PIN para liberar, el fondo envía bitcoin. Administra el código PIN en la página <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Perfil de la cuenta</a>.]]></string>
     <string name="toast_transaction_success">¡Bitcoins enviados!</string>
     <string name="progress_sending_transaction">Enviando bitcoins…</string>
@@ -149,7 +149,7 @@
     <string name="toast_minimum_amount">Ingrese un monto mínimo válido.</string>
     <string name="toast_maximum_amount">Ingrese una cantidad máxima válida.</string>
     <string name="toast_update_visibility">Visibilidad actualizada!</string>
-    <string name="toast_error_updat_advertisement">Error al actualizar el anuncio…</string>
+    <string name="toast_error_update_advertisement">Error al actualizar el anuncio…</string>
     <string name="toast_error_contact_data">Error al recuperar datos de contacto…</string>
     <string name="toast_message_canceled">Mensaje cancelado…</string>
     <string name="toast_no_activity_for_maps">No hay actividad para manejar esta acción (no mapas).</string>
@@ -210,13 +210,13 @@
     <string name="setup_credentials">Configuración de autenticación</string>
     <string name="authentication_success">Autenticación satisfactoria para %1$s</string>
     <string name="setup_hint_servcie_endpoint">SERVCIE ENDPOINT</string>
-    <string name="button_authenticate">Authenticate</string>
+    <string name="button_authenticate">Autenticar</string>
     <string name="trade_request_description"><![CDATA[Todos los campos son obligatorios a menos que se indique lo contrario como opcional. Consulte <a href=\"https://localbitcoins.com/api-docs/online-buy-fields/\">la guía de compras en línea </a> para conocer los requisitos por tipo de pago.]]></string>
     <string name="error_dialog_no_address_edit">Esa dirección no es válida, ingresa una dirección diferente (como país o ciudad) o usa la ubicación actual.</string>
     <string name="toast_error_no_installed_ativity">No hay ninguna aplicación instalada para manejar la solicitud.</string>
     <string name="pin_code_trade"><![CDATA[Se requiere un código PIN para financiar, liberar o enviar pagos. Administra el código PIN en la página <a href=\"https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo\">Perfil de la cuenta</a>.]]></string>
     <string name="form_send_to">Enviar a:</string>
-    <string name="form_bitcoin_amount">Cantidad de Bitcoin:</string>
+    <string name="form_bitcoin_amount">Cantidad de Bitcoin</string>
     <string name="toast_edit_canceled">Editar cancelado…</string>
     <string name="snack_no_advertisement_data">No hay datos de anuncio.</string>
     <string name="toast_new_ad_canceled">Nuevo anuncio cancelado…</string>
@@ -231,7 +231,7 @@
     <string name="toast_search_canceled">Búsqueda cancelada…</string>
     <string name="error_unable_load_payment_methods">No se pueden cargar los métodos de pago en línea.</string>
     <string name="toast_loading_methods">Error al obtener métodos…</string>
-    
+
     <string-array name="country_names">
         <item>Afganistán</item>
         <item>Islas Åland</item>
@@ -572,7 +572,7 @@
     <string name="toast_enter_lower_amount">Ingrese un monto menor que %1$s %2$s</string>
     <string name="toast_enter_higher_amount">Ingrese un monto mayor que  %1$s %2$s</string>
     <string name="progress_sending_trade_request">Enviando solicitud comercial ...</string>
-    <string name="toast_trade_request_sent">Solicitud de comercio enviada a</string>
+    <string name="toast_trade_request_sent">Solicitud de comercio enviada!</string>
     <string name="text_trade_with">Comercio con %1$s</string>
     <string name="text_no_transactions">Sin transacciones.</string>
     <string name="button_send_message">ENVIAR MENSAJE</string>
@@ -609,8 +609,8 @@
     <string name="pref_application_settings">Configuraciones de la aplicación</string>
     <string name="pref_logout">Cerrar sesión</string>
     <string name="pref_logout_summary">Salga y reinicie la aplicación</string>
-    <string name="pref_distance_km">Kilometers (km)</string>
-    <string name="pref_distance_mi">Miles (mi)</string>
+    <string name="pref_distance_km">Kilómetros (km)</string>
+    <string name="pref_distance_mi">Millas (mi)</string>
     <string name="toast_authentication_canceled">Autenticación cancelada ...</string>
     <string name="error_update_exchange_rate">No se puede actualizar la tasa de cambio.</string>
     <string name="text_donate_button">Cómprame un café</string>
@@ -620,7 +620,7 @@
     <string name="pref_market_currency_title">Moneda del mercado</string>
     <string name="alert_token_expired_title">Token caducado</string>
     <string name="alert_change_endpoint">Cambiar el punto final del servicio requiere reiniciar la aplicación. ¿Desea actualizar el punto final y reiniciar ahora?</string>
-    <string name="alert_valid_endpoint">El punto final del servicio no debe ser una URL válida.</string>
+    <string name="alert_valid_endpoint">El punto final del servicio debe ser una URL válida.</string>
     <string name="alert_authentication_error_title">Error de autenticación</string>
     <string name="error_cannot_open_links">No se pueden abrir enlaces externos desde el flujo de autenticación.</string>
     <string name="error_security_error_title">Error de seguridad</string>
@@ -641,10 +641,80 @@
     <string name="text_with_in">Con %1$s en %2$s</string>
     <string name="hint_enter_message">Ingrese el mensaje</string>
     <string name="text_attach_file">Adjuntar archivo</string>
-    <string name="button_register">Register</string>
-    <string name="button_retry">Retry</string>
+    <string name="button_register">Registro</string>
+    <string name="button_retry">Volver</string>
     <string name="progress_syncing_account_data">Sincronización de datos...</string>
     <string name="notification_new_notifications">Tienes %1$s nuevas notificaciones.</string>
-    <string name="error_trade_request_verification">Hubo un problema al crear la solicitud de comercio. Usted no puede cumplir con los requisitos de este comercio. Por favor, lea los requisitos comerciales que figuran en cada anuncio.</string>
+    <string name="toast_camera_denied">Permiso de la cámara denegado ...</string>
+    <string name="text_confirm_transaction">Confirmar Transacción</string>
+    <string name="text_location_title">Ubicación</string>
+    <string name="text_enter_bank_name">Ingrese el nombre del banco</string>
+    <string name="dialog_localbitcoins_website_login">Será llevado al sitio web de LocalBitcoins para autenticar esta solicitud, toda la información que ingrese será privada. ¿Desea continuar?</string>
+    <string name="text_national_bank_transfer">Transferencia del banco nacional</string>
+    <string name="text_common_with">%1$s con %2$s</string>
+    <string name="text_bank_transfer">Bank transfer</string>
+    <string name="text_cash_deposit">Cash deposit</string>
+    <string name="text_with_int">Con %1$s en %2$s</string>
+    <string name="text_buy_your">compra tu</string>
+    <string name="text_online_seller">"Vendedor Online "</string>
+    <string name="text_online_buyer">Comprador Online</string>
+    <string name="text_local_seller">Vendedor local</string>
+    <string name="text_local_buyer">Comprador local</string>
+    <string name="text_item_contact_num">Contacto #%1$s</string>
+    <string name="text_item_advertisement_number">Anuncio #%1$s</string>
+    <string name="error_notification">Error al marcar la notificación de lectura.</string>
+    <string name="error_invalid_coordinates">Se ingresó longitud o latitud no válida. La latitud debe estar entre -90 y 90. La longitud debe estar entre -180 y 180.</string>
+    <string name="error_need_valid_coordinates">Para buscar anunciantes locales, ingrese valores válidos de latitud y longitud.</string>
+    <string name="error_search_timeout">La búsqueda ha caducado, es posible que desee comprobar su conexión de red o ajustar sus parámetros de búsqueda.</string>
+    <string name="trade_ethereum_address">ETH billetera</string>
+    <string name="trade_phone_number">Número de teléfono</string>
+    <string name="trade_receiving_account_email">Recibiendo email de cuenta</string>
+    <string name="trade_account_owner">Propietario de la cuenta</string>
+    <string name="trade_sort_code">Código de clasificacion</string>
+    <string name="trade_account_number">Número de cuenta</string>
+    <string name="trade_biller_code">Código de facturación</string>
+    <string name="trade_reference_or_message">Referencia o mensaje</string>
+    <string name="trade_message_optional">Mensaje (opcional)</string>
+    <string name="notification_new_notifications_title">Nuevas notificaciones</string>
+    <string name="notification_trade_notification_title">Notificación comercial</string>
+    <string name="notification_ad_notification_title">Notificación de publicidad</string>
+    <string name="notification_title">Notificación</string>
+    <string name="notification_btc_received">Bitcoin recibido</string>
+    <string name="notification_btc_balance">Equilibrio de Bitcoin</string>
+    <string name="notification_btc_received_message">Usted recibió %1$s BTC</string>
+    <string name="notification_btc_balance_message">Tienes %1$s BTC</string>
+    <string name="notification_lbc_notice">LocalBitcoins Notificaciones</string>
+    <string name="text_logging_out">Saliendo de tu cuenta...</string>
+    <string name="alert_service_end_point">The service end point should be a valid URL.</string>
+    <string name="text_market_currency">Moneda de mercado (%1$s)</string>
+    <string name="contact_release_confirm">¿Estás seguro de que quieres liberar este intercambio?</string>
+    <string name="toast_loading_trade">Loading trade…</string>
+    <string name="error_network_retry">Hubo un error de red o de servicio, ¿quieres volver a intentarlo?</string>
+    <string name="text_trade_id">Número de comercio</string>
+    <string name="text_trade_reference">Referencia comercial</string>
+    <string name="text_trade_with_title">Comercio con</string>
+    <string name="text_receiver_email">Correo electrónico del receptor</string>
+    <string name="text_receiver_name">Nombre del destinatario</string>
+    <string name="text_iban_name">Iban Nombre</string>
+    <string name="text_swift_code">Swift Code</string>
+    <string name="text_trade_references">Referencias</string>
+    <string name="text_trade_messages">Mensajes</string>
+    <string name="text_trade_ethereum_address">ETH Billetera</string>
+    <string name="error_missing_vision_library">Faltan bibliotecas para escanear código ...</string>
+    <string name="toast_invalid_bitcoin_address">Invalid Bitcoin address...</string>
+    <string name="error_trade_requirements">No cumple con los requisitos de este anuncio, revise los requisitos enumerados antes de solicitar un intercambio.</string>
+    <string name="error_receiving_address">La aplicación no tiene los permisos requeridos.</string>
+    <string name="progress_new_address">Generating new address...</string>
+    <string name="menu_new_address">Código de monedero nuevo</string>
+    <string name="error_not_enough_balance">No hay saldo suficiente, intente una cantidad menor.</string>
+    <string name="error_camera_start">No se pudo iniciar la cámara</string>
+    <string name="error_permissions_security">La aplicación no tiene los permisos requeridos.</string>
+    <string name="error_server_time_out">Llamada al servicio caducado.</string>
+    <string name="error_network_disconnected">Red desconectada</string>
+    <string name="error_resource_not_found">Recurso no encontrado en el servidor.</string>
+    <string name="exception_message_no_connection">Sin conexión a Internet</string>
+    <string name="error_generic_permission">No tienes permiso para acceder a esta función.</string>
+    <string name="error_generic_server_down">Servicio temporalmente fuera de servicio o inaccesible.</string>
+    <string name="error_data_refresh">No requiere actualización de datos</string>
 
 </resources>

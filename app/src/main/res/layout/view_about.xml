@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018 ThanksMister LLC
+  ~ Copyright (c) 2019 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,269 +14,207 @@
   ~ limitations under the License.
   ~
   -->
-<LinearLayout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-    <android.support.design.widget.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                app:popupTheme="@style/Theme.AppCompat.Light"/>
-
-    </android.support.design.widget.AppBarLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
     <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            android:fillViewport="true">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:fitsSystemWindows="true">
 
         <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="16dp"
-                android:orientation="vertical">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp">
 
             <ImageView
-                    android:layout_width="144dp"
-                    android:layout_height="144dp"
-                    android:layout_gravity="center_horizontal"
-                    android:src="@drawable/ic_mister"/>
+                android:layout_width="144dp"
+                android:layout_height="144dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@drawable/ic_mister" />
 
             <LinearLayout
-                    android:layout_width="match_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="20dp"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    style="@style/TextMedium"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingTop="20dp"
-                    android:paddingBottom="10dp"
-                    android:gravity="center_horizontal">
-                
-                <TextView
-                        android:text="@string/designer_developer_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:singleLine="true"
-                        style="@style/TextMedium"
-                        android:ellipsize="marquee"
-                        android:fadingEdge="horizontal"/>
+                    android:ellipsize="marquee"
+                    android:fadingEdge="horizontal"
+                    android:singleLine="true"
+                    android:text="@string/designer_developer_text" />
 
                 <TextView
-                        android:text="@string/thanks_mister_title"
-                        style="@style/TextExtraLarge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="30sp"
-                        android:maxLines="2"/>
-
-                <TextView
-                        android:text="@string/company_url_text"
-                        android:textColorLink="@color/text_link"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        style="@style/Text"
-                        android:maxLines="2"
-                        android:paddingBottom="2dp"
-                        android:autoLink="web|email"/>
-
-                <TextView
-                        android:id="@+id/versionName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        style="@style/SmallText.ExtraSmall"
-                        android:maxLines="2"/>
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/guidesButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
+                    style="@style/TextExtraLarge"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
-                    android:orientation="horizontal"
-                    android:visibility="visible">
-
-                <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_action_guides"/>
+                    android:maxLines="2"
+                    android:text="@string/thanks_mister_title"
+                    android:textSize="30sp" />
 
                 <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="@string/text_getting_started_guides"/>
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/sendAccountButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
+                    style="@style/Text"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
-                    android:orientation="horizontal"
-                    android:visibility="visible">
-
-                <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_action_contact"/>
+                    android:autoLink="web|email"
+                    android:maxLines="2"
+                    android:paddingBottom="2dp"
+                    android:text="@string/company_url_text"
+                    android:textColorLink="@color/text_link" />
 
                 <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="@string/text_localbitcoins_support"/>
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal"/>
-            
-            <LinearLayout
-                    android:id="@+id/sendFeedbackButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
+                    android:id="@+id/versionName"
+                    style="@style/SmallText.ExtraSmall"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
-                    android:orientation="horizontal"
-                    android:visibility="visible">
-
-                <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_github"
-                        android:tint="@color/gray"/>
-
-                <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="@string/text_application_feedback"/>
+                    android:maxLines="2" />
 
             </LinearLayout>
 
-            <View style="@style/DividerHorizontal"/>
+            <View style="@style/DividerHorizontal" />
 
             <LinearLayout
-                    android:id="@+id/rateApplicationButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
-                    android:orientation="horizontal">
-
-                <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_action_rating"/>
-
-                <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="@string/text_rate_application"/>
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/joinCommunityButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:orientation="horizontal">
-
-                <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginLeft="8dp"
-                        android:src="@drawable/ic_icon_reddit"/>
-
-                <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="@string/text_join_community"/>
-
-            </LinearLayout>
-
-            <View style="@style/DividerHorizontal"/>
-
-            <LinearLayout
-                android:id="@+id/donateButton"
+                android:id="@+id/guidesButton"
                 style="@style/BorderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:padding="@dimen/view_padding"
-                android:orientation="horizontal">
+                android:visibility="visible">
 
                 <ImageView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_donate_bitcoin"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_library_books" />
 
                 <TextView
                     style="@style/TextMedium.SmallAction"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
                     android:gravity="left|center_vertical"
-                    android:text="@string/text_donate_button"/>
+                    android:paddingLeft="16dp"
+                    android:text="@string/text_getting_started_guides" />
 
             </LinearLayout>
 
-            <View style="@style/DividerHorizontal"/>
+            <View style="@style/DividerHorizontal" />
 
             <LinearLayout
-                    android:id="@+id/licenseButton"
-                    style="@style/BorderlessButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/view_padding"
-                    android:orientation="horizontal">
+                android:id="@+id/sendAccountButton"
+                style="@style/BorderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/view_padding"
+                android:visibility="visible">
 
                 <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_action_license"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_contact_mail" />
 
                 <TextView
-                        style="@style/TextMedium.SmallAction"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="8dp"
-                        android:gravity="left|center_vertical"
-                        android:text="@string/text_license_information"/>
+                    style="@style/TextMedium.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|center_vertical"
+                    android:paddingLeft="16dp"
+                    android:text="@string/text_localbitcoins_support" />
 
             </LinearLayout>
 
-            <View style="@style/DividerHorizontal"/>
+            <View style="@style/DividerHorizontal" />
+
+            <LinearLayout
+                android:id="@+id/projectButton"
+                style="@style/BorderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/view_padding"
+                android:visibility="visible">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_github"
+                    android:tint="@color/gray" />
+
+                <TextView
+                    style="@style/TextMedium.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|center_vertical"
+                    android:paddingLeft="16dp"
+                    android:text="@string/text_application_feedback" />
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal" />
+
+            <LinearLayout
+                android:id="@+id/rateApplicationButton"
+                style="@style/BorderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/view_padding">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_rate_review" />
+
+                <TextView
+                    style="@style/TextMedium.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|center_vertical"
+                    android:paddingLeft="16dp"
+                    android:text="@string/text_rate_application" />
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal" />
+
+            <LinearLayout
+                android:id="@+id/licenseButton"
+                style="@style/BorderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/view_padding">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tint="@color/gray"
+                    android:src="@drawable/ic_info_outline" />
+
+                <TextView
+                    style="@style/TextMedium.SmallAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="left|center_vertical"
+                    android:paddingLeft="16dp"
+                    android:text="@string/text_license_information" />
+
+            </LinearLayout>
+
+            <View style="@style/DividerHorizontal" />
 
         </LinearLayout>
 
