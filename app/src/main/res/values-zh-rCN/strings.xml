@@ -700,4 +700,5 @@
     <string name="error_generic_permission">您无权访问此功能。</string>
     <string name="error_generic_server_down">服务暂时关闭或无法访问。</string>
     <string name="error_data_refresh">无需数据刷新</string>
+    <string name="text_list_country_any">任何</string>
 </resources>

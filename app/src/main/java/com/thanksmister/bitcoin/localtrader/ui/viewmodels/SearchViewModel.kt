@@ -16,16 +16,10 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.content.SharedPreferences
-import android.location.*
-import android.location.Address
-import android.os.Bundle
-import android.text.TextUtils
-import com.google.android.gms.location.LocationRequest
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
@@ -37,26 +31,24 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.utils.*
+import com.thanksmister.bitcoin.localtrader.utils.Doubles
+import com.thanksmister.bitcoin.localtrader.utils.SearchUtils
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Flowable
-import pl.charmas.android.reactivelocation2.ReactiveLocationProvider
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class SearchViewModel @Inject
 constructor(application: Application, 
             private val methodsDao: MethodsDao, 
             private val currenciesDao: CurrenciesDao,
-            private val sharedPreferences: SharedPreferences, 
-            private val locationManager: LocationManager,
+            private val sharedPreferences: SharedPreferences,
             private val preferences: Preferences) : BaseViewModel(application) {
 
-    private val address = MutableLiveData<Address>()
-    private val addresses = MutableLiveData<List<Address>>()
     private val advertisements = MutableLiveData<List<Advertisement>>()
     
     private val fetcher: LocalBitcoinsFetcher by lazy {
@@ -69,42 +61,11 @@ constructor(application: Application,
         return advertisements
     }
 
-    fun getAddresses(): LiveData<List<Address>> {
-        return addresses
-    }
-
-    fun getAddress(): LiveData<Address> {
-        return address
-    }
-
-    private fun setAddresses(address: List<Address>) {
-        this.addresses.value = address
-    }
-
     private fun setAdvertisements(advertisements: List<Advertisement>) {
         this.advertisements.value = advertisements
     }
 
-    fun setAddress(address: Address) {
-        Timber.d("address $address")
-        SearchUtils.setSearchLocationAddress(sharedPreferences, address)
-        if (address.hasLatitude()) {
-            SearchUtils.setSearchLatitude(sharedPreferences, address.latitude)
-        }
-        if (address.hasLongitude()) {
-            SearchUtils.setSearchLongitude(sharedPreferences, address.longitude)
-        }
-        if (!TextUtils.isEmpty(address.countryCode)) {
-            SearchUtils.setSearchCountryCode(sharedPreferences, address.countryCode)
-        }
-        if (!TextUtils.isEmpty(address.getAddressLine(0))) {
-            SearchUtils.setSearchCountryName(sharedPreferences, address.getAddressLine(0))
-        }
-        this.address.value = address
-    }
-
     init {
-        address.value = SearchUtils.getSearchLocationAddress(sharedPreferences)
     }
 
     fun getMethods(): Flowable<List<Method>> {
@@ -113,10 +74,6 @@ constructor(application: Application,
 
     fun getCurrencies(): Flowable<List<Currency>> {
         return currenciesDao.getItems()
-    }
-
-    fun clearSearchLocationAddress() {
-        SearchUtils.clearSearchLocationAddress(sharedPreferences)
     }
 
     fun setSearchCurrency(value: String) {
@@ -142,22 +99,6 @@ constructor(application: Application,
 
     fun getSearchTradeType():String {
         return SearchUtils.getSearchTradeType(sharedPreferences)
-    }
-
-    fun setSearchLatitude(value: Double) {
-        SearchUtils.setSearchLatitude(sharedPreferences, value)
-    }
-
-    fun getSearchLatitude ():Double {
-        return SearchUtils.getSearchLatitude(sharedPreferences)
-    }
-
-    fun setSearchLongitude(value: Double) {
-        SearchUtils.setSearchLongitude(sharedPreferences, value)
-    }
-
-    fun getSearchLongitude():Double {
-        return SearchUtils.getSearchLongitude(sharedPreferences)
     }
 
     fun setSearchCountryName(value: String) {
@@ -199,95 +140,6 @@ constructor(application: Application,
                     } else {
                         showNetworkMessage(networkException.message, networkException.code)
                     }
-                })
-    }
-
-    @SuppressLint("MissingPermission")
-    fun startLocationMonitoring() {
-        val request = LocationRequest.create() //standard GMS LocationRequest
-                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setNumUpdates(5)
-                .setInterval(100)
-        val locationProvider = ReactiveLocationProvider(getApplication())
-        disposable += locationProvider.getUpdatedLocation(request)
-                .timeout(20000, TimeUnit.MILLISECONDS)
-                .applySchedulersComputation()
-                .subscribe ({
-                    if (it == null) {
-                        reverseLocationLookup(it);
-                    } else {
-                        getLocationFromLocationManager()
-                    }
-                }, {
-                    error -> Timber.e("Error startLocationMonitoring ${error.message}")
-                    getLocationFromLocationManager()
-                })
-    }
-
-    private fun getLocationFromLocationManager() {
-        Timber.d("getLocationFromLocationManager")
-        val criteria = Criteria()
-        criteria.accuracy = Criteria.ACCURACY_COARSE
-        try {
-            val locationListener = object : LocationListener {
-                override fun onLocationChanged(location: Location?) {
-                    if (location != null) {
-                        locationManager.removeUpdates(this)
-                        reverseLocationLookup(location)
-                    } else {
-                        //dialogUtils.hideProgressDialog()
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_location_message))
-                    }
-                }
-                override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
-                    Timber.d("onStatusChanged: $status")
-                }
-                override fun onProviderEnabled(provider: String) {
-                    Timber.d("onProviderEnabled")
-                }
-                override fun onProviderDisabled(provider: String) {
-                    Timber.d("onProviderDisabled")
-                }
-            }
-            locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 100, 5f, locationListener)
-        } catch (e: IllegalArgumentException) {
-            Timber.e("Location manager could not use network provider", e)
-            showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_location_message))
-        } catch (e: SecurityException) {
-            Timber.e("Location manager could not use network provider", e)
-        }
-    }
-
-    fun doAddressLookup(locationName: String) {
-        val locationProvider =  ReactiveLocationProvider(getApplication());
-        disposable += locationProvider.getGeocodeObservable(locationName, MAX_ADDRESSES)
-                .applySchedulersComputation()
-                .subscribe ({
-                    if (it != null) {
-                        setAddresses(it)
-                    }
-                }, {
-                    error -> Timber.e("Error doAddressLookup ${error.message}")
-                    showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_address_lookup_description))
-                })
-    }
-
-    private fun reverseLocationLookup(location: Location) {
-        val locationProvider = ReactiveLocationProvider(getApplication())
-        disposable += locationProvider.getReverseGeocodeObservable(location.getLatitude(), location.getLongitude(), 1)
-                .applySchedulersComputation()
-                .filter {items -> items.isNotEmpty()}
-                .map { items -> items[0]}
-                .subscribe ({
-                    if (it == null) {
-                        Timber.d("Address reverseLocationLookup error");
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_dialog_no_address_edit));
-                    } else {
-                        setAddress(it);
-                    }
-                }, {
-                    error -> Timber.e("Error reverseLocationLookup ${error.message}")
-                    showAlertMessage(getApplication<BaseApplication>().getString(R.string.error_address_lookup_description))
                 })
     }
 
@@ -487,9 +339,5 @@ constructor(application: Application,
                 return 0
             }
         }
-    }
-
-    companion object {
-        const val MAX_ADDRESSES = 5
     }
 }

@@ -20,7 +20,6 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Resources
-import android.location.LocationManager
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -55,11 +54,6 @@ class ActivityModule {
     }
 
     @Provides
-    fun provideLocationManager(application: Application): LocationManager {
-        return application.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    }
-
-    @Provides
     @Singleton
     fun provideSharedPreferences(app: Application): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(app.applicationContext)
@@ -76,10 +70,4 @@ class ActivityModule {
     fun providesRemoteConfig(): FirebaseRemoteConfig {
         return FirebaseRemoteConfig.getInstance()
     }
-
-    /*@Provides
-    internal fun provideGeoLocationService(app: BaseApplication, localBitcoins: LocalBitcoinsService): GeoLocationService {
-        return GeoLocationService(app, localBitcoins)
-    }
-    */
 }

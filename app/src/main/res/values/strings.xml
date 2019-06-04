@@ -479,6 +479,7 @@
     <string name="progress_new_address">Generating new address...</string>
     <string name="menu_new_address">New Address</string>
     <string name="error_not_enough_balance">Not enough balance, try a lower amount.</string>
+    <string name="text_list_country_any">Any</string>
 
     <string-array name="country_names">
         <item>Afghanistan</item>

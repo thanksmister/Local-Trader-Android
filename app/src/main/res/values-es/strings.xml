@@ -716,5 +716,6 @@
     <string name="error_generic_permission">No tienes permiso para acceder a esta función.</string>
     <string name="error_generic_server_down">Servicio temporalmente fuera de servicio o inaccesible.</string>
     <string name="error_data_refresh">No requiere actualización de datos</string>
+    <string name="text_list_country_any">Alguna</string>
 
 </resources>

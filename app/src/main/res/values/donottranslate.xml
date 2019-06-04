@@ -36,7 +36,6 @@
         <item>@string/spinner_sell</item>
     </string-array>
     <string-array name="list_location_spinner">
-        <item>@string/spinner_local</item>
         <item>@string/spinner_online</item>
     </string-array>
 
@@ -44,14 +43,12 @@
     <string name="hint_bitcoin" translatable="false">0.00000000</string>
 
     <string-array name="list_advertisement_type_spinner">
-        <item>@string/ad_sell_locally</item>
-        <item>@string/ad_buy_locally</item>
         <item>@string/ad_sell_online</item>
         <item>@string/ad_buy_online</item>
     </string-array>
 
     <string name="license" translatable="false"><![CDATA[
-        <br><b>Copyright 2015 ThanksMister LLC</b><br>
+        <br><b>Copyright 2019-2020 ThanksMister LLC</b><br>
         <br>
         This application contains open source libraries under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.
