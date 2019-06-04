@@ -32,6 +32,8 @@ import timber.log.Timber
 
 class BaseApplication : DaggerApplication() {
 
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
+
     override fun applicationInjector(): AndroidInjector<out DaggerApplication> {
         return DaggerApplicationComponent.builder().create(this);
     }
@@ -48,6 +50,8 @@ class BaseApplication : DaggerApplication() {
         } else {
             Fabric.with(this, Crashlytics())
             Timber.plant(CrashlyticsTree())
+            // Obtain the FirebaseAnalytics instance.
+            firebaseAnalytics = FirebaseAnalytics.getInstance(this)
         }
     }
 

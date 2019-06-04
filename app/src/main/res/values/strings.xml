@@ -234,18 +234,18 @@
     <string name="error_unable_load_payment_methods">Unable to load online payment methods.</string>
     <string name="toast_loading_methods">Error getting methods…</string>
 
-    <string name="error_generic_server_down" translatable="false">Service temporarily down or unreachable.</string>
-    <string name="error_resource_not_found" translatable="false">Resource not found on server.</string>
-    <string name="error_server_time_out" translatable="false">Call to the service timed out.</string>
-    <string name="error_generic_permission" translatable="false">You do not have permission to access this feature.</string>
+    <string name="error_generic_server_down">Service temporarily down or unreachable.</string>
+    <string name="error_resource_not_found">Resource not found on server.</string>
+    <string name="error_server_time_out">Call to the service timed out.</string>
+    <string name="error_generic_permission">You do not have permission to access this feature.</string>
     <string name="error_network_http_error" translatable="false">HTTP Error</string>
 
-    <string name="exception_message_no_connection" translatable="false">No internet connection</string>
+    <string name="exception_message_no_connection">No internet connection</string>
     <string name="warning_no_location" translatable="false">Couldn\'t determine current location, please relocate and try again…</string>
 
-    <string name="error_network_disconnected" translatable="false">Network disconnected</string>
-    <string name="error_data_refresh" translatable="false">No data refresh required</string>
-    <string name="error_permissions_security" translatable="false">The application does not have the required permissions.</string>
+    <string name="error_network_disconnected">Network disconnected</string>
+    <string name="error_data_refresh">No data refresh required</string>
+    <string name="error_permissions_security">The application does not have the required permissions.</string>
 
     <string name="hint_enter_county_city_or_address">Enter County, City or Address</string>
     <string name="text_post_update_canceled">Advertisement update canceled</string>
@@ -437,7 +437,7 @@
     <string name="error_invalid_coordinates">Invalid longitude or latitude entered. Latitude should be between -90 and 90.  Longitude should be between -180 and 180.</string>
     <string name="error_need_valid_coordinates">To search local advertisers, enter valid latitude and longitude values.</string>
     <string name="error_search_timeout">The search timed out, you may want to check your network connection or adjust your search parameters.</string>
-    <string name="trade_ethereum_address">Ethereum address</string>
+    <string name="trade_ethereum_address">ETH address</string>
     <string name="trade_phone_number">Phone number</string>
     <string name="trade_receiving_account_email">Receiving account email</string>
     <string name="trade_account_owner">Account owner</string>
@@ -470,7 +470,7 @@
     <string name="text_swift_code">Swift Code</string>
     <string name="text_trade_references">References</string>
     <string name="text_trade_messages">Messages</string>
-    <string name="text_trade_ethereum_address">Ethereum Address</string>
+    <string name="text_trade_ethereum_address">ETH Address</string>
     <string name="error_missing_vision_library">Missing libraries to scan code...</string>
     <string name="error_camera_start">Could not start camera...</string>
     <string name="toast_invalid_bitcoin_address">Invalid Bitcoin address...</string>
