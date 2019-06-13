@@ -69,6 +69,7 @@ class SearchFragment : BaseFragment() {
 
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
+
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(SearchViewModel::class.java)
 
@@ -78,14 +79,16 @@ class SearchFragment : BaseFragment() {
         val countryAdapter = SpinnerAdapter(requireActivity(), R.layout.spinner_layout, countryNamesList)
         binding.countrySpinner.adapter = countryAdapter
 
-        var i = 0
-        val countryName = viewModel.getSearchCountryName()
-        for (name in countryNamesList) {
-            if (name == countryName) {
-                binding.countrySpinner.setSelection(i)
-                break
+        if (!binding.countrySpinner.adapter.isEmpty) {
+            var i = 0
+            val countryName = viewModel.getSearchCountryName()
+            for (name in countryNamesList) {
+                if (name == countryName) {
+                    binding.countrySpinner.setSelection(i)
+                    break
+                }
+                i++
             }
-            i++
         }
 
         binding.searchButton.setOnClickListener {
@@ -98,7 +101,7 @@ class SearchFragment : BaseFragment() {
         val typeAdapter = SpinnerAdapter(requireActivity(), R.layout.spinner_layout, typeList)
         binding.typeSpinner.adapter = typeAdapter
         binding.currencySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(adapterView: AdapterView<*>, view: View, i: Int, l: Long) {
+            override fun onItemSelected(adapterView: AdapterView<*>, view: View?, i: Int, l: Long) {
                 val exchange = binding.currencySpinner.adapter.getItem(i) as Currency
                 exchange.code?.let {
                     viewModel.setSearchCurrency(it)
@@ -121,7 +124,7 @@ class SearchFragment : BaseFragment() {
             }
         }
         binding.typeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(arg0: AdapterView<*>, arg1: View, position: Int, arg3: Long) {
+            override fun onItemSelected(arg0: AdapterView<*>, arg1: View?, position: Int, arg3: Long) {
                 when (position) {
                     0 -> tradeType = TradeType.ONLINE_BUY
                     1 -> tradeType = TradeType.ONLINE_SELL
@@ -132,7 +135,7 @@ class SearchFragment : BaseFragment() {
             override fun onNothingSelected(arg0: AdapterView<*>) {}
         }
         binding.countrySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(arg0: AdapterView<*>, arg1: View, position: Int, arg3: Long) {
+            override fun onItemSelected(arg0: AdapterView<*>, arg1: View?, position: Int, arg3: Long) {
                 val countryCodes = resources.getStringArray(R.array.country_codes)
                 val selectedCountryName = binding.countrySpinner.adapter.getItem(position) as String
                 val selectedCountryCode = if (position == 0) "" else countryCodes[position - 1]
