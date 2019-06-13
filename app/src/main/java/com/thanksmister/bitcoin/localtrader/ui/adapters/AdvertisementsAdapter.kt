@@ -17,7 +17,6 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters
 
-import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -31,7 +30,6 @@ import com.thanksmister.bitcoin.localtrader.utils.Dates
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import kotlinx.android.synthetic.main.adapter_dashboard_advertisement_list.view.*
 import kotlinx.android.synthetic.main.view_empty_advertisement.view.*
-
 
 class AdvertisementsAdapter(private val onItemClickListener: OnItemClickListener) : RecyclerView.Adapter<AdvertisementsAdapter.ViewHolder>() {
 
@@ -77,32 +75,20 @@ class AdvertisementsAdapter(private val onItemClickListener: OnItemClickListener
         fun bindItems(advertisement: Advertisement, methods: List<Method>) {
             val tradeType = TradeType.valueOf(advertisement.tradeType)
             val type = when (tradeType) {
-                TradeType.LOCAL_BUY -> itemView.context.getString(R.string.text_advertisement_item_local_buy)
-                TradeType.LOCAL_SELL -> itemView.context.getString(R.string.text_advertisement_item_local_sale)
                 TradeType.ONLINE_BUY -> itemView.context.getString(R.string.text_advertisement_item_online_buy)
                 TradeType.ONLINE_SELL -> itemView.context.getString(R.string.text_advertisement_item_online_sale)
-                TradeType.NONE -> TODO()
+                TradeType.NONE -> "Local Advertisement"
             }
             val price = advertisement.tempPrice + " " + advertisement.currency
             val location = advertisement.location
-            if (TradeType.LOCAL_SELL == tradeType || TradeType.LOCAL_BUY == tradeType) {
-                if (TradeUtils.isAtm(advertisement)) {
-                    itemView.advertisementsType!!.text = itemView.context.getString(R.string.text_atm)
-                } else {
-                    itemView.advertisementsType.text = "$type $price"
-                    itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_in_caps, location)
-                }
+            val adLocation = if (TradeUtils.isOnlineTrade(advertisement)) advertisement.location else advertisement.city
+            val paymentMethod = TradeUtils.getPaymentMethod(itemView.context, advertisement, methods)
+            if (TextUtils.isEmpty(paymentMethod)) {
+                itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_in_caps, adLocation)
             } else {
-                val adLocation = if (TradeUtils.isOnlineTrade(advertisement)) advertisement.location else advertisement.city
-                val paymentMethod = TradeUtils.getPaymentMethod(itemView.context, advertisement, methods)
-                if (TextUtils.isEmpty(paymentMethod)) {
-                    itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_in_caps, adLocation)
-                } else {
-                    itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_with_int, paymentMethod, adLocation)
-                }
-                itemView.advertisementsType.text = "$type $price"
+                itemView.advertisementsDetails.text = itemView.context.getString(R.string.text_with_int, paymentMethod, adLocation)
             }
-
+            itemView.advertisementsType.text = "$type $price"
             if (advertisement.visible) {
                 itemView.advertisementsIcon.setImageResource(R.drawable.ic_action_visibility_dark)
             } else {

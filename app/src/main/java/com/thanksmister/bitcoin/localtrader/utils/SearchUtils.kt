@@ -127,7 +127,7 @@ object SearchUtils {
     }
 
     fun getSearchTradeType(sharedPreferences: SharedPreferences): String {
-        val stringPreference = StringPreference(sharedPreferences, PREFS_SEARCH_TRADE_TYPE, TradeType.LOCAL_BUY.name)
+        val stringPreference = StringPreference(sharedPreferences, PREFS_SEARCH_TRADE_TYPE, TradeType.ONLINE_BUY.name)
         return stringPreference.get()
     }
 

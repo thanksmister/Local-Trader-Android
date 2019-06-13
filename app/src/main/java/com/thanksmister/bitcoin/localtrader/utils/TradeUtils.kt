@@ -70,31 +70,14 @@ class TradeUtils {
 
         fun getContactDescription(contact: Contact, context: Context): String? {
             if (isCanceledTrade(contact)) {
-                return if (isLocalTrade(contact)) context.getString(R.string.order_description_cancel_local) else context.getString(R.string.order_description_cancel)
+                return context.getString(R.string.order_description_cancel)
             } else if (isReleased(contact)) {
                 return context.getString(R.string.order_description_released)
             } else if (isDisputed(contact)) {
                 return context.getString(R.string.order_description_disputed)
             } else if (isClosedTrade(contact)) {
                 return context.getString(R.string.order_description_closed)
-            } else if (isLocalTrade(contact)) {
-                return if (youAreAdvertiser(contact) && contact.isSelling) {
-                    if (contact.isFunded) {
-                        //return canFundTrade(contact)? context.getString(R.string.order_description_funded_local):context.getString(R.string.order_description_funded_local_no_action);
-                        context.getString(R.string.order_description_funded_local)
-                    } else {
-                        //return canReleaseTrade(contact)? context.getString(R.string.order_description_not_funded_local):context.getString(R.string.order_description_not_funded_local_no_action);
-                        context.getString(R.string.order_description_not_funded_local)
-                    }
-                } else {
-                    if (contact.isFunded) {
-                        context.getString(R.string.order_description_funded_local)
-                    } else {
-                        context.getString(R.string.order_description_not_funded_local)
-                    }
-                }
             } else if (isOnlineTrade(contact)) {
-
                 return if (contact.isBuying) {
                     if (isMarkedPaid(contact)) context.getString(R.string.order_description_paid) else context.getString(R.string.order_description_mark_paid)
                 } else {
@@ -108,15 +91,7 @@ class TradeUtils {
             if (isClosedTrade(contact) || isReleased(contact)) {
                 return 0
             }
-            if (isLocalTrade(contact)) { // selling or buying locally with ad
-                return if (contact.isSelling) { // ad to sell bitcoins locally
-                    if (contact.isFunded || isFunded(contact)) { // TODO is this available for local?
-                        R.string.button_release
-                    } else {
-                        R.string.button_fund
-                    }
-                } else R.string.button_cancel
-            } else if (isOnlineTrade(contact)) {   // handle online trade ads
+            if (isOnlineTrade(contact)) {   // handle online trade ads
                 return if (contact.isBuying) { // ad to buy bitcoins
                     if (isMarkedPaid(contact)) R.string.button_dispute else R.string.button_mark_paid
                 } else { // ad to sell bitcoins
@@ -180,19 +155,6 @@ class TradeUtils {
             return !isClosedTrade(contact)
         }
 
-        fun isLocalTrade(tradeType: TradeType): Boolean {
-            return tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL
-        }
-
-        fun isLocalTrade(contact: Contact): Boolean {
-            val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
-            return tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL
-        }
-
-        fun isLocalTrade(advertisement: Advertisement): Boolean {
-            return TradeType.LOCAL_BUY.name == advertisement.tradeType || TradeType.LOCAL_SELL.name == advertisement.tradeType
-        }
-
         fun isAtm(advertisement: Advertisement): Boolean {
             return !TextUtils.isEmpty(advertisement.atmModel)
         }
@@ -205,17 +167,21 @@ class TradeUtils {
         fun isOnlineTrade(tradeType: TradeType): Boolean {
             return tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL
         }
+
+        fun isOnlineTrade(tradeType: String): Boolean {
+            return tradeType == TradeType.ONLINE_BUY.name || tradeType == TradeType.ONLINE_SELL.name
+        }
         
         fun isOnlineTrade(advertisement: Advertisement): Boolean {
             return TradeType.ONLINE_BUY.name == advertisement.tradeType || TradeType.ONLINE_SELL.name == advertisement.tradeType
         }
 
         fun isSellTrade(advertisement: Advertisement): Boolean {
-            return TradeType.ONLINE_SELL.name == advertisement.tradeType || TradeType.LOCAL_SELL.name == advertisement.tradeType
+            return TradeType.ONLINE_SELL.name == advertisement.tradeType
         }
 
         fun isBuyTrade(advertisement: Advertisement): Boolean {
-            return TradeType.ONLINE_BUY.name == advertisement.tradeType || TradeType.LOCAL_BUY.name == advertisement.tradeType
+            return TradeType.ONLINE_BUY.name == advertisement.tradeType
         }
 
         fun getMethodForAdvertisement(onlineProvider: String, methods: List<Method>): Method? {
@@ -425,7 +391,7 @@ class TradeUtils {
                 }
 
                 var marginPercent = 1.0
-                if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
+                if (tradeType == TradeType.ONLINE_BUY) {
                     marginPercent = 1 - marginValue / 100
                 } else {
                     marginPercent = 1 + marginValue / 100
@@ -451,7 +417,7 @@ class TradeUtils {
                 }
 
                 var marginPercent = 1.0
-                if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.ONLINE_BUY) {
+                if (tradeType == TradeType.ONLINE_BUY) {
                     marginPercent = 1 - marginValue / 100
                 } else {
                     marginPercent = 1 + marginValue / 100

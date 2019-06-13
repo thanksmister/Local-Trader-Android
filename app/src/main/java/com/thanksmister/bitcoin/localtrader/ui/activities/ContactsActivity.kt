@@ -91,7 +91,7 @@ class ContactsActivity : BaseActivity() {
         viewModel.getNetworkMessage().observe(this, Observer { message ->
             if (message?.message != null) {
                 dialogUtils.hideProgressDialog()
-                dialogUtils.showAlertDialog(this@ContactsActivity, message.message!!)
+                dialogUtils.showAlertDialog(this@ContactsActivity, message.message)
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->

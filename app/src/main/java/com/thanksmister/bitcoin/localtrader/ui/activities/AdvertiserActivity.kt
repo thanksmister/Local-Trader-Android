@@ -181,9 +181,7 @@ class AdvertiserActivity : BaseActivity() {
             val tradeType = TradeType.valueOf(advertisement.tradeType)
             when (tradeType) {
                 ONLINE_SELL -> noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertiser_notes_text_online, getString(R.string.text_sell).toLowerCase(), advertisement.currency, provider))
-                LOCAL_SELL -> noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertiser_notes_text_locally, getString(R.string.text_sell).toLowerCase(), advertisement.currency, location))
-                TradeType.ONLINE_BUY -> noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertiser_notes_text_online, getString(R.string.text_buy_your), advertisement.currency, provider))
-                LOCAL_BUY -> noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertiser_notes_text_locally, getString(R.string.text_buy_your), advertisement.currency, location))
+                ONLINE_BUY -> noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertiser_notes_text_online, getString(R.string.text_buy_your), advertisement.currency, provider))
                 else -> {
                     // na-da
                 }
@@ -275,9 +273,8 @@ class AdvertiserActivity : BaseActivity() {
         var header = ""
         val tradeType = TradeType.valueOf(tradeTypeString)
         header = when (tradeType) {
-            ONLINE_SELL, TradeType.ONLINE_BUY -> if (tradeType == ONLINE_SELL) getString(R.string.text_online_seller) else getString(R.string.text_online_buyer)
-            LOCAL_SELL, LOCAL_BUY -> if (tradeType == LOCAL_SELL) getString(R.string.text_local_seller) else getString(R.string.text_local_buyer)
-            TradeType.NONE -> ""
+            ONLINE_SELL, ONLINE_BUY -> if (tradeType == ONLINE_SELL) getString(R.string.text_online_seller) else getString(R.string.text_online_buyer)
+            NONE -> ""
         }
         if (supportActionBar != null) {
             supportActionBar!!.title = header
@@ -332,11 +329,7 @@ class AdvertiserActivity : BaseActivity() {
 
     private fun showAdvertisementOnMap(advertisement: Advertisement?) {
         if(advertisement != null) {
-            val geoUri = if (advertisement.tradeType == LOCAL_BUY.name || advertisement.tradeType == LOCAL_SELL.name) {
-                "http://maps.google.com/maps?q=loc:" + advertisement.lat + "," + advertisement.lon + " (" + advertisement.location + ")"
-            } else {
-                "geo:0,0?q=" + advertisement.location!!
-            }
+            val geoUri = "geo:0,0?q=" + advertisement.location!!
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(geoUri))
                 startActivity(intent)

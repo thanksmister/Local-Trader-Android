@@ -18,7 +18,7 @@
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
 public enum TradeType {
-    LOCAL_SELL, LOCAL_BUY, ONLINE_SELL, ONLINE_BUY, NONE
+    ONLINE_SELL, ONLINE_BUY, NONE
 }
 
 

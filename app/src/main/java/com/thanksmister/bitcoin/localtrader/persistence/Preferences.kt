@@ -304,6 +304,7 @@ constructor(private val preferences: AppPreferences) {
         const val PREFS_FIRST_TIME = "firstTime"
         const val PREFS_API_ENDPOINT = "apiEndpoint"
         const val BASE_URL = "https://localbitcoins.com"
+        const val ALT_BASE_URL = "https://localbitcoins.net"
 
     }
 }

@@ -717,5 +717,8 @@
     <string name="error_generic_server_down">Servicio temporalmente fuera de servicio o inaccesible.</string>
     <string name="error_data_refresh">No requiere actualización de datos</string>
     <string name="text_list_country_any">Alguna</string>
+    <string name="error_local_contact">Ese contacto ya no está disponible o era un anuncio local.</string>
+    <string name="error_invalid_endpoint">La URL no es válida, ingrese el punto final predeterminado o la URL alternativa correcta.</string>
+    <string name="warning_no_location">Couldn\'t determine current location, please relocate and try again…</string>
 
 </resources>

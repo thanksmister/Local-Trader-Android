@@ -32,6 +32,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
@@ -156,7 +157,10 @@ constructor(application: Application,
     }
 
     private fun getAdvertisements(): Flowable<List<Advertisement>> {
-        return advertisementsDao.getItems()
+        val types = ArrayList<String>()
+        types.add(TradeType.ONLINE_BUY.toString())
+        types.add(TradeType.ONLINE_SELL.toString())
+        return advertisementsDao.getItems(types)
                 .filter {items -> items.isNotEmpty()}
     }
 

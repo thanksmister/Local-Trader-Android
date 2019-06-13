@@ -65,7 +65,6 @@ class ContactAdapter(private val context: Context) : RecyclerView.Adapter<Contac
             val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
             var type = ""
             when (tradeType) {
-                TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> type = if (contact.isBuying) itemView.context.getString(R.string.text_buying_locally) else itemView.context.getString(R.string.text_selling_locally)
                 TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> type = if (contact.isBuying) itemView.context.getString(R.string.text_buying_online) else itemView.context.getString(R.string.text_selling_online)
                 TradeType.NONE -> TODO()
             }

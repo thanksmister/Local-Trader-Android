@@ -340,7 +340,6 @@ class ContactHistoryActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListe
 
         val adTradeType = TradeType.valueOf(contact.advertisement.tradeType)
         when (adTradeType) {
-            TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> type = if (contact.isBuying) getString(R.string.contact_list_buying_locally, amount, date) else getString(R.string.contact_list_selling_locally, amount, date)
             TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> {
                 var paymentMethod = TradeUtils.getPaymentMethodName(contact.advertisement.paymentMethod)
                 paymentMethod = paymentMethod.replace("_", " ")
@@ -562,7 +561,6 @@ class ContactHistoryActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListe
         if (contact != null) {
             val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
             val title = when (tradeType) {
-                TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> if (contact.isBuying) getString(R.string.text_buying_locally) else getString(R.string.text_selling_locally)
                 TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> if (contact.isBuying) getString(R.string.text_buying_online) else getString(R.string.text_selling_online)
                 else -> getString(R.string.text_trade)
             }

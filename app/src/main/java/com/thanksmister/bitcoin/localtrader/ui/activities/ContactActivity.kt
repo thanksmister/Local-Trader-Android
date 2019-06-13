@@ -320,14 +320,18 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         disposable.add(viewModel.getContact(contactId)
                 .applySchedulers()
                 .subscribe( { data ->
-                   if(data != null) {
+                   if(data != null && TradeUtils.isOnlineTrade(data.advertisement.tradeType)) {
                        setMenuOptions(data)
                        setTitle(data)
                        setContact(data)
                        showOnlineOptions(data)
                        contactList.visibility = View.VISIBLE
+                   } else {
+                       dialogUtils.hideProgressDialog()
+                       dialogUtils.showAlertDialog(this@ContactActivity, getString(R.string.error_local_contact), DialogInterface.OnClickListener { _, _ ->
+                           finish()
+                       })
                    }
-
                 }, { error ->
                     Timber.e("Contact error: $error")
                     runOnUiThread {
@@ -407,7 +411,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
         val adTradeType = TradeType.valueOf(contact.advertisement.tradeType)
         when (adTradeType) {
-            TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> type = if (contact.isBuying) getString(R.string.contact_list_buying_locally, amount, date) else getString(R.string.contact_list_selling_locally, amount, date)
             TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> {
                 var paymentMethod = TradeUtils.getPaymentMethodName(contact.advertisement.paymentMethod)
                 paymentMethod = paymentMethod.replace("_", " ")
@@ -670,7 +673,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         if (contact != null) {
             val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
             val title = when (tradeType) {
-                TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> if (contact.isBuying) getString(R.string.text_buying_locally) else getString(R.string.text_selling_locally)
                 TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> if (contact.isBuying) getString(R.string.text_buying_online) else getString(R.string.text_selling_online)
                 else -> getString(R.string.text_trade)
             }

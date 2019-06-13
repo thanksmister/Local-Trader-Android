@@ -158,6 +158,15 @@ constructor(application: Application,
 
     fun getActiveContacts():Flowable<List<Contact>> {
         return contactsDao.getItems()
+                .map {
+                    val list = ArrayList<Contact>()
+                    it.map {contact ->
+                        if(TradeUtils.isOnlineTrade(contact.advertisement.tradeType)) {
+                            list.add(contact)
+                        }
+                    }
+                    list
+                }
                 .map { contactList  ->
                     val contacts = ArrayList<Contact>()
                     contactList.forEach() {
@@ -171,6 +180,15 @@ constructor(application: Application,
 
     fun fetchContactsByType(type: DashboardType) {
         disposable += fetcher.getContactsByType(type)
+                .map {
+                    val list = ArrayList<Contact>()
+                    it.map {contact ->
+                        if(TradeUtils.isOnlineTrade(contact.advertisement.tradeType)) {
+                            list.add(contact)
+                        }
+                    }
+                    list
+                }
                 .applySchedulers()
                 .subscribe ({
                     setContactsList(it)
@@ -191,6 +209,9 @@ constructor(application: Application,
     @Deprecated ("Let's get with message data instead")
     fun fetchContact(contactId: Int) {
         disposable += fetcher.getContact(contactId)
+                .filter{
+                    TradeUtils.isOnlineTrade(it.advertisement.tradeType)
+                }
                 .applySchedulers()
                 .subscribe ({
                     insertContact(it)

@@ -121,11 +121,7 @@ class SearchResultsActivity : BaseActivity() {
                     Timber.e(error.message)
                 }))
 
-        if (tradeType == TradeType.LOCAL_BUY || tradeType == TradeType.LOCAL_SELL) {
-            viewModel.getPlaces(tradeType)
-        } else {
-            viewModel.getOnlineAdvertisements(tradeType)
-        }
+        viewModel.getOnlineAdvertisements(tradeType)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -170,8 +166,6 @@ class SearchResultsActivity : BaseActivity() {
             return header
         }
         when (tradeType) {
-            TradeType.LOCAL_BUY -> header = getString(R.string.search_local_sellers_header)
-            TradeType.LOCAL_SELL -> header = getString(R.string.search_local_buyers_header)
             TradeType.ONLINE_BUY -> header = getString(R.string.search_online_sellers_header)
             TradeType.ONLINE_SELL -> header = getString(R.string.search_online_buyers_header)
             else -> {

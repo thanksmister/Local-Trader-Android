@@ -241,7 +241,7 @@
     <string name="error_network_http_error" translatable="false">HTTP Error</string>
 
     <string name="exception_message_no_connection">No internet connection</string>
-    <string name="warning_no_location" translatable="false">Couldn\'t determine current location, please relocate and try again…</string>
+    <string name="warning_no_location">Couldn\'t determine current location, please relocate and try again…</string>
 
     <string name="error_network_disconnected">Network disconnected</string>
     <string name="error_data_refresh">No data refresh required</string>
@@ -480,6 +480,8 @@
     <string name="menu_new_address">New Address</string>
     <string name="error_not_enough_balance">Not enough balance, try a lower amount.</string>
     <string name="text_list_country_any">Any</string>
+    <string name="error_local_contact">That contact is no longer available or was a local advertisement.</string>
+    <string name="error_invalid_endpoint">The URL is invalid, please enter the default end point or the correct alternative URL.</string>
 
     <string-array name="country_names">
         <item>Afghanistan</item>

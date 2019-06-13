@@ -79,7 +79,6 @@ class ContactsAdapter(private val context: Context, private val onItemClickListe
             val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
             var type = ""
             when (tradeType) {
-                TradeType.LOCAL_BUY, TradeType.LOCAL_SELL -> type = if (contact.isBuying) itemView.context.getString(R.string.text_buying_locally) else itemView.context.getString(R.string.text_selling_locally)
                 TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> type = if (contact.isBuying) itemView.context.getString(R.string.text_buying_online) else itemView.context.getString(R.string.text_selling_online)
                 else -> {
                 }

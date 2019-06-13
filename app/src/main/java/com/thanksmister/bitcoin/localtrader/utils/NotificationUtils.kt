@@ -74,17 +74,21 @@ class NotificationUtils(context: Context) : ContextWrapper(context) {
             }
         }
 
-        if (notificationList.size > 1) {
-            createNotification(getString(R.string.notification_new_notifications_title), getString(R.string.notification_new_notifications, notificationList.size.toString()))
-        } else if (notificationList.size == 1) {
-            val notification = notificationList[0]
-            if (notification.contactId != null && notification.message != null) {
-                createContactNotification(getString(R.string.notification_trade_notification_title), notification.message!!, notification.contactId!!)
-            } else if (notification.advertisementId != null && notification.message != null) {
-                createAdvertisementNotification(getString(R.string.notification_ad_notification_title), notification.message!!, notification.advertisementId!!)
-            } else if (notification.message != null) {
-                createNotification(getString(R.string.notification_title), notification.message!!)
+        try {
+            if (notificationList.size > 1) {
+                createNotification(getString(R.string.notification_new_notifications_title), getString(R.string.notification_new_notifications, notificationList.size.toString()))
+            } else if (notificationList.size == 1) {
+                val notification = notificationList[0]
+                if (notification.contactId != null && notification.message != null) {
+                    createContactNotification(getString(R.string.notification_trade_notification_title), notification.message!!, notification.contactId!!)
+                } else if (notification.advertisementId != null && notification.message != null) {
+                    createAdvertisementNotification(getString(R.string.notification_ad_notification_title), notification.message!!, notification.advertisementId!!)
+                } else if (notification.message != null) {
+                    createNotification(getString(R.string.notification_title), notification.message!!)
+                }
             }
+        } catch (e: Exception) {
+            Timber.e(" Notification error ${e.message}")
         }
     }
 

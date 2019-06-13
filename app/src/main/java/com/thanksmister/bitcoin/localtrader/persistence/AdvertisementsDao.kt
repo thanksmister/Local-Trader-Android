@@ -40,8 +40,8 @@ interface AdvertisementsDao {
      * Get all items ordered by date
      * @return list of all items with specific date
      */
-    @Query("SELECT * FROM Advertisements ORDER BY createdAt DESC")
-    fun getItems(): Flowable<List<Advertisement>>
+    @Query("SELECT * FROM Advertisements WHERE tradeType IN(:types) ORDER BY createdAt DESC")
+    fun getItems(types: List<String>): Flowable<List<Advertisement>>
 
     /**
      * Insert an item in the database. If the item already exists, replace it.

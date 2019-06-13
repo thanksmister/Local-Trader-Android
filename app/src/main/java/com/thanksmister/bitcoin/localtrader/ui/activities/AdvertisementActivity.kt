@@ -244,22 +244,16 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
             val tradeType = TradeType.valueOf(advertisement.tradeType)
             var title = ""
             when (tradeType) {
-                TradeType.LOCAL_BUY -> title = getString(R.string.text_advertisement_local_buy)
-                TradeType.LOCAL_SELL -> title = getString(R.string.text_advertisement_local_sale)
                 TradeType.ONLINE_BUY -> title = getString(R.string.text_advertisement_online_buy)
                 TradeType.ONLINE_SELL -> title = getString(R.string.text_advertisement_online_sale)
                 else -> { }
             }
             val location = advertisement.location
-            if (TradeUtils.isLocalTrade(advertisement)) {
-                noteTextAdvertisement!!.text = Html.fromHtml(getString(R.string.advertisement_notes_text_locally, title, price, location))
+            val paymentMethod = TradeUtils.getPaymentMethod(this@AdvertisementActivity, advertisement, method)
+            if (TextUtils.isEmpty(paymentMethod)) {
+                noteTextAdvertisement!!.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location))
             } else {
-                val paymentMethod = TradeUtils.getPaymentMethod(this@AdvertisementActivity, advertisement, method)
-                if (TextUtils.isEmpty(paymentMethod)) {
-                    noteTextAdvertisement!!.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location))
-                } else {
-                    noteTextAdvertisement!!.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location))
-                }
+                noteTextAdvertisement!!.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location))
             }
             when {
                 advertisement.atmModel != null -> advertisementTradeLimit.text = ""
@@ -397,12 +391,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
 
     private fun showAdvertisementOnMap(advertisement: Advertisement?) {
         if(advertisement != null) {
-            var geoUri = ""
-            if (TradeUtils.isLocalTrade(advertisement)) {
-                geoUri = "http://maps.google.com/maps?q=loc:" + advertisement.lat + "," + advertisement.lon + " (" + advertisement.location + ")"
-            } else {
-                geoUri = "geo:0,0?q=" + advertisement.location!!
-            }
+            var geoUri = "geo:0,0?q=" + advertisement.location!!
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(geoUri))
                 startActivity(intent)
@@ -419,13 +408,9 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
             var message = ""
             val buyOrSell = if (TradeUtils.isBuyTrade(advertisement)) getString(R.string.text_buy) else getString(R.string.text_sell)
             val prep = if (TradeUtils.isSellTrade(advertisement)) getString(R.string.text_from) else getString(R.string.text_to)
-            val onlineOrLocal = if (TradeUtils.isLocalTrade(advertisement)) getString(R.string.text_locally) else getString(R.string.text_online)
-            if (TradeUtils.isLocalTrade(advertisement)) {
-                message = getString(R.string.text_advertisement_message_short, buyOrSell, onlineOrLocal, advertisement.location + prep + advertisement.profile.username, advertisement.actions.advertisementPublicView)
-            } else  {
-                val provider = TradeUtils.parsePaymentServiceTitle(advertisement.onlineProvider)
-                message = getString(R.string.text_advertisement_message, buyOrSell, onlineOrLocal, advertisement.location + prep + advertisement.profile.username, provider, advertisement.actions.advertisementPublicView)
-            }
+            val onlineOrLocal = getString(R.string.text_online)
+            val provider = TradeUtils.parsePaymentServiceTitle(advertisement.onlineProvider)
+            message = getString(R.string.text_advertisement_message, buyOrSell, onlineOrLocal, advertisement.location + prep + advertisement.profile.username, provider, advertisement.actions.advertisementPublicView)
             shareIntent.putExtra(Intent.EXTRA_TEXT, message)
             shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.text_share_advertisement, buyOrSell, advertisement.location))
             startActivity(Intent.createChooser(shareIntent, getString(R.string.text_chooser_share_to)))

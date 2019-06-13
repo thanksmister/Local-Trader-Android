@@ -701,4 +701,7 @@
     <string name="error_generic_server_down">服务暂时关闭或无法访问。</string>
     <string name="error_data_refresh">无需数据刷新</string>
     <string name="text_list_country_any">任何</string>
+    <string name="error_local_contact">该联系人不再可用或是本地广告。</string>
+    <string name="error_invalid_endpoint">该网址无效，请输入默认的终点或正确的替代网址。</string>
+    <string name="warning_no_location">Couldn\'t determine current location, please relocate and try again…</string>
 </resources>

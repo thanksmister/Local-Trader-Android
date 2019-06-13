@@ -31,7 +31,6 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.utils.Doubles
 import com.thanksmister.bitcoin.localtrader.utils.SearchUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
@@ -39,7 +38,6 @@ import io.reactivex.Flowable
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
-import java.util.*
 import javax.inject.Inject
 
 class SearchViewModel @Inject
@@ -139,32 +137,6 @@ constructor(application: Application,
                         showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_trade_requirements), networkException.code)
                     } else {
                         showNetworkMessage(networkException.message, networkException.code)
-                    }
-                })
-    }
-
-    fun getPlaces(tradeType: TradeType) {
-        val latitude = SearchUtils.getSearchLatitude(sharedPreferences)
-        val longitude = SearchUtils.getSearchLongitude(sharedPreferences)
-        disposable += fetcher.getPlaces(latitude, longitude)
-                .applySchedulers()
-                .filter {items -> items.isNotEmpty()}
-                .map { items -> items[0]}
-                .subscribe ({
-                    if (it != null) {
-                        getAdvertisementsInPlace(it, tradeType)
-                    }
-                }, {
-                    error -> Timber.e("Error getPlaces ${error.message}")
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
-                        }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> handleSocketTimeoutException()
-                        else -> showAlertMessage(error.message)
                     }
                 })
     }
@@ -291,53 +263,6 @@ constructor(application: Application,
                             else -> showAlertMessage(error.message)
                         }
                     })
-        }
-    }
-
-    private fun getAdvertisementsInPlace(place: Place, tradeType: TradeType) {
-        var url: String? = null
-        if (tradeType == TradeType.LOCAL_BUY && place.buyLocalUrl != null) {
-            url = when {
-                place.buyLocalUrl!!.contains("https://localbitcoins.com/") -> place.buyLocalUrl!!.replace("https://localbitcoins.com/", "")
-                place.buyLocalUrl!!.contains("https://localbitcoins.net/") -> place.buyLocalUrl!!.replace("https://localbitcoins.net/", "")
-                else -> place.buyLocalUrl
-            }
-        } else if (tradeType == TradeType.LOCAL_SELL && place.sellLocalUrl != null) {
-            url = when {
-                place.sellLocalUrl!!.contains("https://localbitcoins.com/") -> place.sellLocalUrl!!.replace("https://localbitcoins.com/", "")
-                place.sellLocalUrl!!.contains("https://localbitcoins.net/") -> place.sellLocalUrl!!.replace("https://localbitcoins.net/", "")
-                else -> place.sellLocalUrl
-            }
-        }
-        val split = url!!.split("/")
-        disposable += fetcher.searchAdsByPlace(split[0], split[1], split[2])
-                .applySchedulers()
-                .filter {items -> items.isNotEmpty()}
-                .subscribe ({
-                    Collections.sort(it, AdvertisementNameComparator())
-                    setAdvertisements(it)
-                }, {
-                    error -> Timber.e("Error getAdvertisementsInPlace ${error.message}")
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
-                        }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> handleSocketTimeoutException()
-                        else -> showAlertMessage(error.message)
-                    }
-                })
-    }
-
-    class AdvertisementNameComparator : Comparator<Advertisement> {
-        override fun compare(a1: Advertisement, a2: Advertisement): Int {
-            try {
-                return java.lang.Double.compare(Doubles.convertToDouble(a1.distance), Doubles.convertToDouble(a2.distance))
-            } catch (e: Exception) {
-                return 0
-            }
         }
     }
 }

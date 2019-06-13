@@ -53,7 +53,7 @@ class SearchFragment : BaseFragment() {
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject lateinit var viewModel: SearchViewModel
 
-    private var tradeType = TradeType.LOCAL_BUY
+    private var tradeType = TradeType.ONLINE_BUY
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
