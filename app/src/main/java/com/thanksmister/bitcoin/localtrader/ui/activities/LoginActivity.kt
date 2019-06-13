@@ -39,7 +39,6 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
@@ -47,7 +46,6 @@ import com.thanksmister.bitcoin.localtrader.persistence.Preferences.Companion.AL
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences.Companion.BASE_URL
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.LoginViewModel
-import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.view_login.*
 import timber.log.Timber
 import java.util.regex.Pattern
