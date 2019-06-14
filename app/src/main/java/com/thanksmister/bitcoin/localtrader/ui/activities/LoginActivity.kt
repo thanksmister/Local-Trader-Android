@@ -148,7 +148,7 @@ class LoginActivity : BaseActivity() {
 
     // TODO the end point should be a drop-down menu choice, not typed
     private fun checkCredentials() {
-        endpoint = loginEndpointText.text.toString()
+        endpoint = loginEndpointText.text.toString().trim()
         val currentEndpoint = preferences.getServiceEndpoint()
         if (TextUtils.isEmpty(endpoint)) {
             dialogUtils.hideProgressDialog()
@@ -158,7 +158,7 @@ class LoginActivity : BaseActivity() {
             dialogUtils.hideProgressDialog()
             dialogUtils.showAlertDialog(this@LoginActivity, getString(R.string.alert_valid_endpoint))
             loginEndpointText.setText(BASE_URL)
-        } else if(endpoint != BASE_URL || endpoint != ALT_BASE_URL) {
+        } else if(endpoint != BASE_URL && endpoint != ALT_BASE_URL) {
             dialogUtils.hideProgressDialog()
             dialogUtils.showAlertDialog(this@LoginActivity, getString(R.string.error_invalid_endpoint))
             loginEndpointText.setText(BASE_URL)

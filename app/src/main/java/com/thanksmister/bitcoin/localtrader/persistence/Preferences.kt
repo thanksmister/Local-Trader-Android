@@ -194,7 +194,7 @@ constructor(private val preferences: AppPreferences) {
      */
     fun getServiceEndpoint(): String {
         val endpoint = preferences.getString(PREFS_API_ENDPOINT, BASE_URL) ?: return BASE_URL
-        if(endpoint != BASE_URL || endpoint != ALT_BASE_URL) {
+        if(endpoint != BASE_URL && endpoint != ALT_BASE_URL) {
             setServiceEndPoint(BASE_URL)
             return BASE_URL
         }
