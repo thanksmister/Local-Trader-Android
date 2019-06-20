@@ -29,28 +29,16 @@ import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.modules.CameraCallback
 import com.thanksmister.bitcoin.localtrader.modules.CameraReader
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
-import com.thanksmister.bitcoin.localtrader.modules.BarcodeGraphic
-import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
-import kotlinx.android.synthetic.main.activity_scan_qrcode.*
-
-import javax.inject.Inject
-import com.thanksmister.bitcoin.localtrader.ui.views.GraphicOverlay
-import com.google.android.gms.vision.MultiProcessor
-import com.google.android.gms.vision.barcode.Barcode
-import com.thanksmister.bitcoin.localtrader.modules.BarcodeTrackerFactory
-import com.google.android.gms.vision.barcode.BarcodeDetector
 import com.thanksmister.bitcoin.localtrader.ui.views.CameraSourcePreview
-import android.content.IntentFilter
-
-
-
+import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
+import javax.inject.Inject
 
 class ScanQrCodeActivity : BaseActivity() {
 
     @Inject lateinit var cameraReader: CameraReader
 
     private var codeRead: Boolean = false
-    
+
     private val cameraPreview: CameraSourcePreview by lazy {
         findViewById<CameraSourcePreview>(R.id.cameraPreview)
     }

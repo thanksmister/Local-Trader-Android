@@ -25,7 +25,6 @@ import com.google.android.gms.vision.CameraSource.CAMERA_FACING_FRONT
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import com.thanksmister.bitcoin.localtrader.ui.views.CameraSourcePreview
-import com.thanksmister.bitcoin.localtrader.ui.views.GraphicOverlay
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
@@ -41,11 +40,6 @@ constructor(private val context: Context) {
     private var cameraOrientation: Int = 0
     private var cameraPreview: CameraSourcePreview? = null
     private var cameraId: Int = 0;
-
-    interface CameraReaderListener {
-        fun onCameraReaderInitialized()
-        fun onCameraReaderError()
-    }
 
     fun stopCamera() {
         if (cameraSource != null) {
@@ -151,8 +145,5 @@ constructor(private val context: Context) {
                 .setRequestedPreviewSize(640, 480)
                 .setFacing(cameraId)
                 .build()
-    }
-
-    companion object {
     }
 }
