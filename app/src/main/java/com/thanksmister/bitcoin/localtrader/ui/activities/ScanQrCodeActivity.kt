@@ -35,6 +35,13 @@ import kotlinx.android.synthetic.main.activity_scan_qrcode.*
 
 import javax.inject.Inject
 import com.thanksmister.bitcoin.localtrader.ui.views.GraphicOverlay
+import com.google.android.gms.vision.MultiProcessor
+import com.google.android.gms.vision.barcode.Barcode
+import com.thanksmister.bitcoin.localtrader.modules.BarcodeTrackerFactory
+import com.google.android.gms.vision.barcode.BarcodeDetector
+import com.thanksmister.bitcoin.localtrader.ui.views.CameraSourcePreview
+import android.content.IntentFilter
+
 
 
 
@@ -43,6 +50,10 @@ class ScanQrCodeActivity : BaseActivity() {
     @Inject lateinit var cameraReader: CameraReader
 
     private var codeRead: Boolean = false
+    
+    private val cameraPreview: CameraSourcePreview by lazy {
+        findViewById<CameraSourcePreview>(R.id.cameraPreview)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

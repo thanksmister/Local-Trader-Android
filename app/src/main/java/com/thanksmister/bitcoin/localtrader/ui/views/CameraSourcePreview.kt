@@ -4,12 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.util.AttributeSet
+import android.util.Size
 import android.view.Gravity
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.google.android.gms.vision.CameraSource
+import com.thanksmister.bitcoin.localtrader.modules.BarcodeGraphic
 import timber.log.Timber
 import java.io.IOException
 
@@ -97,12 +99,10 @@ class CameraSourcePreview(private val mContext: Context, attrs: AttributeSet) : 
                 Timber.e("Could not start camera source ${e.message}")
             }
         }
-
         override fun surfaceDestroyed(surface: SurfaceHolder) {
             mSurfaceAvailable = false
             mStartRequested = false
         }
-
         override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
     }
 
