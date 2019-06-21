@@ -33,6 +33,7 @@ import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
+import com.thanksmister.bitcoin.localtrader.network.api.model.EditAdvertisement
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.AdvertisementsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
@@ -198,6 +199,9 @@ class EditAdvertisementActivity : BaseActivity() {
             val min = editMinimumAmount.text.toString()
             val max = editMaximumAmount.text.toString()
             val equation = editPriceEquation.text.toString()
+            val message = editMessageText!!.text.toString()
+            val minAmount = TradeUtils.convertCurrencyAmount(min)
+            val maxAmount = TradeUtils.convertCurrencyAmount(max)
             when {
                 TextUtils.isEmpty(equation) -> {
                     toast(getString(R.string.toast_price_equation_blank))
@@ -212,9 +216,6 @@ class EditAdvertisementActivity : BaseActivity() {
                     return
                 }
                 else -> {
-                    val message = editMessageText!!.text.toString()
-                    val minAmount = TradeUtils.convertCurrencyAmount(min)
-                    val maxAmount = TradeUtils.convertCurrencyAmount(max)
                     try {
                         if (advertisement!!.priceEquation != equation
                                 || advertisement!!.message != message
@@ -229,11 +230,15 @@ class EditAdvertisementActivity : BaseActivity() {
                     }
                 }
             }
+            advertisement?.minAmount = minAmount
+            advertisement?.message = message
+            advertisement?.maxAmount = maxAmount
+            advertisement?.visible = isActive
+            advertisement?.priceEquation = equation
         } else {
             advertisementError()
             return
         }
-
         Timber.d("commitChanges: $commitChanges")
         if (commitChanges) {
             dialogUtils.showProgressDialog(this@EditAdvertisementActivity, getString(R.string.dialog_saving_changes))

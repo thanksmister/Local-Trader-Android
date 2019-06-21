@@ -136,7 +136,7 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
         if (throwable is NetworkException) {
             return throwable
         } else if (throwable is SocketTimeoutException) {
-            return NetworkException(mContext.getString(R.string.error_network_disconnected), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
+            return NetworkException(mContext.getString(R.string.error_network_disconnected), ExceptionCodes.SOCKET_ERROR_CODE)
         } else if (throwable is DataRefreshException) {
             return NetworkException(mContext.getString(R.string.error_data_refresh), ExceptionCodes.NO_REFRESH_NEEDED)
         } else if (throwable is NetworkConnectionException) {
@@ -144,7 +144,7 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
         } else if (throwable is AuthenticationException) {
             return NetworkException(mContext.getString(R.string.error_authentication), ExceptionCodes.AUTHENTICATION_ERROR_CODE)
         } else if (throwable is UnknownHostException) {
-            return NetworkException(mContext.getString(R.string.error_network_disconnected), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
+            return NetworkException(mContext.getString(R.string.error_network_disconnected), ExceptionCodes.SERVICE_ERROR_CODE)
         }
 
         if (isHttp403Error(throwable) || isHttp400Error(throwable)) {
@@ -164,7 +164,6 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
                 val code = (throwable as HttpException).code()
                 return NetworkException(throwable.message, code)
             }
-
         }
 
         if (isHttp401Error(throwable)) {
@@ -228,6 +227,18 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
         // bad request
         fun isHttp400Error(throwable: Throwable): Boolean {
             return (throwable as HttpException).code() == ExceptionCodes.BAD_REQUEST_ERROR_CODE
+        }
+
+        fun isHttp409Error(code: Int): Boolean {
+            return code == 409
+        }
+
+        fun isHttp405Error(code: Int): Boolean {
+            return code == 405
+        }
+
+        fun isHttp404Error(code: Int): Boolean {
+            return code == 404
         }
 
         fun isHttp400Error(code: Int): Boolean {

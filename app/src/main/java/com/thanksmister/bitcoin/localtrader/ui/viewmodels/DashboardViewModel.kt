@@ -124,32 +124,29 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                                         updateNotification(notification)
                                     }
                                 }, { error ->
-                                    when (error) {
-                                        is HttpException -> {
-                                            val errorHandler = RetrofitErrorHandler(getApplication())
-                                            val networkException = errorHandler.create(error)
-                                            handleNetworkException(networkException)
-                                        }
-                                        is NetworkException -> handleNetworkException(error)
-                                        is SocketTimeoutException -> {}
-                                        else -> {
-                                            showAlertMessage(error.message)
-                                        }
-                                    }
+                                    handleError(error)
                                 })
                     }
                 }, {
                     error -> Timber.e("Notification Error $error.message")
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
-                        } else {
-                            showNetworkMessage(error.message, error.code)
-                        }
-                    } else {
-                        showAlertMessage(error.message)
-                    }
+                    handleError(error)
                 })
+    }
+
+    // TODO make this extension
+    private fun handleError(error: Throwable) {
+        when (error) {
+            is HttpException -> {
+                val errorHandler = RetrofitErrorHandler(getApplication())
+                val networkException = errorHandler.create(error)
+                handleNetworkException(networkException)
+            }
+            is NetworkException -> handleNetworkException(error)
+            is SocketTimeoutException -> {}
+            else -> {
+                showAlertMessage(error.message)
+            }
+        }
     }
 
     private fun fetchExchange() {
@@ -163,7 +160,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     insertExchange(it)
                 }, {
                     error -> Timber.e("Error fetching exchange ${error.message}")
-                    showAlertMessage(error.message)
+                    handleError(error)
                 })
     }
 
@@ -176,18 +173,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     insertContacts(it)
                     fetchNotifications()
                 }, { error ->
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
-                        }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> {}
-                        else -> {
-                            showAlertMessage(error.message)
-                        }
-                    }
+                    handleError(error)
                     updateSyncMap(SYNC_CONTACTS, false)
                 })
     }
@@ -201,18 +187,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                     insertAdvertisements(it)
                     updateSyncMap(SYNC_ADVERTISEMENTS, false)
                 }, { error ->
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
-                        }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> {}
-                        else -> {
-                            showAlertMessage(error.message)
-                        }
-                    }
+                    handleError(error)
                     updateSyncMap(SYNC_ADVERTISEMENTS, false)
                 })
     }
@@ -229,16 +204,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                         fetchAdvertisements()
                     }
                 }, { error ->
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
-                        }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> {}
-                        else -> showAlertMessage(error.message)
-                    }
+                    handleError(error)
                     updateSyncMap(SYNC_NOTIFICATIONS, false)
                 })
     }
