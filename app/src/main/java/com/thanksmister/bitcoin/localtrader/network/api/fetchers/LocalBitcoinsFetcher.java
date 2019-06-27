@@ -72,205 +72,20 @@ public class LocalBitcoinsFetcher {
     private final LocalBitcoinsApi networkApi;
     private final Preferences preferences;
     private final Context context;
+    private final String grantType = "authorization_code";
 
-    public LocalBitcoinsFetcher(Context context,  @NonNull LocalBitcoinsApi networkApi, Preferences preferences) {
+    public LocalBitcoinsFetcher(Context context, @NonNull LocalBitcoinsApi networkApi, Preferences preferences) {
         this.context = context;
         this.networkApi = networkApi;
         this.preferences = preferences;
     }
 
     public Observable<Authorization> getAuthorization(String code) {
-        return networkApi.getAuthorization("authorization_code", code, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET);
-    }
-
-    private Observable<String> refreshTokens() {
-        Timber.d("accessToken: " + preferences.getAccessToken());
-        Timber.d("refreshToken: " + preferences.getRefreshToken());
-        return networkApi.refreshToken("refresh_token", preferences.getRefreshToken(), BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
-                .flatMap(new Function<Authorization, ObservableSource<? extends String>>() {
-                    @Override
-                    public ObservableSource<? extends String> apply(Authorization authorization) {
-                        Timber.d("authorization " + authorization);
-                        if(authorization != null) {
-                            Timber.d("authorization.getAccessToken() " + authorization.getAccessToken());
-                            Timber.d("authorization.getRefreshToken() " + authorization.getRefreshToken());
-                            preferences.setAccessToken(authorization.getAccessToken());
-                            preferences.setRefreshToken(authorization.getRefreshToken());
-                            return Observable.just(authorization.getAccessToken());
-                        } else {
-                            return null;
-                        }
-                    }
-                });
-    }
-
-    /*private <T> Function<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
-
-        Timber.d("refreshTokenAndRetry");
-
-        return new Function<Throwable, Observable<? extends T>>() {
-            @Override
-            public Observable<? extends T> apply(Throwable throwable) throws Exception {
-                RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
-                Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
-                final NetworkException networkException = errorHandler.create(throwable);
-                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
-                    Timber.e("Retrying error code: " + networkException.getCode());
-                    return refreshTokens(preferences.getRefreshToken())
-                            .subscribeOn(Schedulers.computation())
-                            .flatMap(new Function<String, ObservableSource<? extends T>>() {
-                                @Override
-                                public ObservableSource<? extends T> apply(String s) throws Exception {
-                                    return toBeResumed;
-                                }
-                            });
-                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
-                    Timber.e("Retrying error code: " + networkException.getCode());
-                    return refreshTokens(preferences.getRefreshToken())
-                            .subscribeOn(Schedulers.computation())
-                            .flatMap(new Function<String, ObservableSource<? extends T>>() {
-                                @Override
-                                public ObservableSource<? extends T> apply(String s) throws Exception {
-                                    return toBeResumed;
-                                }
-                            });
-                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
-                    Timber.e("Retrying error code: " + networkException.getCode());
-                    return refreshTokens(preferences.getRefreshToken())
-                            .subscribeOn(Schedulers.computation())
-                            .flatMap(new Function<String, ObservableSource<? extends T>>() {
-                                @Override
-                                public ObservableSource<? extends T> apply(String s) throws Exception {
-                                    return toBeResumed;
-                                }
-                            });
-                } else if (throwable instanceof SocketTimeoutException) {
-                    return Observable.error(throwable); // bubble up the exception;
-                }
-                return Observable.error(networkException); // bubble up the exception;
-            }
-        };
-    }*/
-
-    public class retryWithDelay implements Function<Observable<? extends Throwable>, Observable<?>> {
-        private final int maxRetries;
-        private final int retryDelayMillis;
-        private int retryCount;
-
-        public retryWithDelay(final int maxRetries, final int retryDelayMillis) {
-            this.maxRetries = maxRetries;
-            this.retryDelayMillis = retryDelayMillis;
-            this.retryCount = 0;
-        }
-
-        @Override
-        public Observable<?> apply(final Observable<? extends Throwable> attempts) {
-            return attempts
-                    .flatMap(new Function<Throwable, Observable<?>>() {
-                        @Override
-                        public Observable<?> apply(final Throwable throwable) {
-                            RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
-                            Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
-                            final NetworkException networkException = errorHandler.create(throwable);
-                            if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
-                                Timber.e("Retrying error code: " + networkException.getCode());
-                                return refreshTokens()
-                                        .subscribeOn(Schedulers.computation())
-                                        .flatMap(new Function<String, Observable<?>>() {
-                                            @Override
-                                            public Observable<?> apply(String s) throws Exception {
-                                                if (++retryCount < maxRetries) {
-                                                    // When this Observable calls onNext, the original
-                                                    // Observable will be retried (i.e. re-subscribed).
-                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
-                                                }
-                                                return Observable.error(networkException); // bubble up the exception;
-                                            }
-                                        });
-                            } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
-                                Timber.e("Retrying error code: " + networkException.getCode());
-                                return refreshTokens()
-                                        .subscribeOn(Schedulers.computation())
-                                        .flatMap(new Function<String, Observable<?>>() {
-                                            @Override
-                                            public Observable<?> apply(String s) throws Exception {
-                                                if (++retryCount < maxRetries) {
-                                                    // When this Observable calls onNext, the original
-                                                    // Observable will be retried (i.e. re-subscribed).
-                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
-                                                }
-                                                return Observable.error(networkException); // bubble up the exception;
-                                            }
-                                        });
-                            } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
-                                Timber.e("Retrying error code: " + networkException.getCode());
-                                return refreshTokens()
-                                        .subscribeOn(Schedulers.computation())
-                                        .flatMap(new Function<String, Observable<?>>() {
-                                            @Override
-                                            public Observable<?> apply(String s) throws Exception {
-                                                if (++retryCount < maxRetries) {
-                                                    // When this Observable calls onNext, the original
-                                                    // Observable will be retried (i.e. re-subscribed).
-                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
-                                                }
-                                                return Observable.error(networkException); // bubble up the exception;
-                                            }
-                                        });
-                            } else if (throwable instanceof SocketTimeoutException) {
-                                return Observable.error(throwable); // bubble up the exception;
-                            }
-                            return Observable.error(networkException); // bubble up the exception;
-                        }
-                    });
-        }
+        return networkApi.getAuthorization(grantType, code, BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET);
     }
 
     public Observable<User> getMyself() {
-        return getMyselfObservable()
-                .retryWhen(new retryWithDelay(1, 500));
-                /*.onErrorResumeNext(new Function<Throwable, Observable<User>>() {
-                    @Override
-                    public Observable<User> apply(Throwable throwable) throws Exception {
-                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
-                        Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
-                        final NetworkException networkException = errorHandler.create(throwable);
-                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
-                            Timber.e("Retrying error code: " + networkException.getCode());
-                            return refreshTokens()
-                                    .subscribeOn(Schedulers.computation())
-                                    .flatMap(new Function<String, Observable<User>>() {
-                                        @Override
-                                        public Observable<User> apply(String s) throws Exception {
-                                            return getMyselfObservable();
-                                        }
-                                    });
-                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
-                            Timber.e("Retrying error code: " + networkException.getCode());
-                            return refreshTokens()
-                                    .subscribeOn(Schedulers.computation())
-                                    .flatMap(new Function<String, Observable<User>>() {
-                                        @Override
-                                        public Observable<User> apply(String s) throws Exception {
-                                            return getMyselfObservable();
-                                        }
-                                    });
-                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode() ) {
-                            Timber.e("Retrying error code: " + networkException.getCode());
-                            return refreshTokens()
-                                    .subscribeOn(Schedulers.computation())
-                                    .flatMap(new Function<String, Observable<User>>() {
-                                        @Override
-                                        public Observable<User> apply(String s) throws Exception {
-                                            return getMyselfObservable();
-                                        }
-                                    });
-                        } else if (throwable instanceof SocketTimeoutException) {
-                            return Observable.error(throwable); // bubble up the exception;
-                        }
-                        return Observable.error(networkException); // bubble up the exception;
-                    }
-                });*/
+        return getMyselfObservable();
     }
 
     private Observable<User> getMyselfObservable() {
@@ -284,7 +99,7 @@ public class LocalBitcoinsFetcher {
                     @Override
                     public ObservableSource<List<Currency>> apply(TreeMap<String, Object> stringTreeMap) throws Exception {
                         List<Currency> currencies = Parser.parseCurrencies(stringTreeMap);
-                        if(currencies == null) {
+                        if (currencies == null) {
                             currencies = new ArrayList<>();
                         }
                         return Observable.just(currencies);
@@ -295,15 +110,56 @@ public class LocalBitcoinsFetcher {
                     public List<Currency> apply(Throwable throwable) {
                         RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
                         final NetworkException networkException = errorHandler.create(throwable);
-                        Timber.e("Currency error code: " + networkException.getMessage());
                         throw new Error(networkException);
                     }
                 });
     }
 
     public Observable<List<Advertisement>> getAdvertisements() {
-        return getAdvertisementsObservable()
-                .retryWhen(new retryWithDelay(1, 500))
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.getAdvertisements(accessToken)
+                .onErrorResumeNext(new Function<Throwable, Observable<Advertisements>>() {
+                    @Override
+                    public Observable<Advertisements> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Advertisements>>() {
+                                        @Override
+                                        public Observable<Advertisements> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getAdvertisements(accessToken);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Advertisements>>() {
+                                        @Override
+                                        public Observable<Advertisements> apply(String accessToken) throws Exception {
+                                            return networkApi.getAdvertisements(accessToken);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Advertisements>>() {
+                                        @Override
+                                        public Observable<Advertisements> apply(String accessToken) throws Exception {
+                                            return networkApi.getAdvertisements(accessToken);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                })
                 .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
                     @Override
                     public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
@@ -312,17 +168,7 @@ public class LocalBitcoinsFetcher {
                 });
     }
 
-    private Observable<Advertisements> getAdvertisementsObservable() {
-        final String accessToken = preferences.getAccessToken();
-        return networkApi.getAdvertisements(accessToken);
-    }
-
     public Observable<JsonElement> updateAdvertisement(Advertisement advertisement) {
-        return updateAdvertisementObservable(advertisement)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<JsonElement> updateAdvertisementObservable(Advertisement advertisement) {
         final String accessToken = preferences.getAccessToken();
         final String city;
         if (TextUtils.isEmpty(advertisement.getCity())) {
@@ -330,24 +176,120 @@ public class LocalBitcoinsFetcher {
         } else {
             city = advertisement.getCity();
         }
-        Timber.d("opening hours: " + advertisement.getOpeningHours());
         return networkApi.updateAdvertisement(
                 accessToken, String.valueOf(advertisement.getAdId()), advertisement.getAccountInfo(), advertisement.getBankName(), city, advertisement.getCountryCode(), advertisement.getCurrency(),
                 String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMaxAmount(), advertisement.getMinAmount(),
                 advertisement.getMessage(), advertisement.getPriceEquation(), String.valueOf(advertisement.getTrustedRequired()), String.valueOf(advertisement.getSmsVerificationRequired()),
                 String.valueOf(advertisement.getTrackMaxAmount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequireIdentification()),
                 advertisement.getRequireFeedbackScore(), advertisement.getRequireTradeVolume(), advertisement.getFirstTimeLimitBtc(),
-                advertisement.getPhoneNumber());
+                advertisement.getPhoneNumber())
+                .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                    @Override
+                    public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.updateAdvertisement(
+                                                    accessToken, String.valueOf(advertisement.getAdId()), advertisement.getAccountInfo(), advertisement.getBankName(), city, advertisement.getCountryCode(), advertisement.getCurrency(),
+                                                    String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMaxAmount(), advertisement.getMinAmount(),
+                                                    advertisement.getMessage(), advertisement.getPriceEquation(), String.valueOf(advertisement.getTrustedRequired()), String.valueOf(advertisement.getSmsVerificationRequired()),
+                                                    String.valueOf(advertisement.getTrackMaxAmount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequireIdentification()),
+                                                    advertisement.getRequireFeedbackScore(), advertisement.getRequireTradeVolume(), advertisement.getFirstTimeLimitBtc(),
+                                                    advertisement.getPhoneNumber());
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.updateAdvertisement(
+                                                    accessToken, String.valueOf(advertisement.getAdId()), advertisement.getAccountInfo(), advertisement.getBankName(), city, advertisement.getCountryCode(), advertisement.getCurrency(),
+                                                    String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMaxAmount(), advertisement.getMinAmount(),
+                                                    advertisement.getMessage(), advertisement.getPriceEquation(), String.valueOf(advertisement.getTrustedRequired()), String.valueOf(advertisement.getSmsVerificationRequired()),
+                                                    String.valueOf(advertisement.getTrackMaxAmount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequireIdentification()),
+                                                    advertisement.getRequireFeedbackScore(), advertisement.getRequireTradeVolume(), advertisement.getFirstTimeLimitBtc(),
+                                                    advertisement.getPhoneNumber());
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.updateAdvertisement(
+                                                    accessToken, String.valueOf(advertisement.getAdId()), advertisement.getAccountInfo(), advertisement.getBankName(), city, advertisement.getCountryCode(), advertisement.getCurrency(),
+                                                    String.valueOf(advertisement.getLat()), advertisement.getLocation(), String.valueOf(advertisement.getLon()), advertisement.getMaxAmount(), advertisement.getMinAmount(),
+                                                    advertisement.getMessage(), advertisement.getPriceEquation(), String.valueOf(advertisement.getTrustedRequired()), String.valueOf(advertisement.getSmsVerificationRequired()),
+                                                    String.valueOf(advertisement.getTrackMaxAmount()), String.valueOf(advertisement.getVisible()), String.valueOf(advertisement.getRequireIdentification()),
+                                                    advertisement.getRequireFeedbackScore(), advertisement.getRequireTradeVolume(), advertisement.getFirstTimeLimitBtc(),
+                                                    advertisement.getPhoneNumber());
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<JsonElement> deleteAdvertisement(final int adId) {
-        return deleteAdvertisementObservable(adId)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<JsonElement> deleteAdvertisementObservable(final int adId) {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.deleteAdvertisement(accessToken, adId);
+        return networkApi.deleteAdvertisement(accessToken, adId)
+                .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                    @Override
+                    public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.deleteAdvertisement(accessToken, adId);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.deleteAdvertisement(accessToken, adId);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.deleteAdvertisement(accessToken, adId);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<List<Method>> getMethods() {
@@ -356,7 +298,7 @@ public class LocalBitcoinsFetcher {
                     @Override
                     public ObservableSource<List<Method>> apply(TreeMap<String, Object> stringTreeMap) throws Exception {
                         List<Method> methods = Parser.parseMethods(stringTreeMap);
-                        if(methods == null) methods = new ArrayList<>();
+                        if (methods == null) methods = new ArrayList<>();
                         return Observable.just(methods);
                     }
                 })
@@ -372,13 +314,50 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<List<Advertisement>> getAdvertisement(final int adId) {
-        return getAdvertisementObservable(adId)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<List<Advertisement>> getAdvertisementObservable(final int adId) {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getAdvertisement(accessToken, adId)
+                .onErrorResumeNext(new Function<Throwable, Observable<Advertisements>>() {
+                    @Override
+                    public Observable<Advertisements> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Advertisements>>() {
+                                        @Override
+                                        public Observable<Advertisements> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getAdvertisement(accessToken, adId);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Advertisements>>() {
+                                        @Override
+                                        public Observable<Advertisements> apply(String accessToken) throws Exception {
+                                            return networkApi.getAdvertisement(accessToken, adId);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Advertisements>>() {
+                                        @Override
+                                        public Observable<Advertisements> apply(String accessToken) throws Exception {
+                                            return networkApi.getAdvertisement(accessToken, adId);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                })
                 .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
                     @Override
                     public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
@@ -388,55 +367,238 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<Contact> getContact(final int contactId) {
-        return getContactObservable(contactId)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<Contact> getContactObservable(final int contactId) {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.getContactInfo(accessToken, contactId);
-    }
-
-    public Observable<Wallet> getWallet() {
-        return getWalletObservable()
-                .retryWhen(new retryWithDelay(1, 500));
+        return networkApi.getContactInfo(accessToken, contactId)
+                .onErrorResumeNext(new Function<Throwable, Observable<Contact>>() {
+                    @Override
+                    public Observable<Contact> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Contact>>() {
+                                        @Override
+                                        public Observable<Contact> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getContactInfo(accessToken, contactId);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Contact>>() {
+                                        @Override
+                                        public Observable<Contact> apply(String accessToken) throws Exception {
+                                            return networkApi.getContactInfo(accessToken, contactId);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Contact>>() {
+                                        @Override
+                                        public Observable<Contact> apply(String accessToken) throws Exception {
+                                            return networkApi.getContactInfo(accessToken, contactId);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<NewAddress> getWalletAddress() {
-        return getWalletAddressObservable()
-                .retryWhen(new retryWithDelay(1, 500));
+        final String accessToken = preferences.getAccessToken();
+        return networkApi.getWalletAddress(accessToken)
+                .onErrorResumeNext(new Function<Throwable, Observable<NewAddress>>() {
+                    @Override
+                    public Observable<NewAddress> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<NewAddress>>() {
+                                        @Override
+                                        public Observable<NewAddress> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getWalletAddress(accessToken);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<NewAddress>>() {
+                                        @Override
+                                        public Observable<NewAddress> apply(String accessToken) throws Exception {
+                                            return networkApi.getWalletAddress(accessToken);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<NewAddress>>() {
+                                        @Override
+                                        public Observable<NewAddress> apply(String accessToken) throws Exception {
+                                            return networkApi.getWalletAddress(accessToken);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
-    private Observable<NewAddress> getWalletAddressObservable() {
+    public Observable<Wallet> getWallet() {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.getWalletAddress(accessToken);
-    }
-
-    private Observable<Wallet> getWalletObservable() {
-        final String accessToken = preferences.getAccessToken();
-        return networkApi.getWallet(accessToken);
+        return networkApi.getWallet(accessToken)
+                .onErrorResumeNext(new Function<Throwable, Observable<Wallet>>() {
+                    @Override
+                    public Observable<Wallet> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Wallet>>() {
+                                        @Override
+                                        public Observable<Wallet> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getWallet(accessToken);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Wallet>>() {
+                                        @Override
+                                        public Observable<Wallet> apply(String accessToken) throws Exception {
+                                            return networkApi.getWallet(accessToken);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Wallet>>() {
+                                        @Override
+                                        public Observable<Wallet> apply(String accessToken) throws Exception {
+                                            return networkApi.getWallet(accessToken);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<Wallet> getWalletBalance() {
-        Timber.d("getWalletBalance");
-        return getWalletBalanceObservable()
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<Wallet> getWalletBalanceObservable() {
-        Timber.d("getWalletBalanceObservable token " + preferences.getAccessToken());
         final String accessToken = preferences.getAccessToken();
-        return networkApi.getWalletBalance(accessToken);
+        return networkApi.getWalletBalance(accessToken)
+                .onErrorResumeNext(new Function<Throwable, Observable<Wallet>>() {
+                    @Override
+                    public Observable<Wallet> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Wallet>>() {
+                                        @Override
+                                        public Observable<Wallet> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getWalletBalance(accessToken);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Wallet>>() {
+                                        @Override
+                                        public Observable<Wallet> apply(String accessToken) throws Exception {
+                                            return networkApi.getWalletBalance(accessToken);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Wallet>>() {
+                                        @Override
+                                        public Observable<Wallet> apply(String accessToken) throws Exception {
+                                            return networkApi.getWalletBalance(accessToken);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<List<Contact>> getContacts() {
-        return getContactsObservable()
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<List<Contact>> getContactsObservable() {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getDashboard(accessToken)
+                .onErrorResumeNext(new Function<Throwable, Observable<Dashboard>>() {
+                    @Override
+                    public Observable<Dashboard> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Dashboard>>() {
+                                        @Override
+                                        public Observable<Dashboard> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getDashboard(accessToken);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Dashboard>>() {
+                                        @Override
+                                        public Observable<Dashboard> apply(String accessToken) throws Exception {
+                                            return networkApi.getDashboard(accessToken);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Dashboard>>() {
+                                        @Override
+                                        public Observable<Dashboard> apply(String accessToken) throws Exception {
+                                            return networkApi.getDashboard(accessToken);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                })
                 .flatMap(new Function<Dashboard, ObservableSource<List<Contact>>>() {
                     @Override
                     public ObservableSource<List<Contact>> apply(Dashboard dashboard) throws Exception {
@@ -448,7 +610,48 @@ public class LocalBitcoinsFetcher {
     public Observable<List<Contact>> getContactsByType(final DashboardType dashboardType) {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getDashboard(accessToken, dashboardType.name().toLowerCase())
-                .retryWhen(new retryWithDelay(1, 500))
+                .onErrorResumeNext(new Function<Throwable, Observable<Dashboard>>() {
+                    @Override
+                    public Observable<Dashboard> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Dashboard>>() {
+                                        @Override
+                                        public Observable<Dashboard> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getDashboard(accessToken, dashboardType.name().toLowerCase());
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Dashboard>>() {
+                                        @Override
+                                        public Observable<Dashboard> apply(String accessToken) throws Exception {
+                                            return networkApi.getDashboard(accessToken, dashboardType.name().toLowerCase());
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Dashboard>>() {
+                                        @Override
+                                        public Observable<Dashboard> apply(String accessToken) throws Exception {
+                                            return networkApi.getDashboard(accessToken, dashboardType.name().toLowerCase());
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                })
                 .flatMap(new Function<Dashboard, ObservableSource<List<Contact>>>() {
                     @Override
                     public ObservableSource<List<Contact>> apply(Dashboard dashboard) throws Exception {
@@ -458,13 +661,50 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<List<Notification>> getNotifications() {
-        return getNotificationsObservable()
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<List<Notification>> getNotificationsObservable() {
         final String accessToken = preferences.getAccessToken();
         return networkApi.getNotifications(accessToken)
+                .onErrorResumeNext(new Function<Throwable, Observable<Notifications>>() {
+                    @Override
+                    public Observable<Notifications> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Notifications>>() {
+                                        @Override
+                                        public Observable<Notifications> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.getNotifications(accessToken);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Notifications>>() {
+                                        @Override
+                                        public Observable<Notifications> apply(String accessToken) throws Exception {
+                                            return networkApi.getNotifications(accessToken);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Notifications>>() {
+                                        @Override
+                                        public Observable<Notifications> apply(String accessToken) throws Exception {
+                                            return networkApi.getNotifications(accessToken);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                })
                 .flatMap(new Function<Notifications, ObservableSource<List<Notification>>>() {
                     @Override
                     public ObservableSource<List<Notification>> apply(Notifications notifications) throws Exception {
@@ -474,12 +714,50 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<Boolean> sendPinCodeMoney(final String pinCode, final String address, final String amount) {
-        return sendPinCodeMoneyObservable(pinCode, address, amount);
-    }
-
-    private Observable<Boolean> sendPinCodeMoneyObservable(final String pinCode, final String address, final String amount) {
         final String accessToken = preferences.getAccessToken();
         return networkApi.walletSendPin(accessToken, pinCode, address, amount)
+                .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                    @Override
+                    public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.walletSendPin(accessToken, pinCode, address, amount);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.walletSendPin(accessToken, pinCode, address, amount);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.walletSendPin(accessToken, pinCode, address, amount);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                })
                 .flatMap(new Function<JsonElement, ObservableSource<Boolean>>() {
                     @Override
                     public ObservableSource<Boolean> apply(JsonElement jsonElement) throws Exception {
@@ -493,47 +771,101 @@ public class LocalBitcoinsFetcher {
     }
 
     public Observable<JsonElement> markNotificationRead(final String notificationId) {
-        return markNotificationReadObservable(String.valueOf(notificationId))
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<JsonElement> markNotificationReadObservable(final String notificationId) {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.markNotificationRead(accessToken, String.valueOf(notificationId));
+        return networkApi.markNotificationRead(accessToken, String.valueOf(notificationId))
+                .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                    @Override
+                    public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.markNotificationRead(accessToken, String.valueOf(notificationId));
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.markNotificationRead(accessToken, String.valueOf(notificationId));
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.markNotificationRead(accessToken, String.valueOf(notificationId));
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<List<Message>> getContactMessages(final int contactId) {
-        return getContactMessagesReadObservable(contactId)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<List<Message>> getContactMessagesReadObservable(final int contactId) {
         final String accessToken = preferences.getAccessToken();
         return networkApi.contactMessages(accessToken, contactId)
+                .onErrorResumeNext(new Function<Throwable, Observable<Messages>>() {
+                    @Override
+                    public Observable<Messages> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Messages>>() {
+                                        @Override
+                                        public Observable<Messages> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.contactMessages(accessToken, contactId);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Messages>>() {
+                                        @Override
+                                        public Observable<Messages> apply(String accessToken) throws Exception {
+                                            return networkApi.contactMessages(accessToken, contactId);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<Messages>>() {
+                                        @Override
+                                        public Observable<Messages> apply(String accessToken) throws Exception {
+                                            return networkApi.contactMessages(accessToken, contactId);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                })
                 .flatMap(new Function<Messages, ObservableSource<List<Message>>>() {
                     @Override
                     public ObservableSource<List<Message>> apply(Messages messages) throws Exception {
                         return Observable.just(messages.getItems());
-                    }
-                });
-    }
-
-    public Observable<List<Place>> getPlaces(final double lat, final double lon) {
-        return networkApi.getPlaces(lat, lon)
-                .flatMap(new Function<Places, ObservableSource<List<Place>>>() {
-                    @Override
-                    public ObservableSource<List<Place>> apply(Places places) throws Exception {
-                        return Observable.just(places.getItems());
-                    }
-                });
-    }
-
-    public Observable<List<Advertisement>> searchAdsByPlace(String type, String num, String location) {
-        return networkApi.searchAdsByPlace(type, num, location)
-                .flatMap(new Function<Advertisements, ObservableSource<List<Advertisement>>>() {
-                    @Override
-                    public ObservableSource<List<Advertisement>> apply(Advertisements advertisements) throws Exception {
-                        return Observable.just(advertisements.getItems());
                     }
                 });
     }
@@ -615,18 +947,6 @@ public class LocalBitcoinsFetcher {
                                                     final String billerCode, final String accountNumber, final String bsb,
                                                     final String ethereumAddress) {
 
-        return createContactObservable(adId, tradeType, countryCode, onlineProvider, amount, name, phone, email,
-                iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<ContactRequest> createContactObservable( final String adId, final TradeType tradeType, final String countryCode,
-                                                         final String onlineProvider, final String amount, final String name,
-                                                         final String phone, final String email, final String iban, final String bic,
-                                                         final String reference, final String message, final String sortCode,
-                                                         final String billerCode, final String accountNumber, final String bsb,
-                                                         final String ethereumAddress) {
-
         final String accessToken = preferences.getAccessToken();
         if (tradeType == TradeType.ONLINE_BUY) {
             switch (onlineProvider) {
@@ -675,63 +995,566 @@ public class LocalBitcoinsFetcher {
             }
         }
 
-        return networkApi.createContact(accessToken, adId, amount, message);
+        return networkApi.createContact(accessToken, adId, amount, message)
+                .onErrorResumeNext(new Function<Throwable, Observable<ContactRequest>>() {
+                    @Override
+                    public Observable<ContactRequest> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<ContactRequest>>() {
+                                        @Override
+                                        public Observable<ContactRequest> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.createContact(accessToken, adId, amount, message);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<ContactRequest>>() {
+                                        @Override
+                                        public Observable<ContactRequest> apply(String accessToken) throws Exception {
+                                            return networkApi.createContact(accessToken, adId, amount, message);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<ContactRequest>>() {
+                                        @Override
+                                        public Observable<ContactRequest> apply(String accessToken) throws Exception {
+                                            return networkApi.createContact(accessToken, adId, amount, message);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<JsonElement> contactAction(final int contactId, final String pinCode, final ContactAction action) {
-        return contactActionObservable(contactId, pinCode, action)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<JsonElement> contactActionObservable(final int contactId, final String pinCode, final ContactAction action) {
         final String accessToken = preferences.getAccessToken();
         switch (action) {
             case RELEASE:
-                return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
+                return networkApi.releaseContactPinCode(accessToken, contactId, pinCode)
+                        .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                            @Override
+                            public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                                RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                                final NetworkException networkException = errorHandler.create(throwable);
+                                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    Timber.e("New access token: " + accessToken);
+                                                    return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
+                                                }
+                                            });
+                                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
+                                                }
+                                            });
+                                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.releaseContactPinCode(accessToken, contactId, pinCode);
+                                                }
+                                            });
+                                } else if (throwable instanceof SocketTimeoutException) {
+                                    return Observable.error(throwable); // bubble up the exception;
+                                }
+                                return Observable.error(networkException); // bubble up the exception;
+                            }
+                        });
             case CANCEL:
-                return networkApi.contactCancel(accessToken, contactId);
+                return networkApi.contactCancel(accessToken, contactId)
+                        .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                            @Override
+                            public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                                RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                                final NetworkException networkException = errorHandler.create(throwable);
+                                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    Timber.e("New access token: " + accessToken);
+                                                    return networkApi.contactCancel(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.contactCancel(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.contactCancel(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (throwable instanceof SocketTimeoutException) {
+                                    return Observable.error(throwable); // bubble up the exception;
+                                }
+                                return Observable.error(networkException); // bubble up the exception;
+                            }
+                        });
             case DISPUTE:
-                return networkApi.contactDispute(accessToken, contactId);
+                return networkApi.contactDispute(accessToken, contactId)
+                        .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                            @Override
+                            public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                                RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                                final NetworkException networkException = errorHandler.create(throwable);
+                                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    Timber.e("New access token: " + accessToken);
+                                                    return networkApi.contactDispute(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.contactDispute(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.contactDispute(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (throwable instanceof SocketTimeoutException) {
+                                    return Observable.error(throwable); // bubble up the exception;
+                                }
+                                return Observable.error(networkException); // bubble up the exception;
+                            }
+                        });
             case PAID:
-                return networkApi.markAsPaid(accessToken, contactId);
+                return networkApi.markAsPaid(accessToken, contactId)
+                        .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                            @Override
+                            public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                                RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                                final NetworkException networkException = errorHandler.create(throwable);
+                                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    Timber.e("New access token: " + accessToken);
+                                                    return networkApi.markAsPaid(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.markAsPaid(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.markAsPaid(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (throwable instanceof SocketTimeoutException) {
+                                    return Observable.error(throwable); // bubble up the exception;
+                                }
+                                return Observable.error(networkException); // bubble up the exception;
+                            }
+                        });
             case FUND:
-                return networkApi.contactFund(accessToken, contactId);
+                return networkApi.contactFund(accessToken, contactId)
+                        .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                            @Override
+                            public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                                RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                                final NetworkException networkException = errorHandler.create(throwable);
+                                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    Timber.e("New access token: " + accessToken);
+                                                    return networkApi.contactFund(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.contactFund(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                                    Timber.e("Retrying error code: " + networkException.getCode());
+                                    return refreshTokens()
+                                            .subscribeOn(Schedulers.computation())
+                                            .flatMap(new Function<String, Observable<JsonElement>>() {
+                                                @Override
+                                                public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                                    return networkApi.contactFund(accessToken, contactId);
+                                                }
+                                            });
+                                } else if (throwable instanceof SocketTimeoutException) {
+                                    return Observable.error(throwable); // bubble up the exception;
+                                }
+                                return Observable.error(networkException); // bubble up the exception;
+                            }
+                        });
         }
         return Observable.error(new NetworkException("Unable to perform action on contact", ExceptionCodes.INSTANCE.getNO_ERROR_CODE()));
     }
 
     public Observable<JsonElement> validatePinCode(final String pinCode) {
-        return validatePinCodeObservable(pinCode)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<JsonElement> validatePinCodeObservable(final String pinCode) {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.checkPinCode(accessToken, pinCode);
+        return networkApi.checkPinCode(accessToken, pinCode)
+                .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                    @Override
+                    public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.checkPinCode(accessToken, pinCode);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.checkPinCode(accessToken, pinCode);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.checkPinCode(accessToken, pinCode);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<JsonElement> postMessage(final int contactId, final String message) {
-        return postMessageObservable(contactId, message)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<JsonElement> postMessageObservable(final int contactId, final String message) {
         final String accessToken = preferences.getAccessToken();
-        return networkApi.contactMessagePost(accessToken, contactId, message);
+        return networkApi.contactMessagePost(accessToken, contactId, message)
+                .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                    @Override
+                    public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.contactMessagePost(accessToken, contactId, message);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.contactMessagePost(accessToken, contactId, message);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.contactMessagePost(accessToken, contactId, message);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
 
     public Observable<JsonElement> postMessageWithAttachment(final int contactId, final String message, final File file) {
-        return postMessageWithAttachmentObservable(contactId, message, file)
-                .retryWhen(new retryWithDelay(1, 500));
-    }
-
-    private Observable<JsonElement> postMessageWithAttachmentObservable(final int contactId, final String message, final File file) {
         final String accessToken = preferences.getAccessToken();
         RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part multiPartBody = MultipartBody.Part.createFormData("document", file.getName(), requestBody);
 
         final LinkedHashMap<String, String> params = new LinkedHashMap<String, String>();
         params.put("msg", message);
-        return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody);
+        return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody)
+                .onErrorResumeNext(new Function<Throwable, Observable<JsonElement>>() {
+                    @Override
+                    public Observable<JsonElement> apply(Throwable throwable) throws Exception {
+                        RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                        final NetworkException networkException = errorHandler.create(throwable);
+                        if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            Timber.e("New access token: " + accessToken);
+                                            return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody);
+                                        }
+                                    });
+                        } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody);
+                                        }
+                                    });
+                        } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                            Timber.e("Retrying error code: " + networkException.getCode());
+                            return refreshTokens()
+                                    .subscribeOn(Schedulers.computation())
+                                    .flatMap(new Function<String, Observable<JsonElement>>() {
+                                        @Override
+                                        public Observable<JsonElement> apply(String accessToken) throws Exception {
+                                            return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody);
+                                        }
+                                    });
+                        } else if (throwable instanceof SocketTimeoutException) {
+                            return Observable.error(throwable); // bubble up the exception;
+                        }
+                        return Observable.error(networkException); // bubble up the exception;
+                    }
+                });
     }
+
+    private Observable<String> refreshTokens() {
+        Timber.d("accessToken: " + preferences.getAccessToken());
+        Timber.d("refreshToken: " + preferences.getRefreshToken());
+        return networkApi.refreshToken("refresh_token", preferences.getRefreshToken(), BuildConfig.LBC_KEY, BuildConfig.LBC_SECRET)
+                .flatMap(new Function<Authorization, ObservableSource<? extends String>>() {
+                    @Override
+                    public ObservableSource<? extends String> apply(Authorization authorization) {
+                        Timber.d("authorization " + authorization);
+                        if (authorization != null) {
+                            Timber.d("authorization.getAccessToken() " + authorization.getAccessToken());
+                            Timber.d("authorization.getRefreshToken() " + authorization.getRefreshToken());
+                            preferences.setAccessToken(authorization.getAccessToken());
+                            preferences.setRefreshToken(authorization.getRefreshToken());
+                            return Observable.just(authorization.getAccessToken());
+                        } else {
+                            return null;
+                        }
+                    }
+                });
+    }
+
+    /*@Deprecated
+    private <T> Function<Throwable, ? extends Observable<? extends T>> refreshTokenAndRetry(final Observable<T> toBeResumed) {
+
+        Timber.d("refreshTokenAndRetry");
+
+        return new Function<Throwable, Observable<? extends T>>() {
+            @Override
+            public Observable<? extends T> apply(Throwable throwable) throws Exception {
+                RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
+                final NetworkException networkException = errorHandler.create(throwable);
+                if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                    Timber.e("Retrying error code: " + networkException.getCode());
+                    return refreshTokens()
+                            .subscribeOn(Schedulers.computation())
+                            .flatMap(new Function<String, ObservableSource<? extends T>>() {
+                                @Override
+                                public ObservableSource<? extends T> apply(String s) throws Exception {
+                                    return toBeResumed;
+                                }
+                            });
+                } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                    Timber.e("Retrying error code: " + networkException.getCode());
+                    return refreshTokens()
+                            .subscribeOn(Schedulers.computation())
+                            .flatMap(new Function<String, ObservableSource<? extends T>>() {
+                                @Override
+                                public ObservableSource<? extends T> apply(String s) throws Exception {
+                                    return toBeResumed;
+                                }
+                            });
+                } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                    Timber.e("Retrying error code: " + networkException.getCode());
+                    return refreshTokens()
+                            .subscribeOn(Schedulers.computation())
+                            .flatMap(new Function<String, ObservableSource<? extends T>>() {
+                                @Override
+                                public ObservableSource<? extends T> apply(String s) throws Exception {
+                                    return toBeResumed;
+                                }
+                            });
+                } else if (throwable instanceof SocketTimeoutException) {
+                    return Observable.error(throwable); // bubble up the exception;
+                }
+                return Observable.error(networkException); // bubble up the exception;
+            }
+        };
+    }
+
+    @Deprecated
+    private class retryWithDelay implements Function<Observable<? extends Throwable>, Observable<?>> {
+        private final int maxRetries;
+        private final int retryDelayMillis;
+        private int retryCount;
+
+        retryWithDelay(final int maxRetries, final int retryDelayMillis) {
+            this.maxRetries = maxRetries;
+            this.retryDelayMillis = retryDelayMillis;
+            this.retryCount = 0;
+        }
+
+        @Override
+        public Observable<?> apply(final Observable<? extends Throwable> attempts) {
+            return attempts
+                    .flatMap(new Function<Throwable, Observable<?>>() {
+                        @Override
+                        public Observable<?> apply(final Throwable throwable) {
+                            RetrofitErrorHandler errorHandler = new RetrofitErrorHandler(context);
+                            Timber.d("refreshTokenAndRetry error: " + throwable.getMessage());
+                            final NetworkException networkException = errorHandler.create(throwable);
+                            if (RetrofitErrorHandler.Companion.isHttp403Error(networkException.getCode())) {
+                                Timber.e("Retrying error code: " + networkException.getCode());
+                                return refreshTokens()
+                                        .subscribeOn(Schedulers.computation())
+                                        .flatMap(new Function<String, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> apply(String s) throws Exception {
+                                                if (++retryCount < maxRetries) {
+                                                    // When this Observable calls onNext, the original
+                                                    // Observable will be retried (i.e. re-subscribed).
+                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
+                                                }
+                                                return Observable.error(networkException); // bubble up the exception;
+                                            }
+                                        });
+                            } else if (RetrofitErrorHandler.Companion.isHttp400Error(networkException.getCode())) {
+                                Timber.e("Retrying error code: " + networkException.getCode());
+                                return refreshTokens()
+                                        .subscribeOn(Schedulers.computation())
+                                        .flatMap(new Function<String, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> apply(String s) throws Exception {
+                                                if (++retryCount < maxRetries) {
+                                                    // When this Observable calls onNext, the original
+                                                    // Observable will be retried (i.e. re-subscribed).
+                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
+                                                }
+                                                return Observable.error(networkException); // bubble up the exception;
+                                            }
+                                        });
+                            } else if (ExceptionCodes.INSTANCE.getCODE_THREE() == networkException.getCode()) {
+                                Timber.e("Retrying error code: " + networkException.getCode());
+                                return refreshTokens()
+                                        .subscribeOn(Schedulers.computation())
+                                        .flatMap(new Function<String, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> apply(String s) throws Exception {
+                                                if (++retryCount < maxRetries) {
+                                                    // When this Observable calls onNext, the original
+                                                    // Observable will be retried (i.e. re-subscribed).
+                                                    return Observable.timer(10, TimeUnit.MILLISECONDS);
+                                                }
+                                                return Observable.error(networkException); // bubble up the exception;
+                                            }
+                                        });
+                            } else if (throwable instanceof SocketTimeoutException) {
+                                return Observable.error(throwable); // bubble up the exception;
+                            }
+                            return Observable.error(networkException); // bubble up the exception;
+                        }
+                    });
+        }
+    }*/
 }
