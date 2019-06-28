@@ -136,7 +136,7 @@ constructor(application: Application,
                     if (results == null || results.isEmpty() || needToRefreshMethods()) {
                         Timber.d("fetching methods")
                         updateSyncMap(SYNC_METHODS, true)
-                        fetcher.methods
+                        fetcher.methods()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
@@ -181,7 +181,7 @@ constructor(application: Application,
                     if (results == null || results.isEmpty() || needToRefreshCurrency()) {
                         Timber.d("fetching currencies")
                         updateSyncMap(SYNC_CURRENCIES, true)
-                        fetcher.currencies
+                        fetcher.currencies()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
@@ -225,7 +225,7 @@ constructor(application: Application,
                     Timber.d("user $results")
                     if (results.isEmpty() || needToRefreshUser()) {
                         updateSyncMap(SYNC_MYSELF, true)
-                        fetcher.myself
+                        fetcher.myself()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
@@ -261,7 +261,7 @@ constructor(application: Application,
     private fun fetchContacts() {
         Timber.d("fetchContacts")
         updateSyncMap(DashboardViewModel.SYNC_CONTACTS, true)
-        disposable += (fetcher.contacts
+        disposable += (fetcher.contacts()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -287,7 +287,7 @@ constructor(application: Application,
 
     private fun fetchAdvertisements() {
         updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, true)
-        disposable += (fetcher.advertisements
+        disposable += (fetcher.advertisements()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -313,7 +313,7 @@ constructor(application: Application,
 
     private fun fetchNotifications() {
         updateSyncMap(DashboardViewModel.SYNC_NOTIFICATIONS, true)
-        disposable += (fetcher.notifications
+        disposable += (fetcher.notifications()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({

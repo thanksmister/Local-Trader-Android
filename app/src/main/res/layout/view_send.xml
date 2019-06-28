@@ -40,7 +40,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/white"
-                    android:textIsSelectable="true"
+                    android:focusable="true"
+                    android:clickable="true"
                     android:textStyle="bold"
                     tools:text=".011626091 BTC" />
 
@@ -49,7 +50,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Transaction Fee (0.00005 BTC)"
+                    android:text="@string/text_transaction_fee"
                     android:textAllCaps="false" />
 
             </LinearLayout>

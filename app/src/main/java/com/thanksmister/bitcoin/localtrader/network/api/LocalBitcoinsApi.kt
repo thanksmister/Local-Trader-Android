@@ -26,7 +26,6 @@ import com.thanksmister.bitcoin.localtrader.network.services.LocalBitcoinsServic
 import io.reactivex.Observable
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
-import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -35,7 +34,7 @@ import java.util.*
 
 import java.util.concurrent.TimeUnit
 
-class LocalBitcoinsApi (private  val context: Context, private var  baseUrl: String) {
+class LocalBitcoinsApi (context: Context, baseUrl: String) {
 
     private val service: LocalBitcoinsService
 

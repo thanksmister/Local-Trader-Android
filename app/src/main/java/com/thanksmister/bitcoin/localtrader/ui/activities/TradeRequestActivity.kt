@@ -89,7 +89,7 @@ class TradeRequestActivity : BaseActivity() {
         } else {
             adId = savedInstanceState.getInt(EXTRA_AD_ID)
             val tradeTypeString = savedInstanceState.getString(EXTRA_AD_TRADE_TYPE)
-            if (!TextUtils.isEmpty(tradeTypeString)) {
+            tradeTypeString?.let {
                 tradeType = TradeType.valueOf(tradeTypeString)
             }
             countryCode = savedInstanceState.getString(EXTRA_AD_COUNTRY_CODE)
@@ -397,6 +397,7 @@ class TradeRequestActivity : BaseActivity() {
     private fun sendTradeRequest(adId: Int, amount: String, name: String, phone: String,
                          email: String, iban: String, bic: String, reference: String, message: String,
                          sortCode: String, billerCode: String, accountNumber: String, bsb: String, ethereumAddress: String) {
+
         dialogUtils.showProgressDialog(this@TradeRequestActivity, getString(R.string.progress_sending_trade_request))
         viewModel.createContact(tradeType, countryCode, onlineProvider, adId, amount, name, phone, email,
                 iban, bic, reference, message, sortCode, billerCode, accountNumber, bsb, ethereumAddress)

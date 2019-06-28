@@ -281,7 +281,8 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                             logOut()
                         })
                     }
-                    RetrofitErrorHandler.isNetworkError(messageData.code) -> {
+                    RetrofitErrorHandler.isNetworkError(it.code) ||
+                    RetrofitErrorHandler.isHttp503Error(it.code) -> {
                         dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
                             dialogUtils.toast(getString(R.string.toast_refreshing_data))
                             viewModel.getDashboardData()
@@ -293,8 +294,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                         }, DialogInterface.OnClickListener { _, _ -> })
                     }
                     else -> dialogUtils.showAlertDialog(this@MainActivity, it.message, DialogInterface.OnClickListener { dialog, which ->
-                        dialogUtils.toast(getString(R.string.toast_refreshing_data))
-                        viewModel.getDashboardData()
                     }, DialogInterface.OnClickListener { _, _ -> })
                 }
             }

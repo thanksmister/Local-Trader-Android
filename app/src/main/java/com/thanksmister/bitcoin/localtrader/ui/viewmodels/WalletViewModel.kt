@@ -163,7 +163,7 @@ constructor(application: Application,
         val exchangeApi = ExchangeApi(preferences)
         val exchangeFetcher = ExchangeFetcher(exchangeApi, preferences)
         return Observable.zip(
-                fetcher.wallet,
+                fetcher.wallet(),
                 exchangeFetcher.getExchangeRate(),
                         BiFunction { wallet, exchange  ->
                             val networkData = NetworkData()
@@ -174,7 +174,7 @@ constructor(application: Application,
     }
 
     fun getWalletAddress() {
-        disposable += fetcher.walletAddress
+        disposable += fetcher.walletAddress()
                 .applySchedulers()
                 .subscribe({
                     if(!it.address.isNullOrEmpty()) {

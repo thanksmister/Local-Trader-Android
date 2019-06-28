@@ -274,8 +274,8 @@ constructor(application: Application,
         disposable += notificationsDao.getItemUnreadItemByContactId(contactId, false)
                 .applySchedulers()
                 .subscribe ({notification ->
-                    if(notification != null) {
-                        fetcher.markNotificationRead(notification.notificationId)
+                    notification.notificationId?.let {
+                        fetcher.markNotificationRead(it)
                                 .applySchedulers()
                                 .subscribe ({
                                     notification.read = true

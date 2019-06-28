@@ -28,8 +28,7 @@ class ExchangeFetcher(private val networkApi: ExchangeApi, private val preferenc
 
     fun getExchangeRate(): Observable<ExchangeRate>  {
         val currency = preferences.exchangeCurrency
-        val exchange = preferences.selectedExchange
-        when (exchange) {
+        when (preferences.selectedExchange) {
             COINBASE_EXCHANGE -> {
                 return networkApi.getCoinbaseRate(currency)
                         .flatMap {

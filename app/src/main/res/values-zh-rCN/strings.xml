@@ -704,4 +704,6 @@
     <string name="error_local_contact">该联系人不再可用或是本地广告。</string>
     <string name="error_invalid_endpoint">该网址无效，请输入默认的终点或正确的替代网址。</string>
     <string name="warning_no_location">Couldn\'t determine current location, please relocate and try again…</string>
+    <string name="text_transaction_fee">手续费 (0.00005 BTC)</string>
+    <string name="text_add_spendable_amount">全额加！</string>
 </resources>

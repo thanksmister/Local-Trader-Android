@@ -113,7 +113,7 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ localNotifications ->
-                    fetcher!!.notifications
+                    fetcher!!.notifications()
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe({ remoteNotifications ->
@@ -172,7 +172,7 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ walletLocal ->
-                    fetcher!!.walletBalance
+                    fetcher!!.walletBalance()
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe({ walletRemote ->

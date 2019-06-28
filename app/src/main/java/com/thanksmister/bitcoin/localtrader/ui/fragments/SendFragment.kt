@@ -31,6 +31,7 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.view.*
+import android.widget.Toast
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
@@ -129,8 +130,6 @@ class SendFragment : BaseFragment() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { data ->
-                    Timber.d("wallet updated!!")
-                    Timber.d("data $data")
                     if (data != null) {
                         rate = data.rate
                         balance = data.sendable
@@ -256,6 +255,12 @@ class SendFragment : BaseFragment() {
                 }
             }
         })
+        balanceText.setOnClickListener {
+            val balanceAmount = Conversions.convertToDouble(balance)
+            amountText.setText(balanceAmount.toString())
+            calculateCurrencyAmount(balanceAmount.toString())
+            Toast.makeText(requireContext(), getString(R.string.text_add_spendable_amount), Toast.LENGTH_SHORT).show()
+        }
         sendButton.setOnClickListener {
             validateForm()
         }

@@ -51,23 +51,25 @@ constructor(application: Application, private val notificationsDao: Notification
         val endpoint = preferences.getServiceEndpoint()
         val api = LocalBitcoinsApi(getApplication(), endpoint)
         val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
-        disposable += fetcher.markNotificationRead(notification.notificationId)
-                .applySchedulers()
-                .subscribe ({
-                    notification.read = true
-                    updateNotification(notification)
-                }, { error ->
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
+        notification.notificationId?.let {
+            disposable += fetcher.markNotificationRead(it)
+                    .applySchedulers()
+                    .subscribe ({
+                        notification.read = true
+                        updateNotification(notification)
+                    }, { error ->
+                        when (error) {
+                            is HttpException -> {
+                                val errorHandler = RetrofitErrorHandler(getApplication())
+                                val networkException = errorHandler.create(error)
+                                handleNetworkException(networkException)
+                            }
+                            is NetworkException -> handleNetworkException(error)
+                            is SocketTimeoutException -> {}
+                            else -> showAlertMessage(error.message)
                         }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> {}
-                        else -> showAlertMessage(error.message)
-                    }
-                })
+                    })
+        }
     }
 
     private fun updateNotification(notification: Notification) {

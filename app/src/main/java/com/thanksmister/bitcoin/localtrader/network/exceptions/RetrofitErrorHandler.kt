@@ -208,10 +208,10 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
         }
 
         fun isNetworkError(code: Int): Boolean {
-            return code == ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE
+            return code == ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE || code == ExceptionCodes.SERVICE_ERROR_CODE
         }
 
-        private fun isHttp503Error(throwable: Throwable): Boolean {
+        fun isHttp503Error(throwable: Throwable): Boolean {
             return (throwable as HttpException).code() == 503
         }
 
@@ -237,6 +237,10 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
             return code == 405
         }
 
+        fun isHttp503Error(code: Int): Boolean {
+            return code == 503
+        }
+
         fun isHttp404Error(code: Int): Boolean {
             return code == 404
         }
@@ -257,6 +261,10 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
         // server error
         fun isHttp500Error(throwable: Throwable): Boolean {
             return (throwable as HttpException).code() == 500
+        }
+
+        fun isHttp5003Error(throwable: Throwable): Boolean {
+            return (throwable as HttpException).code() == 503
         }
 
         private fun isHttp404Error(throwable: Throwable): Boolean {

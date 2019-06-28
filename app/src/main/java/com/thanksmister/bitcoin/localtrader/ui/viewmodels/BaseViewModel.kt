@@ -130,8 +130,9 @@ constructor(application: Application) : AndroidViewModel(application), Lifecycle
             RetrofitErrorHandler.isHttp400Error(error.code) -> Unit
             RetrofitErrorHandler.isHttp409Error(error.code) -> Unit
             RetrofitErrorHandler.isHttp404Error(error.code) -> Unit
+            RetrofitErrorHandler.isHttp503Error(error.code) -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_network_retry), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
             RetrofitErrorHandler.isHttp405Error(error.code) -> Unit
-            ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_network_retry), ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+            ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_network_retry), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
             ExceptionCodes.INSUFFICIENT_BALANCE == error.code -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_not_enough_balance), ExceptionCodes.INSUFFICIENT_BALANCE)
             else -> showNetworkMessage(error.message, error.code)
         }

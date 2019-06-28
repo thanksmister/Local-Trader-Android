@@ -44,6 +44,7 @@ import io.reactivex.schedulers.Schedulers
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.HashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -115,17 +116,19 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
                 .subscribe ({notificationList ->
                     Timber.d("Notifications unread ${notificationList.size}")
                     for(notification in notificationList) {
-                        fetcher.markNotificationRead(notification.notificationId)
-                                .applySchedulers()
-                                .subscribe ({
-                                    Timber.d("Notification update response: ${it.toString()}")
-                                    if(!Parser.containsError(it.toString())) {
-                                        notification.read = true
-                                        updateNotification(notification)
-                                    }
-                                }, { error ->
-                                    handleError(error)
-                                })
+                        notification.notificationId?.let {
+                            fetcher.markNotificationRead(it)
+                                    .applySchedulers()
+                                    .subscribe ({
+                                        Timber.d("Notification update response: ${it.toString()}")
+                                        if(!Parser.containsError(it.toString())) {
+                                            notification.read = true
+                                            updateNotification(notification)
+                                        }
+                                    }, { error ->
+                                        handleError(error)
+                                    })
+                        }
                     }
                 }, {
                     error -> Timber.e("Notification Error $error.message")
@@ -136,13 +139,14 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
     // TODO make this extension
     private fun handleError(error: Throwable) {
         when (error) {
-            is HttpException -> {
+            is HttpException,
+            is UnknownHostException ->  {
                 val errorHandler = RetrofitErrorHandler(getApplication())
                 val networkException = errorHandler.create(error)
                 handleNetworkException(networkException)
             }
             is NetworkException -> handleNetworkException(error)
-            is SocketTimeoutException -> {}
+            is SocketTimeoutException -> Unit
             else -> {
                 showAlertMessage(error.message)
             }
@@ -166,7 +170,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
 
     private fun fetchContacts() {
         Timber.d("fetchContacts")
-        disposable += fetcher.contacts
+        disposable += fetcher.contacts()
                 .applySchedulers()
                 .subscribe ({
                     updateSyncMap(SYNC_CONTACTS, false)
@@ -180,7 +184,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
 
     private fun fetchAdvertisements() {
         Timber.d("fetchAdvertisements")
-        disposable += fetcher.advertisements
+        disposable += fetcher.advertisements()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -194,7 +198,7 @@ constructor(application: Application, private val advertisementsDao: Advertiseme
 
     private fun fetchNotifications() {
         Timber.d("fetchNotifications")
-        disposable += fetcher.notifications
+        disposable += fetcher.notifications()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
