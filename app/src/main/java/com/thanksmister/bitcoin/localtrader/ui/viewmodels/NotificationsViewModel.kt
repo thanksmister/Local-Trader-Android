@@ -32,13 +32,17 @@ import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class NotificationsViewModel @Inject
-constructor(application: Application, private val notificationsDao: NotificationsDao, private val preferences: Preferences) : BaseViewModel(application)  {
+constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
+            private val notificationsDao: NotificationsDao,
+            private val preferences: Preferences) : BaseViewModel(application)  {
 
     init {
     }
@@ -49,7 +53,7 @@ constructor(application: Application, private val notificationsDao: Notification
 
     fun markNotificationRead(notification: Notification) {
         val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val api = LocalBitcoinsApi(okHttpClient, endpoint)
         val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
         notification.notificationId?.let {
             disposable += fetcher.markNotificationRead(it)

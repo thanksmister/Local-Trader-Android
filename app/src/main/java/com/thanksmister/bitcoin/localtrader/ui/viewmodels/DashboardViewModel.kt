@@ -41,6 +41,7 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
@@ -50,15 +51,20 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class DashboardViewModel @Inject
-constructor(application: Application, private val advertisementsDao: AdvertisementsDao,  private val contactsDao: ContactsDao,
-            private val notificationsDao: NotificationsDao, private val exchangeRateDao: ExchangeRateDao,
-            private val userDao: UserDao, private val preferences: Preferences) : BaseViewModel(application) {
+constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
+            private val advertisementsDao: AdvertisementsDao,
+            private val contactsDao: ContactsDao,
+            private val notificationsDao: NotificationsDao,
+            private val exchangeRateDao: ExchangeRateDao,
+            private val userDao: UserDao,
+            private val preferences: Preferences) : BaseViewModel(application) {
 
     private var syncMap = HashMap<String, Boolean>()
 
     private val fetcher: LocalBitcoinsFetcher by lazy {
         val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val api = LocalBitcoinsApi(okHttpClient, endpoint)
         LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 

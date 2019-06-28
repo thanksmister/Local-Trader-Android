@@ -32,11 +32,14 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import timber.log.Timber
 import javax.inject.Inject
 
 class LoginViewModel @Inject
-constructor(application: Application, private val userDao: UserDao, private val preferences: Preferences) : BaseViewModel(application) {
+constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
+            private val preferences: Preferences) : BaseViewModel(application) {
 
     private val authorized = MutableLiveData<Boolean>()
 
@@ -53,7 +56,7 @@ constructor(application: Application, private val userDao: UserDao, private val 
     }
 
     fun setAuthorizationCode(code: String, endpoint: String) {
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val api = LocalBitcoinsApi(okHttpClient, endpoint)
         val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
         Timber.d("endPoint: $endpoint")
         disposable.add(fetcher.getAuthorization(code)

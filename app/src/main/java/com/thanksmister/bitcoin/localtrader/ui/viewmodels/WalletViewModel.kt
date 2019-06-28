@@ -39,22 +39,24 @@ import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.functions.BiFunction
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class WalletViewModel @Inject
-constructor(application: Application, 
+constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
             private val walletDao: WalletDao,
-            private val exchangeDao: ExchangeRateDao, 
+            private val exchangeDao: ExchangeRateDao,
             private val preferences: Preferences) : BaseViewModel(application) {
 
     private val qrCodeBitmap = MutableLiveData<Bitmap>()
 
     private val fetcher: LocalBitcoinsFetcher by lazy {
         val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val api = LocalBitcoinsApi(okHttpClient, endpoint)
         LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 
@@ -157,9 +159,6 @@ constructor(application: Application,
     }
 
     private fun getNetworkData() : Observable<NetworkData> {
-        val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
-        val fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
         val exchangeApi = ExchangeApi(preferences)
         val exchangeFetcher = ExchangeFetcher(exchangeApi, preferences)
         return Observable.zip(

@@ -16,8 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api
 
-import android.content.Context
-import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.thanksmister.bitcoin.localtrader.network.api.adapters.DataTypeAdapterFactory
@@ -26,29 +24,17 @@ import com.thanksmister.bitcoin.localtrader.network.services.LocalBitcoinsServic
 import io.reactivex.Observable
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
+
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 
-import java.util.concurrent.TimeUnit
-
-class LocalBitcoinsApi (context: Context, baseUrl: String) {
+class LocalBitcoinsApi (httpClient: OkHttpClient, baseUrl: String) {
 
     private val service: LocalBitcoinsService
 
     init {
-        val logging = HttpLoggingInterceptor()
-        logging.level = HttpLoggingInterceptor.Level.BODY
-
-        val httpClient = OkHttpClient.Builder()
-                .addInterceptor(logging)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .addNetworkInterceptor(StethoInterceptor())
-                .build()
 
         val gson = GsonBuilder()
                 .registerTypeAdapterFactory(DataTypeAdapterFactory())

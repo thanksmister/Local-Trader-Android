@@ -31,6 +31,7 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import org.json.JSONObject
 import retrofit2.HttpException
 import timber.log.Timber
@@ -38,7 +39,9 @@ import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class PinCodeViewModel @Inject
-constructor(application: Application, private val preferences: Preferences) : BaseViewModel(application) {
+constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
+            private val preferences: Preferences) : BaseViewModel(application) {
 
     private val pinCodeStatus = MutableLiveData<Boolean>()
     private var fetcher: LocalBitcoinsFetcher? = null
@@ -53,7 +56,7 @@ constructor(application: Application, private val preferences: Preferences) : Ba
 
     init {
         val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val api = LocalBitcoinsApi(okHttpClient, endpoint)
         fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 

@@ -38,6 +38,7 @@ import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import timber.log.BuildConfig
 import timber.log.Timber
 import java.util.ArrayList
@@ -61,7 +62,9 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
     private val disposable = CompositeDisposable()
 
     @Inject
-    constructor(context: Context, walletDao: WalletDao,
+    constructor(context: Context,
+                okHttpClient: OkHttpClient,
+                walletDao: WalletDao,
                 notificationsDao: NotificationsDao,
                 notificationUtils: NotificationUtils,
                 preferences: Preferences) : this(context, true) {
@@ -70,13 +73,12 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
         this.walletDao = walletDao
         this.notificationsDao = notificationsDao
         this.notificationUtils = notificationUtils
-        val api = LocalBitcoinsApi(context, preferences.getServiceEndpoint())
+        val api = LocalBitcoinsApi(okHttpClient, preferences.getServiceEndpoint())
         fetcher = LocalBitcoinsFetcher(context, api, preferences)
         Timber.d("SyncAdapter")
     }
 
     constructor(context: Context, autoInitialize: Boolean) : super(context, autoInitialize) {
-
     }
 
     /**

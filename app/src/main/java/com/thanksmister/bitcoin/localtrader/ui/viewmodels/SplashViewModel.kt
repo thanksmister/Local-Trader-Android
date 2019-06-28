@@ -38,6 +38,7 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
@@ -46,6 +47,7 @@ import javax.inject.Inject
 
 class SplashViewModel @Inject
 constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
             private val userDao: UserDao,
             private val methodsDao: MethodsDao,
             private val currenciesDao: CurrenciesDao,
@@ -60,7 +62,7 @@ constructor(application: Application,
     private val syncing = MutableLiveData<String>()
 
     private val fetcher: LocalBitcoinsFetcher by lazy {
-        val api = LocalBitcoinsApi(getApplication(), preferences.getServiceEndpoint())
+        val api = LocalBitcoinsApi(okHttpClient, preferences.getServiceEndpoint())
         LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 

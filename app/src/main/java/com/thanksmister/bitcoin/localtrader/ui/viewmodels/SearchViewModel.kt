@@ -35,14 +35,16 @@ import com.thanksmister.bitcoin.localtrader.utils.SearchUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Flowable
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class SearchViewModel @Inject
-constructor(application: Application, 
-            private val methodsDao: MethodsDao, 
+constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
+            private val methodsDao: MethodsDao,
             private val currenciesDao: CurrenciesDao,
             private val sharedPreferences: SharedPreferences,
             private val preferences: Preferences) : BaseViewModel(application) {
@@ -51,7 +53,7 @@ constructor(application: Application,
     
     private val fetcher: LocalBitcoinsFetcher by lazy {
         val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val api = LocalBitcoinsApi(okHttpClient, endpoint)
         LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 

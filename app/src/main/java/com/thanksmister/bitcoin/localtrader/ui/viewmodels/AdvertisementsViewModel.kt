@@ -50,6 +50,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
@@ -57,6 +58,7 @@ import javax.inject.Inject
 
 class AdvertisementsViewModel @Inject
 constructor(application: Application,
+            private val okHttpClient: OkHttpClient,
             private val advertisementsDao: AdvertisementsDao,
             private val methodsDao: MethodsDao,
             private val preferences: Preferences,
@@ -120,7 +122,7 @@ constructor(application: Application,
         setAdvertisementDeleted(false)
         setUseAdvancedEditFeature(remoteConfig.getBoolean(ADVANCED_AD_EDITING))
         val endpoint = preferences.getServiceEndpoint()
-        val api = LocalBitcoinsApi(getApplication(), endpoint)
+        val api = LocalBitcoinsApi(okHttpClient, endpoint)
         fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 
