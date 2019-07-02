@@ -70,6 +70,11 @@ fun <T> Flowable<T>.applySchedulers(): Flowable<T> {
             .observeOn(AndroidSchedulers.mainThread())
 }
 
+fun <T> Flowable<T>.applySchedulersIo(): Flowable<T> {
+    return subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+}
+
 fun <T> Single<T>.applySchedulersComputation(): Single<T> {
     return subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())

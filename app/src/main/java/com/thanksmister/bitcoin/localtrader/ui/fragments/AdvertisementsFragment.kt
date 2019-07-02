@@ -40,6 +40,7 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertisementsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.AdvertisementsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulersIo
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import kotlinx.android.synthetic.main.fragment_advertisements.*
 import timber.log.Timber
@@ -101,7 +102,7 @@ class AdvertisementsFragment : BaseFragment() {
             }
         })
         disposable += viewModel.getAdvertisementsData()
-                .applySchedulers()
+                .applySchedulersIo()
                 .subscribe( { data ->
                     if(data != null) {
                       setupList(data.advertisements, data.methods)

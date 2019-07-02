@@ -151,7 +151,7 @@ class RequestFragment : BaseFragment() {
             }
         })
         disposable += (viewModel.getWalletData()
-                .applySchedulers()
+                .applySchedulersIo()
                 .subscribe( { it ->
                     it.rate?.let {
                         rate = it

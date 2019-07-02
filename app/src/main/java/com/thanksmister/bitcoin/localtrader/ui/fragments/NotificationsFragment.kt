@@ -41,6 +41,7 @@ import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.NotificationsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulersIo
 import kotlinx.android.synthetic.main.fragment_notifications.*
 import timber.log.Timber
 import javax.inject.Inject
@@ -123,7 +124,7 @@ class NotificationsFragment : BaseFragment() {
             }
         })
         disposable.add(viewModel.getNotifications()
-                .applySchedulers()
+                .applySchedulersIo()
                 .subscribe( { data ->
                     if(data != null) {
                         setupList(data)

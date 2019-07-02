@@ -33,6 +33,7 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.*
 import com.thanksmister.bitcoin.localtrader.utils.Parser
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulersIo
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Completable
 import io.reactivex.Flowable
@@ -117,8 +118,7 @@ constructor(application: Application,
 
     fun markNotificationsRead() {
         disposable += getUnreadNotifications()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulersIo()
                 .subscribe ({notificationList ->
                     Timber.d("Notifications unread ${notificationList.size}")
                     for(notification in notificationList) {

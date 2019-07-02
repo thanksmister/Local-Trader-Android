@@ -330,7 +330,7 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                     Timber.e("Exchange error: $error")
                 })
         disposable += viewModel.getUser()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ user ->
                     user?.let {

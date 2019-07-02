@@ -124,7 +124,7 @@ class LoginActivity : BaseActivity() {
     private fun observeViewModel(viewModel: LoginViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
             Timber.d("getAlertMessage")
-            if(message != null)
+            if(message != null && !isFinishing)
                 dialogUtils.showAlertDialog(this@LoginActivity, message)
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
@@ -134,7 +134,7 @@ class LoginActivity : BaseActivity() {
             }
         })
         viewModel.getAuthorized().observe(this, Observer {
-            if(it == true) {
+            if(it == true && !isFinishing) {
                 val intent = Intent(this, SplashActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -249,7 +249,9 @@ class LoginActivity : BaseActivity() {
                 } else {
                     loginContent.visibility = View.VISIBLE
                     loginWebView.visibility = View.GONE
-                    dialogUtils.showAlertDialog(this@LoginActivity, getString(R.string.error_invalid_credentials))
+                    if(!isFinishing) {
+                        dialogUtils.showAlertDialog(this@LoginActivity, getString(R.string.error_invalid_credentials))
+                    }
                     return false
                 }
             } else if (path.contains("authorize")

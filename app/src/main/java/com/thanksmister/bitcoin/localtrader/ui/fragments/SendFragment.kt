@@ -39,10 +39,7 @@ import com.thanksmister.bitcoin.localtrader.ui.activities.PinCodeActivity
 import com.thanksmister.bitcoin.localtrader.ui.activities.ScanQrCodeActivity
 import com.thanksmister.bitcoin.localtrader.ui.activities.SendActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
-import com.thanksmister.bitcoin.localtrader.utils.Calculations
-import com.thanksmister.bitcoin.localtrader.utils.Conversions
-import com.thanksmister.bitcoin.localtrader.utils.Doubles
-import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
+import com.thanksmister.bitcoin.localtrader.utils.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -127,8 +124,7 @@ class SendFragment : BaseFragment() {
             }
         })
         disposable.add(viewModel.getWalletData()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulersIo()
                 .subscribe( { data ->
                     if (data != null) {
                         rate = data.rate

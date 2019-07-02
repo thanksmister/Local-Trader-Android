@@ -33,6 +33,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.NotificationsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulersIo
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import io.reactivex.Completable
 import io.reactivex.Flowable
@@ -274,7 +275,7 @@ constructor(application: Application,
 
     fun markNotificationRead(contactId: Int) {
         disposable += notificationsDao.getItemUnreadItemByContactId(contactId, false)
-                .applySchedulers()
+                .applySchedulersIo()
                 .subscribe ({notification ->
                     notification.notificationId?.let {
                         fetcher.markNotificationRead(it)

@@ -33,6 +33,7 @@ import com.thanksmister.bitcoin.localtrader.persistence.WalletDao
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
+import com.thanksmister.bitcoin.localtrader.utils.applySchedulersIo
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -112,12 +113,10 @@ class SyncAdapter : AbstractThreadedSyncAdapter {
 
     private fun updateNotifications() {
         disposable.add(getNotifications()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .applySchedulersIo()
                 .subscribe({ localNotifications ->
                     fetcher!!.notifications()
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
+                            .applySchedulers()
                             .subscribe({ remoteNotifications ->
                                 if(!localNotifications.isEmpty() && !remoteNotifications.isEmpty()) {
                                     val entryMap = HashMap<String, Notification>();
