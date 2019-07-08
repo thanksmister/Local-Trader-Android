@@ -54,18 +54,15 @@ class ActivityModule {
     }
 
     @Provides
-    @Singleton
     fun provideSharedPreferences(app: Application): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(app.applicationContext)
     }
 
-    @Singleton
     @Provides
     fun notificationUtils(application: Application): NotificationUtils {
         return NotificationUtils(application)
     }
 
-    @Singleton
     @Provides
     fun providesRemoteConfig(): FirebaseRemoteConfig {
         return FirebaseRemoteConfig.getInstance()

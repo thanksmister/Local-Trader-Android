@@ -122,9 +122,15 @@ class SplashActivity : BaseActivity() {
                             onBackPressed()
                         })
                     }
-                    else -> dialogUtils.showAlertDialog(this@SplashActivity, messageData.message, DialogInterface.OnClickListener { dialog, which ->
-                        viewModel.startSync()
-                        showProgress(true)
+                    else -> dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
+                        showProgress(false)
+                        dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
+                            Timber.d("retry network!!")
+                            showProgress(true)
+                            viewModel.startSync()
+                        }, DialogInterface.OnClickListener { dialog, which ->
+                            onBackPressed()
+                        })
                     })
                 }
             }
@@ -141,13 +147,14 @@ class SplashActivity : BaseActivity() {
             } else if (it == SplashViewModel.SYNC_ERROR) {
                 showProgress(false)
                 viewModel.onCleared()
-                dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
+                /*dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
                     Timber.d("retry network!!")
                     showProgress(true)
+                    viewModel.onCleared()
                     viewModel.startSync()
                 }, DialogInterface.OnClickListener { dialog, which ->
                     onBackPressed()
-                })
+                })*/
             }
         })
 

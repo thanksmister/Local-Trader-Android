@@ -36,10 +36,11 @@ import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.ui.activities.*
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity.Companion.EXTRA_NOTIFICATION_ID
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity.Companion.EXTRA_NOTIFICATION_TYPE
+import dagger.Reusable
 import timber.log.Timber
 import java.util.*
 
-
+@Reusable
 class NotificationUtils(context: Context) : ContextWrapper(context) {
 
     private var notificationManager: NotificationManager? = null

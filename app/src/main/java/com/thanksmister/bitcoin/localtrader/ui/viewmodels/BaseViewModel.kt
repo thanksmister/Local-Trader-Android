@@ -129,7 +129,7 @@ constructor(application: Application) : AndroidViewModel(application), Lifecycle
             RetrofitErrorHandler.isHttp403Error(error.code) -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_bad_token), ExceptionCodes.AUTHENTICATION_ERROR_CODE)
             RetrofitErrorHandler.isHttp400Error(error.code) -> Unit
             RetrofitErrorHandler.isHttp409Error(error.code) -> Unit
-            RetrofitErrorHandler.isHttp404Error(error.code) -> Unit
+            RetrofitErrorHandler.isHttp404Error(error.code) -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_network_retry), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
             RetrofitErrorHandler.isHttp503Error(error.code) -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_network_retry), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)
             RetrofitErrorHandler.isHttp405Error(error.code) -> Unit
             ExceptionCodes.INVALID_GRANT == error.code -> showNetworkMessage(getApplication<BaseApplication>().getString(R.string.error_network_retry), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE)

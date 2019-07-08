@@ -33,6 +33,7 @@ import com.thanksmister.bitcoin.localtrader.databinding.ViewWalletBinding
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
+import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.adapters.TransactionsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
@@ -87,9 +88,29 @@ class WalletFragment : BaseFragment(), SwipeRefreshLayout.OnRefreshListener {
 
     private fun observeViewModel(viewModel: WalletViewModel) {
         viewModel.getNetworkMessage().observe(this, Observer { message ->
-            message?.message?.let {
+            message?.let {
                 onRefreshStop()
-                dialogUtils.showAlertDialog(requireActivity(), it)
+                when {
+                    RetrofitErrorHandler.isHttp403Error(it.code)  -> {
+                        dialogUtils.showAlertDialog(requireActivity(), getString(R.string.error_bad_token), DialogInterface.OnClickListener { dialog, which ->
+                            (requireActivity() as BaseActivity).logOut()
+                        })
+                    }
+                    RetrofitErrorHandler.isNetworkError(it.code) ||
+                            RetrofitErrorHandler.isHttp503Error(it.code) -> {
+                        dialogUtils.showAlertDialog(requireActivity(), getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
+                            dialogUtils.toast(getString(R.string.toast_refreshing_data))
+                            viewModel.fetchNetworkData()
+                        }, DialogInterface.OnClickListener { _, _ -> })
+                    }
+                    RetrofitErrorHandler.isHttp400Error(it.code) -> {
+                        dialogUtils.showAlertDialog(requireActivity(), it.message, DialogInterface.OnClickListener { dialog, which ->
+                            Timber.e("Bad request: ${it.message}")
+                        }, DialogInterface.OnClickListener { _, _ -> })
+                    }
+                    else -> dialogUtils.showAlertDialog(requireActivity(), it.message, DialogInterface.OnClickListener { dialog, which ->
+                    }, DialogInterface.OnClickListener { _, _ -> })
+                }
             }
         })
         viewModel.getAlertMessage().observe(this, Observer { message ->

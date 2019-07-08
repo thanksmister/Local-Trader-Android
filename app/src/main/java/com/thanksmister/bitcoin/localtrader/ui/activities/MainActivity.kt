@@ -94,17 +94,17 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_home -> {
-                supportFragmentManager.beginTransaction().hide(activeFragment).show(advertisementFragment).commit()
+                supportFragmentManager.beginTransaction().hide(activeFragment).show(advertisementFragment).commitAllowingStateLoss()
                 activeFragment = advertisementFragment
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_dashboard -> {
-                supportFragmentManager.beginTransaction().hide(activeFragment).show(contactsFragment).commit()
+                supportFragmentManager.beginTransaction().hide(activeFragment).show(contactsFragment).commitAllowingStateLoss()
                 activeFragment = contactsFragment
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_notifications -> {
-                supportFragmentManager.beginTransaction().hide(activeFragment).show(notificationsFragment).commit()
+                supportFragmentManager.beginTransaction().hide(activeFragment).show(notificationsFragment).commitAllowingStateLoss()
                 activeFragment = notificationsFragment
                 return@OnNavigationItemSelectedListener true
             }
@@ -143,8 +143,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
 
         binding.mainSwipeLayout.setOnRefreshListener(this)
         binding.mainSwipeLayout.setColorSchemeColors(resources.getColor(R.color.red))
-        binding.mainSwipeLayout.setProgressViewOffset(false, 48, 186)
-        binding.mainSwipeLayout.setDistanceToTriggerSync(250)
 
         // Application rating dialog
         val config = RateThisApp.Config(7, 10)
@@ -266,6 +264,10 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
         viewModel.getDashboardData()
     }
 
+    private fun onRefreshStart() {
+        binding.mainSwipeLayout.isRefreshing = true
+    }
+
     private fun onRefreshStop() {
         binding.mainSwipeLayout.isRefreshing = false
     }
@@ -286,15 +288,23 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                         dialogUtils.showAlertDialog(this@MainActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
                             dialogUtils.toast(getString(R.string.toast_refreshing_data))
                             viewModel.getDashboardData()
-                        }, DialogInterface.OnClickListener { _, _ -> })
+                        }, DialogInterface.OnClickListener { _, _ ->
+                            onRefreshStop()
+                        })
                     }
                     RetrofitErrorHandler.isHttp400Error(messageData.code) -> {
                         dialogUtils.showAlertDialog(this@MainActivity, it.message, DialogInterface.OnClickListener { dialog, which ->
                             Timber.e("Bad request: ${it.message}")
-                        }, DialogInterface.OnClickListener { _, _ -> })
+                            onRefreshStop()
+                        }, DialogInterface.OnClickListener { _, _ ->
+                            onRefreshStop()
+                        })
                     }
                     else -> dialogUtils.showAlertDialog(this@MainActivity, it.message, DialogInterface.OnClickListener { dialog, which ->
-                    }, DialogInterface.OnClickListener { _, _ -> })
+                        onRefreshStop()
+                    }, DialogInterface.OnClickListener { _, _ ->
+                        onRefreshStop()
+                    })
                 }
             }
         })
@@ -311,13 +321,16 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
             }
         })
         viewModel.getSyncing().observe(this, Observer {
-            if (it == SplashViewModel.SYNC_COMPLETE) {
+            if (it == DashboardViewModel.SYNC_COMPLETE) {
                 onRefreshStop()
-            } else if (it == SplashViewModel.SYNC_ERROR) {
+            } else if (it == DashboardViewModel.SYNC_STARTED) {
+                onRefreshStart()
+            } else if (it == DashboardViewModel.SYNC_ERROR) {
                 onRefreshStop()
                 viewModel.onCleared()
             }
         })
+
         disposable += viewModel.getExchange()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -325,7 +338,6 @@ class MainActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener, Navig
                     exchange?.let {
                         setHeaderItem(it.rate, it.currency, it.name)
                     }
-                    onRefreshStop()
                 }, { error ->
                     Timber.e("Exchange error: $error")
                 })

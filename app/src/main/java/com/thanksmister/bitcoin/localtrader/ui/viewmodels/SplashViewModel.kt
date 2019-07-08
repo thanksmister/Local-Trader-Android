@@ -21,6 +21,7 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.content.SharedPreferences
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants.ADVANCED_AD_EDITING
 import com.thanksmister.bitcoin.localtrader.constants.Constants.DEAD_MAN_SWITCH
@@ -28,6 +29,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
+import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
@@ -42,6 +44,7 @@ import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import timber.log.Timber
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.*
 import javax.inject.Inject
 
@@ -123,8 +126,8 @@ constructor(application: Application,
                         }
                     } else {
                         Timber.e("Firebase remote config fetch vales failed.")
-                        updateSyncMap(SYNC_REMOTE_CONFIG, false)
-                        updateSyncMap(SYNC_ERROR, true)
+                        handleError(NetworkException(getApplication<BaseApplication>().getString(R.string.error_network_disconnected), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE))
+                        setSyncing(SYNC_ERROR)
                     }
                 }
     }
@@ -147,13 +150,12 @@ constructor(application: Application,
                                     setMethodsExpireTime()
                                 }, { error ->
                                     Timber.e("Error getting methods ${error.message}")
-                                    if (error is NetworkException) {
+                                    /*if (error is NetworkException) {
                                         showNetworkMessage(error.message, error.code)
                                     } else {
                                         showAlertMessage(error.message)
-                                    }
+                                    }*/
                                     updateSyncMap(SYNC_METHODS, false)
-                                    setSyncing(SYNC_ERROR)
                                 })
                     } else {
                         updateSyncMap(SYNC_METHODS, false)
@@ -161,7 +163,6 @@ constructor(application: Application,
                 }, { error ->
                     Timber.e("Error getting methods ${error.message}")
                     updateSyncMap(SYNC_METHODS, false)
-                    setSyncing(SYNC_ERROR)
                 }))
     }
 
@@ -192,21 +193,19 @@ constructor(application: Application,
                                     setCurrencyExpireTime()
                                 }, { error ->
                                     Timber.e("Error getting currencies ${error.message}")
-                                    if (error is NetworkException) {
+                                    /*if (error is NetworkException) {
                                         showNetworkMessage(error.message, error.code)
                                     } else {
                                         showAlertMessage(error.message)
-                                    }
+                                    }*/
                                     updateSyncMap(SYNC_CURRENCIES, false)
-                                    setSyncing(SYNC_ERROR)
                                 })
                     } else {
                         updateSyncMap(SYNC_CURRENCIES, false)
                     }
                 }, { error ->
-                    Timber.e("Error getting methods ${error.message}")
+                    Timber.e("Error getting currencies ${error.message}")
                     updateSyncMap(SYNC_CURRENCIES, false)
-                    setSyncing(SYNC_ERROR)
                 }))
     }
 
@@ -236,18 +235,7 @@ constructor(application: Application,
                                     setUserExpireTime()
                                 }, {
                                     error ->
-                                    when (error) {
-                                        is HttpException -> {
-                                            val errorHandler = RetrofitErrorHandler(getApplication())
-                                            val networkException = errorHandler.create(error)
-                                            handleNetworkException(networkException)
-                                        }
-                                        is NetworkException -> handleNetworkException(error)
-                                        else -> {
-                                            showAlertMessage(error.message)
-                                        }
-                                    }
-                                    updateSyncMap(SYNC_MYSELF, false)
+                                    handleError(error)
                                     setSyncing(SYNC_ERROR)
                                 })
                     } else {
@@ -255,7 +243,7 @@ constructor(application: Application,
                     }
                 }, { error ->
                     Timber.e("Error getting user ${error.message}")
-                    updateSyncMap(SYNC_MYSELF, false)
+                    handleError(error)
                     setSyncing(SYNC_ERROR)
                 }))
     }
@@ -270,21 +258,26 @@ constructor(application: Application,
                     updateSyncMap(DashboardViewModel.SYNC_CONTACTS, false)
                     insertContacts(it)
                 }, { error ->
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
-                        }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> {}
-                        else -> {
-                            showAlertMessage(error.message)
-                        }
-                    }
-                    updateSyncMap(DashboardViewModel.SYNC_CONTACTS, false)
-                    setSyncing(SYNC_ERROR)
+                    handleError(error)
+                    updateSyncMap(SYNC_ERROR, true)
                 }))
+    }
+
+    // TODO make this extension
+    private fun handleError(error: Throwable) {
+        when (error) {
+            is HttpException,
+            is UnknownHostException ->  {
+                val errorHandler = RetrofitErrorHandler(getApplication())
+                val networkException = errorHandler.create(error)
+                handleNetworkException(networkException)
+            }
+            is NetworkException -> handleNetworkException(error)
+            is SocketTimeoutException -> Unit
+            else -> {
+                showAlertMessage(error.message)
+            }
+        }
     }
 
     private fun fetchAdvertisements() {
@@ -296,18 +289,7 @@ constructor(application: Application,
                     insertAdvertisements(it)
                     updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, false)
                 }, { error -> Timber.e("Error fetching advertisement ${error.message}")
-                    when (error) {
-                        is HttpException -> {
-                            val errorHandler = RetrofitErrorHandler(getApplication())
-                            val networkException = errorHandler.create(error)
-                            handleNetworkException(networkException)
-                        }
-                        is NetworkException -> handleNetworkException(error)
-                        is SocketTimeoutException -> {}
-                        else -> {
-                            showAlertMessage(error.message)
-                        }
-                    }
+                    handleError(error)
                     updateSyncMap(DashboardViewModel.SYNC_ADVERTISEMENTS, false)
                     setSyncing(SYNC_ERROR)
                 }))

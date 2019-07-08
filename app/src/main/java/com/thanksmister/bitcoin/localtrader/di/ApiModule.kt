@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit
 class ApiModule {
 
     @Provides
-    @Singleton
     fun provideClient(): OkHttpClient {
 
         val logging = HttpLoggingInterceptor()

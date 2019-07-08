@@ -16,7 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api
 
-import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.thanksmister.bitcoin.localtrader.network.api.adapters.DataTypeAdapterFactory
@@ -32,10 +31,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
-
-class ExchangeApi(preferences: Preferences) {
+class ExchangeApi(httpClient: OkHttpClient, preferences: Preferences) {
 
     private var coinbaseService: CoinbaseService? = null
     private var bitstampService: BitstampService? = null
@@ -45,14 +42,6 @@ class ExchangeApi(preferences: Preferences) {
     init {
         val logging = HttpLoggingInterceptor()
         logging.level = HttpLoggingInterceptor.Level.BODY
-
-        val httpClient = OkHttpClient.Builder()
-                .addInterceptor(logging)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .addNetworkInterceptor(StethoInterceptor())
-                .build()
 
         val gson = GsonBuilder()
                 .registerTypeAdapterFactory(DataTypeAdapterFactory())

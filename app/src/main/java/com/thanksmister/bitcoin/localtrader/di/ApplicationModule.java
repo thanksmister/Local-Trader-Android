@@ -44,66 +44,55 @@ abstract class ApplicationModule {
     abstract Application application(BaseApplication baseApplication);
 
     @Provides
-    @Singleton
     static Context provideContext(Application application) {
         return application;
     }
 
-    @Singleton
     @Provides
     static LocalTraderDatabase provideDatabase(Application app) {
         return LocalTraderDatabase.getInstance(app);
     }
 
-    @Singleton
     @Provides
     static ContactsDao provideContactsDao(LocalTraderDatabase database) {
         return database.contactsDao();
     }
 
-    @Singleton
     @Provides
     static UserDao provideUserDao(LocalTraderDatabase database) {
         return database.userDao();
     }
 
-    @Singleton
     @Provides
     static AdvertisementsDao provideAdvertisementsDao(LocalTraderDatabase database) {
         return database.advertisementsDao();
     }
 
-    @Singleton
     @Provides
     static MessageDao provideMessageDao(LocalTraderDatabase database) {
         return database.messageDao();
     }
 
-    @Singleton
     @Provides
     static NotificationsDao provideNotificationsDao(LocalTraderDatabase database) {
         return database.notificationsDao();
     }
 
-    @Singleton
     @Provides
     static MethodsDao provideMethodsDao(LocalTraderDatabase database) {
         return database.methodsDao();
     }
 
-    @Singleton
     @Provides
     static CurrenciesDao provideCurrenciesDao(LocalTraderDatabase database) {
         return database.currenciesDao();
     }
 
-    @Singleton
     @Provides
     static WalletDao provideWalletDao(LocalTraderDatabase database) {
         return database.walletDao();
     }
 
-    @Singleton
     @Provides
     static ExchangeRateDao provideExchangeRateDao(LocalTraderDatabase database) {
         return database.exchangeDao();

@@ -186,39 +186,39 @@ class LoginActivity : BaseActivity() {
     private fun setUpWebViewDefaults() {
         loginContent.visibility = View.GONE
         loginWebView.visibility = View.VISIBLE
-        dialogUtils.showProgressDialog(this@LoginActivity, getString(R.string.progress_loading_localbitcoins), true)
-        try {
-            loginWebView.webViewClient = OauthWebViewClient()
-            loginWebView.webChromeClient = WebChromeClient()
-            val settings = loginWebView.settings
-            settings.javaScriptEnabled = true
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
+        if(!isFinishing) {
+            dialogUtils.showProgressDialog(this@LoginActivity, getString(R.string.progress_loading_localbitcoins), true)
+            try {
+                loginWebView.webViewClient = OauthWebViewClient()
+                loginWebView.webChromeClient = WebChromeClient()
+                val settings = loginWebView.settings
+                settings.javaScriptEnabled = true
+                settings.useWideViewPort = true
+                settings.loadWithOverviewMode = true
+                settings.builtInZoomControls = true
+                settings.displayZoomControls = false
 
-            // Load website
-            loginWebView.loadUrl(OAUTH_URL)
-        } catch (e: Exception) {
-            Timber.e(e.message)
-            if (!BuildConfig.DEBUG) {
-                Crashlytics.log("WebView")
-                Crashlytics.logException(e)
+                // Load website
+                loginWebView.loadUrl(OAUTH_URL)
+            } catch (e: Exception) {
+                Timber.e(e.message)
+                loginContent.visibility = View.VISIBLE
+                loginWebView.visibility = View.GONE
+                dialogUtils.hideProgressDialog()
             }
-            loginContent.visibility = View.VISIBLE
-            loginWebView.visibility = View.GONE
-            dialogUtils.hideProgressDialog()
         }
     }
 
     fun setAuthorizationCode(code: String) {
-        dialogUtils.showProgressDialog(this@LoginActivity, getString(R.string.login_authorizing), true)
-        loginContent.visibility = View.VISIBLE
-        loginWebView.visibility = View.GONE
-        if(!TextUtils.isEmpty(endpoint)) {
-            viewModel.setAuthorizationCode(code, endpoint!!)
-        } else {
-            dialogUtils.toast(getString(R.string.alert_valid_endpoint))
+        if(!isFinishing) {
+            dialogUtils.showProgressDialog(this@LoginActivity, getString(R.string.login_authorizing), true)
+            loginContent.visibility = View.VISIBLE
+            loginWebView.visibility = View.GONE
+            if (!TextUtils.isEmpty(endpoint)) {
+                viewModel.setAuthorizationCode(code, endpoint!!)
+            } else {
+                dialogUtils.toast(getString(R.string.alert_valid_endpoint))
+            }
         }
     }
 

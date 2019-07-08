@@ -60,6 +60,11 @@ constructor(application: Application,
         LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 
+    private val exchangeFetcher: ExchangeFetcher by lazy {
+        val api = ExchangeApi(okHttpClient, preferences)
+        ExchangeFetcher(api, preferences)
+    }
+
     fun getBitmap(): LiveData<Bitmap> {
         return qrCodeBitmap
     }
@@ -159,8 +164,7 @@ constructor(application: Application,
     }
 
     private fun getNetworkData() : Observable<NetworkData> {
-        val exchangeApi = ExchangeApi(preferences)
-        val exchangeFetcher = ExchangeFetcher(exchangeApi, preferences)
+
         return Observable.zip(
                 fetcher.wallet(),
                 exchangeFetcher.getExchangeRate(),

@@ -69,6 +69,11 @@ constructor(application: Application,
         LocalBitcoinsFetcher(getApplication(), api, preferences)
     }
 
+    private val exchangeFetcher: ExchangeFetcher by lazy {
+        val api = ExchangeApi(okHttpClient, preferences)
+        ExchangeFetcher(api, preferences)
+    }
+
     private val syncing = MutableLiveData<String>()
 
     fun getSyncing(): LiveData<String> {
@@ -81,7 +86,7 @@ constructor(application: Application,
 
     init {
         Timber.d("init")
-        setSyncing(SplashViewModel.SYNC_IDLE)
+        setSyncing(SYNC_IDLE)
     }
 
     override fun onCleared() {
@@ -161,9 +166,7 @@ constructor(application: Application,
 
     private fun fetchExchange() {
         Timber.d("fetchExchange")
-        val api = ExchangeApi(preferences)
-        val fetcher = ExchangeFetcher(api, preferences)
-        disposable += fetcher.getExchangeRate()
+        disposable += exchangeFetcher.getExchangeRate()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe ({
@@ -184,7 +187,7 @@ constructor(application: Application,
                     fetchNotifications()
                 }, { error ->
                     handleError(error)
-                    updateSyncMap(SYNC_CONTACTS, false)
+                    setSyncing(SYNC_ERROR)
                 })
     }
 
@@ -198,7 +201,7 @@ constructor(application: Application,
                     updateSyncMap(SYNC_ADVERTISEMENTS, false)
                 }, { error ->
                     handleError(error)
-                    updateSyncMap(SYNC_ADVERTISEMENTS, false)
+                    setSyncing(SYNC_ERROR)
                 })
     }
 
@@ -215,7 +218,7 @@ constructor(application: Application,
                     }
                 }, { error ->
                     handleError(error)
-                    updateSyncMap(SYNC_NOTIFICATIONS, false)
+                    setSyncing(SYNC_ERROR)
                 })
     }
 
