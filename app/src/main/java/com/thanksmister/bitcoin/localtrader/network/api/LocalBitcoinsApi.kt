@@ -220,14 +220,6 @@ class LocalBitcoinsApi (httpClient: OkHttpClient, baseUrl: String) {
         return service.getWalletBalance(accessToken);
     }
 
-    fun getPlaces(lat: Double, lon: Double):Observable<Places> {
-        return service.getPlaces(lat, lon)
-    }
-
-    fun searchAdsByPlace(type: String, num: String, location: String):Observable<Advertisements> {
-        return service.searchAdsByPlace(type, num, location)
-    }
-
     fun searchOnlineAds(type: String, countryName: String, countryCode: String):Observable<Advertisements> {
         return service.searchOnlineAds(type, countryName, countryCode)
     }
@@ -240,7 +232,7 @@ class LocalBitcoinsApi (httpClient: OkHttpClient, baseUrl: String) {
         return service.searchOnlineAdsCurrency(type, currency)
     }
 
-    fun searchOnlineAdsCurrency(type: String, currency: String,  paymentMethod: String):Observable<Advertisements> {
+    fun searchOnlineAdsCurrency(type: String, currency: String, paymentMethod: String):Observable<Advertisements> {
         return service.searchOnlineAdsCurrencyPayment(type, currency, paymentMethod)
     }
 

@@ -143,6 +143,7 @@ constructor(application: Application,
                 })
     }
 
+    // TODO we need a way to load next page of search results
     fun getOnlineAdvertisements(tradeType: TradeType) {
         val currency = getSearchCurrency()
         val paymentKey = getSearchPaymentMethod()

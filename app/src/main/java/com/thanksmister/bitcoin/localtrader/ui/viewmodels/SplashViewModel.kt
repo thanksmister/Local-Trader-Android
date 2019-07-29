@@ -77,6 +77,18 @@ constructor(application: Application,
         this.syncing.value = value
     }
 
+    private fun setSyncingError(value: String) {
+        this.syncing.value = value
+        updateSyncMap(SYNC_MYSELF, false)
+        updateSyncMap(SYNC_CURRENCIES, false)
+        updateSyncMap(SYNC_METHODS, false)
+    }
+
+    fun resetPreferences() {
+        resetCurrenciesExpireTime()
+        resetMethodsExpireTime()
+    }
+
     /*@OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     fun onResume() {
         setSyncing(SYNC_IDLE)
@@ -87,8 +99,11 @@ constructor(application: Application,
     }
 
     fun startSync() {
-        Timber.d("startSync")
         resetSyncing()
+        updateSyncMap(SYNC_REMOTE_CONFIG, true)
+        updateSyncMap(SYNC_MYSELF, true)
+        updateSyncMap(SYNC_CURRENCIES, true)
+        updateSyncMap(SYNC_METHODS, true)
         fetchRemoteConfigValues()
     }
 
@@ -106,7 +121,6 @@ constructor(application: Application,
 
     private fun fetchRemoteConfigValues() {
         Timber.e("fetchRemoteConfigValues")
-        updateSyncMap(SYNC_REMOTE_CONFIG, true)
         remoteConfig.setDefaults(R.xml.remoteconfig)
         remoteConfig.fetch()
                 .addOnCompleteListener { task ->
@@ -119,15 +133,13 @@ constructor(application: Application,
                         Timber.w("dead man walking: $deadMan")
                         if(!deadMan) {
                             fetchUser()
-                            fetchMethods()
-                            fetchCurrencies()
                         } else {
                             showAlertMessage("Dead man switch activated, this app has stopped functioning indefinitely.")
                         }
                     } else {
                         Timber.e("Firebase remote config fetch vales failed.")
                         handleError(NetworkException(getApplication<BaseApplication>().getString(R.string.error_network_disconnected), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE))
-                        setSyncing(SYNC_ERROR)
+                        setSyncingError(SYNC_ERROR)
                     }
                 }
     }
@@ -138,23 +150,17 @@ constructor(application: Application,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ results ->
                     Timber.d("Methods results ${results.size}")
-                    if (results == null || results.isEmpty() || needToRefreshMethods()) {
+                    if (results == null || results.isEmpty() || needToRefreshMethods() || runSplashRefresh()) {
                         Timber.d("fetching methods")
-                        updateSyncMap(SYNC_METHODS, true)
                         fetcher.methods()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
-                                    insertMethods(it)
-                                    updateSyncMap(SYNC_METHODS, false)
                                     setMethodsExpireTime()
+                                    updateSyncMap(SYNC_METHODS, false)
+                                    insertMethods(it)
                                 }, { error ->
                                     Timber.e("Error getting methods ${error.message}")
-                                    /*if (error is NetworkException) {
-                                        showNetworkMessage(error.message, error.code)
-                                    } else {
-                                        showAlertMessage(error.message)
-                                    }*/
                                     updateSyncMap(SYNC_METHODS, false)
                                 })
                     } else {
@@ -181,23 +187,16 @@ constructor(application: Application,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ results ->
                     Timber.d("Currency results ${results.size}")
-                    if (results == null || results.isEmpty() || needToRefreshCurrency()) {
+                    if (results == null || results.isEmpty() || needToRefreshCurrency() || runSplashRefresh()) {
                         Timber.d("fetching currencies")
-                        updateSyncMap(SYNC_CURRENCIES, true)
                         fetcher.currencies()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe({
-                                    insertCurrencies(it)
                                     updateSyncMap(SYNC_CURRENCIES, false)
-                                    setCurrencyExpireTime()
+                                    insertCurrencies(it)
                                 }, { error ->
                                     Timber.e("Error getting currencies ${error.message}")
-                                    /*if (error is NetworkException) {
-                                        showNetworkMessage(error.message, error.code)
-                                    } else {
-                                        showAlertMessage(error.message)
-                                    }*/
                                     updateSyncMap(SYNC_CURRENCIES, false)
                                 })
                     } else {
@@ -225,7 +224,6 @@ constructor(application: Application,
                 .subscribe({ results ->
                     Timber.d("user $results")
                     if (results.isEmpty() || needToRefreshUser()) {
-                        updateSyncMap(SYNC_MYSELF, true)
                         fetcher.myself()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -233,18 +231,22 @@ constructor(application: Application,
                                     insertUser(it)
                                     updateSyncMap(SYNC_MYSELF, false)
                                     setUserExpireTime()
+                                    fetchMethods()
+                                    fetchCurrencies()
                                 }, {
                                     error ->
                                     handleError(error)
-                                    setSyncing(SYNC_ERROR)
+                                    setSyncingError(SYNC_ERROR)
                                 })
                     } else {
                         updateSyncMap(SYNC_MYSELF, false)
+                        fetchMethods()
+                        fetchCurrencies()
                     }
                 }, { error ->
                     Timber.e("Error getting user ${error.message}")
                     handleError(error)
-                    setSyncing(SYNC_ERROR)
+                    setSyncingError(SYNC_ERROR)
                 }))
     }
 
@@ -368,6 +370,7 @@ constructor(application: Application,
         syncMap[key] = value
         if (!isSyncing()) {
             resetSyncing()
+            setRefreshSplash()
             setSyncing(SYNC_COMPLETE)
         } else {
             setSyncing(SYNC_STARTED)
@@ -435,6 +438,14 @@ constructor(application: Application,
         sharedPreferences.edit().remove(PREFS_CURRENCY_EXPIRE_TIME).apply()
     }
 
+    private fun runSplashRefresh(): Boolean {
+        return sharedPreferences.getBoolean(PREFS_REFRESH_SPLASH,true);
+    }
+
+    private fun setRefreshSplash() {
+        sharedPreferences.edit().putBoolean(PREFS_REFRESH_SPLASH, false).apply()
+    }
+
     companion object {
         const val SYNC_MYSELF = "SYNC_MYSELF"
         const val SYNC_CURRENCIES = "SYNC_CURRENCIES"
@@ -453,5 +464,6 @@ constructor(application: Application,
         const val PREFS_METHODS_EXPIRE_TIME = "pref_methods_expire_time";
         const val PREFS_CURRENCY_EXPIRE_TIME = "pref_currency_expire_time";
         const val PREFS_USER_EXPIRE_TIME = "pref_currency_expire_time";
+        const val PREFS_REFRESH_SPLASH = "refreshSplash"
     }
 }

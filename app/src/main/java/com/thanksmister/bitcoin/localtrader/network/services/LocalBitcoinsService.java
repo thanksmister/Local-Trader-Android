@@ -231,15 +231,6 @@ public interface LocalBitcoinsService {
                                                @Path("country_name") String country_name,
                                                @Path("payment_method") String payment_method);
 
-    @GET(GET_ADS_PLACES)
-    Observable<Places> getPlaces(@Query("lat") double lat,
-                                 @Query("lon") double lon);
-
-    @GET("/{type}/{num}/{loc}/.json")
-    Observable<Advertisements> searchAdsByPlace(@Path("type") String type,
-                                                @Path("num") String num,
-                                                @Path("loc") String loc);
-
     @GET(GET_PAYMENT_METHODS)
     Observable<TreeMap<String, Object>> getOnlineProviders();
 

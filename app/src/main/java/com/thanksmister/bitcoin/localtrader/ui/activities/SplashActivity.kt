@@ -53,12 +53,15 @@ class SplashActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.view_splash)
+
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(SplashViewModel::class.java)
+
         if (!preferences.hasCredentials()) {
+            viewModel.resetPreferences()
             val intent = Intent(this, PromoActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
         } else {
-            viewModel = ViewModelProviders.of(this, viewModelFactory).get(SplashViewModel::class.java)
             observeViewModel(viewModel)
             lifecycle.addObserver(viewModel)
         }
@@ -147,14 +150,14 @@ class SplashActivity : BaseActivity() {
             } else if (it == SplashViewModel.SYNC_ERROR) {
                 showProgress(false)
                 viewModel.onCleared()
-                /*dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
+                dialogUtils.showAlertDialog(this@SplashActivity, getString(R.string.error_network_retry), DialogInterface.OnClickListener { dialog, which ->
                     Timber.d("retry network!!")
                     showProgress(true)
                     viewModel.onCleared()
                     viewModel.startSync()
                 }, DialogInterface.OnClickListener { dialog, which ->
                     onBackPressed()
-                })*/
+                })
             }
         })
 
@@ -171,11 +174,7 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun startMainActivity() {
-
-        Timber.d("startMainActivity")
-
         SyncUtils.createSyncAccount(applicationContext)
-
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
