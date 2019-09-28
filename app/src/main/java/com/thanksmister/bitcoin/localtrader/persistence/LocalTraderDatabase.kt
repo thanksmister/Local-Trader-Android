@@ -16,10 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.persistence
 
-import android.arch.persistence.room.Database
-import android.arch.persistence.room.Room
-import android.arch.persistence.room.RoomDatabase
-import android.arch.persistence.room.TypeConverters
+import androidx.room.*
+import androidx.room.TypeConverters
 import android.content.Context
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
 

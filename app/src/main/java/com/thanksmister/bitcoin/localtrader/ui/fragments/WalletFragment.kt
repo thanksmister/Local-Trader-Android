@@ -18,19 +18,16 @@
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
 import android.annotation.SuppressLint
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.DialogInterface
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.databinding.ViewWalletBinding
-import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity

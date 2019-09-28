@@ -29,7 +29,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <android.support.v4.widget.NestedScrollView
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -38,8 +38,44 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingTop="16dp">
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/localMarketButton"
+                    style="@style/BorderlessButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/light_gray"
+                    android:padding="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextLarge.SmallAction"
+                        android:textColor="@color/blue_pressed"
+                        android:textStyle="bold"
+                        android:linksClickable="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/local_markets_button" />
+
+                    <Space
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"/>
+
+                    <TextView
+                        style="@style/SmallText"
+                        android:textColor="@color/body_text_2"
+                        android:textStyle="bold"
+                        android:linksClickable="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/local_markets_description" />
+
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -182,7 +218,7 @@
 
             </LinearLayout>
 
-        </android.support.v4.widget.NestedScrollView>
+        </androidx.core.widget.NestedScrollView>
 
         <View
             style="@style/DividerHorizontal"

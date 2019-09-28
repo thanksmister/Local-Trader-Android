@@ -16,9 +16,6 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
@@ -32,8 +29,10 @@ import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.view.*
 import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.PinCodeActivity
 import com.thanksmister.bitcoin.localtrader.ui.activities.ScanQrCodeActivity
@@ -42,11 +41,7 @@ import com.thanksmister.bitcoin.localtrader.ui.viewmodels.WalletViewModel
 import com.thanksmister.bitcoin.localtrader.utils.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.view_request.*
 import kotlinx.android.synthetic.main.view_send.*
 import timber.log.Timber
 import javax.inject.Inject
@@ -169,23 +164,21 @@ class SendFragment : BaseFragment() {
         super.onActivityResult(requestCode, resultCode, intent)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater!!.inflate(R.menu.send, menu)
-        if(menu != null) {
-            val itemLen = menu.size()
-            for (i in 0 until itemLen) {
-                val drawable = menu.getItem(i).icon
-                if (drawable != null) {
-                    drawable.mutate()
-                    drawable.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-                }
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.send, menu)
+        val itemLen = menu.size()
+        for (i in 0 until itemLen) {
+            val drawable = menu.getItem(i).icon
+            if (drawable != null) {
+                drawable.mutate()
+                drawable.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
             }
         }
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item!!.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_paste -> {
                 setAddressFromClipboard()
                 return true
@@ -197,7 +190,7 @@ class SendFragment : BaseFragment() {
             else -> {
             }
         }
-        return false
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

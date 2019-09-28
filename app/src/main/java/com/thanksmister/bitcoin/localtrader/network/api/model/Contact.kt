@@ -16,8 +16,9 @@
  */
 package com.thanksmister.bitcoin.localtrader.network.api.model
 
-import android.arch.persistence.room.*
-import android.support.annotation.NonNull
+
+import androidx.annotation.NonNull
+import androidx.room.*
 import com.google.gson.annotations.SerializedName
 
 

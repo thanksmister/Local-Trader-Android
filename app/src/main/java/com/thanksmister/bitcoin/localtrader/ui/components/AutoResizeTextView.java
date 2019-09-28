@@ -22,7 +22,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.RectF;
 import android.os.Build;
-import android.support.v7.widget.AppCompatTextView;
+
 import android.text.Layout.Alignment;
 import android.text.StaticLayout;
 import android.text.TextPaint;
@@ -30,6 +30,8 @@ import android.util.AttributeSet;
 import android.util.SparseIntArray;
 import android.util.TypedValue;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.AppCompatTextView;
 
 /**
  * Credit to: http://stackoverflow.com/questions/16017165/auto-fit-textview-for-android

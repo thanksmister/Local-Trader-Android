@@ -17,15 +17,14 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
-import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences

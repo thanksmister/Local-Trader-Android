@@ -21,29 +21,20 @@ import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AlertDialog
-import android.text.TextUtils
-import android.view.Gravity
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.sync.SyncUtils
 import com.thanksmister.bitcoin.localtrader.persistence.LocalTraderDatabase
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.ui.activities.*
+import com.thanksmister.bitcoin.localtrader.ui.activities.PromoActivity
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
-import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import dagger.android.support.DaggerAppCompatActivity
 import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-
 import javax.inject.Inject
 
 /**

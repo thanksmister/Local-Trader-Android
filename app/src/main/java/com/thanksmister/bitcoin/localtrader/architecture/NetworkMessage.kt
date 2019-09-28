@@ -16,8 +16,9 @@
 
 package com.thanksmister.bitcoin.localtrader.architecture
 
-import android.arch.lifecycle.LifecycleOwner
-import android.arch.lifecycle.Observer
+import androidx.annotation.StringRes
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import android.text.TextUtils
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
 

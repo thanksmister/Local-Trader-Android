@@ -17,24 +17,10 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
-import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
-import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
-import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
-import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
-import com.thanksmister.bitcoin.localtrader.network.api.model.*
-import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
-import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
-import com.thanksmister.bitcoin.localtrader.persistence.*
-import io.reactivex.Completable
+import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
+import com.thanksmister.bitcoin.localtrader.persistence.CurrenciesDao
+import com.thanksmister.bitcoin.localtrader.persistence.Preferences
 import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
-import timber.log.Timber
 import javax.inject.Inject
 
 class SettingsViewModel @Inject

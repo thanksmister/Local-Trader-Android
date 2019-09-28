@@ -26,12 +26,11 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
-import android.support.annotation.RequiresApi
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationCompat.PRIORITY_MAX
-import android.support.v4.app.NotificationCompat.VISIBILITY_PUBLIC
-import android.support.v4.app.TaskStackBuilder
-import android.support.v4.content.ContextCompat
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.PRIORITY_MAX
+import androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC
+import androidx.core.content.ContextCompat
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.ui.activities.*
 import com.thanksmister.bitcoin.localtrader.ui.activities.MainActivity.Companion.EXTRA_NOTIFICATION_ID

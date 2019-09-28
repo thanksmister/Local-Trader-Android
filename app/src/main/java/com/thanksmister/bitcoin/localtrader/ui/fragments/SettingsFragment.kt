@@ -18,18 +18,18 @@
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
 
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.support.v7.preference.EditTextPreference
-import android.support.v7.preference.ListPreference
-import android.support.v7.preference.Preference
-import android.support.v7.preference.PreferenceFragmentCompat
 import android.text.TextUtils
 import android.util.Patterns
 import android.view.View
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
+import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
@@ -41,7 +41,6 @@ import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import dagger.android.support.AndroidSupportInjection
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.util.*

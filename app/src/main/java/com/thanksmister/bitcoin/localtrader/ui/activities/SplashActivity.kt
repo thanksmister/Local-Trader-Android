@@ -17,18 +17,13 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler

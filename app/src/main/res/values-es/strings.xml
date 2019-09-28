@@ -232,6 +232,19 @@
     <string name="error_unable_load_payment_methods">No se pueden cargar los métodos de pago en línea.</string>
     <string name="toast_loading_methods">Error al obtener métodos…</string>
 
+    <string name="local_markets">
+        <![CDATA[
+            <b>Local Markets (Mercados locales)</b>
+            <br/><br/>
+            Local Markets es una aplicación gratuita para dispositivos iOS y Android. Admite la compra y venta de múltiples criptomonedas, incluidas BTC, ETH, BCH, LTC y XRP.
+            <br/><br/>
+            Solo paga para anunciar, no cobramos tarifas. ¡Durante la fase de prueba inicial, la aplicación es totalmente gratuita!
+            <br/><br/>
+            Descargue la aplicación del <a href="https://localmarkets.app"> sitio web de Mercados locales </a> o del <a href="https://localmarkets.app"> Google Play </a>.
+            <br/><br/>
+        ]]>
+    </string>
+
     <string-array name="country_names">
         <item>Afganistán</item>
         <item>Islas Åland</item>
@@ -722,5 +735,7 @@
     <string name="warning_no_location">Couldn\'t determine current location, please relocate and try again…</string>
     <string name="text_transaction_fee">Tarifa de transacción (0.00005 BTC)</string>
     <string name="text_add_spendable_amount">Cantidad total añadida!</string>
+    <string name="local_markets_button">¿Quieres comprar o vender localmente?</string>
+    <string name="local_markets_description">Haga clic aquí para obtener información sobre los mercados locales, mi nueva aplicación para vender y comprar criptomonedas localmente.</string>
 
 </resources>

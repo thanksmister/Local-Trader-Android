@@ -16,15 +16,10 @@
  */
 package com.thanksmister.bitcoin.localtrader.network.api.model
 
-import android.arch.persistence.room.ColumnInfo
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.Index
-import android.arch.persistence.room.PrimaryKey
-import android.support.annotation.NonNull
-import android.support.annotation.Nullable
+import androidx.room.*
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
-import java.util.*
+
 
 @Entity(tableName = "Notifications", indices = [(Index(value = arrayOf("notificationId"), unique = true))])
 class Notification {

@@ -75,7 +75,7 @@
                     android:layout_gravity="right|center_vertical"
                     tools:text="100"/>
             
-            <android.support.v4.widget.Space
+            <Space
                     android:layout_width="8dp"
                     android:layout_height="match_parent"/>
 

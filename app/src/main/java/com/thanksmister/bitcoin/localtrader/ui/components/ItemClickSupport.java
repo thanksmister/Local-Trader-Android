@@ -17,8 +17,10 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.components;
 
-import android.support.v7.widget.RecyclerView;
+
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.thanksmister.bitcoin.localtrader.R;
 

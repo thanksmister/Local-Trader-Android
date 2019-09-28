@@ -18,7 +18,7 @@
 package com.thanksmister.bitcoin.localtrader
 
 import android.content.Context
-import android.support.multidex.MultiDex
+import androidx.multidex.MultiDex
 import com.crashlytics.android.Crashlytics
 import com.facebook.stetho.Stetho
 import com.google.firebase.analytics.FirebaseAnalytics

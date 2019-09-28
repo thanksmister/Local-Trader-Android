@@ -30,6 +30,7 @@ import java.net.UnknownHostException
 
 import retrofit2.HttpException
 import timber.log.Timber
+import java.net.ConnectException
 
 class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
 (private val mContext: Context) {
@@ -135,6 +136,8 @@ class RetrofitErrorHandler///api/ads/, 42, Given nonce was too small.
 
         if (throwable is NetworkException) {
             return throwable
+        } else if (throwable is ConnectException) {
+            return NetworkException(mContext.getString(R.string.error_network_disconnected), ExceptionCodes.SERVICE_ERROR_CODE)
         } else if (throwable is SocketTimeoutException) {
             return NetworkException(mContext.getString(R.string.error_network_disconnected), ExceptionCodes.SOCKET_ERROR_CODE)
         } else if (throwable is DataRefreshException) {

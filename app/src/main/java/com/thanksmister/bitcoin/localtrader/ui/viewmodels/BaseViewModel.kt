@@ -17,27 +17,16 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LifecycleObserver
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LifecycleObserver
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.architecture.*
-import com.thanksmister.bitcoin.localtrader.network.api.ExchangeApi
-import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
-import com.thanksmister.bitcoin.localtrader.network.api.fetchers.ExchangeFetcher
-import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
-import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
-import com.thanksmister.bitcoin.localtrader.persistence.*
 import com.thanksmister.bitcoin.localtrader.utils.disposeProper
-import io.reactivex.Completable
-import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
-import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import javax.inject.Inject
 

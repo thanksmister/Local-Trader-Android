@@ -16,9 +16,10 @@
 
 package com.thanksmister.bitcoin.localtrader.architecture;
 
-import android.arch.lifecycle.LifecycleOwner;
-import android.arch.lifecycle.Observer;
-import android.support.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 /**

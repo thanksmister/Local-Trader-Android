@@ -26,7 +26,6 @@ import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.fragments.SettingsFragment
 
-
 class SettingsActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

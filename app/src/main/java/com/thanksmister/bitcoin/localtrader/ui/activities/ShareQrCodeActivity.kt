@@ -33,7 +33,6 @@ import com.thanksmister.bitcoin.localtrader.utils.disposeProper
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_share_qrcode.*
 import timber.log.Timber

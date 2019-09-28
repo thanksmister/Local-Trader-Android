@@ -17,11 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
+
 import android.text.TextUtils;
 
 import com.thanksmister.bitcoin.localtrader.persistence.StringPreference;

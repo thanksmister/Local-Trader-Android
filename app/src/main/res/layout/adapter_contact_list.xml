@@ -24,7 +24,8 @@
         android:orientation="horizontal"
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
-        android:paddingRight="16dp">
+        android:paddingRight="16dp"
+    android:baselineAligned="false">
 
     <FrameLayout
             android:layout_width="wrap_content"

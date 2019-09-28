@@ -17,18 +17,18 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
 import android.content.ActivityNotFoundException
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.network.api.model.Notification
@@ -40,7 +40,6 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.NotificationAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.NotificationsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
-import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulersIo
 import kotlinx.android.synthetic.main.fragment_notifications.*
 import timber.log.Timber

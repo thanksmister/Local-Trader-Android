@@ -17,18 +17,14 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.adapters
 
-import android.content.Context
 import android.graphics.PorterDuff
-import android.support.v7.widget.RecyclerView
 import android.text.Html
 import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-
+import androidx.recyclerview.widget.RecyclerView
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.network.api.model.Transaction
@@ -36,11 +32,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.TransactionType
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.Dates
 import com.thanksmister.bitcoin.localtrader.utils.WalletUtils
-import kotlinx.android.synthetic.main.adapter_contact_list.view.*
 import kotlinx.android.synthetic.main.adapter_transaction_list.view.*
-
-import java.util.Collections
-
 
 class TransactionsAdapter() : RecyclerView.Adapter<TransactionsAdapter.ViewHolder>() {
 

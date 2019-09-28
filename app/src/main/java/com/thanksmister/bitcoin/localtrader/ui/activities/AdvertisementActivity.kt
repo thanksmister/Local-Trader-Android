@@ -17,21 +17,19 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
 import android.text.Html
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
@@ -94,12 +92,13 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
         super.onSaveInstanceState(outState)
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == EditAdvertisementActivity.REQUEST_CODE) {
             if (resultCode == EditAdvertisementActivity.RESULT_UPDATED) {
                 updateAdvertisement() // update the new editAdvertisement
             }
         }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

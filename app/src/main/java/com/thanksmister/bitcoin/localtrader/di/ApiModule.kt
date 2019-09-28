@@ -24,7 +24,6 @@ import dagger.Provides
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
 
-
 @Module
 class ApiModule {
 

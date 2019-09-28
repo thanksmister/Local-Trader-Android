@@ -17,16 +17,9 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.thanksmister.bitcoin.localtrader.BaseApplication
-import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.MessageData
-import com.thanksmister.bitcoin.localtrader.architecture.NetworkMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.constants.Constants.ADVANCED_AD_EDITING
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
@@ -39,15 +32,12 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.persistence.AdvertisementsDao
 import com.thanksmister.bitcoin.localtrader.persistence.MethodsDao
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.utils.Parser
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient

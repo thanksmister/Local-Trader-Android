@@ -35,12 +35,8 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.thanksmister.bitcoin.localtrader.R
 
 import java.util.Hashtable
-import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
-
-import timber.log.Timber
-
 
 object WalletUtils {
 

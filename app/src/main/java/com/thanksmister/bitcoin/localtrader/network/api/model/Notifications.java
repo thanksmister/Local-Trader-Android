@@ -16,8 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api.model;
 
-import android.support.annotation.NonNull;
-
+import androidx.annotation.NonNull;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 

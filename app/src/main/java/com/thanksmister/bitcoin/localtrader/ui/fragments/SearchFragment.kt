@@ -17,14 +17,13 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import androidx.lifecycle.Observer
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.databinding.ViewSearchBinding
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
@@ -39,6 +38,7 @@ import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SearchViewModel
 import com.thanksmister.bitcoin.localtrader.utils.CurrencyUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
+import kotlinx.android.synthetic.main.view_search.*
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -144,6 +144,10 @@ class SearchFragment : BaseFragment() {
             }
 
             override fun onNothingSelected(arg0: AdapterView<*>) {}
+        }
+
+        binding.localMarketButton.setOnClickListener {
+            showLocalMarkets()
         }
 
         observeViewModel(viewModel)
@@ -286,6 +290,12 @@ class SearchFragment : BaseFragment() {
     private fun showSearchResultsScreen() {
         val intent = SearchResultsActivity.createStartIntent(requireActivity())
         startActivity(intent)
+    }
+
+    private fun showLocalMarkets() {
+        if (isAdded && activity != null) {
+            dialogUtils.run { showAlertHtmlDialog(requireActivity(), getString(R.string.local_markets)) }
+        }
     }
 
     companion object {

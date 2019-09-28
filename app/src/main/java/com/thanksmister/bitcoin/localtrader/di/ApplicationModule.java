@@ -16,7 +16,6 @@
 package com.thanksmister.bitcoin.localtrader.di;
 
 import android.app.Application;
-import android.content.ContentResolver;
 import android.content.Context;
 
 import com.thanksmister.bitcoin.localtrader.BaseApplication;

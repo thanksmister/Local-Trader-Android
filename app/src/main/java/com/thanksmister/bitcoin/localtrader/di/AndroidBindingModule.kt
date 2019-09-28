@@ -16,7 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.di
 
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.ViewModel
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
 import com.thanksmister.bitcoin.localtrader.ui.activities.*

@@ -23,7 +23,7 @@
     android:orientation="vertical">
 
     <!-- Your Scrollable View -->
-    <android.support.v4.widget.SwipeRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/contactSwipeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-    </android.support.v4.widget.SwipeRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <LinearLayout
         android:id="@+id/buttonLayout"

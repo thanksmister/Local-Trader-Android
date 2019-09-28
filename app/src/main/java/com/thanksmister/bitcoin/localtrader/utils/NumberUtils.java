@@ -17,8 +17,10 @@
 
 package com.thanksmister.bitcoin.localtrader.utils;
 
-import android.support.annotation.NonNull;
+
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
 
 import java.text.NumberFormat;
 import java.text.ParseException;

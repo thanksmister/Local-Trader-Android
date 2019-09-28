@@ -34,10 +34,10 @@ import static android.content.Context.ACCOUNT_SERVICE;
 public class SyncUtils {
 
     // Sync interval constants
-    public static final String CONTENT_AUTHORITY = "com.thanksmister.bitcoin.localtrader.provider";
-    public static final long SECONDS_PER_MINUTE = 60L;
-    public static final long SYNC_INTERVAL_IN_MINUTES = 3L;
-    public static final long SYNC_FREQUENCY = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
+    private static final String CONTENT_AUTHORITY = "com.thanksmister.bitcoin.localtrader.provider";
+    private static final long SECONDS_PER_MINUTE = 60L;
+    private static final long SYNC_INTERVAL_IN_MINUTES = 3L;
+    private static final long SYNC_FREQUENCY = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
 
     /** Injectable constructor */
     @Inject

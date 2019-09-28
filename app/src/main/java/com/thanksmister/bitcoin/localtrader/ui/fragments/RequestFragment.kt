@@ -17,9 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.*
 import android.net.Uri
 import android.os.Bundle
@@ -75,8 +73,8 @@ class RequestFragment : BaseFragment() {
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater!!.inflate(R.menu.request, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.request, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 

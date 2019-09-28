@@ -67,9 +67,9 @@ class AboutFragment : BaseFragment() {
         super.onActivityCreated(savedInstanceState)
         try {
             if (activity != null) {
-                val packageInfo = activity!!.packageManager.getPackageInfo(activity!!.packageName, 0)
+                val packageInfo = requireActivity().packageManager.getPackageInfo(activity!!.packageName, 0)
                 val versionText = " v" + packageInfo.versionName
-                val versionName = activity!!.findViewById<View>(R.id.versionName) as TextView
+                val versionName = requireActivity().findViewById<View>(R.id.versionName) as TextView
                 versionName.text = versionText
             }
         } catch (e: PackageManager.NameNotFoundException) {
@@ -93,7 +93,7 @@ class AboutFragment : BaseFragment() {
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GITHUB)))
             } catch (ex: android.content.ActivityNotFoundException) {
-                Toast.makeText(activity, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -103,7 +103,7 @@ class AboutFragment : BaseFragment() {
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.GUIDES_URL)))
             } catch (ex: android.content.ActivityNotFoundException) {
-                Toast.makeText(activity, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -113,14 +113,14 @@ class AboutFragment : BaseFragment() {
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.SUPPORT_URL)))
             } catch (ex: android.content.ActivityNotFoundException) {
-                Toast.makeText(activity, getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), getString(R.string.toast_error_no_installed_ativity), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun showLicense() {
         if (isAdded && activity != null) {
-            dialogUtils.showAlertDialog(activity!!, getString(R.string.license))
+            dialogUtils.showAlertHtmlDialog(requireActivity(), getString(R.string.license))
         }
     }
 

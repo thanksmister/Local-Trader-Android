@@ -20,20 +20,18 @@ package com.thanksmister.bitcoin.localtrader.ui.activities
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.DownloadManager
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.*
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
 import android.text.Html
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.managers.ConnectionLiveData
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact
@@ -45,7 +43,6 @@ import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.*
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_contact.*
 import timber.log.Timber
@@ -370,7 +367,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         contactSwipeLayout.isRefreshing = false
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (resultCode) {
             PinCodeActivity.RESULT_VERIFIED -> {
                 intent?.let {
@@ -385,6 +382,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
             }
             MessageActivity.RESULT_MESSAGE_CANCELED -> dialogUtils.toast(getString(R.string.toast_message_canceled))
         }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun updateData() {

@@ -14,16 +14,11 @@
   ~ limitations under the License.
   ~
   -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:fitsSystemWindows="true">
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -218,6 +213,4 @@
 
         </LinearLayout>
 
-    </ScrollView>
-
-</LinearLayout>
+</ScrollView>

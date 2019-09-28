@@ -424,7 +424,7 @@
     <string name="alert_service_end_point">The service end point should be a valid URL.</string>
     <string name="text_market_currency">市场货币 (%1$s)</string>
     <string name="contact_release_confirm">你确定要发布这笔交易吗？</string>
-    <string name="toast_loading_trade">Loading trade…</string>
+    <string name="toast_loading_trade">装货贸易…</string>
     <string name="error_network_retry">出现网络或服务错误，您要重试吗？</string>
     <string name="text_trade_id">贸易号码</string>
     <string name="text_trade_reference">贸易参考</string>
@@ -438,12 +438,25 @@
     <string name="text_trade_ethereum_address">ETH 钱包</string>
     <string name="error_missing_vision_library">缺少库来扫描代码...</string>
     <string name="error_camera_start">无法启动相机</string>
-    <string name="toast_invalid_bitcoin_address">Invalid Bitcoin address...</string>
+    <string name="toast_invalid_bitcoin_address">无效的比特币地址</string>
     <string name="error_trade_requirements">如果您不符合此广告的要求，请在申请交易前查看列出的要求。</string>
     <string name="error_receiving_address">该应用程序没有所需的权限。</string>
-    <string name="progress_new_address">Generating new address...</string>
+    <string name="progress_new_address">产生新地址</string>
     <string name="menu_new_address">新的钱包代码</string>
     <string name="error_not_enough_balance">没有足够的余额，尝试较低的金额。</string>
+
+    <string name="local_markets">
+       <![CDATA[
+            <b>Local Markets (本地市场)</b>
+            <br/><br/>
+            Local Markets 是适用于iOS和Android设备的免费应用程序。 它支持买卖多种加密货币，包括BTC，ETH，BCH，LTC和XRP。
+            <br/><br/>
+            您只需付费做广告，我们不收取任何费用。 在初始测试阶段，该应用程序是完全免费的！
+            <br/><br/>
+            从<a href="https://localmarkets.app">本地市场</a>网站或从<a href="https://localmarkets.app"> Google Play </a>下载该应用.
+            <br/><br/>
+        ]]>
+    </string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">
@@ -703,7 +716,9 @@
     <string name="text_list_country_any">任何</string>
     <string name="error_local_contact">该联系人不再可用或是本地广告。</string>
     <string name="error_invalid_endpoint">该网址无效，请输入默认的终点或正确的替代网址。</string>
-    <string name="warning_no_location">Couldn\'t determine current location, please relocate and try again…</string>
+    <string name="warning_no_location">无法确定当前位置，请重新定位并重试</string>
     <string name="text_transaction_fee">手续费 (0.00005 BTC)</string>
     <string name="text_add_spendable_amount">全额加！</string>
+    <string name="local_markets_button">想在当地购买或出售</string>
+    <string name="local_markets_description">单击此处了解有关本地市场的信息，这是我在本地买卖加密货币的新应用程序。</string>
 </resources>

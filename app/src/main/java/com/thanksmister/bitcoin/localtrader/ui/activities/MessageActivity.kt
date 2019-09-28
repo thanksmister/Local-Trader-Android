@@ -17,9 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.activities
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent

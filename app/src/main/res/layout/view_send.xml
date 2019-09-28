@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v4.widget.NestedScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -61,7 +61,7 @@
             android:padding="16dp"
             android:orientation="vertical">
 
-            <android.support.design.widget.TextInputLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -74,14 +74,14 @@
                     android:maxLines="1"
                     android:singleLine="true" />
 
-            </android.support.design.widget.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1">
@@ -95,7 +95,7 @@
                         android:maxLines="1"
                         android:singleLine="true" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <View
                     android:layout_width="8dp"
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1">
@@ -137,7 +137,7 @@
                         android:maxLines="1"
                         android:singleLine="true" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <View
                     android:layout_width="8dp"
@@ -160,7 +160,7 @@
 
             </LinearLayout>
 
-            <android.support.v4.widget.Space
+            <Space
                 android:layout_width="match_parent"
                 android:layout_height="16dp" />
 
@@ -177,7 +177,7 @@
 
         </LinearLayout>
 
-    </android.support.v4.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <View
         style="@style/DividerHorizontal"

@@ -17,19 +17,17 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.ActivityNotFoundException
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.network.api.model.Contact

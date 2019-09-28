@@ -18,20 +18,20 @@ package com.thanksmister.bitcoin.localtrader.ui.activities
 
 import android.annotation.TargetApi
 import android.app.DownloadManager
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
 import android.content.*
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
 import android.text.Html
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
@@ -46,8 +46,6 @@ import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.Dates
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.view_contact.*
 import timber.log.Timber

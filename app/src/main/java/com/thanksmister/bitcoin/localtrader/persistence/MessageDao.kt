@@ -16,10 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.persistence
 
-import android.arch.persistence.room.Dao
-import android.arch.persistence.room.Insert
-import android.arch.persistence.room.OnConflictStrategy
-import android.arch.persistence.room.Query
+import androidx.room.*
+import androidx.room.Transaction
 import com.thanksmister.bitcoin.localtrader.network.api.model.Message
 
 import io.reactivex.Flowable

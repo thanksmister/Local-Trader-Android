@@ -17,20 +17,14 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.architecture.AlertMessage
-import com.thanksmister.bitcoin.localtrader.architecture.ToastMessage
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.persistence.UserDao
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import timber.log.Timber

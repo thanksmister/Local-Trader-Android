@@ -16,7 +16,7 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api.model
 
-import android.arch.persistence.room.Entity
+import androidx.room.*
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.annotations.Expose

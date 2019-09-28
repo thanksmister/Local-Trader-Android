@@ -21,7 +21,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v4.widget.NestedScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -65,7 +65,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <android.support.design.widget.TextInputLayout
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -80,7 +80,7 @@
                             android:inputType="numberDecimal"
                             android:nextFocusForward="@+id/requestAmountText" />
 
-                    </android.support.design.widget.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
                         android:id="@android:id/button1"
@@ -103,7 +103,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <android.support.design.widget.TextInputLayout
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -119,7 +119,7 @@
                             android:inputType="numberDecimal"
                             android:nextFocusForward="@+id/requestButtonLayout" />
 
-                    </android.support.design.widget.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
                         android:id="@+id/requestCurrency"
@@ -144,7 +144,7 @@
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.design.widget.TextInputLayout
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -160,7 +160,7 @@
                             android:inputType="numberDecimal"
                             android:nextFocusForward="@+id/buttonLayout" />
 
-                    </android.support.design.widget.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
                         style="@style/TextMedium.SmallAction.White"
@@ -184,85 +184,85 @@
                 android:divider="@drawable/empty_list_divider"
                 android:orientation="vertical">
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestEthereumAddressLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestEthereumAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_ethereum_address"
                         android:inputType="phone" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestPhoneNumberLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestPhoneNumber"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_phone_number"
                         android:inputType="phone" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestReceiverEmailLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestReceiverEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_receiving_account_email"
                         android:inputType="textEmailAddress" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestReceiverNameLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestReceiverName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_account_owner" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestSortCodeLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestSortCode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_sort_code" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestAccountNumberLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -270,98 +270,98 @@
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestAccountNumber"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_account_number" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestBSBLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestBSB"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="BSB" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestBillerCodeLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestBillerCode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_biller_code" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestIbanLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestIbanName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="IBAN" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestSwiftBicLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestSwiftBic"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="BIC" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <android.support.design.widget.TextInputLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/requestReferenceLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/requestReference"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trade_reference_or_message" />
 
-                </android.support.design.widget.TextInputLayout>
+                </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>
 
-            <android.support.design.widget.TextInputLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/requestMessageLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/trade_message_optional">
 
-                <android.support.v7.widget.AppCompatEditText
+                <androidx.appcompat.widget.AppCompatEditText
                     android:id="@+id/requestMessage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -370,9 +370,9 @@
                     android:lines="4"
                     android:minLines="1" />
 
-            </android.support.design.widget.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <android.support.v4.widget.Space
+            <Space
                 android:layout_width="match_parent"
                 android:layout_height="8dp" />
 
@@ -386,7 +386,7 @@
 
         </LinearLayout>
 
-    </android.support.v4.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <View
         style="@style/DividerHorizontal"

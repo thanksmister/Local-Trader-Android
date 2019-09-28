@@ -17,18 +17,16 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
@@ -39,7 +37,6 @@ import com.thanksmister.bitcoin.localtrader.ui.activities.SearchActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.AdvertisementsAdapter
 import com.thanksmister.bitcoin.localtrader.ui.components.ItemClickSupport
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.AdvertisementsViewModel
-import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulersIo
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
 import kotlinx.android.synthetic.main.fragment_advertisements.*

@@ -16,7 +16,8 @@
 
 package com.thanksmister.bitcoin.localtrader.persistence
 
-import android.arch.persistence.room.*
+import androidx.room.*
+import androidx.room.Transaction
 import com.thanksmister.bitcoin.localtrader.network.api.model.User
 
 import io.reactivex.Flowable

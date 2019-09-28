@@ -17,7 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.network.api.model
 
-import android.arch.persistence.room.*
+import androidx.room.*
 
 @Entity(tableName = "Methods", indices = [(Index(value = arrayOf("key"), unique = true))])
 class Method {

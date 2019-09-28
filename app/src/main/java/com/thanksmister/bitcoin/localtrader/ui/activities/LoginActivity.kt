@@ -19,9 +19,7 @@ package com.thanksmister.bitcoin.localtrader.ui.activities
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
@@ -39,7 +37,6 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.crashlytics.android.Crashlytics
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences.Companion.ALT_BASE_URL
