@@ -109,16 +109,28 @@ class DialogUtils(base: Context?) : ContextWrapper(base), LifecycleObserver {
 
     fun showAlertHtmlDialog(context: Context, message: String) {
         hideAlertDialog()
-        val dialog = Dialog(context, R.style.CustomAlertDialog)
-        dialog.setContentView(R.layout.dialog_markets)
-        dialog.setCancelable(true)
-        dialog.show()
-        val textView = dialog.findViewById<TextView>(R.id.dialogMessage)
-        textView.text = Html.fromHtml(message)
-        textView.movementMethod = LinkMovementMethod.getInstance()
-        dialog.findViewById<Button>(R.id.closeButton).setOnClickListener {
-            dialog.hide()
+        dialog = Dialog(context, R.style.CustomAlertDialog)
+        dialog?.setContentView(R.layout.dialog_markets)
+        dialog?.setCancelable(true)
+        dialog?.show()
+        val textView = dialog?.findViewById<TextView>(R.id.dialogMessage)
+        textView?.text = Html.fromHtml(message)
+        textView?.movementMethod = LinkMovementMethod.getInstance()
+        dialog?.findViewById<Button>(R.id.closeButton)?.setOnClickListener {
+            dialog?.hide()
         }
+    }
+
+    fun showAlertHtmlDialog(context: Context, message: String, onPositiveButton: View.OnClickListener) {
+        hideAlertDialog()
+        dialog = Dialog(context, R.style.CustomAlertDialog)
+        dialog?.setContentView(R.layout.dialog_markets)
+        dialog?.setCancelable(true)
+        dialog?.show()
+        val textView = dialog?.findViewById<TextView>(R.id.dialogMessage)
+        textView?.text = Html.fromHtml(message)
+        textView?.movementMethod = LinkMovementMethod.getInstance()
+        dialog?.findViewById<Button>(R.id.closeButton)?.setOnClickListener(onPositiveButton)
     }
 
     fun showAlertDialogToDismiss(activity: Context, title: String, message: String) {

@@ -8,7 +8,7 @@ apply plugin: 'com.google.gms.google-services'
 def versionMajor = 2
 def versionMinor = 5
 def versionPatch = 3
-def versionBuild = 0 // bump for dog food builds, public betas, etc.
+def versionBuild = 3 // bump for dog food builds, public betas, etc.
 
 def LBC_KEY() {
     Properties properties = new Properties()
@@ -161,7 +161,7 @@ dependencies {
 
     // Firebase
     implementation 'com.google.firebase:firebase-core:17.2.0'
-    implementation 'com.google.firebase:firebase-config:19.0.1'
+    implementation 'com.google.firebase:firebase-config:19.0.2'
     implementation 'com.google.firebase:firebase-analytics:17.2.0'
 
     // Fabric

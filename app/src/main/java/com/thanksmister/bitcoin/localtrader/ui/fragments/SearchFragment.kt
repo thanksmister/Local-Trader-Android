@@ -17,6 +17,7 @@
 
 package com.thanksmister.bitcoin.localtrader.ui.fragments
 
+import android.content.SharedPreferences
 import androidx.lifecycle.*
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,6 +26,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import androidx.lifecycle.Observer
 import com.thanksmister.bitcoin.localtrader.R
+import com.thanksmister.bitcoin.localtrader.constants.Constants
 import com.thanksmister.bitcoin.localtrader.databinding.ViewSearchBinding
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
@@ -52,6 +54,7 @@ class SearchFragment : BaseFragment() {
 
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
     @Inject lateinit var viewModel: SearchViewModel
+    @Inject lateinit var sharedPreferences: SharedPreferences
 
     private var tradeType = TradeType.ONLINE_BUY
 
@@ -146,8 +149,14 @@ class SearchFragment : BaseFragment() {
             override fun onNothingSelected(arg0: AdapterView<*>) {}
         }
 
-        binding.localMarketButton.setOnClickListener {
-            showLocalMarkets()
+        val showPromo = sharedPreferences.getBoolean(Constants.LOCAL_MARKETS_PROMO,false)
+        if (showPromo){
+            binding.localMarketButton.visibility = View.VISIBLE
+            binding.localMarketButton.setOnClickListener {
+                showLocalMarkets()
+            }
+        } else {
+            binding.localMarketButton.visibility = View.GONE
         }
 
         observeViewModel(viewModel)
@@ -294,7 +303,11 @@ class SearchFragment : BaseFragment() {
 
     private fun showLocalMarkets() {
         if (isAdded && activity != null) {
-            dialogUtils.run { showAlertHtmlDialog(requireActivity(), getString(R.string.local_markets)) }
+            dialogUtils.run {
+                showAlertHtmlDialog(requireActivity(), getString(R.string.local_markets), View.OnClickListener {
+                    dialogUtils.clearDialogs()
+                })
+            }
         }
     }
 

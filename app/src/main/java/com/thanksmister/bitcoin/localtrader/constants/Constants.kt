@@ -31,5 +31,6 @@ object Constants {
     const val ADS_EDIT_URL = "https://localbitcoins.com/ads_edit/"
     const val REQUEST_PERMISSIONS = 6
     const val DEAD_MAN_SWITCH = "dead_man_switch"
+    const val LOCAL_MARKETS_PROMO = "local_markets_promo"
     const val ADVANCED_AD_EDITING = "advanced_ad_editing"
 }

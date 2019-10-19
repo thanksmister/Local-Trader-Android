@@ -8,4 +8,8 @@
         <key>dead_man_switch</key>
         <value>false</value>
     </entry>
+    <entry>
+        <key>local_markets_promo</key>
+        <value>false</value>
+    </entry>
 </defaultsMap>

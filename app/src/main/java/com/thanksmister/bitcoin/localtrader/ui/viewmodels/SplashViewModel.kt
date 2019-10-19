@@ -17,14 +17,14 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
+import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import android.content.SharedPreferences
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.constants.Constants.ADVANCED_AD_EDITING
 import com.thanksmister.bitcoin.localtrader.constants.Constants.DEAD_MAN_SWITCH
+import com.thanksmister.bitcoin.localtrader.constants.Constants.LOCAL_MARKETS_PROMO
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
@@ -47,6 +47,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.*
 import javax.inject.Inject
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 
 class SplashViewModel @Inject
 constructor(application: Application,
@@ -121,21 +122,23 @@ constructor(application: Application,
 
     private fun fetchRemoteConfigValues() {
         Timber.e("fetchRemoteConfigValues")
-        remoteConfig.setDefaults(R.xml.remoteconfig)
-        remoteConfig.fetch()
-                .addOnCompleteListener { task ->
+        remoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().setMinimumFetchIntervalInSeconds(3600L).build())
+        remoteConfig.setDefaultsAsync(R.xml.remoteconfig)
+        remoteConfig.fetch().addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        Timber.e("Firebase remote config fetch success!")
+                        Timber.i("Firebase remote config fetch success!")
                         remoteConfig.activate()
-                        updateSyncMap(SYNC_REMOTE_CONFIG, false)
-                        Timber.w("advanced editing: ${remoteConfig.getBoolean(ADVANCED_AD_EDITING)}")
                         val deadMan = remoteConfig.getBoolean(DEAD_MAN_SWITCH)
-                        Timber.w("dead man walking: $deadMan")
+                        val showPromo = remoteConfig.getBoolean(LOCAL_MARKETS_PROMO)
+                        sharedPreferences.edit().putBoolean(LOCAL_MARKETS_PROMO, showPromo).apply()
+                        Timber.i("dead man walking: $deadMan")
+                        Timber.i("show local markets promo: $showPromo")
                         if(!deadMan) {
                             fetchUser()
                         } else {
                             showAlertMessage("Dead man switch activated, this app has stopped functioning indefinitely.")
                         }
+                        updateSyncMap(SYNC_REMOTE_CONFIG, false)
                     } else {
                         Timber.e("Firebase remote config fetch vales failed.")
                         handleError(NetworkException(getApplication<BaseApplication>().getString(R.string.error_network_disconnected), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE))
