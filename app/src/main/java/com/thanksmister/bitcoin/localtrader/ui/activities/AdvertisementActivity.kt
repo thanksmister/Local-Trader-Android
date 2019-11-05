@@ -211,11 +211,9 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
 
     override fun onResume() {
         super.onResume()
-        // Deep linking from notification
-        if (intent != null) {
-            val extras = intent.extras
-            val type = extras.getInt(MainActivity.EXTRA_NOTIFICATION_TYPE, 0)
-            val id = extras.getInt(MainActivity.EXTRA_NOTIFICATION_ID, 0)
+        intent.extras?.let {
+            val type = it.getInt(MainActivity.EXTRA_NOTIFICATION_TYPE, 0)
+            val id = it.getInt(MainActivity.EXTRA_NOTIFICATION_ID, 0)
             if (type == NotificationUtils.NOTIFICATION_TYPE_ADVERTISEMENT) {
                 this.adId = id
                 viewModel = ViewModelProviders.of(this, viewModelFactory).get(AdvertisementsViewModel::class.java)
@@ -237,7 +235,8 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun setAdvertisement(advertisement: Advertisement?, method: Method?) {
-        if(advertisement != null) {
+
+        advertisement?.let {
             advertisementTradePrice.text = getString(R.string.trade_price, advertisement.tempPrice, advertisement.currency)
             val price = advertisement.currency
             val tradeType = TradeType.valueOf(advertisement.tradeType)
@@ -248,11 +247,11 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                 else -> { }
             }
             val location = advertisement.location
-            val paymentMethod = TradeUtils.getPaymentMethod(this@AdvertisementActivity, advertisement, method)
+            var paymentMethod = TradeUtils.getPaymentMethod(this@AdvertisementActivity, advertisement, method)
             if (TextUtils.isEmpty(paymentMethod)) {
-                noteTextAdvertisement!!.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location))
+                noteTextAdvertisement.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location))
             } else {
-                noteTextAdvertisement!!.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location))
+                noteTextAdvertisement.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location))
             }
             when {
                 advertisement.atmModel != null -> advertisementTradeLimit.text = ""
@@ -268,7 +267,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
                 advertisementTradeTerms.visibility = View.GONE
             }
             if (TradeUtils.isOnlineTrade(advertisement)) {
-                val paymentMethod = TradeUtils.getPaymentMethodName(advertisement, method)
+                paymentMethod = TradeUtils.getPaymentMethodName(advertisement, method)
                 onlineProvider.text = paymentMethod
                 if (!TextUtils.isEmpty(advertisement.bankName)) {
                     bankName.text = advertisement.bankName
@@ -292,7 +291,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun setTradeRequirements(advertisement: Advertisement?) {
-        if(advertisement != null) {
+        advertisement?.let {
             var showLayout = false
             if (advertisement.trustedRequired
                     || advertisement.smsVerificationRequired
@@ -333,9 +332,9 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun updateAdvertisementNote(advertisement: Advertisement?) {
-        if(advertisement != null) {
-            noteLayout!!.visibility = if (advertisement.visible) View.GONE else View.VISIBLE
-            noteText!!.text = getString(R.string.advertisement_invisible_warning)
+        advertisement?.let {
+            noteLayout.visibility = if (advertisement.visible) View.GONE else View.VISIBLE
+            noteText.text = getString(R.string.advertisement_invisible_warning)
             setMenuVisibilityIcon(advertisement.visible)
         }
     }
@@ -364,7 +363,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun deleteAdvertisement(advertisement: Advertisement?) {
-        if(advertisement != null) {
+        advertisement?.let {
             dialogUtils.showAlertDialog(this@AdvertisementActivity, getString(R.string.advertisement_delete_confirm),
                     DialogInterface.OnClickListener {
                         dialog, which ->
@@ -374,14 +373,14 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun deleteAdvertisementConfirmed(advertisement: Advertisement?) {
-        if(advertisement != null) {
+        advertisement?.let {
             dialogUtils.showProgressDialog(this@AdvertisementActivity, getString(R.string.progress_deleting))
             viewModel.deleteAdvertisement(advertisement)
         }
     }
 
     private fun updateAdvertisementVisibility(advertisement: Advertisement?) {
-        if(advertisement != null) {
+        advertisement?.let {
             dialogUtils.showProgressDialog(this@AdvertisementActivity, getString(R.string.dialog_updating_visibility))
             advertisement.visible = !advertisement.visible
             viewModel.updateAdvertisement(advertisement)
@@ -389,8 +388,8 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun showAdvertisementOnMap(advertisement: Advertisement?) {
-        if(advertisement != null) {
-            var geoUri = "geo:0,0?q=" + advertisement.location!!
+        advertisement?.let {
+            val geoUri = "geo:0,0?q=" + advertisement.location.orEmpty()
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(geoUri))
                 startActivity(intent)
@@ -401,7 +400,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun shareAdvertisement(advertisement: Advertisement?) {
-        if(advertisement != null) {
+        advertisement?.let {
             val shareIntent = Intent(Intent.ACTION_SEND)
             shareIntent.type = "text/plain"
             var message = ""
@@ -417,7 +416,7 @@ class AdvertisementActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListen
     }
 
     private fun editAdvertisement(advertisement: Advertisement?) {
-        if(advertisement != null) {
+        advertisement?.let {
             val intent = EditAdvertisementActivity.createStartIntent(this@AdvertisementActivity, advertisement.adId)
             startActivityForResult(intent, EditAdvertisementActivity.REQUEST_CODE)
         }

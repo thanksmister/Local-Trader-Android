@@ -39,6 +39,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.ContactAction
 import com.thanksmister.bitcoin.localtrader.network.api.model.Message
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
+import com.thanksmister.bitcoin.localtrader.ui.activities.PinCodeActivity.Companion.EXTRA_PIN_CODE
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MessageAdapter
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.ContactsViewModel
 import com.thanksmister.bitcoin.localtrader.utils.*
@@ -73,7 +74,6 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     private var detailsIbanName: TextView? = null
     private var detailsSwiftBic: TextView? = null
     private var detailsReference: TextView? = null
-
     private var onlineOptionsLayout: View? = null
     private var detailsEthereumAddressLayout: View? = null
     private var detailsSortCodeLayout: View? = null
@@ -122,15 +122,11 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
         setContentView(R.layout.view_contact)
 
-        contactId = if (savedInstanceState == null) {
-            intent.getIntExtra(EXTRA_ID, 0)
-        } else {
-            savedInstanceState.getInt(EXTRA_ID, 0)
-        }
+        contactId = savedInstanceState?.getInt(EXTRA_ID, 0) ?: intent.getIntExtra(EXTRA_ID, 0)
 
-        if (supportActionBar != null) {
-            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            supportActionBar!!.title = ""
+        supportActionBar?.let {
+            it.setDisplayHomeAsUpEnabled(true)
+            it.title = ""
         }
 
         contactSwipeLayout.setOnRefreshListener(this)
@@ -228,11 +224,9 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     override fun onResume() {
         super.onResume()
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-        // Deep linking from notificaiton
-        if (intent != null) {
-            val extras = intent.extras
-            val type = extras.getInt(MainActivity.EXTRA_NOTIFICATION_TYPE, 0)
-            val id = extras.getInt(MainActivity.EXTRA_NOTIFICATION_ID, 0)
+        intent.extras?.let {
+            val type = it.getInt(MainActivity.EXTRA_NOTIFICATION_TYPE, 0)
+            val id = it.getInt(MainActivity.EXTRA_NOTIFICATION_ID, 0)
             if (type == NotificationUtils.NOTIFICATION_TYPE_CONTACT) {
                 this.contactId = id
                 viewModel = ViewModelProviders.of(this, viewModelFactory).get(ContactsViewModel::class.java)
@@ -344,12 +338,12 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
         // update contact data
         dialogUtils.toast(getString(R.string.toast_refreshing_data))
+        showRefresh()
         updateData()
     }
 
     private fun setMenuOptions(contact: Contact?) {
-        if (contact != null) {
-            //val buttonTag = TradeUtils.getTradeActionButtonLabel(contact)
+        contact?.let {
             if (TradeUtils.canDisputeTrade(contact) && disputeItem != null) {
                 disputeItem!!.isVisible = true
             }
@@ -363,6 +357,10 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         updateData()
     }
 
+    private fun showRefresh() {
+        contactSwipeLayout.isRefreshing = true
+    }
+
     private fun onRefreshStop() {
         contactSwipeLayout.isRefreshing = false
     }
@@ -370,9 +368,11 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (resultCode) {
             PinCodeActivity.RESULT_VERIFIED -> {
-                intent?.let {
-                    val pinCode = intent.getStringExtra(PinCodeActivity.EXTRA_PIN_CODE)
-                    releaseTradeWithPin(pinCode)
+                data?.let {
+                    if(it.hasExtra(EXTRA_PIN_CODE)) {
+                        val pinCode = it.getStringExtra(EXTRA_PIN_CODE)
+                        releaseTradeWithPin(pinCode)
+                    }
                 }
             }
             PinCodeActivity.RESULT_CANCELED -> dialogUtils.toast(R.string.toast_pin_code_canceled)
@@ -407,103 +407,104 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         val amount = contact.amount + " " + contact.currency
         var type = ""
 
-        val adTradeType = TradeType.valueOf(contact.advertisement.tradeType)
-        when (adTradeType) {
+        when (TradeType.valueOf(contact.advertisement.tradeType)) {
             TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> {
                 var paymentMethod = TradeUtils.getPaymentMethodName(contact.advertisement.paymentMethod)
                 paymentMethod = paymentMethod.replace("_", " ")
                 type = if (contact.isBuying) getString(R.string.contact_list_buying_online, amount, paymentMethod, date) else getString(R.string.contact_list_selling_online, amount, paymentMethod, date)
             }
-            TradeType.NONE -> TODO()
+            TradeType.NONE -> {
+                // na-da
+            }
         }
 
-        tradeType!!.text = Html.fromHtml(type)
-        tradePrice!!.text = getString(R.string.trade_price, contact.amount, contact.currency)
-        tradeAmount!!.text = contact.amountBtc + " " + getString(R.string.btc)
-        tradeReference!!.text = contact.referenceCode
-        tradeId!!.text = contact.contactId.toString()
-        dealPrice!!.text = Conversions.formatDealAmount(contact.amountBtc, contact.amount) + " " + contact.currency
-        tradeAmount!!.text = contact.amountBtc + " " + getString(R.string.btc)
-        traderName!!.text = if (contact.isBuying) contact.seller.username else contact.buyer.username
-        tradeFeedback!!.text = if (contact.isBuying) contact.seller.feedbackScore.toString() else contact.buyer.feedbackScore.toString()
-        tradeCount!!.text = if (contact.isBuying) contact.seller.tradeCount else contact.buyer.tradeCount
+        tradeType?.text = Html.fromHtml(type)
+        tradePrice?.text = getString(R.string.trade_price, contact.amount, contact.currency)
+        tradeAmount?.text = contact.amountBtc + " " + getString(R.string.btc)
+        tradeReference?.text = contact.referenceCode
+        tradeId?.text = contact.contactId.toString()
+        dealPrice?.text = Conversions.formatDealAmount(contact.amountBtc, contact.amount) + " " + contact.currency
+        tradeAmount?.text = contact.amountBtc + " " + getString(R.string.btc)
+        traderName?.text = if (contact.isBuying) contact.seller.username else contact.buyer.username
+        tradeFeedback?.text = if (contact.isBuying) contact.seller.feedbackScore.toString() else contact.buyer.feedbackScore.toString()
+        tradeCount?.text = if (contact.isBuying) contact.seller.tradeCount else contact.buyer.tradeCount
 
         if (contact.isBuying) {
-            lastSeenIcon!!.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.seller.lastOnline!!))
+            lastSeenIcon?.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.seller.lastOnline.orEmpty()))
         } else if (contact.isSelling) {
-            lastSeenIcon!!.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.buyer.lastOnline!!))
+            lastSeenIcon?.setBackgroundResource(TradeUtils.determineLastSeenIcon(contact.buyer.lastOnline.orEmpty()))
         }
 
         val buttonTag = TradeUtils.getTradeActionButtonLabel(contact)
-        contactButton!!.tag = buttonTag
+        contactButton?.tag = buttonTag
         if (buttonTag > 0) {
-            contactButton!!.text = getString(buttonTag)
+            contactButton?.text = getString(buttonTag)
         }
 
         if (buttonTag == R.string.button_cancel || buttonTag == 0) {
-            buttonLayout!!.visibility = View.GONE
+            buttonLayout?.visibility = View.GONE
         } else {
-            buttonLayout!!.visibility = View.VISIBLE
+            buttonLayout?.visibility = View.VISIBLE
         }
 
         val description = TradeUtils.getContactDescription(contact, this)
         if (!TextUtils.isEmpty(description)) {
-            noteText!!.text = Html.fromHtml(description)
+            noteText?.text = Html.fromHtml(description)
         }
-        contactHeaderLayout!!.visibility = if (description == null) View.GONE else View.VISIBLE
+        contactHeaderLayout?.visibility = if (description == null) View.GONE else View.VISIBLE
 
         if (TradeUtils.isOnlineTrade(contact)) {
-            tradeAmountTitle!!.setText(R.string.text_escrow_amount)
+            tradeAmountTitle?.setText(R.string.text_escrow_amount)
             showOnlineOptions(contact)
         }
     }
 
     private fun showOnlineOptions(contact: Contact?) {
         if (contact != null) {
-            onlineOptionsLayout!!.visibility = View.VISIBLE
+            onlineOptionsLayout?.visibility = View.VISIBLE
             if (!TextUtils.isEmpty(contact.accountDetails.bsb)) {
-                detailsBSB!!.text = contact.accountDetails.bsb
-                detailsBSBLayout!!.visibility = View.VISIBLE
+                detailsBSB?.text = contact.accountDetails.bsb
+                detailsBSBLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.iban)) {
-                detailsIbanName!!.text = contact.accountDetails.iban
-                detailsIbanLayout!!.visibility = View.VISIBLE
+                detailsIbanName?.text = contact.accountDetails.iban
+                detailsIbanLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.sortCode)) {
-                detailsSortCode!!.text = contact.accountDetails.sortCode
-                detailsSortCodeLayout!!.visibility = View.VISIBLE
+                detailsSortCode?.text = contact.accountDetails.sortCode
+                detailsSortCodeLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.receiverName)) {
-                detailsReceiverName!!.text = contact.accountDetails.receiverName
-                detailsReceiverNameLayout!!.visibility = View.VISIBLE
+                detailsReceiverName?.text = contact.accountDetails.receiverName
+                detailsReceiverNameLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.receiverEmail)) {
-                detailsReceiverEmail!!.text = contact.accountDetails.receiverEmail
-                detailsReceiverEmailLayout!!.visibility = View.VISIBLE
+                detailsReceiverEmail?.text = contact.accountDetails.receiverEmail
+                detailsReceiverEmailLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.swiftBic)) {
-                detailsSwiftBic!!.text = contact.accountDetails.swiftBic
-                detailsSwiftBicLayout!!.visibility = View.VISIBLE
+                detailsSwiftBic?.text = contact.accountDetails.swiftBic
+                detailsSwiftBicLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.ethereumAddress)) {
-                detailsEthereumAddress!!.text = contact.accountDetails.ethereumAddress
-                detailsEthereumAddressLayout!!.visibility = View.VISIBLE
+                detailsEthereumAddress?.text = contact.accountDetails.ethereumAddress
+                detailsEthereumAddressLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.reference)) {
-                detailsReference!!.text = contact.accountDetails.reference
-                detailsReferenceLayout!!.visibility = View.VISIBLE
+                detailsReference?.text = contact.accountDetails.reference
+                detailsReferenceLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.phoneNumber)) {
-                detailsPhoneNumber!!.text = contact.accountDetails.phoneNumber
-                detailsPhoneNumberLayout!!.visibility = View.VISIBLE
+                detailsPhoneNumber?.text = contact.accountDetails.phoneNumber
+                detailsPhoneNumberLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.billerCode)) {
-                detailsBillerCode!!.text = contact.accountDetails.billerCode
-                detailsBillerCodeLayout!!.visibility = View.VISIBLE
+                detailsBillerCode?.text = contact.accountDetails.billerCode
+                detailsBillerCodeLayout?.visibility = View.VISIBLE
             }
             if (!TextUtils.isEmpty(contact.accountDetails.accountNumber)) {
-                detailsAccountNumber!!.text = contact.accountDetails.accountNumber
-                detailsAccountNumberLayout!!.visibility = View.VISIBLE
+                detailsAccountNumber?.text = contact.accountDetails.accountNumber
+                detailsAccountNumberLayout?.visibility = View.VISIBLE
             }
         }
     }
@@ -526,7 +527,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         try {
             downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            downloadManager!!.enqueue(request)
+            downloadManager?.enqueue(request)
         } catch (e: NullPointerException) {
             Timber.e(e.message)
         }
@@ -543,18 +544,15 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun disputeContact() {
-        dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_disputing))
-        createAlert(getString(R.string.contact_dispute_confirm), contactId, null, ContactAction.DISPUTE)
+        createAlert(getString(R.string.contact_dispute_confirm), contactId, ContactAction.DISPUTE, getString(R.string.progress_disputing))
     }
 
     private fun fundContact() {
-        dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_funding))
-        createAlert(getString(R.string.contact_fund_confirm), contactId, null, ContactAction.FUND)
+        createAlert(getString(R.string.contact_fund_confirm), contactId, ContactAction.FUND, getString(R.string.progress_funding))
     }
 
     private fun markContactPaid() {
-        dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_marking_paid))
-        createAlert(getString(R.string.contact_paid_confirm), contactId, null, ContactAction.PAID)
+        createAlert(getString(R.string.contact_paid_confirm), contactId, ContactAction.PAID, getString(R.string.progress_marking_paid))
     }
 
     private fun releaseTrade() {
@@ -573,16 +571,16 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     private fun cancelContact() {
         dialogUtils.showAlertDialogCancel(this@ContactActivity, getString(R.string.contact_cancel_confirm),
                 DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing))
+                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_canceling_trade))
                     contactAction(contactId, null, ContactAction.CANCEL)
                 })
     }
 
-    private fun createAlert(message: String, contactId: Int, pinCode: String?, action: ContactAction) {
+    private fun createAlert(message: String, contactId: Int, action: ContactAction, loadingMessage:String?) {
         dialogUtils.showAlertDialogCancel(this@ContactActivity, message,
                 DialogInterface.OnClickListener { dialog, which ->
-                    dialogUtils.showProgressDialog(this@ContactActivity, getString(R.string.progress_releasing))
-                    contactAction(contactId, pinCode, action)
+                    dialogUtils.showProgressDialog(this@ContactActivity, loadingMessage.orEmpty())
+                    contactAction(contactId, null, action)
                 })
     }
 

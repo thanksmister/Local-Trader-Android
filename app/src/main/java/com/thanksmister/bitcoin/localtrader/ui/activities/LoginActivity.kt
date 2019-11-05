@@ -31,6 +31,7 @@ import android.text.Html
 import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.util.Patterns
+import android.view.InflateException
 import android.view.KeyEvent
 import android.view.View
 import android.webkit.WebChromeClient
@@ -60,16 +61,19 @@ class LoginActivity : BaseActivity() {
     private var whatsNewShown: Boolean = false
     private var webViewLogin: Boolean = false
 
-    val context: Context
-        get() = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.view_login)
+        try {
+            setContentView(R.layout.view_login)
+        } catch (e: InflateException) {
+            dialogUtils.showAlertDialog(this@LoginActivity, "Your device does not support the use of oauth authentication, you cannot log into LocalBitcoins.")
+            return
+        }
 
-        if (savedInstanceState != null) {
+        savedInstanceState?.let {
             whatsNewShown = savedInstanceState.getBoolean(EXTRA_WHATS_NEW)
             webViewLogin = savedInstanceState.getBoolean(EXTRA_WEB_LOGIN)
             endpoint = savedInstanceState.getString(EXTRA_END_POINT)
@@ -120,12 +124,10 @@ class LoginActivity : BaseActivity() {
 
     private fun observeViewModel(viewModel: LoginViewModel) {
         viewModel.getAlertMessage().observe(this, Observer { message ->
-            Timber.d("getAlertMessage")
             if(message != null && !isFinishing)
                 dialogUtils.showAlertDialog(this@LoginActivity, message)
         })
         viewModel.getToastMessage().observe(this, Observer { message ->
-            Timber.d("getToastMessage")
             if(message != null) {
                 dialogUtils.toast(message)
             }
@@ -163,14 +165,14 @@ class LoginActivity : BaseActivity() {
             dialogUtils.hideProgressDialog()
             loginEndpointText.setText(endpoint)
             try {
-                BaseActivity.hideSoftKeyboard(this@LoginActivity)
+                hideSoftKeyboard(this@LoginActivity)
             } catch (e: NullPointerException) {
                 Timber.e("Error closing keyboard")
             }
             setUpWebViewDefaults()
         } else {
             try {
-                BaseActivity.hideSoftKeyboard(this@LoginActivity)
+                hideSoftKeyboard(this@LoginActivity)
             } catch (e: NullPointerException) {
                 Timber.e("Error closing keyboard")
             }
@@ -230,9 +232,10 @@ class LoginActivity : BaseActivity() {
             return handleUri(uri)
         }
         private fun handleUri(uri: Uri): Boolean {
-            val host = uri.host
+            val host = uri.host.orEmpty()
             val scheme = uri.scheme
-            val path = uri.path
+            val path = uri.path.orEmpty()
+
             // Returning false means that you want to handle link in webview
             if (host.contains(BuildConfig.CALLBACK_URL)) {
                 val codePattern = Pattern.compile("code=([^&]+)?")

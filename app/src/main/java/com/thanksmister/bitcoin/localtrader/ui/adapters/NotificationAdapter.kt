@@ -60,7 +60,7 @@ class NotificationAdapter(private val onItemClickListener: OnItemClickListener):
     }
 
     fun getItemAt(position: Int): Notification? {
-        return if (!items.isEmpty() && items.size > position) {
+        return if (items.isNotEmpty() && items.size > position) {
             items[position]
         } else null
     }
