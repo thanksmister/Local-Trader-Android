@@ -486,13 +486,13 @@
     <string name="text_add_spendable_amount">Added full amount!</string>
     <string name="local_markets">
         <![CDATA[
-            <b>Local Markets</b>
+            <b>Local Markets App</b>
             <br/><br/>
             Local Markets is a free application for both iOS and Android.  It supports buying and selling multiple cryptocurrencies, including BTC, ETH, BCH, LTC, and XRP.
-           <br/><br/>
-            You only pay to advertise, we do not charge fees. During the initial testing phase, the application is absolutely free!
-             <br/><br/>
-            Download the mobile app from <a href="https://localmarkets.app">Local Markets</a> today and start advertising!
+            <br/><br/>
+            Searching and contacting advertisers is free, you only pay to advertise. During the initial application launch, advertising is absolutely free!
+            <br/><br/>
+            Download the mobile application from <a href="https://localmarkets.app">LocalMarkets.app</a> today and start advertising!
             <br/><br/>
         ]]>
     </string>

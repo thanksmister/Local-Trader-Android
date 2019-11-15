@@ -30,7 +30,11 @@ class AddressConverter {
         val listType = object : TypeToken<ArrayList<Address>>() {
 
         }.type
-        return Gson().fromJson<ArrayList<Address>>(value, listType)
+        return try {
+            Gson().fromJson<ArrayList<Address>>(value, listType)
+        } catch (e: IncompatibleClassChangeError) {
+            ArrayList()
+        }
     }
 
     @TypeConverter

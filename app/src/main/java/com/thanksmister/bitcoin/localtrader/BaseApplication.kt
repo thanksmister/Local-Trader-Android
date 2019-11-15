@@ -20,6 +20,7 @@ package com.thanksmister.bitcoin.localtrader
 import android.content.Context
 import androidx.multidex.MultiDex
 import com.crashlytics.android.Crashlytics
+import com.crashlytics.android.answers.Answers
 import com.facebook.stetho.Stetho
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.thanksmister.bitcoin.localtrader.di.DaggerApplicationComponent
@@ -48,6 +49,7 @@ class BaseApplication : DaggerApplication() {
             Timber.plant(CrashlyticsTree())
         } else {
             Fabric.with(this, Crashlytics())
+            Fabric.with(this, Answers())
             Timber.plant(CrashlyticsTree())
             // Obtain the FirebaseAnalytics instance.
             firebaseAnalytics = FirebaseAnalytics.getInstance(this)

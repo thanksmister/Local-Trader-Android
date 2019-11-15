@@ -447,13 +447,13 @@
 
     <string name="local_markets">
        <![CDATA[
-            <b>Local Markets (本地市场)</b>
+            <b>Local Markets App</b>
             <br/><br/>
             Local Markets 是适用于iOS和Android设备的免费应用程序。 它支持买卖多种加密货币，包括BTC，ETH，BCH，LTC和XRP。
             <br/><br/>
-            您只需付费做广告，我们不收取任何费用。 在初始测试阶段，该应用程序是完全免费的！
+            搜索和联系广告商是免费的，您只需付费做广告。 在首次启动应用程序期间，广告是完全免费的！
             <br/><br/>
-           立即从<a href="https://localmarkets.app">本地市场</a>下载该移动应用，并开始做广告！
+            立即从<a href="https://localmarkets.app">LocalMarkets.app</a>下载该移动应用，并开始做广告！
             <br/><br/>
         ]]>
     </string>

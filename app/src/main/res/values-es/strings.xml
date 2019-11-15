@@ -234,13 +234,13 @@
 
     <string name="local_markets">
         <![CDATA[
-            <b>Local Markets (Mercados locales)</b>
+            <b>Local Markets App</b>
             <br/><br/>
-            Local Markets es una aplicación gratuita para dispositivos iOS y Android. Admite la compra y venta de múltiples criptomonedas, incluidas BTC, ETH, BCH, LTC y XRP.
+            Local Markets es una aplicación gratuita para iOS y Android. Admite la compra y venta de múltiples criptomonedas, incluidas BTC, ETH, BCH, LTC y XRP.
             <br/><br/>
-            Solo paga para anunciar, no cobramos tarifas. ¡Durante la fase de prueba inicial, la aplicación es totalmente gratuita!
+            Buscar y contactar anunciantes es gratis, solo paga para anunciar. ¡Durante el lanzamiento inicial de la aplicación, la publicidad es totalmente gratuita!
             <br/><br/>
-            ¡Descargue la aplicación móvil desde <a href="https://localmarkets.app"> Mercados locales </a> hoy y comience a anunciar!
+            ¡Descargue la aplicación móvil desde <a href="https://localmarkets.app">LocalMarkets.app</a> hoy y comience a anunciar!
             <br/><br/>
         ]]>
     </string>

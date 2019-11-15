@@ -19,7 +19,6 @@ package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.thanksmister.bitcoin.localtrader.constants.Constants.ADVANCED_AD_EDITING
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
@@ -51,8 +50,7 @@ constructor(application: Application,
             private val okHttpClient: OkHttpClient,
             private val advertisementsDao: AdvertisementsDao,
             private val methodsDao: MethodsDao,
-            private val preferences: Preferences,
-            private val remoteConfig: FirebaseRemoteConfig) : BaseViewModel(application) {
+            private val preferences: Preferences) : BaseViewModel(application) {
 
     private val advertisementDeleted = MutableLiveData<Boolean>()
     private val advertisementUpdated = MutableLiveData<Boolean>()
@@ -110,7 +108,7 @@ constructor(application: Application,
     init {
         setAdvertisementUpdated(false)
         setAdvertisementDeleted(false)
-        setUseAdvancedEditFeature(remoteConfig.getBoolean(ADVANCED_AD_EDITING))
+        setUseAdvancedEditFeature(false)
         val endpoint = preferences.getServiceEndpoint()
         val api = LocalBitcoinsApi(okHttpClient, endpoint)
         fetcher = LocalBitcoinsFetcher(getApplication(), api, preferences)

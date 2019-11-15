@@ -149,16 +149,10 @@ class SearchFragment : BaseFragment() {
             override fun onNothingSelected(arg0: AdapterView<*>) {}
         }
 
-        val showPromo = sharedPreferences.getBoolean(Constants.LOCAL_MARKETS_PROMO,false)
-        if (showPromo){
-            binding.localMarketButton.visibility = View.VISIBLE
-            binding.localMarketButton.setOnClickListener {
-                showLocalMarkets()
-            }
-        } else {
-            binding.localMarketButton.visibility = View.GONE
+        binding.localMarketButton.visibility = View.VISIBLE
+        binding.localMarketButton.setOnClickListener {
+            showLocalMarkets()
         }
-
         observeViewModel(viewModel)
         lifecycle.addObserver(viewModel)
     }

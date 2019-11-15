@@ -20,16 +20,10 @@ import android.app.Application
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.thanksmister.bitcoin.localtrader.BaseApplication
-import com.thanksmister.bitcoin.localtrader.R
-import com.thanksmister.bitcoin.localtrader.constants.Constants.DEAD_MAN_SWITCH
-import com.thanksmister.bitcoin.localtrader.constants.Constants.LOCAL_MARKETS_PROMO
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
 import com.thanksmister.bitcoin.localtrader.network.api.fetchers.LocalBitcoinsFetcher
 import com.thanksmister.bitcoin.localtrader.network.api.model.*
 import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
-import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.*
@@ -47,7 +41,6 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.*
 import javax.inject.Inject
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 
 class SplashViewModel @Inject
 constructor(application: Application,
@@ -59,8 +52,7 @@ constructor(application: Application,
             private val contactsDao: ContactsDao,
             private val notificationsDao: NotificationsDao,
             private val preferences: Preferences,
-            private val sharedPreferences: SharedPreferences,
-            private val remoteConfig: FirebaseRemoteConfig) : BaseViewModel(application) {
+            private val sharedPreferences: SharedPreferences) : BaseViewModel(application) {
 
     private var syncMap = HashMap<String, Boolean>()
     private val syncing = MutableLiveData<String>()
@@ -105,7 +97,7 @@ constructor(application: Application,
         updateSyncMap(SYNC_MYSELF, true)
         updateSyncMap(SYNC_CURRENCIES, true)
         updateSyncMap(SYNC_METHODS, true)
-        fetchRemoteConfigValues()
+        fetchUser()
     }
 
     private fun getUser(): Single<List<User>> {
@@ -118,33 +110,6 @@ constructor(application: Application,
 
     private fun getCurrencies(): Flowable<List<Currency>> {
         return currenciesDao.getItems()
-    }
-
-    private fun fetchRemoteConfigValues() {
-        Timber.e("fetchRemoteConfigValues")
-        remoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().setMinimumFetchIntervalInSeconds(3600L).build())
-        remoteConfig.setDefaultsAsync(R.xml.remoteconfig)
-        remoteConfig.fetch().addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Timber.i("Firebase remote config fetch success!")
-                        remoteConfig.activate()
-                        val deadMan = remoteConfig.getBoolean(DEAD_MAN_SWITCH)
-                        val showPromo = remoteConfig.getBoolean(LOCAL_MARKETS_PROMO)
-                        sharedPreferences.edit().putBoolean(LOCAL_MARKETS_PROMO, showPromo).apply()
-                        Timber.i("dead man walking: $deadMan")
-                        Timber.i("show local markets promo: $showPromo")
-                        if(!deadMan) {
-                            fetchUser()
-                        } else {
-                            showAlertMessage("Dead man switch activated, this app has stopped functioning indefinitely.")
-                        }
-                        updateSyncMap(SYNC_REMOTE_CONFIG, false)
-                    } else {
-                        Timber.e("Firebase remote config fetch vales failed.")
-                        handleError(NetworkException(getApplication<BaseApplication>().getString(R.string.error_network_disconnected), ExceptionCodes.NETWORK_CONNECTION_ERROR_CODE))
-                        setSyncingError(SYNC_ERROR)
-                    }
-                }
     }
 
     private fun fetchMethods() {

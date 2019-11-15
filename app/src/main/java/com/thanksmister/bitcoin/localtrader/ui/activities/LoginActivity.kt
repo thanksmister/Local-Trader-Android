@@ -38,6 +38,8 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
+import com.google.android.material.textfield.TextInputEditText
 import com.thanksmister.bitcoin.localtrader.BuildConfig
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences.Companion.ALT_BASE_URL
@@ -53,6 +55,7 @@ class LoginActivity : BaseActivity() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
+
     @Inject
     lateinit var viewModel: LoginViewModel
 
@@ -61,6 +64,21 @@ class LoginActivity : BaseActivity() {
     private var whatsNewShown: Boolean = false
     private var webViewLogin: Boolean = false
 
+    private val loginWebView: WebView by lazy {
+       findViewById<WebView>(R.id.loginWebView)
+    }
+
+    private val loginContent: View by lazy {
+        findViewById<View>(R.id.loginContent)
+    }
+
+    private val authenticateButton: Button by lazy {
+        findViewById<Button>(R.id.authenticateButton)
+    }
+
+    private val loginEndpointText: TextInputEditText by lazy {
+        findViewById<TextInputEditText>(R.id.loginEndpointText)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -69,7 +87,7 @@ class LoginActivity : BaseActivity() {
         try {
             setContentView(R.layout.view_login)
         } catch (e: InflateException) {
-            dialogUtils.showAlertDialog(this@LoginActivity, "Your device does not support the use of oauth authentication, you cannot log into LocalBitcoins.")
+            dialogUtils.showAlertDialog(this@LoginActivity,"This device does not support the use of oauth authentication, you cannot log into the LocalBitcoins website.")
             return
         }
 
@@ -107,11 +125,6 @@ class LoginActivity : BaseActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             dialogUtils.toast(getString(R.string.toast_authentication_canceled))
-            if (loginWebView.visibility == View.VISIBLE) {
-                loginContent.visibility = View.VISIBLE
-                loginWebView.visibility = View.GONE
-                return true
-            }
             val intent = PromoActivity.createStartIntent(this@LoginActivity)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -196,8 +209,6 @@ class LoginActivity : BaseActivity() {
                 settings.loadWithOverviewMode = true
                 settings.builtInZoomControls = true
                 settings.displayZoomControls = false
-
-                // Load website
                 loginWebView.loadUrl(OAUTH_URL)
             } catch (e: Exception) {
                 Timber.e(e.message)

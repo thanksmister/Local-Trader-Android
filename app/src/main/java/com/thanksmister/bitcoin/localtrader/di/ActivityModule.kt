@@ -22,7 +22,6 @@ import android.content.SharedPreferences
 import android.content.res.Resources
 import android.preference.PreferenceManager
 import android.view.LayoutInflater
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.thanksmister.bitcoin.localtrader.utils.DialogUtils
 import com.thanksmister.bitcoin.localtrader.utils.NotificationUtils
 import dagger.Module
@@ -61,10 +60,5 @@ class ActivityModule {
     @Provides
     fun notificationUtils(application: Application): NotificationUtils {
         return NotificationUtils(application)
-    }
-
-    @Provides
-    fun providesRemoteConfig(): FirebaseRemoteConfig {
-        return FirebaseRemoteConfig.getInstance()
     }
 }
