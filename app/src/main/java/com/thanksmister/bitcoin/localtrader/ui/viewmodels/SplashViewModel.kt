@@ -93,7 +93,6 @@ constructor(application: Application,
 
     fun startSync() {
         resetSyncing()
-        updateSyncMap(SYNC_REMOTE_CONFIG, true)
         updateSyncMap(SYNC_MYSELF, true)
         updateSyncMap(SYNC_CURRENCIES, true)
         updateSyncMap(SYNC_METHODS, true)
