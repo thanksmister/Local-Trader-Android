@@ -425,7 +425,7 @@
     <string name="text_common_with">%1$s with %2$s</string>
     <string name="text_bank_transfer">Bank transfer</string>
     <string name="text_cash_deposit">Cash deposit</string>
-    <string name="text_with_int">With %1$s  in %2$s</string>
+    <string name="text_with_int">Using %1$s in %2$s</string>
     <string name="text_buy_your">buy your</string>
     <string name="text_online_seller">Online Seller</string>
     <string name="text_online_buyer">Online Buyer</string>

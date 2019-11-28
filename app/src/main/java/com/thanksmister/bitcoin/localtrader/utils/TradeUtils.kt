@@ -226,15 +226,15 @@ class TradeUtils {
         fun getPaymentMethod(context: Context, advertisement: Advertisement, method: Method?): String {
             var paymentMethod: String? = "Online"
             if (method != null && method.code == advertisement.onlineProvider) {
-                /*when (method.code) {
-                    "NATIONAL_BANK" -> return context.getString(R.string.text_national_bank_transfer)
-                    "CASH_DEPOSIT" -> return context.getString(R.string.text_cash_deposit)
-                    "SPECIFIC_BANK" -> return context.getString(R.string.text_bank_transfer)
-                }*/
                 paymentMethod = method.name!!
             }
-            if (!TextUtils.isEmpty(advertisement.bankName) && "NATIONAL_BANK" == advertisement.onlineProvider) {
-                return context.getString(R.string.text_common_with, paymentMethod, advertisement.bankName)
+            if (!TextUtils.isEmpty(advertisement.bankName))  {
+                when (advertisement.onlineProvider) {
+                    "NATIONAL_BANK" ->   return context.getString(R.string.text_common_with, paymentMethod, advertisement.bankName)
+                    "CASH_DEPOSIT" ->  return context.getString(R.string.text_common_with, paymentMethod, advertisement.bankName)
+                    "SPECIFIC_BANK" -> return advertisement.bankName!!
+                    else -> return advertisement.bankName!!
+                }
             } else if (paymentMethod != null) {
                 return paymentMethod
             }
@@ -252,11 +252,11 @@ class TradeUtils {
             return ""
         }
 
-        fun getPaymentMethodName(paymentMethod: String?): String {
+        fun getPaymentMethodName(context: Context, paymentMethod: String?): String {
             when (paymentMethod) {
-                "NATIONAL_BANK" -> return "National Bank transfer"
-                "CASH_DEPOSIT" -> return "Cash deposit"
-                "SPECIFIC_BANK" -> return "Bank transfer"
+                "NATIONAL_BANK" -> return context.getString(R.string.text_national_bank_transfer)
+                "CASH_DEPOSIT" -> return context.getString(R.string.text_cash_deposit)
+                "SPECIFIC_BANK" -> return context.getString(R.string.text_bank_transfer)
             }
             return ""
         }

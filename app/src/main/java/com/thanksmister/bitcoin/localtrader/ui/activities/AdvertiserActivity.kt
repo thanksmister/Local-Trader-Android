@@ -173,16 +173,22 @@ class AdvertiserActivity : BaseActivity() {
 
     @Suppress("DEPRECATION")
     private fun setAdvertisement(advertisement: Advertisement?, method: Method?) {
+
         if(advertisement != null) {
             val location = advertisement.location
-            val provider = TradeUtils.getPaymentMethod(this@AdvertiserActivity, advertisement, method)
+            val price = advertisement.currency
             val tradeType = TradeType.valueOf(advertisement.tradeType)
+            var title = ""
             when (tradeType) {
-                ONLINE_SELL -> noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertiser_notes_text_online, getString(R.string.text_sell).toLowerCase(), advertisement.currency, provider))
-                ONLINE_BUY -> noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertiser_notes_text_online, getString(R.string.text_buy_your), advertisement.currency, provider))
-                else -> {
-                    // na-da
-                }
+                ONLINE_BUY -> title = getString(R.string.text_advertisement_online_buy)
+                ONLINE_SELL -> title = getString(R.string.text_advertisement_online_sale)
+                else -> { }
+            }
+            val paymentMethod = TradeUtils.getPaymentMethod(this@AdvertiserActivity, advertisement, method)
+            if (TextUtils.isEmpty(paymentMethod)) {
+                noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online_location, title, price, location))
+            } else {
+                noteTextAdvertiser.text = Html.fromHtml(getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location))
             }
 
             if (advertisement.isATM) {

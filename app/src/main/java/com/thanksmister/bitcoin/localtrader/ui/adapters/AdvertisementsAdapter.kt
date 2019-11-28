@@ -80,7 +80,7 @@ class AdvertisementsAdapter(private val onItemClickListener: OnItemClickListener
                 TradeType.NONE -> "Local Advertisement"
             }
             val price = advertisement.tempPrice + " " + advertisement.currency
-            val location = advertisement.location
+            //val location = advertisement.location
             val adLocation = if (TradeUtils.isOnlineTrade(advertisement)) advertisement.location else advertisement.city
             val paymentMethod = TradeUtils.getPaymentMethod(itemView.context, advertisement, methods)
             if (TextUtils.isEmpty(paymentMethod)) {

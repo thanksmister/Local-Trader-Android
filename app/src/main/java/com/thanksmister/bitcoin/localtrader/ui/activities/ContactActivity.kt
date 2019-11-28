@@ -409,7 +409,7 @@ class ContactActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
         when (TradeType.valueOf(contact.advertisement.tradeType)) {
             TradeType.ONLINE_BUY, TradeType.ONLINE_SELL -> {
-                var paymentMethod = TradeUtils.getPaymentMethodName(contact.advertisement.paymentMethod)
+                var paymentMethod = TradeUtils.getPaymentMethodName(this@ContactActivity, contact.advertisement.paymentMethod)
                 paymentMethod = paymentMethod.replace("_", " ")
                 type = if (contact.isBuying) getString(R.string.contact_list_buying_online, amount, paymentMethod, date) else getString(R.string.contact_list_selling_online, amount, paymentMethod, date)
             }

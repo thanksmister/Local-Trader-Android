@@ -19,6 +19,8 @@ package com.thanksmister.bitcoin.localtrader.ui.adapters
 
 import android.content.Context
 import android.preference.PreferenceManager
+import android.text.Html
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,9 +30,12 @@ import android.widget.TextView
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.model.Advertisement
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
+import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.utils.Conversions
 import com.thanksmister.bitcoin.localtrader.utils.Doubles
 import com.thanksmister.bitcoin.localtrader.utils.TradeUtils
+import kotlinx.android.synthetic.main.adapter_dashboard_advertisement_list.view.*
+import kotlinx.android.synthetic.main.view_advertisement.*
 
 class AdvertiseAdapter(private val context: Context) : BaseAdapter() {
 
@@ -79,16 +84,31 @@ class AdvertiseAdapter(private val context: Context) : BaseAdapter() {
 
         val advertisement = getItem(position)
 
-        if (TradeUtils.isOnlineTrade(advertisement)) { // online trade
-            val paymentMethod = TradeUtils.getPaymentMethod(context, advertisement, methods)
-            holder.tradLocation!!.text = paymentMethod
-        } else {
-            val preferences = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
-            val units_prefs = preferences.getString(context.getString(R.string.pref_key_distance), "0")
-            val unit = if (units_prefs == "0") context.getString(R.string.list_unit_km) else context.getString(R.string.list_unit_mi)
-            val distance = if (units_prefs == "0") Conversions.formatDecimalToString(Doubles.convertToDouble(advertisement.distance), Conversions.TWO_DECIMALS) else Conversions.kilometersToMiles(Doubles.convertToDouble(advertisement.distance))
-            holder.tradLocation!!.text = distance + " " + unit + " → " + advertisement.location
+        val location = advertisement.location
+        val price = advertisement.currency
+        val tradeType = TradeType.valueOf(advertisement.tradeType)
+        var title = ""
+        when (tradeType) {
+            TradeType.ONLINE_BUY -> title = context.getString(R.string.text_advertisement_online_buy)
+            TradeType.ONLINE_SELL -> title = context.getString(R.string.text_advertisement_online_sale)
+            else -> { }
         }
+
+        val paymentMethod = TradeUtils.getPaymentMethod(context, advertisement, methods)
+
+        context.getString(R.string.text_with_int, paymentMethod, location)
+
+        if (TextUtils.isEmpty(paymentMethod)) {
+            holder.tradLocation?.text = context.getString(R.string.text_in_caps, location)
+        } else {
+            holder.tradLocation?.text = context.getString(R.string.text_with_int, paymentMethod, location)
+        }
+
+       /* if (TextUtils.isEmpty(paymentMethod)) {
+            holder.tradLocation?.text = Html.fromHtml(context.getString(R.string.advertisement_notes_text_online_location, title, price, location))
+        } else {
+            holder.tradLocation?.text = Html.fromHtml(context.getString(R.string.advertisement_notes_text_online, title, price, paymentMethod, location))
+        }*/
 
         if (advertisement.isATM) {
             holder.tradePrice!!.text = context.getText(R.string.text_atm)
