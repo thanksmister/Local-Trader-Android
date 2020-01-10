@@ -231,19 +231,7 @@
     <string name="toast_search_canceled">Búsqueda cancelada…</string>
     <string name="error_unable_load_payment_methods">No se pueden cargar los métodos de pago en línea.</string>
     <string name="toast_loading_methods">Error al obtener métodos…</string>
-
-    <string name="local_markets">
-        <![CDATA[
-            <b>Local Markets App</b>
-            <br/><br/>
-            Local Markets es una aplicación gratuita para iOS y Android. Admite la compra y venta de múltiples criptomonedas, incluidas BTC, ETH, BCH, LTC y XRP.
-            <br/><br/>
-            Buscar y contactar anunciantes es gratis, solo paga para anunciar. ¡Durante el lanzamiento inicial de la aplicación, la publicidad es totalmente gratuita!
-            <br/><br/>
-            ¡Descargue la aplicación móvil desde <a href="https://localmarkets.app">LocalMarkets.app</a> hoy y comience a anunciar!
-            <br/><br/>
-        ]]>
-    </string>
+    <string name="local_markets">Local Markets es una aplicación gratuita para iOS y Android. Admite la compra y venta de múltiples criptomonedas, incluidas BTC, ETH, BCH, LTC y XRP. ¡Durante el lanzamiento inicial de la aplicación, la publicidad es totalmente gratuita!</string>
 
     <string-array name="country_names">
         <item>Afganistán</item>
@@ -737,5 +725,10 @@
     <string name="text_add_spendable_amount">Cantidad total añadida!</string>
     <string name="local_markets_button">¿Quieres comprar o vender localmente?</string>
     <string name="local_markets_description">Haga clic aquí para obtener información sobre los mercados locales, mi nueva aplicación para vender y comprar criptomonedas localmente.</string>
+    <string name="error_missing_webview">Este dispositivo no admite el uso de autenticación oauth, no puede iniciar sesión en el sitio web LocalBitcoins.</string>
+    <string name="local_markets_description_splash">Local Markets es un aplicación movil de traders de criptomonedas donde comprar y vender en tu área.</string>
+    <string name="local_markets_download_button">Descargar ahora</string>
+    <string name="view_more_button">Ver más</string>
+    <string name="meet_chat_trade">Reunirse. Charla. Comercio.</string>
 
 </resources>

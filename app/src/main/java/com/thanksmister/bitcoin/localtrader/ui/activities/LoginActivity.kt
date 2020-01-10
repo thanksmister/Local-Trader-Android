@@ -87,7 +87,7 @@ class LoginActivity : BaseActivity() {
         try {
             setContentView(R.layout.view_login)
         } catch (e: InflateException) {
-            dialogUtils.showAlertDialog(this@LoginActivity,"This device does not support the use of oauth authentication, you cannot log into the LocalBitcoins website.")
+            dialogUtils.showAlertDialog(this@LoginActivity,getString(R.string.error_missing_webview))
             return
         }
 

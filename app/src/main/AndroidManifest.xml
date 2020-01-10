@@ -171,6 +171,8 @@
         <activity android:name=".ui.activities.AboutActivity" />
         <activity android:name=".ui.activities.SearchActivity" />
         <activity android:name=".ui.activities.ContactHistoryActivity" />
+        <activity android:name=".ui.activities.LocalMarketsActivity"
+            android:theme="@style/AppThemeFullScreen"/>
 
         <meta-data android:name="com.google.android.gms.vision.DEPENDENCIES"
             android:value="barcode"/>

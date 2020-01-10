@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2019 ThanksMister LLC
+  ~ Copyright (c) 2020 ThanksMister LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  ~
   -->
 
 <ScrollView
@@ -22,8 +21,9 @@
 
     <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
+            android:paddingTop="16dp"
             android:layout_gravity="center"
             android:orientation="vertical">
 
@@ -42,8 +42,7 @@
             android:src="@drawable/app_small" />
 
         <TextView
-            android:id="@+id/localMarketDescription"
-            android:text="@string/local_markets_description_splash"
+            android:id="@+id/descriptionText"
             android:layout_marginRight="16dp"
             android:layout_marginLeft="16dp"
             style="@style/TextLarge"

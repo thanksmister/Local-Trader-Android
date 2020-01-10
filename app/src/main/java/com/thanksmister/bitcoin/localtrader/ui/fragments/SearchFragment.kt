@@ -32,6 +32,7 @@ import com.thanksmister.bitcoin.localtrader.network.api.model.Currency
 import com.thanksmister.bitcoin.localtrader.network.api.model.Method
 import com.thanksmister.bitcoin.localtrader.network.api.model.TradeType
 import com.thanksmister.bitcoin.localtrader.ui.BaseFragment
+import com.thanksmister.bitcoin.localtrader.ui.activities.LocalMarketsActivity
 import com.thanksmister.bitcoin.localtrader.ui.activities.SearchResultsActivity
 import com.thanksmister.bitcoin.localtrader.ui.adapters.CurrencyAdapter
 import com.thanksmister.bitcoin.localtrader.ui.adapters.MethodAdapter
@@ -155,6 +156,10 @@ class SearchFragment : BaseFragment() {
         }
         observeViewModel(viewModel)
         lifecycle.addObserver(viewModel)
+
+        binding.viewMoreButton.setOnClickListener {
+            showLocalMarkets()
+        }
     }
 
     private fun observeViewModel(viewModel: SearchViewModel) {
@@ -296,13 +301,15 @@ class SearchFragment : BaseFragment() {
     }
 
     private fun showLocalMarkets() {
-        if (isAdded && activity != null) {
-            dialogUtils.run {
+        val intent = LocalMarketsActivity.createStartIntent(requireActivity())
+        startActivity(intent)
+        //if (isAdded && activity != null) {
+            /*dialogUtils.run {
                 showAlertHtmlDialog(requireActivity(), getString(R.string.local_markets), View.OnClickListener {
                     dialogUtils.clearDialogs()
                 })
-            }
-        }
+            }*/
+        //}
     }
 
     companion object {

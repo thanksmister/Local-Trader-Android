@@ -484,21 +484,14 @@
     <string name="error_invalid_endpoint">The URL is invalid, please enter the default end point or the correct alternative URL.</string>
     <string name="text_transaction_fee">Transaction Fee (0.00005 BTC)</string>
     <string name="text_add_spendable_amount">Added full amount!</string>
-    <string name="local_markets">
-        <![CDATA[
-            <b>Local Markets App</b>
-            <br/><br/>
-            Local Markets is a free application for both iOS and Android.  It supports buying and selling multiple cryptocurrencies, including BTC, ETH, BCH, LTC, and XRP.
-            <br/><br/>
-            Searching and contacting advertisers is free, you only pay to advertise. During the initial application launch, advertising is absolutely free!
-            <br/><br/>
-            Download the mobile application from <a href="https://localmarkets.app">LocalMarkets.app</a> today and start advertising!
-            <br/><br/>
-        ]]>
-    </string>
-
+    <string name="local_markets">Local Markets is a free application for both iOS and Android. It supports buying and selling multiple cryptocurrencies, including BTC, ETH, BCH, LTC, and XRP.</string>
     <string name="local_markets_button">Want to buy or sell locally?</string>
     <string name="local_markets_description">Click here to find out about Local Markets, my new application for selling and buying cryptoconcurrency locally.</string>
+    <string name="error_missing_webview">This device does not support the use of oauth authentication, you cannot log into the LocalBitcoins website.</string>
+    <string name="local_markets_description_splash">Local Markets is an application for local bitcoin and cryptocurrency traders to buy and sell in their area.</string>
+    <string name="local_markets_download_button">Download Now</string>
+    <string name="view_more_button">View More</string>
+    <string name="meet_chat_trade">Meet. Chat. Trade</string>
 
     <string-array name="country_names">
         <item>Afghanistan</item>

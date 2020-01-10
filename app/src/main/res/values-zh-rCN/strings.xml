@@ -445,18 +445,7 @@
     <string name="menu_new_address">新的钱包代码</string>
     <string name="error_not_enough_balance">没有足够的余额，尝试较低的金额。</string>
 
-    <string name="local_markets">
-       <![CDATA[
-            <b>Local Markets App</b>
-            <br/><br/>
-            Local Markets 是适用于iOS和Android设备的免费应用程序。 它支持买卖多种加密货币，包括BTC，ETH，BCH，LTC和XRP。
-            <br/><br/>
-            搜索和联系广告商是免费的，您只需付费做广告。 在首次启动应用程序期间，广告是完全免费的！
-            <br/><br/>
-            立即从<a href="https://localmarkets.app">LocalMarkets.app</a>下载该移动应用，并开始做广告！
-            <br/><br/>
-        ]]>
-    </string>
+    <string name="local_markets">Local Markets 是适用于iOS和Android设备的免费应用程序。 它支持买卖多种加密货币，包括BTC，ETH，BCH，LTC和XRP。在首次启动应用程序期间，广告是完全免费的</string>
 
     <!-- TODO need to translate -->
     <string-array name="country_names">
@@ -721,4 +710,9 @@
     <string name="text_add_spendable_amount">全额加！</string>
     <string name="local_markets_button">想在当地购买或出售</string>
     <string name="local_markets_description">单击此处了解有关本地市场的信息，这是我在本地买卖加密货币的新应用程序。</string>
+    <string name="error_missing_webview">该设备不支持使用oauth身份验证，您无法登录LocalBitcoins网站。</string>
+    <string name="local_markets_description_splash">Local Markets es un aplicación movil de traders de criptomonedas donde comprar y vender en tu área.</string>
+    <string name="local_markets_download_button">笛卡尔·阿霍拉</string>
+    <string name="view_more_button">查看更多</string>
+    <string name="meet_chat_trade">遇见。谈论。贸易。</string>
 </resources>
