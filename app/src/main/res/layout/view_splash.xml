@@ -1,68 +1,36 @@
-<!--
-  ~ Copyright (c) 2019 ThanksMister LLC
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software distributed
-  ~ under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  ~
-  -->
 
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/screenImage"
+        android:layout_width="360dp"
+        android:layout_height="360dp"
+        android:src="@drawable/logo_screen"/>
 
     <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:orientation="vertical">
+        android:id="@+id/splashProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
 
-        <TextView
-            android:text="@string/meet_chat_trade"
-            style="@style/TextAppearance.AppCompat.Headline"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:gravity="center"/>
-
-        <ImageView
-            android:id="@+id/screenImage"
-            android:layout_width="300dp"
-            android:layout_height="432dp"
-            android:src="@drawable/app_small" />
-
-        <TextView
-            android:id="@+id/localMarketDescription"
-            android:text="@string/local_markets_description_splash"
-            android:layout_marginRight="16dp"
-            android:layout_marginLeft="16dp"
-            style="@style/TextLarge"
-            android:layout_marginTop="16dp"
+        <ProgressBar
+            android:layout_marginTop="32dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:gravity="center"/>
+            android:layout_marginBottom="32dp"
+            android:layout_gravity="center"/>
 
-        <Button
-            android:id="@+id/downloadButton"
-            style="@style/ButtonGreen.Small"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="@string/local_markets_download_button"/>
+            android:text="@string/progress_syncing_account_data"/>
 
     </LinearLayout>
 
-</ScrollView>
+</LinearLayout>

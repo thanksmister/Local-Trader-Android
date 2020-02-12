@@ -23,6 +23,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.view.View
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
@@ -32,6 +33,7 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHand
 import com.thanksmister.bitcoin.localtrader.network.sync.SyncUtils
 import com.thanksmister.bitcoin.localtrader.ui.BaseActivity
 import com.thanksmister.bitcoin.localtrader.ui.viewmodels.SplashViewModel
+import kotlinx.android.synthetic.main.view_splash.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -164,22 +166,19 @@ class SplashActivity : BaseActivity() {
 
     private fun showProgress(show: Boolean) {
         if(!show) {
-            //splashProgressBar.visibility = View.INVISIBLE
+            splashProgressBar.visibility = View.INVISIBLE
         } else {
-           // splashProgressBar.visibility = View.VISIBLE
+            splashProgressBar.visibility = View.VISIBLE
         }
     }
 
     private fun startMainActivity() {
-        val handler = Handler()
-        handler.postDelayed(Runnable {
-            SyncUtils.createSyncAccount(applicationContext)
-            val intent = Intent(this, MainActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(intent)
-        }, 5000)
+        SyncUtils.createSyncAccount(applicationContext)
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
     }
 
     companion object {
