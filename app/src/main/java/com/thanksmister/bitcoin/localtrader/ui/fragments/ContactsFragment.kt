@@ -98,7 +98,7 @@ class ContactsFragment : BaseFragment() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { data ->
-                    if(data != null) {
+                    if(data != null && data.size > 0) {
                         setupList(data)
                     }
                 }, { error ->

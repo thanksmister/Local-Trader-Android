@@ -85,7 +85,7 @@
                         tools:text="11/23/99"/>
 
                 <TextView
-                        android:id="@+id/contactsId"
+                        android:id="@+id/adapterContactsId"
                         style="@style/TextMedium.SmallAction.Light"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

@@ -705,10 +705,10 @@ class LocalBitcoinsFetcher(
                 })
     }
 
-    fun postMessageWithAttachment(contactId: Int, message: String, file: File): Observable<JsonElement> {
+    fun postMessageWithAttachment(contactId: Int, message: String, file: File, fileName: String): Observable<JsonElement> {
         val accessToken = preferences.getAccessToken()
         val requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file)
-        val multiPartBody = MultipartBody.Part.createFormData("document", file.name, requestBody)
+        val multiPartBody = MultipartBody.Part.createFormData("document", fileName, requestBody)
         val params = LinkedHashMap<String, String>()
         params["msg"] = message
         return networkApi.contactMessagePostWithAttachment(accessToken, contactId, params, multiPartBody)

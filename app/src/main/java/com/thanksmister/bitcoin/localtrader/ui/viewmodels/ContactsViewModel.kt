@@ -173,7 +173,7 @@ constructor(application: Application,
                 .map { contactList  ->
                     val contacts = ArrayList<Contact>()
                     contactList.forEach() {
-                        if (it.closedAt != null && it.canceledAt != null && TradeUtils.tradeIsActive(it.closedAt!!, it.canceledAt!!)) {
+                        if (TradeUtils.tradeIsActive(it.closedAt, it.canceledAt)) {
                             contacts.add(it);
                         }
                     }

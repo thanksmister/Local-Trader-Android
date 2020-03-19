@@ -109,8 +109,8 @@ class TradeUtils {
             }
         }
 
-        fun tradeIsActive(closedAt: String, canceledAt: String): Boolean {
-            return TextUtils.isEmpty(closedAt) && TextUtils.isEmpty(canceledAt)
+        fun tradeIsActive(closedAt: String?, canceledAt: String?): Boolean {
+            return (TextUtils.isEmpty(closedAt) || TextUtils.isEmpty(canceledAt))
         }
 
         fun isCanceledTrade(contact: Contact): Boolean {
@@ -138,13 +138,13 @@ class TradeUtils {
         }
 
         fun canDisputeTrade(contact: Contact): Boolean {
-            return !TextUtils.isEmpty(contact.actions.disputeUrl) && TradeUtils.isOnlineTrade(contact)
-                    && !TradeUtils.isCanceledTrade(contact) && !TradeUtils.isClosedTrade(contact)
+            return (!TextUtils.isEmpty(contact.actions.disputeUrl) && isOnlineTrade(contact)
+                    && !isCanceledTrade(contact) && !isClosedTrade(contact))
         }
 
         fun canCancelTrade(contact: Contact): Boolean {
-            return contact.isBuying && !isClosedTrade(contact) && !isCanceledTrade(contact) && !isReleased(contact)
-                    && !TextUtils.isEmpty(contact.actions.cancelUrl);
+            return (contact.isBuying && !isClosedTrade(contact) && !isCanceledTrade(contact) && !isReleased(contact)
+                    && !TextUtils.isEmpty(contact.actions.cancelUrl))
         }
 
         fun canReleaseTrade(contact: Contact): Boolean {
@@ -161,27 +161,27 @@ class TradeUtils {
 
         fun isOnlineTrade(contact: Contact): Boolean {
             val tradeType = TradeType.valueOf(contact.advertisement.tradeType)
-            return tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL
+            return (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL)
         }
 
         fun isOnlineTrade(tradeType: TradeType): Boolean {
-            return tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL
+            return (tradeType == TradeType.ONLINE_BUY || tradeType == TradeType.ONLINE_SELL)
         }
 
         fun isOnlineTrade(tradeType: String): Boolean {
-            return tradeType == TradeType.ONLINE_BUY.name || tradeType == TradeType.ONLINE_SELL.name
+            return (tradeType == TradeType.ONLINE_BUY.name || tradeType == TradeType.ONLINE_SELL.name)
         }
         
         fun isOnlineTrade(advertisement: Advertisement): Boolean {
-            return TradeType.ONLINE_BUY.name == advertisement.tradeType || TradeType.ONLINE_SELL.name == advertisement.tradeType
+            return (TradeType.ONLINE_BUY.name == advertisement.tradeType || TradeType.ONLINE_SELL.name == advertisement.tradeType)
         }
 
         fun isSellTrade(advertisement: Advertisement): Boolean {
-            return TradeType.ONLINE_SELL.name == advertisement.tradeType
+            return (TradeType.ONLINE_SELL.name == advertisement.tradeType)
         }
 
         fun isBuyTrade(advertisement: Advertisement): Boolean {
-            return TradeType.ONLINE_BUY.name == advertisement.tradeType
+            return (TradeType.ONLINE_BUY.name == advertisement.tradeType)
         }
 
         fun getMethodForAdvertisement(onlineProvider: String, methods: List<Method>): Method? {

@@ -88,7 +88,7 @@ class ContactsAdapter(private val context: Context, private val onItemClickListe
             val date = Dates.parseLocaleDateTime(contact.createdAt)
             itemView.contactsTradeType.text = "$type - $amount"
             itemView.contactsTradeDetails.text = itemView.context.getString(R.string.text_with, person)
-            itemView.contactsId.setText(contact.contactId)
+            itemView.adapterContactsId.setText(contact.contactId.toString())
             itemView.contactsDate.text = date
         }
         fun bindEmpty(onItemClickListener: OnItemClickListener) {

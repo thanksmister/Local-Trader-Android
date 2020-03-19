@@ -17,12 +17,12 @@
 package com.thanksmister.bitcoin.localtrader.ui.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.thanksmister.bitcoin.localtrader.BaseApplication
 import com.thanksmister.bitcoin.localtrader.R
 import com.thanksmister.bitcoin.localtrader.network.api.LocalBitcoinsApi
@@ -31,7 +31,6 @@ import com.thanksmister.bitcoin.localtrader.network.exceptions.ExceptionCodes
 import com.thanksmister.bitcoin.localtrader.network.exceptions.NetworkException
 import com.thanksmister.bitcoin.localtrader.network.exceptions.RetrofitErrorHandler
 import com.thanksmister.bitcoin.localtrader.persistence.Preferences
-import com.thanksmister.bitcoin.localtrader.utils.Parser
 import com.thanksmister.bitcoin.localtrader.utils.StringUtils
 import com.thanksmister.bitcoin.localtrader.utils.applySchedulers
 import com.thanksmister.bitcoin.localtrader.utils.plusAssign
@@ -43,7 +42,9 @@ import retrofit2.HttpException
 import timber.log.Timber
 import java.io.*
 import java.net.SocketTimeoutException
+import java.util.*
 import javax.inject.Inject
+
 
 class MessageViewModel @Inject
 constructor(application: Application,
@@ -89,27 +90,38 @@ constructor(application: Application,
                 })
     }
 
-    private fun postMessageWithAttachment(contactId: Int, message: String, file: File) {
-        Timber.d("postMessageWithAttachment: file ${file.path}")
-        disposable += fetcher.postMessageWithAttachment(contactId, message, file)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe ({
-                    setMessagePostStatus(true)
-                }, {
-                    error -> Timber.e("Message Post Attachment Error" + error.message)
-                    if(error is NetworkException) {
-                        if(RetrofitErrorHandler.isHttp403Error(error.code)) {
-                            showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+    /*
+    {"message":"Invalid parameters.","errors":{"document":"* File extension '' is not allowed. Allowed extensions are: 'ppm, grib, im, rgba, rgb, jpx, h5, jpe, jpf, jpg, fli, jpc, sgi, gbr, pcx, mpeg, jpeg, ps, flc, tif, hdf, icns, gif, palm, mpg, fits, pgm, mic, pxr, fit, xbm, eps, emf, jp2, dcx, webp, bmp, bw, pbm, j2c, psd, pcd, ras, j2k, mpo, cur, fpx, ftu, png, msp, iim, wmf, jfif, tga, bufr, ico, ftc, xpm, pdf, dds, tiff'."},"error_code":9,"error_lists":{"document":["File extension '' is not allowed. Allowed extensions are: 'ppm, grib, im, rgba, rgb, jpx, h5, jpe, jpf, jpg, fli, jpc, sgi, gbr, pcx, mpeg, jpeg, ps, flc, tif, hdf, icns, gif, palm, mpg, fits, pgm, mic, pxr, fit, xbm, eps, emf, jp2, dcx, webp, bmp, bw, pbm, j2c, psd, pcd, ras, j2k, mpo, cur, fpx, ftu, png, msp, iim, wmf, jfif, tga, bufr, ico, ftc, xpm, pdf, dds, tiff'."]}}
+     */
+    // TODO we are guessing if we never have an extension, we should ask and also filter the extension types and give warning if wrong file is attempted to upload
+    private fun postMessageWithAttachment(contactId: Int, message: String, file: File, fileName: String) {
+        var extension: String = fileName.substring(fileName.lastIndexOf("."))
+        if(extension.isEmpty()) {
+            extension = ".jpg"
+        }
+        val r = Random()
+        val randomNum: Int = r.nextInt(1000 - 100) + 1000
+        val sendFileName = "$contactId-$randomNum$extension"
+        if(sendFileName.isNotEmpty()) {
+            disposable += fetcher.postMessageWithAttachment(contactId, message, file, sendFileName)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe ({
+                        setMessagePostStatus(true)
+                    }, {
+                        error -> Timber.e("Message Post Attachment Error" + error.message)
+                        if(error is NetworkException) {
+                            if(RetrofitErrorHandler.isHttp403Error(error.code)) {
+                                showNetworkMessage(error.message, ExceptionCodes.AUTHENTICATION_ERROR_CODE)
+                            } else {
+                                showNetworkMessage(error.message, error.code)
+                            }
                         } else {
-                            showNetworkMessage(error.message, error.code)
+                            showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_message))
                         }
-                    } else {
-                        showAlertMessage(getApplication<BaseApplication>().getString(R.string.toast_error_message))
-                    }
-                })
+                    })
+        }
     }
-
 
     fun generateMessageBitmap(contactId: Int, fileName: String, message: String, uri: Uri) {
         disposable.add(
@@ -118,7 +130,7 @@ constructor(application: Application,
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ file ->
                             if(file != null) {
-                                postMessageWithAttachment(contactId, message, file)
+                                postMessageWithAttachment(contactId, message, file, fileName)
                             }
                         }, { error ->
                             Timber.e(error.message)
