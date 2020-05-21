@@ -12,6 +12,10 @@ A LocalBitcoins account is required to use Local Trader. To get an account, plea
 
 If you are not familiar with LocalBitcoins, please visit their [about page](https://localbitcoins.com/about) for additional information. Also please read the [getting started guides](https://localbitcoins.com/guides/?ch=2hbo) available on LocalBitcoins to learn how to trade. As always, trade responsibly and safely.
 
+## Support
+
+Join the [ThanksMister Community](https://community.thanksmister.com/) to ask questions or share any helpful information about this project. 
+
 
 ## Features
 
