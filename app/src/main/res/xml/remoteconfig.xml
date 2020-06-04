@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2020 ThanksMister LLC
+  ~ www.ThanksMister.com
+  ~ mister@thanksmister.com
+  ~ Mozilla Public License Version 2.0
+  -->
+
 <defaultsMap>
     <entry>
         <key>advanced_ad_editing</key>
