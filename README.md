@@ -17,7 +17,7 @@ If you are not familiar with LocalBitcoins, please visit their [about page](http
 
 ## Support
 
-Join the [ThanksMister Community](https://community.thanksmister.com/) to ask questions or share any helpful information about this project. 
+Join the [ThanksMister Community](https://community.thanksmister.com/) to ask questions or share any helpful information about this project.  You can also join the [Discord](https://discord.com/invite/euh9J2d) channel to ask questions or get support. 
 
 
 ## Features
@@ -57,16 +57,7 @@ Local Trader is not owned or operated by LocalBitcoins. Please contact LocalBitc
 
 - [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
 - [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
-- [Reddit Community](https://www.reddit.com/r/LocalTrader/)
 
-## Build Instrucitons
-
-To build Local Trader from code you need Android Studio 3.0 installed.  Check out the code from Github.  You need to modifiy your local.properties file to contain your own LocalBitcions API key and secret from [LocalBitcoins API page](https://localbitcoins.com/accounts/api/). Append your values to the end of the local.poperties file:
-
-```
-lbcAccessKey=[your_api_key]
-lbcAccessSecret=[your_api_secret]
-```
 
 ## Roadmap
 
