@@ -58,18 +58,3 @@ Local Trader is not owned or operated by LocalBitcoins. Please contact LocalBitc
 - [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
 - [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
 
-
-## Roadmap
-
-- Updated architecture using RxJava 2, Room Database, Android Architecture components
-- Add additional adveretisement editing features
-- Add advertisement creation features
-
-## Contributers
-
-At this time I am looking for contributers to translate the application and Google Play listing into different languages. Please contact me if you are interested. 
-
-## Acknowledgements
-
-Special thanks to [Jiwei li](https://github.com/jiweiyx) for Chinese translations.  
-
