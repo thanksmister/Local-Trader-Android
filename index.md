@@ -1,37 +1,51 @@
-## Welcome to GitHub Pages
+# Local Trader
 
-You can use the [editor on GitHub](https://github.com/thanksmister/Local-Trader-Android/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+Local Trader is an Android application for <b>[LocalBitcoins](https://localbitcoins.net/?ch=2hbo)</b>. This project is not owned or developed by LocalBitcoins, it's developed independently and uses the LocalBitcoin's API.  Local Trader allows you to manage your advertisements, trades, messages, and wallet. Local Trader is available for download on the [Goolge Play Store](https://play.google.com/store/apps/details?id=com.thanksmister.bitcoin.localtrader) or you can download and install the latest file from the [release section](https://github.com/thanksmister/Local-Trader-Android/releases). 
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+ 
+A LocalBitcoins account is required to use Local Trader. To get an account, please register for at [LocalBitcoins.com](https://localbitcoins.com/register/?ch=2hbo]or) use the new mirror site at [LocalBitcoins.net](https://localbitcoins.net/register/?ch=2hbo) for blocked regions. 
 
-### Markdown
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+If you are not familiar with LocalBitcoins, please visit their [about page](https://localbitcoins.com/about) for additional information. Also please read the [getting started guides](https://localbitcoins.com/guides/?ch=2hbo) available on LocalBitcoins to learn how to trade. As always, trade responsibly and safely.
 
-```markdown
-Syntax highlighted code block
+## Support
 
-# Header 1
-## Header 2
-### Header 3
+Join the [Discord](https://discord.com/invite/euh9J2d) channel to ask questions or get support or contacct us on [Twitter](https://twitter.com/LlcMister). 
 
-- Bulleted
-- List
 
-1. Numbered
-2. List
+## Features
 
-**Bold** and _Italic_ and `Code` text
+- Ethereum, Bitcoin, Dash, Ripple, Monero, Litecoin trading
+- Wallet functionality with PIN code for sending Bitcoin
+- Release and fund trades with PIN code
+- Send and receive trade messages and notifications of trade updates
+- Send and download trade message attachments
+- Update advertisements (not fully supported)
+- Search local or online trades to buy or sell Bitcoin or other cryptocurrencies
 
-[Link](url) and ![Image](src)
-```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Security
 
-### Jekyll Themes
+Local Trader uses secure <b>Oauth2 authentication</b> for the LocalBitcoins services. 
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/thanksmister/Local-Trader-Android/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+For authentication you will be taken to the LocalBitcoins website where you will need to authenticate as you would when logging into LocalBitcoins. Upon successful authentication you will be returned to the Local Trader application.
 
-### Support or Contact
+Local Trader request permissions for read, write and money_pin during authentication. The money_pin permission allows you to send money using your <b>LocalBitcoins PIN code</b>.
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+You created a PIN code as part of the LocalBitcoins registration and it is required to send Bitcoin from your wallet, and to fund or release trades. The PIN code is <b>NOT</b> the same as your 2-Factor Authentication (2FA).  
+
+View or manage your PIN code from your [profile page](https://localbitcoins.com/accounts/profile/#toc6?ch=2hbo) or use the [mirror site profile page](https://localbitcoins.net/accounts/profile/#toc6?ch=2hbo) for blocked regions.
+
+
+## Privacy Information
+
+We do not collect any user information, we do not have access to user account information.  The only information we collect is generic device information for application crashes. 
+
+
+## Additional Information
+
+Local Trader is not owned or operated by LocalBitcoins. Please contact LocalBitcoins support for any account issues or questions. 
+
+- [LocalBitcoins Registration](https://localbitcoins.com/register/?ch=2hbo)
+- [LocalBitcoins Support](https://localbitcoins.com/support/request/?ch=2hbo)
+
